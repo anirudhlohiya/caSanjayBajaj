@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Coverage / testing
+coverage/
+.nyc_output/
+
+# Angular / NestJS caches
+.angular/
+.cache/
+
+# Android
+android-wrapper/.gradle/
+android-wrapper/local.properties
+android-wrapper/build/
+android-wrapper/app/build/
+*.keystore
+*.jks
+
+# Terraform / infra (if added later)
+*.tfstate
+*.tfstate.*
+.terraform/

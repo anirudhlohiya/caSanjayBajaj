@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-surface" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CA Admin - Send Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#305ea4",
+                        "outline": "#74777f",
+                        "on-primary-fixed": "#011b3e",
+                        "on-primary-container": "#7c91bb",
+                        "primary-fixed-dim": "#b2c7f3",
+                        "surface-dim": "#d8dadc",
+                        "surface-bright": "#f7f9fb",
+                        "background": "#f7f9fb",
+                        "surface-variant": "#e0e3e5",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#44474e",
+                        "on-surface": "#191c1e",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary-fixed": "#d3e4fe",
+                        "on-secondary-fixed-variant": "#0e458a",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#001b3f",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#abc7ff",
+                        "surface-tint": "#4a5e86",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#041528",
+                        "on-primary-fixed-variant": "#32476c",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e0e3e5",
+                        "tertiary-fixed-dim": "#b7c8e1",
+                        "on-tertiary-container": "#8191a9",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "primary-container": "#12294d",
+                        "primary": "#001433",
+                        "secondary-container": "#87b1fd",
+                        "on-background": "#191c1e",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#eff1f3",
+                        "outline-variant": "#c4c6cf",
+                        "surface-container": "#eceef0",
+                        "surface": "#f7f9fb",
+                        "inverse-primary": "#b2c7f3",
+                        "on-secondary-container": "#064287",
+                        "tertiary-container": "#1a2a3e",
+                        "on-tertiary-fixed-variant": "#38485d",
+                        "on-tertiary-fixed": "#0b1c30",
+                        "primary-fixed": "#d7e2ff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#d7e2ff",
+                        "surface-container-low": "#f2f4f6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "md": "16px",
+                        "container-margin": "24px",
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "numeric-data": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "numeric-data": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full flex flex-col font-body-md text-on-surface bg-surface antialiased overflow-hidden">
+<!-- TopNavBar: Standard Header -->
+<header class="bg-surface dark:bg-surface-container-lowest text-primary dark:text-primary-fixed docked full-width top-0 border-b border-outline-variant dark:border-outline flat no shadows fixed top-0 w-full z-50 flex justify-between items-center px-container-margin py-sm h-[64px]">
+<div class="flex items-center gap-md">
+<span class="font-headline-lg text-headline-lg font-bold text-secondary dark:text-secondary-fixed">CA Admin</span>
+</div>
+<div class="flex items-center gap-md">
+<button aria-label="notifications" class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button aria-label="settings" class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden ml-sm border border-outline-variant">
+<img alt="Administrator Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a corporate administrator in a bright, modern office setting. Light mode aesthetic with cool blue and crisp white tones. Shallow depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpgl_XBXHJ7Spf9s3jM3saqKfzSkZstaE-BMGMQSFL2hZbV1C045-n1ez-mTfXO3LtbzsZ90JgyBan5-vxwX-ztTNfgM0U-fOH3Dk2TyqcfTcg1TVPp-XEvc1aleMlXfejG5Tlm0zkbEf1cjPp5UuUuuHek5ODISyeE_TURgQtxiXdNYlqjAEt63t_xjpjhD7N1FnYqFBfUQPtG_Gx1bxMTC-IFzYh9hKowJgmoCXoEXcFryeFxJ2wJQ"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1 pt-[64px] h-full overflow-hidden">
+<!-- SideNavBar: Collapsed for focus on task -->
+<nav class="bg-surface-container-lowest dark:bg-surface-container-low text-secondary dark:text-secondary-fixed docked left-0 h-full w-[240px] md:w-[64px] lg:w-[240px] border-r border-outline-variant dark:border-outline flat no shadows hidden md:flex flex-col pt-md px-md z-40 transition-all">
+<div class="flex-1 overflow-y-auto py-sm space-y-xs">
+<!-- Dashboard -->
+<a class="flex items-center gap-sm px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="dashboard">dashboard</span>
+<span class="font-body-md text-body-md md:hidden lg:block truncate">Dashboard</span>
+</a>
+<!-- Clients (Active intent fallback) -->
+<a class="flex items-center gap-sm px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="groups">groups</span>
+<span class="font-body-md text-body-md md:hidden lg:block truncate">Clients</span>
+</a>
+<!-- Documents -->
+<a class="flex items-center gap-sm px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="description">description</span>
+<span class="font-body-md text-body-md md:hidden lg:block truncate">Documents</span>
+</a>
+<!-- Reports (Active Highlight) -->
+<a class="flex items-center gap-sm px-sm py-sm bg-secondary text-on-secondary dark:bg-secondary-container dark:text-on-secondary-container rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="assessment" data-weight="fill" style="font-variation-settings: 'FILL' 1;">assessment</span>
+<span class="font-body-md text-body-md font-medium md:hidden lg:block truncate">Reports</span>
+</a>
+<!-- Reminders -->
+<a class="flex items-center gap-sm px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="notifications_active">notifications_active</span>
+<span class="font-body-md text-body-md md:hidden lg:block truncate">Reminders</span>
+</a>
+<!-- Staff -->
+<a class="flex items-center gap-sm px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="badge">badge</span>
+<span class="font-body-md text-body-md md:hidden lg:block truncate">Staff</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-sm px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md md:hidden lg:block truncate">Settings</span>
+</a>
+</div>
+<div class="py-md border-t border-outline-variant mt-auto hidden lg:block">
+<button class="w-full flex items-center justify-center gap-sm bg-surface-container-high hover:bg-surface-variant text-primary py-2 px-4 rounded-full transition-colors border border-outline-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+<span class="font-label-md text-label-md">Add New Client</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Area: Send Report Modal/Screen Layout -->
+<main class="flex-1 overflow-y-auto bg-surface p-container-margin md:pl-lg">
+<div class="max-w-5xl mx-auto">
+<!-- Page Header (Task focused) -->
+<div class="flex items-center gap-sm mb-lg">
+<button aria-label="Go Back" class="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary">Send Report</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Distribute financial documents and notify clients securely.</p>
+</div>
+</div>
+<!-- Bento Grid Layout for Task -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column: Form Controls (7 cols) -->
+<div class="lg:col-span-7 flex flex-col gap-gutter">
+<!-- Details Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-md">Report Details</h2>
+<div class="space-y-md">
+<!-- Client Select -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Select Client</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-2 pl-3 pr-10 font-body-md text-body-md text-on-surface focus:border-secondary focus:ring-2 focus:ring-secondary/20 appearance-none outline-none transition-shadow">
+<option selected="" value="acme_corp">Acme Corp (Pre-selected)</option>
+<option value="globex">Globex Corporation</option>
+<option value="soylent">Soylent Corp</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Report Type Select -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Report Type</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-2 pl-3 pr-10 font-body-md text-body-md text-on-surface focus:border-secondary focus:ring-2 focus:ring-secondary/20 appearance-none outline-none transition-shadow">
+<option disabled="" selected="" value="">Select type...</option>
+<option value="q1">Quarterly P&amp;L</option>
+<option value="annual">Annual Summary</option>
+<option value="tax">Tax Documentation</option>
+<option value="custom">Custom Report</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Filing Period Select -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Filing Period</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-2 pl-3 pr-10 font-body-md text-body-md text-on-surface focus:border-secondary focus:ring-2 focus:ring-secondary/20 appearance-none outline-none transition-shadow">
+<option disabled="" selected="" value="">Select period...</option>
+<option value="q3_2023">Q3 2023</option>
+<option value="q4_2023">Q4 2023</option>
+<option value="fy_2023">FY 2023</option>
+<option value="q1_2024">Q1 2024</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- File Upload Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm">
+<div class="flex items-center justify-between mb-md">
+<h2 class="font-headline-sm text-headline-sm text-primary">Attachments</h2>
+<span class="font-label-md text-label-md text-on-surface-variant">Max 25MB total</span>
+</div>
+<!-- Drag & Drop Area -->
+<div class="border-2 border-dashed border-outline-variant rounded-lg bg-surface-container-low p-xl flex flex-col items-center justify-center text-center transition-colors hover:bg-surface hover:border-secondary cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container-lowest border border-outline-variant flex items-center justify-center mb-sm group-hover:border-secondary group-hover:text-secondary transition-colors">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface font-medium mb-xs">Drag and drop files here</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">or <span class="text-secondary font-medium">browse files</span> to upload (PDF, XLSX, CSV)</p>
+</div>
+<!-- Example attached file -->
+<div class="mt-md bg-surface-container-lowest border border-outline-variant rounded-lg p-sm flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded bg-error-container text-on-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<div>
+<p class="font-numeric-data text-numeric-data text-on-surface text-[13px]">Acme_Corp_Q3_Financials.pdf</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px]">2.4 MB</p>
+</div>
+</div>
+<button aria-label="Remove file" class="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="close">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Preview & Actions (5 cols) -->
+<div class="lg:col-span-5 flex flex-col gap-gutter">
+<!-- Notification Preview Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col shadow-sm overflow-hidden h-full">
+<div class="p-md border-b border-outline-variant bg-surface flex items-center justify-between">
+<h2 class="font-headline-sm text-headline-sm text-primary">Client Notification Preview</h2>
+<div class="flex bg-surface-container-high rounded-full p-[2px]">
+<button class="px-3 py-1 rounded-full text-[12px] font-medium bg-surface-container-lowest shadow-sm text-on-surface">Email</button>
+<button class="px-3 py-1 rounded-full text-[12px] font-medium text-on-surface-variant hover:text-on-surface transition-colors">SMS</button>
+</div>
+</div>
+<!-- Email Preview Canvas -->
+<div class="flex-1 bg-surface p-md overflow-y-auto">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md shadow-sm max-w-sm mx-auto">
+<!-- Email Header Mockup -->
+<div class="mb-sm pb-sm border-b border-surface-variant">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-6 h-6 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center text-[10px] font-bold">CA</div>
+<span class="font-label-md text-label-md text-on-surface">CA Admin Portal</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px]">To: accounting@acmecorp.com</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px]">Subject: New Financial Report Available - Q3 2023</p>
+</div>
+<!-- Email Body Mockup -->
+<div class="space-y-sm text-[13px] text-on-surface">
+<p>Hello Acme Corp Team,</p>
+<p>Your Quarterly P&amp;L report for Q3 2023 has been finalized and is now available for review.</p>
+<div class="bg-surface p-sm rounded border border-outline-variant my-md">
+<div class="flex items-center gap-xs mb-xs">
+<span class="material-symbols-outlined text-outline text-[16px]" data-icon="description">description</span>
+<span class="font-numeric-data font-medium text-[12px]">Acme_Corp_Q3_Financials.pdf</span>
+</div>
+<a class="inline-block mt-xs bg-secondary text-on-secondary px-3 py-1 rounded text-[12px] font-medium text-center w-full" href="#">View Secure Document</a>
+</div>
+<p>If you have any questions, please contact your account manager.</p>
+<p class="text-on-surface-variant text-[11px] mt-md pt-xs border-t border-surface-variant">Securely delivered via CA Admin Portal.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Bar (Sticky at bottom on small screens, part of flow on desktop) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm flex items-center justify-end gap-md">
+<button class="px-4 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors">
+                                Cancel
+                            </button>
+<button class="px-6 py-2 rounded-lg font-label-md text-label-md bg-secondary text-on-secondary hover:bg-primary-container transition-colors shadow-sm flex items-center gap-sm">
+<span>Send Report</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="send">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

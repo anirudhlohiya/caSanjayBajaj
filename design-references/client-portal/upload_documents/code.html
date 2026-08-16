@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Upload Document - GST Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#242a30",
+                        "secondary-fixed": "#d7e2ff",
+                        "on-surface": "#191c1d",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#064287",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-tertiary": "#ffffff",
+                        "background": "#f8f9fa",
+                        "secondary": "#305ea4",
+                        "inverse-primary": "#b2c7f3",
+                        "on-secondary-fixed-variant": "#0e458a",
+                        "outline-variant": "#c4c6cf",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#c2c7cf",
+                        "outline": "#74777f",
+                        "secondary-fixed-dim": "#abc7ff",
+                        "primary-fixed-dim": "#b2c7f3",
+                        "surface-tint": "#4a5e86",
+                        "inverse-surface": "#2e3132",
+                        "on-primary-fixed": "#011b3e",
+                        "surface-dim": "#d9dadb",
+                        "on-tertiary-fixed-variant": "#42474e",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#f8f9fa",
+                        "on-tertiary-fixed": "#171c22",
+                        "on-tertiary-container": "#8b9198",
+                        "surface": "#f8f9fa",
+                        "on-secondary-fixed": "#001b3f",
+                        "on-background": "#191c1d",
+                        "secondary-container": "#87b1fd",
+                        "tertiary-fixed": "#dee3eb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-container": "#edeeef",
+                        "on-primary-fixed-variant": "#32476c",
+                        "primary": "#001433",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#d7e2ff",
+                        "tertiary": "#10161b",
+                        "surface-container-highest": "#e1e3e4",
+                        "primary-container": "#12294d",
+                        "surface-variant": "#e1e3e4",
+                        "on-primary-container": "#7c91bb",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-container-high": "#e7e8e9",
+                        "on-surface-variant": "#44474e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "1rem",
+                        "stack-sm": "0.5rem",
+                        "margin-mobile": "1rem",
+                        "container-padding": "1.25rem",
+                        "stack-lg": "1.5rem",
+                        "stack-md": "1rem",
+                        "margin-tablet": "2rem"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "title-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-lg": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "label-md": ["11px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .drag-active {
+            border-color: #2C5AA0 !important;
+            background-color: rgba(44, 90, 160, 0.05) !important;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24 md:pb-0 pt-16 md:pt-20">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-on-surface flex justify-between items-center h-16 px-gutter w-full fixed top-0 z-50 border-b border-outline-variant dark:border-tertiary-container">
+<button class="p-2 text-primary dark:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-tertiary-container transition-colors rounded-full active:scale-95 duration-100 flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed">GST Portal</h1>
+<button class="p-2 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-tertiary-container transition-colors rounded-full active:scale-95 duration-100 flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<main class="max-w-4xl mx-auto px-margin-mobile md:px-margin-tablet py-stack-lg">
+<div class="mb-stack-lg">
+<h2 class="font-headline-md text-headline-md text-primary mb-stack-sm">Upload Document</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Securely upload your financial documents for processing.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-stack-lg">
+<!-- Main Content Area -->
+<div class="md:col-span-2 space-y-stack-lg">
+<!-- Filing Period Selector -->
+<div class="bg-surface-container-lowest p-container-padding rounded-lg border border-outline-variant shadow-sm relative">
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2 bg-surface-container-lowest absolute -top-2 left-4 px-1" for="filing-period">Filing Period</label>
+<div class="relative mt-2">
+<select class="block w-full bg-transparent border-outline-variant rounded-md py-3 pl-4 pr-10 font-body-lg text-body-lg text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary focus:border-secondary transition-colors appearance-none cursor-pointer" id="filing-period">
+<option disabled="" selected="" value="">Select period</option>
+<option value="q1-2024">Q1 2024 (Jan - Mar)</option>
+<option value="q2-2024">Q2 2024 (Apr - Jun)</option>
+<option value="q3-2024">Q3 2024 (Jul - Sep)</option>
+<option value="q4-2024">Q4 2024 (Oct - Dec)</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface-variant">
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+</div>
+<!-- File Picker Area -->
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 text-center bg-surface-container-lowest hover:bg-surface-container-low transition-all cursor-pointer group flex flex-col items-center justify-center min-h-[240px]" id="dropzone">
+<div class="flex justify-center space-x-4 mb-6 text-outline group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-4xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">picture_as_pdf</span>
+<span class="material-symbols-outlined text-4xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="material-symbols-outlined text-4xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">image</span>
+</div>
+<p class="font-title-lg text-title-lg text-primary mb-2 group-hover:text-primary-container">Drag &amp; drop files here</p>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4">or tap to browse</p>
+<button class="bg-surface-container-high text-primary px-6 py-2 rounded-lg font-label-lg text-label-lg hover:bg-outline-variant hover:text-on-surface transition-colors">Browse Files</button>
+<p class="font-label-md text-label-md text-outline mt-6">Supported formats: PDF, XLS, XLSX, JPG, PNG (Max 10MB)</p>
+<input accept=".pdf,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden" id="file-input" multiple="" type="file"/>
+</div>
+<!-- Upload Progress & File List -->
+<div class="bg-surface-container-lowest p-container-padding rounded-lg border border-outline-variant shadow-sm hidden" id="file-list-container">
+<h3 class="font-title-lg text-title-lg text-primary mb-stack-md">Selected Files</h3>
+<div class="space-y-stack-md">
+<!-- Example Uploading File -->
+<div class="flex items-center justify-between p-3 border border-outline-variant rounded-lg bg-surface relative overflow-hidden">
+<!-- Progress Bar Background -->
+<div class="absolute inset-0 bg-secondary-container opacity-20 w-[65%] rounded-l-lg transition-all duration-300"></div>
+<div class="flex items-center space-x-3 z-10">
+<span class="material-symbols-outlined text-secondary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">picture_as_pdf</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium truncate w-40 md:w-64">Q1_Invoices_Batch_A.pdf</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Uploading... 65%</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-error transition-colors z-10 p-1 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Example Added File -->
+<div class="flex items-center justify-between p-3 border border-outline-variant rounded-lg bg-surface">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-secondary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">description</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium truncate w-40 md:w-64">March_Bank_Statement.xlsx</p>
+<p class="font-label-md text-label-md text-on-surface-variant">2.4 MB</p>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1; color: #34d399;">check_circle</span>
+<button class="text-on-surface-variant hover:text-error transition-colors p-1 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="mt-stack-lg flex justify-end">
+<button class="bg-primary-container text-on-primary rounded-lg px-6 py-3 font-label-lg text-label-lg hover:bg-primary transition-colors flex items-center shadow-md active:scale-95 duration-100">
+                            Submit Documents
+                            <span class="material-symbols-outlined ml-2 text-sm">send</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Side Information Panel (Desktop mostly) -->
+<div class="hidden md:block col-span-1">
+<div class="bg-surface-container-lowest p-container-padding rounded-lg border border-outline-variant shadow-sm sticky top-24">
+<h3 class="font-title-lg text-title-lg text-primary flex items-center mb-stack-md">
+<span class="material-symbols-outlined mr-2 text-on-primary-container">info</span>
+                        Instructions
+                    </h3>
+<ul class="space-y-stack-sm font-body-md text-body-md text-on-surface-variant list-disc list-inside">
+<li>Ensure all scanned images are legible.</li>
+<li>PDFs should not be password protected.</li>
+<li>Group related invoices into a single zip or PDF if possible.</li>
+<li>Maximum total upload size per session is 50MB.</li>
+</ul>
+<div class="mt-stack-lg pt-stack-md border-t border-outline-variant">
+<p class="font-label-md text-label-md text-outline mb-2">Need Help?</p>
+<a class="font-body-md text-body-md text-secondary hover:underline flex items-center" href="#">
+                            Contact Support
+                            <span class="material-symbols-outlined ml-1 text-sm">open_in_new</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center h-20 px-2 pb-safe bg-surface dark:bg-on-surface border-t border-outline-variant dark:border-tertiary-container shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container px-5 py-1 hover:bg-surface-container dark:hover:bg-tertiary-container transition-all active:scale-90 duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-on-secondary-container text-on-secondary-container dark:text-secondary-fixed rounded-full px-5 py-1 hover:bg-surface-container dark:hover:bg-tertiary-container transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="description" data-weight="fill" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="font-label-md text-label-md">Documents</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container px-5 py-1 hover:bg-surface-container dark:hover:bg-tertiary-container transition-all active:scale-90 duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="analytics">analytics</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container px-5 py-1 hover:bg-surface-container dark:hover:bg-tertiary-container transition-all active:scale-90 duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+<!-- Side Nav (Web) - Optional for larger screens if following full MD3 adaptive, but using bottom nav rule for now -->
+<script>
+        // Simple Dropzone Interactions
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const fileListContainer = document.getElementById('file-list-container');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('drag-active');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('drag-active');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('drag-active');
+            // Simulate showing the list on drop
+            fileListContainer.classList.remove('hidden');
+        });
+        
+        fileInput.addEventListener('change', () => {
+            if(fileInput.files.length > 0) {
+                fileListContainer.classList.remove('hidden');
+            }
+        });
+    </script>
+</body></html>

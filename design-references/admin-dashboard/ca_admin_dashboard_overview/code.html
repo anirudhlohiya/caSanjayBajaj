@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CA Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#305ea4",
+                        "outline": "#74777f",
+                        "on-primary-fixed": "#011b3e",
+                        "on-primary-container": "#7c91bb",
+                        "primary-fixed-dim": "#b2c7f3",
+                        "surface-dim": "#d8dadc",
+                        "surface-bright": "#f7f9fb",
+                        "background": "#f7f9fb",
+                        "surface-variant": "#e0e3e5",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#44474e",
+                        "on-surface": "#191c1e",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary-fixed": "#d3e4fe",
+                        "on-secondary-fixed-variant": "#0e458a",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#001b3f",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#abc7ff",
+                        "surface-tint": "#4a5e86",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#041528",
+                        "on-primary-fixed-variant": "#32476c",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e0e3e5",
+                        "tertiary-fixed-dim": "#b7c8e1",
+                        "on-tertiary-container": "#8191a9",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "primary-container": "#12294d",
+                        "primary": "#001433",
+                        "secondary-container": "#87b1fd",
+                        "on-background": "#191c1e",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#eff1f3",
+                        "outline-variant": "#c4c6cf",
+                        "surface-container": "#eceef0",
+                        "surface": "#f7f9fb",
+                        "inverse-primary": "#b2c7f3",
+                        "on-secondary-container": "#064287",
+                        "tertiary-container": "#1a2a3e",
+                        "on-tertiary-fixed-variant": "#38485d",
+                        "on-tertiary-fixed": "#0b1c30",
+                        "primary-fixed": "#d7e2ff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#d7e2ff",
+                        "surface-container-low": "#f2f4f6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "md": "16px",
+                        "container-margin": "24px",
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "numeric-data": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "numeric-data": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- TopNavBar -->
+<header class="bg-surface text-primary font-headline-md text-headline-md docked full-width top-0 border-b border-outline-variant flat no shadows fixed w-full z-50 flex justify-between items-center px-container-margin py-sm">
+<div class="flex items-center gap-md">
+<span class="font-headline-lg text-headline-lg font-bold text-secondary">CA Admin</span>
+<!-- Search Bar on left as per JSON -->
+<div class="hidden md:flex items-center bg-surface-container-lowest border border-outline-variant rounded focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary-fixed-dim px-sm py-xs ml-xl w-64">
+<span class="material-symbols-outlined text-outline text-[18px] mr-xs">search</span>
+<input class="bg-transparent border-none outline-none focus:ring-0 text-body-md font-body-md w-full p-0" placeholder="Search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full flex items-center justify-center scale-95 duration-150">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full flex items-center justify-center scale-95 duration-150">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full ml-sm bg-surface-container-high border border-outline-variant overflow-hidden" data-alt="A professional headshot of a corporate administrator in a modern office setting. The lighting is bright and clear, reflecting a clean, modern corporate aesthetic. The individual is wearing professional attire, exuding competence and trustworthiness suitable for a financial software context." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCdKWX4CZYqrHbMAFOg7PVULDIej5vK96TBq-v27P78Mq8iCCucgLQOKP8zp_77_lMaNPKj90NaBMjnzpbXwF4raLu_XfB8JfRgaK1PSWyNAHnvdydlmMN1AuFcJ0Bod8RGalu1J3sSop1LPmCBneFax_0xinP2C7dQdBWAjErOqQWKSql2bl8LGt1_Z6PfdLpAp_5R-XbfpAgqgmaNwoMSCcD7-_4fvNwY0ZKYsvIg_Hm8vceHQ3fArA')"></div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="hidden md:flex bg-surface-container-lowest text-secondary font-body-md docked left-0 h-full w-[64px] lg:w-[240px] border-r border-outline-variant flat no shadows fixed top-0 z-40 flex-col pt-[72px] px-md transition-all duration-300 group overflow-x-hidden">
+<!-- Header area collapsed/expanded handling is complex for generic prompt, prioritizing JSON classes -->
+<div class="mb-xl px-sm flex items-center lg:items-start flex-col">
+<div class="w-10 h-10 rounded bg-primary-container flex-shrink-0 flex items-center justify-center mb-sm" data-alt="A sleek, minimalist corporate firm logo mark. The design utilizes sharp geometric shapes and a refined navy blue and crisp white color palette. It conveys high-end institutional trust, stability, and modern financial expertise." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD-LumrzSUC0LRqmxkwcE70kWhteXsdGOVL2CBhCjZD_0rruUZ9DKMa6x8N6SzsoJEFf-HNEbmZzU5YqnvyMziDA-u6RswMg_GPCswqKPEJxR9zVbTeLu8LRuzeUpG9IU_3AcFfFRxn2lxRAdbjTLiBngfazqLc9HRujDke0eJVT5A8l_i_9PuZSXD-bw0Cdq1nL3_ZQPPz7rP7JFNyEyN9OLggiuC51569NOHjq0RTQcG9f-b5y8ck8w')"></div>
+<div class="hidden lg:block">
+<div class="font-headline-sm text-headline-sm font-bold text-secondary whitespace-nowrap">Corporate Accounts</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant whitespace-nowrap">Admin Portal</div>
+</div>
+</div>
+<nav class="flex-1 space-y-xs">
+<a class="flex items-center gap-md px-sm py-sm bg-secondary text-on-secondary rounded-lg translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="hidden lg:inline whitespace-nowrap">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1 duration-200 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="hidden lg:inline whitespace-nowrap">Clients</span>
+</a>
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1 duration-200 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="hidden lg:inline whitespace-nowrap">Documents</span>
+</a>
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1 duration-200 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="hidden lg:inline whitespace-nowrap">Reports</span>
+</a>
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1 duration-200 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">notifications_active</span>
+<span class="hidden lg:inline whitespace-nowrap">Reminders</span>
+</a>
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1 duration-200 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">badge</span>
+<span class="hidden lg:inline whitespace-nowrap">Staff</span>
+</a>
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1 duration-200 rounded-lg transition-all mt-auto" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="hidden lg:inline whitespace-nowrap">Settings</span>
+</a>
+</nav>
+<div class="mt-xl hidden lg:block pb-lg">
+<button class="w-full bg-primary text-on-primary py-sm px-md rounded hover:bg-primary-container transition-colors font-body-md text-body-md">
+                Add New Client
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-[72px] md:pl-[64px] lg:pl-[240px] p-container-margin md:p-gutter lg:p-lg transition-all duration-300">
+<!-- Page Header (Optional but good for context) -->
+<div class="mb-lg">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Overview</h1>
+</div>
+<!-- Summary Widgets (Cards) Level 1 Elevation -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-xl">
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">Total GST Clients</span>
+<div class="mt-sm">
+<span class="font-headline-lg text-headline-lg text-primary">1,432</span>
+</div>
+<div class="flex items-center mt-xs text-sm text-[12px] font-medium text-[#0e458a] bg-secondary-fixed-dim/20 w-fit px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px] mr-1">trending_up</span>
+                    +12% this quarter
+                </div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">Pending Documents</span>
+<div class="mt-sm">
+<span class="font-headline-lg text-headline-lg text-primary">87</span>
+</div>
+<div class="flex items-center mt-xs text-sm text-[12px] font-medium text-error bg-error-container/50 w-fit px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px] mr-1">warning</span>
+                    Action Required
+                </div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">Reports Sent This Month</span>
+<div class="mt-sm">
+<span class="font-headline-lg text-headline-lg text-primary">3,204</span>
+</div>
+<div class="flex items-center mt-xs text-sm text-[12px] font-medium text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px] mr-1">check_circle</span>
+                    On schedule
+                </div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">Reminders Sent Today</span>
+<div class="mt-sm">
+<span class="font-headline-lg text-headline-lg text-primary">412</span>
+</div>
+<div class="flex items-center mt-xs text-sm text-[12px] font-medium text-[#0e458a] bg-secondary-fixed-dim/20 w-fit px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px] mr-1">schedule_send</span>
+                    Automated
+                </div>
+</div>
+</div>
+<!-- Recent Activity Table -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden">
+<div class="px-md py-sm border-b border-outline-variant bg-surface">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Recent Activity</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface font-label-md text-label-md text-on-surface-variant border-b border-outline-variant">
+<tr>
+<th class="px-md py-sm font-semibold">Client Name</th>
+<th class="px-md py-sm font-semibold">Action Taken</th>
+<th class="px-md py-sm font-semibold">Status</th>
+<th class="px-md py-sm font-semibold text-right">Date</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="px-md py-sm h-[48px] font-medium">Acme Industries Ltd.</td>
+<td class="px-md py-sm h-[48px] text-on-surface-variant">Q3 Tax Return Filed</td>
+<td class="px-md py-sm h-[48px]">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-[#d3e4fe] text-[#0e458a]">Completed</span>
+</td>
+<td class="px-md py-sm h-[48px] text-right font-numeric-data text-numeric-data text-on-surface-variant">Oct 24, 2023</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="px-md py-sm h-[48px] font-medium">Global Tech Partners</td>
+<td class="px-md py-sm h-[48px] text-on-surface-variant">Automated Reminder Sent: Missing KYC</td>
+<td class="px-md py-sm h-[48px]">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-[#f2f4f6] text-[#44474e]">Sent</span>
+</td>
+<td class="px-md py-sm h-[48px] text-right font-numeric-data text-numeric-data text-on-surface-variant">Oct 24, 2023</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="px-md py-sm h-[48px] font-medium">Smith &amp; Co. Legal</td>
+<td class="px-md py-sm h-[48px] text-on-surface-variant">Document Upload: Profit &amp; Loss Statement</td>
+<td class="px-md py-sm h-[48px]">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-[#ffdad6] text-[#93000a]">Pending Review</span>
+</td>
+<td class="px-md py-sm h-[48px] text-right font-numeric-data text-numeric-data text-on-surface-variant">Oct 23, 2023</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="px-md py-sm h-[48px] font-medium">Horizon Logistics</td>
+<td class="px-md py-sm h-[48px] text-on-surface-variant">Annual Report Generated</td>
+<td class="px-md py-sm h-[48px]">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-[#d3e4fe] text-[#0e458a]">Completed</span>
+</td>
+<td class="px-md py-sm h-[48px] text-right font-numeric-data text-numeric-data text-on-surface-variant">Oct 23, 2023</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</body></html>

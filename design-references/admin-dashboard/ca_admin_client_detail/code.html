@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CA Admin - Client Detail</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#305ea4",
+                    "outline": "#74777f",
+                    "on-primary-fixed": "#011b3e",
+                    "on-primary-container": "#7c91bb",
+                    "primary-fixed-dim": "#b2c7f3",
+                    "surface-dim": "#d8dadc",
+                    "surface-bright": "#f7f9fb",
+                    "background": "#f7f9fb",
+                    "surface-variant": "#e0e3e5",
+                    "on-error-container": "#93000a",
+                    "on-surface-variant": "#44474e",
+                    "on-surface": "#191c1e",
+                    "surface-container-high": "#e6e8ea",
+                    "tertiary-fixed": "#d3e4fe",
+                    "on-secondary-fixed-variant": "#0e458a",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed": "#001b3f",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#abc7ff",
+                    "surface-tint": "#4a5e86",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#041528",
+                    "on-primary-fixed-variant": "#32476c",
+                    "error-container": "#ffdad6",
+                    "surface-container-highest": "#e0e3e5",
+                    "tertiary-fixed-dim": "#b7c8e1",
+                    "on-tertiary-container": "#8191a9",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#2d3133",
+                    "primary-container": "#12294d",
+                    "primary": "#001433",
+                    "secondary-container": "#87b1fd",
+                    "on-background": "#191c1e",
+                    "on-error": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "outline-variant": "#c4c6cf",
+                    "surface-container": "#eceef0",
+                    "surface": "#f7f9fb",
+                    "inverse-primary": "#b2c7f3",
+                    "on-secondary-container": "#064287",
+                    "tertiary-container": "#1a2a3e",
+                    "on-tertiary-fixed-variant": "#38485d",
+                    "on-tertiary-fixed": "#0b1c30",
+                    "primary-fixed": "#d7e2ff",
+                    "error": "#ba1a1a",
+                    "secondary-fixed": "#d7e2ff",
+                    "surface-container-low": "#f2f4f6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "md": "16px",
+                    "container-margin": "24px",
+                    "gutter": "16px",
+                    "sm": "8px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "label-md": [
+                            "Inter"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "headline-lg": [
+                            "Inter"
+                    ],
+                    "headline-sm": [
+                            "Inter"
+                    ],
+                    "headline-md": [
+                            "Inter"
+                    ],
+                    "numeric-data": [
+                            "Inter"
+                    ],
+                    "body-sm": [
+                            "Inter"
+                    ]
+            },
+            "fontSize": {
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-md": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-lg": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-sm": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-md": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "numeric-data": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "body-sm": [
+                            "13px",
+                            {
+                                    "lineHeight": "18px",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+        },
+        },
+      }
+    </script>
+<style>
+        /* Hide scrollbar for clean UI, but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Subtle fade-in animation for tabs */
+        .tab-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md antialiased flex">
+<!-- SideNavBar (Shared Component) -->
+<!-- Responsive behavior: hidden on mobile (<768px), visible on md+ -->
+<nav class="hidden md:flex bg-surface-container-lowest dark:bg-surface-container-low docked left-0 h-full w-[240px] md:w-[64px] lg:w-[240px] border-r border-outline-variant dark:border-outline flat no shadows fixed left-0 top-0 h-full z-40 flex flex-col pt-[64px] px-md">
+<!-- Header / Brand Area -->
+<div class="mb-lg flex flex-col items-start overflow-hidden whitespace-nowrap lg:block md:hidden">
+<div class="flex items-center gap-sm">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="A small, professional abstract geometric logo suitable for a corporate accounting firm. The logo uses a strict navy blue and white color palette, signifying trust, stability, and precision. It sits on a bright, minimalist background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhV8U3BhF8Gx1ehMMNruJZW3BwGLpckrH4BGBRKemsJHt4y_M_WQ7NQusolU7Hr5hH423i4udymjN7jErWAsxF_UL_X4S5k7guJuKQ0CJKpTvXUSwZfLULYtHAbA6KwIq-vYF_NBn52i-28UoCs2pXa3X8dBQ7qv3WYBh8uk8Jc5ST_a_0C3INlzVkvUllx_87NTnHIP8aittZuIrMQe7rUFriFOJpExi-r5VBeRfgqvN71EsOc4eY8A"/>
+<div>
+<h1 class="font-headline-sm text-headline-sm font-bold text-secondary dark:text-secondary-fixed">Corporate Accounts</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Admin Portal</p>
+</div>
+</div>
+</div>
+<!-- Icon only brand for collapsed md state -->
+<div class="mb-lg hidden md:flex lg:hidden justify-center w-full">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="A small, professional abstract geometric logo suitable for a corporate accounting firm. The logo uses a strict navy blue and white color palette, signifying trust, stability, and precision. It sits on a bright, minimalist background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrHbTlpTQA2_22JcQRz-gEbJeZ6LvmExWik0yrUT6Gmw5Su5LXXTRYrfebpS1Y_0zFAUiyzg1qMiHOhntw-KmsohOQSlXsfhW9v9IW7ByXk4htIBZu4ftJNerQmt70_Imep75ksjXicE_M10aEN7bFpcrdKBmVKCG-3MP1zysKiDvNjN0ze0s9fyLKKG0_15mQlWBmYrBALcTiWajqR8L2FiP-59vdaa_u0MH7eeQ6ees1RAdf608Ohg"/>
+</div>
+<!-- Navigation Links -->
+<ul class="flex-1 flex flex-col gap-sm">
+<li>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#" title="Dashboard">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="dashboard">dashboard</span>
+<span class="lg:block md:hidden">Dashboard</span>
+</a>
+</li>
+<li>
+<!-- ACTIVE STATE APPLIED HERE: Page intent is "Client detail screen", so "Clients" tab is active -->
+<a class="flex items-center gap-md px-md py-sm bg-secondary text-on-secondary dark:bg-secondary-container dark:text-on-secondary-container rounded-lg hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all translate-x-1 duration-200" href="#" title="Clients">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="lg:block md:hidden">Clients</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#" title="Documents">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="description">description</span>
+<span class="lg:block md:hidden">Documents</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#" title="Reports">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="assessment">assessment</span>
+<span class="lg:block md:hidden">Reports</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#" title="Reminders">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="notifications_active">notifications_active</span>
+<span class="lg:block md:hidden">Reminders</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#" title="Staff">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="badge">badge</span>
+<span class="lg:block md:hidden">Staff</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#" title="Settings">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="settings">settings</span>
+<span class="lg:block md:hidden">Settings</span>
+</a>
+</li>
+</ul>
+<!-- CTA Button -->
+<div class="mt-auto pt-md pb-xl lg:block md:hidden">
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-sm px-md rounded-lg flex items-center justify-center gap-sm hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+                Add New Client
+            </button>
+</div>
+<!-- CTA Icon only for md -->
+<div class="mt-auto pt-md pb-xl hidden md:flex lg:hidden justify-center w-full">
+<button class="w-10 h-10 bg-primary text-on-primary rounded-lg flex items-center justify-center hover:bg-primary-container transition-colors" title="Add New Client">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+</button>
+</div>
+</nav>
+<!-- TopNavBar (Shared Component) -->
+<!-- Visible on Mobile (<768px), positioned at top. On desktop, this spans full width above content -->
+<header class="bg-surface dark:bg-surface-container-lowest docked full-width top-0 border-b border-outline-variant dark:border-outline flat no shadows fixed top-0 w-full z-50 flex justify-between items-center px-container-margin py-sm md:left-[64px] lg:left-[240px] md:w-[calc(100%-64px)] lg:w-[calc(100%-240px)]">
+<!-- Mobile Menu Toggle & Brand (Visible only on mobile) -->
+<div class="flex items-center gap-md md:hidden">
+<button class="text-on-surface-variant hover:bg-surface-container-low rounded-full p-xs">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<span class="font-headline-lg text-headline-lg font-bold text-secondary dark:text-secondary-fixed">CA Admin</span>
+</div>
+<!-- Desktop Search (search_bar: "on_left" logic implemented here) -->
+<div class="hidden md:flex items-center flex-1 max-w-md relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-secondary transition-colors" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-full py-xs pl-[40px] pr-md text-body-md focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30 transition-all" placeholder="Search clients, GSTIN, or documents..." type="text"/>
+</div>
+<!-- Trailing Actions & Profile -->
+<div class="flex items-center gap-md ml-auto">
+<div class="flex items-center gap-xs">
+<button class="text-primary dark:text-primary-fixed hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors p-sm rounded-full scale-95 duration-150 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-primary dark:text-primary-fixed hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors p-sm rounded-full scale-95 duration-150 hidden md:block">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+<div class="h-6 w-px bg-outline-variant mx-xs"></div>
+<button class="flex items-center gap-sm p-xs rounded-full hover:bg-surface-container-low transition-colors">
+<img class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="A professional headshot of a corporate administrator, cleanly lit against a neutral light grey background, conveying competence and authority in a financial setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDdBdt0AHFf-SvfoJt5Tv_3EinQLHZ1iZ9fG9f4SS1knSy436jBFnJSRf4sDipXIT1ybrY2L5iJqq-IzGCKvW78IydkrR3zZqVZtGsH-3rbzxHEhJmaOTLeByllUB2iaCnHWqrZC5HSrb9l6KUv4FJo3LROwPQedQIOlEaaEIR7e_wvD-L25h3pdZYyMz6t7CQjRrRTO9MfEHG5gHY0u_XeDzhNhQt-Uip4p-bpcPHVik1cariB2kz5g"/>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full min-h-screen pt-[64px] md:pl-[64px] lg:pl-[240px] transition-all duration-300">
+<div class="px-[12px] md:px-[16px] lg:px-[24px] py-[24px] max-w-7xl mx-auto space-y-lg">
+<!-- Breadcrumbs & Back (Intent: Departure from global flow) -->
+<div class="flex items-center gap-sm text-body-sm text-outline mb-sm">
+<a class="hover:text-secondary transition-colors flex items-center gap-xs" href="#">
+<span class="material-symbols-outlined text-[16px]" data-icon="arrow_back">arrow_back</span>
+                    Back to Clients
+                </a>
+</div>
+<!-- Header Section: Client Info Card (Glassmorphism/High-end UI hint) -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-lg">
+<!-- Subtle decorative background element for premium feel -->
+<div class="absolute -top-24 -right-24 w-64 h-64 bg-secondary/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex items-start gap-md z-10">
+<div class="w-16 h-16 rounded-lg bg-surface-container flex items-center justify-center text-headline-lg font-bold text-secondary border border-outline-variant">
+                        AI
+                    </div>
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Acme Innovations Pvt. Ltd.</h2>
+<div class="flex flex-wrap items-center gap-x-md gap-y-xs text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="receipt_long">receipt_long</span>
+<span>GSTIN: <span class="font-numeric-data text-numeric-data">27AADCA2230M1Z2</span></span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="corporate_fare">corporate_fare</span>
+<span>PAN: <span class="font-numeric-data text-numeric-data">AADCA2230M</span></span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="mail">mail</span>
+<span>finance@acmeinnovations.com</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-sm z-10 w-full md:w-auto">
+<button class="flex-1 md:flex-none px-md py-sm bg-surface-container-lowest border border-secondary text-secondary rounded-lg font-label-md text-label-md hover:bg-surface-container-low transition-colors flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+                        Edit Profile
+                    </button>
+<button class="flex-1 md:flex-none px-md py-sm bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="mail">mail</span>
+                        Send Reminder
+                    </button>
+</div>
+</section>
+<!-- Quick Stats Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between">
+<div class="flex justify-between items-start mb-md">
+<span class="font-label-md text-label-md text-on-surface-variant">Pending Returns (GSTR-3B)</span>
+<span class="material-symbols-outlined text-outline" data-icon="pending_actions">pending_actions</span>
+</div>
+<div class="flex items-end justify-between">
+<span class="font-headline-lg text-headline-lg text-error">2</span>
+<span class="text-error bg-error-container font-label-md text-label-md px-2 py-1 rounded-full flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span> Overdue
+                        </span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between">
+<div class="flex justify-between items-start mb-md">
+<span class="font-label-md text-label-md text-on-surface-variant">Latest Filing</span>
+<span class="material-symbols-outlined text-outline" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface">Oct 2023</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">GSTR-1 Filed on Nov 10</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between">
+<div class="flex justify-between items-start mb-md">
+<span class="font-label-md text-label-md text-on-surface-variant">Client Risk Score</span>
+<span class="material-symbols-outlined text-outline" data-icon="speed">speed</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-full bg-surface-variant h-2 rounded-full overflow-hidden">
+<div class="bg-secondary w-[85%] h-full"></div>
+</div>
+<span class="font-numeric-data text-numeric-data text-on-surface font-semibold">85/100</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Low Risk (Compliant)</span>
+</div>
+</section>
+<!-- Tabs Navigation Structure -->
+<div class="border-b border-outline-variant mt-xl">
+<nav aria-label="Tabs" class="flex gap-lg">
+<button class="border-b-2 border-secondary py-sm px-xs font-label-md text-label-md text-secondary" id="tab-documents">
+                        Documents
+                    </button>
+<button class="border-b-2 border-transparent py-sm px-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:border-outline-variant transition-colors" id="tab-reports">
+                        Reports
+                    </button>
+<button class="border-b-2 border-transparent py-sm px-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:border-outline-variant transition-colors" id="tab-reminders">
+                        Reminder Log
+                    </button>
+</nav>
+</div>
+<!-- Tab Content Area -->
+<div class="relative min-h-[400px]">
+<!-- DOCUMENTS TAB (Active by default) -->
+<div class="tab-content absolute inset-0 w-full" id="content-documents">
+<div class="flex justify-between items-center mb-md mt-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Filing Documents</h3>
+<div class="flex gap-sm">
+<select class="bg-surface-container-lowest border border-outline-variant rounded-lg px-sm py-xs text-body-sm focus:ring-secondary focus:border-secondary">
+<option>FY 2023-24</option>
+<option>FY 2022-23</option>
+</select>
+<button class="px-sm py-xs bg-surface-container-lowest border border-outline-variant text-on-surface rounded-lg font-label-md text-label-md hover:bg-surface-container-low transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="filter_list">filter_list</span> Filter
+                            </button>
+</div>
+</div>
+<!-- Data Table -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="py-sm px-md font-label-md text-label-md text-on-surface-variant w-[20%]">Period</th>
+<th class="py-sm px-md font-label-md text-label-md text-on-surface-variant w-[25%]">Document Type</th>
+<th class="py-sm px-md font-label-md text-label-md text-on-surface-variant w-[20%]">Upload Date</th>
+<th class="py-sm px-md font-label-md text-label-md text-on-surface-variant w-[15%]">Status</th>
+<th class="py-sm px-md font-label-md text-label-md text-on-surface-variant text-right w-[20%]">Actions</th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm text-on-surface divide-y divide-outline-variant">
+<tr class="hover:bg-[#F1F5F9] transition-colors group">
+<td class="py-sm px-md font-numeric-data text-numeric-data">Nov 2023</td>
+<td class="py-sm px-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="description">description</span>
+                                        Sales Register (B2B)
+                                    </td>
+<td class="py-sm px-md font-numeric-data text-numeric-data">05 Dec 2023</td>
+<td class="py-sm px-md">
+<span class="bg-[#ECFDF5] text-[#065F46] px-2 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase">Verified</span>
+</td>
+<td class="py-sm px-md text-right">
+<div class="flex justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-outline hover:text-secondary" title="View"><span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span></button>
+<button class="text-outline hover:text-secondary" title="Download"><span class="material-symbols-outlined text-[18px]" data-icon="download">download</span></button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-[#F1F5F9] transition-colors group">
+<td class="py-sm px-md font-numeric-data text-numeric-data">Nov 2023</td>
+<td class="py-sm px-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="description">description</span>
+                                        Purchase Register (GSTR-2B)
+                                    </td>
+<td class="py-sm px-md font-numeric-data text-numeric-data">06 Dec 2023</td>
+<td class="py-sm px-md">
+<span class="bg-[#FEF3C7] text-[#92400E] px-2 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase">Pending Rev</span>
+</td>
+<td class="py-sm px-md text-right">
+<div class="flex justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-outline hover:text-secondary" title="View"><span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span></button>
+<button class="text-outline hover:text-secondary" title="Download"><span class="material-symbols-outlined text-[18px]" data-icon="download">download</span></button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-[#F1F5F9] transition-colors group">
+<td class="py-sm px-md font-numeric-data text-numeric-data">Oct 2023</td>
+<td class="py-sm px-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="description">description</span>
+                                        GSTR-3B Acknowledgement
+                                    </td>
+<td class="py-sm px-md font-numeric-data text-numeric-data">20 Nov 2023</td>
+<td class="py-sm px-md">
+<span class="bg-[#ECFDF5] text-[#065F46] px-2 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase">Filed</span>
+</td>
+<td class="py-sm px-md text-right">
+<div class="flex justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-outline hover:text-secondary" title="View"><span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span></button>
+<button class="text-outline hover:text-secondary" title="Download"><span class="material-symbols-outlined text-[18px]" data-icon="download">download</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- REPORTS TAB (Hidden by default) -->
+<div class="tab-content absolute inset-0 w-full hidden" id="content-reports">
+<div class="flex justify-between items-center mb-md mt-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Client Reports</h3>
+<button class="px-md py-sm bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="upload">upload</span> Upload New Report
+                        </button>
+</div>
+<!-- Asymmetric List Layout for Reports -->
+<div class="space-y-md">
+<!-- Report Item -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center justify-between hover:border-secondary/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Q2 2023 Tax Summary Analysis</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span> Sent: Oct 15, 2023
+                                        <span class="mx-xs text-outline-variant">•</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="person">person</span> By: Admin User
+                                    </p>
+</div>
+</div>
+<button class="text-outline hover:text-secondary p-xs rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<!-- REMINDERS TAB (Hidden by default) -->
+<div class="tab-content absolute inset-0 w-full hidden" id="content-reminders">
+<div class="flex justify-between items-center mb-md mt-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Communication Log</h3>
+</div>
+<!-- Timeline Layout -->
+<div class="relative border-l border-outline-variant ml-md space-y-lg py-md">
+<!-- Log Item -->
+<div class="relative pl-lg">
+<div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-secondary"></div>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-sm mb-xs">
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">GSTR-3B Pending Data Request (Auto-Email)</h4>
+<span class="font-numeric-data text-numeric-data text-on-surface-variant text-[12px]">Dec 18, 2023 - 09:00 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant bg-surface-container-low p-sm rounded border border-outline-variant/50">
+                                Automated reminder sent to finance@acmeinnovations.com requesting upload of outward supplies data for Nov 2023 filing.
+                            </p>
+<span class="inline-block mt-xs bg-[#ECFDF5] text-[#065F46] px-2 py-[2px] rounded text-[10px] font-semibold tracking-wider uppercase">Delivered</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom padding for scroll clearance -->
+<div class="h-xl"></div>
+</div>
+</main>
+<script>
+        // Simple vanilla JS for tab switching
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = ['documents', 'reports', 'reminders'];
+            
+            tabs.forEach(tabId => {
+                const btn = document.getElementById(`tab-${tabId}`);
+                if(!btn) return;
+                
+                btn.addEventListener('click', () => {
+                    // Reset all tabs
+                    tabs.forEach(t => {
+                        const tBtn = document.getElementById(`tab-${t}`);
+                        const tContent = document.getElementById(`content-${t}`);
+                        
+                        if(tBtn && tContent) {
+                            // Inactive state styles
+                            tBtn.classList.remove('border-secondary', 'text-secondary');
+                            tBtn.classList.add('border-transparent', 'text-on-surface-variant');
+                            tContent.classList.add('hidden');
+                        }
+                    });
+                    
+                    // Set active tab
+                    const activeContent = document.getElementById(`content-${tabId}`);
+                    
+                    // Active state styles
+                    btn.classList.remove('border-transparent', 'text-on-surface-variant');
+                    btn.classList.add('border-secondary', 'text-secondary');
+                    activeContent.classList.remove('hidden');
+                });
+            });
+        });
+    </script>
+</body></html>

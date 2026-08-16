@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Documents &amp; Status - GST Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "tertiary-container": "#242a30",
+                            "secondary-fixed": "#d7e2ff",
+                            "on-surface": "#191c1d",
+                            "error": "#ba1a1a",
+                            "on-secondary-container": "#064287",
+                            "on-error": "#ffffff",
+                            "inverse-on-surface": "#f0f1f2",
+                            "on-tertiary": "#ffffff",
+                            "background": "#f8f9fa",
+                            "secondary": "#305ea4",
+                            "inverse-primary": "#b2c7f3",
+                            "on-secondary-fixed-variant": "#0e458a",
+                            "outline-variant": "#c4c6cf",
+                            "on-secondary": "#ffffff",
+                            "tertiary-fixed-dim": "#c2c7cf",
+                            "outline": "#74777f",
+                            "secondary-fixed-dim": "#abc7ff",
+                            "primary-fixed-dim": "#b2c7f3",
+                            "surface-tint": "#4a5e86",
+                            "inverse-surface": "#2e3132",
+                            "on-primary-fixed": "#011b3e",
+                            "surface-dim": "#d9dadb",
+                            "on-tertiary-fixed-variant": "#42474e",
+                            "error-container": "#ffdad6",
+                            "surface-bright": "#f8f9fa",
+                            "on-tertiary-fixed": "#171c22",
+                            "on-tertiary-container": "#8b9198",
+                            "surface": "#f8f9fa",
+                            "on-secondary-fixed": "#001b3f",
+                            "on-background": "#191c1d",
+                            "secondary-container": "#87b1fd",
+                            "tertiary-fixed": "#dee3eb",
+                            "surface-container-lowest": "#ffffff",
+                            "on-primary": "#ffffff",
+                            "surface-container": "#edeeef",
+                            "on-primary-fixed-variant": "#32476c",
+                            "primary": "#001433",
+                            "on-error-container": "#93000a",
+                            "primary-fixed": "#d7e2ff",
+                            "tertiary": "#10161b",
+                            "surface-container-highest": "#e1e3e4",
+                            "primary-container": "#12294d",
+                            "surface-variant": "#e1e3e4",
+                            "on-primary-container": "#7c91bb",
+                            "surface-container-low": "#f3f4f5",
+                            "surface-container-high": "#e7e8e9",
+                            "on-surface-variant": "#44474e"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                    },
+                    "spacing": {
+                            "gutter": "1rem",
+                            "stack-sm": "0.5rem",
+                            "margin-mobile": "1rem",
+                            "container-padding": "1.25rem",
+                            "stack-lg": "1.5rem",
+                            "stack-md": "1rem",
+                            "margin-tablet": "2rem"
+                    },
+                    "fontFamily": {
+                            "label-lg": ["Inter"],
+                            "display-lg": ["Inter"],
+                            "title-lg": ["Inter"],
+                            "label-md": ["Inter"],
+                            "body-md": ["Inter"],
+                            "headline-sm": ["Inter"],
+                            "headline-md": ["Inter"],
+                            "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                            "label-lg": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                            "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                            "title-lg": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                            "label-md": ["11px", {"lineHeight": "16px", "fontWeight": "500"}],
+                            "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                            "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                            "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                            "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: theme('colors.background'); color: theme('colors.on-background'); }
+        .expandable-content { transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out; max-height: 0; opacity: 0; overflow: hidden; }
+        .expanded .expandable-content { max-height: 500px; opacity: 1; margin-top: theme('spacing.stack-md'); }
+        .chevron { transition: transform 0.3s ease; }
+        .expanded .chevron { transform: rotate(180deg); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased pb-24 md:pb-0 pt-16">
+<!-- TopAppBar (Web & Mobile) -->
+<header class="flex justify-between items-center h-16 px-gutter w-full fixed top-0 z-50 bg-surface border-b border-outline-variant flat no shadows">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="account_balance">account_balance</span>
+<span class="font-headline-sm text-headline-sm font-bold text-primary">GST Portal</span>
+</div>
+<nav class="hidden md:flex gap-8">
+<a class="font-title-lg text-title-lg text-on-surface-variant hover:bg-surface-container-high transition-colors px-3 py-2 rounded-md active:scale-95 duration-100 flex items-center gap-2" href="#"><span class="material-symbols-outlined" data-icon="home">home</span> Home</a>
+<a class="font-title-lg text-title-lg text-primary hover:bg-surface-container-high transition-colors px-3 py-2 rounded-md active:scale-95 duration-100 flex items-center gap-2" href="#"><span class="material-symbols-outlined" data-icon="description">description</span> Documents</a>
+<a class="font-title-lg text-title-lg text-on-surface-variant hover:bg-surface-container-high transition-colors px-3 py-2 rounded-md active:scale-95 duration-100 flex items-center gap-2" href="#"><span class="material-symbols-outlined" data-icon="analytics">analytics</span> Reports</a>
+<a class="font-title-lg text-title-lg text-on-surface-variant hover:bg-surface-container-high transition-colors px-3 py-2 rounded-md active:scale-95 duration-100 flex items-center gap-2" href="#"><span class="material-symbols-outlined" data-icon="person">person</span> Profile</a>
+</nav>
+<button class="p-2 text-primary hover:bg-surface-container-high transition-colors rounded-full active:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="max-w-4xl mx-auto px-margin-mobile md:px-margin-tablet py-8 md:py-12 mt-4">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+<div>
+<h1 class="font-display-lg text-display-lg text-primary mb-2">Documents &amp; Status</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Track your GST filing periods and document statuses.</p>
+</div>
+<button class="bg-primary-container text-on-primary font-label-lg text-label-lg px-6 py-3 rounded-lg hover:bg-primary transition-colors flex items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-sm">upload_file</span>
+                Upload Document
+            </button>
+</div>
+<!-- Filing Periods List (Bento-inspired vertical stack) -->
+<div class="flex flex-col gap-stack-lg">
+<!-- Period Card 1 (Active/Expanded by default) -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow duration-300 expanded" onclick="this.classList.toggle('expanded')">
+<div class="p-container-padding flex justify-between items-center cursor-pointer">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-primary">Q3 2023 (Jul - Sep)</h2>
+<div class="flex gap-2 mt-2 items-center">
+<span class="font-label-md text-label-md bg-[#fff3cd] text-[#856404] px-2 py-1 rounded-full flex items-center gap-1 border border-[#ffeeba]">
+<span class="material-symbols-outlined text-[14px]">pending_actions</span> Action Required
+                            </span>
+<span class="font-body-md text-body-md text-on-surface-variant">Due: Oct 20, 2023</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline chevron">expand_more</span>
+</div>
+<div class="expandable-content border-t border-surface-variant bg-surface-bright p-container-padding rounded-b-xl">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Document Item -->
+<div class="bg-surface-container-lowest p-4 rounded-lg border border-outline-variant flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-md bg-error-container text-on-error-container flex items-center justify-center">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div>
+<p class="font-title-lg text-title-lg text-on-surface">Sales_Invoices_Jul.pdf</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Uploaded Sep 5, 2023</p>
+</div>
+</div>
+<span class="font-label-md text-label-md bg-[#d1e7dd] text-[#0f5132] px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Processed
+                            </span>
+</div>
+<!-- Document Item -->
+<div class="bg-surface-container-lowest p-4 rounded-lg border border-outline-variant flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-md bg-[#e2e3e5] text-[#383d41] flex items-center justify-center">
+<span class="material-symbols-outlined">table_view</span>
+</div>
+<div>
+<p class="font-title-lg text-title-lg text-on-surface">Expenses_Summary_Q3.xlsx</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Uploaded Sep 12, 2023</p>
+</div>
+</div>
+<span class="font-label-md text-label-md bg-[#e8edf5] text-[#2c5aa0] px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">visibility</span> Report Ready
+                            </span>
+</div>
+<!-- Missing Document Slot -->
+<div class="bg-surface-container-low p-4 rounded-lg border border-dashed border-outline flex items-center justify-between cursor-pointer hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-outline text-outline flex items-center justify-center">
+<span class="material-symbols-outlined">add</span>
+</div>
+<div>
+<p class="font-title-lg text-title-lg text-on-surface">Bank Statements</p>
+<p class="font-body-md text-body-md text-error">Missing - Required</p>
+</div>
+</div>
+<span class="font-label-md text-label-md bg-[#fff3cd] text-[#856404] px-2 py-1 rounded-full">
+                                Pending
+                            </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Period Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow duration-300" onclick="this.classList.toggle('expanded')">
+<div class="p-container-padding flex justify-between items-center cursor-pointer">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface-variant">Q2 2023 (Apr - Jun)</h2>
+<div class="flex gap-2 mt-2 items-center">
+<span class="font-label-md text-label-md bg-[#d1e7dd] text-[#0f5132] px-2 py-1 rounded-full flex items-center gap-1 border border-[#badbcc]">
+<span class="material-symbols-outlined text-[14px]">done_all</span> Filing Complete
+                            </span>
+<span class="font-body-md text-body-md text-on-surface-variant">Filed: Jul 15, 2023</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline chevron">expand_more</span>
+</div>
+<div class="expandable-content border-t border-surface-variant bg-surface-bright p-container-padding rounded-b-xl">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Document Item -->
+<div class="bg-surface-container-lowest p-4 rounded-lg border border-outline-variant flex items-center justify-between opacity-80">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-md bg-error-container text-on-error-container flex items-center justify-center">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div>
+<p class="font-title-lg text-title-lg text-on-surface">Q2_Final_Return.pdf</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Generated Jul 15, 2023</p>
+</div>
+</div>
+<button class="text-primary hover:text-on-primary-container p-2 rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center h-20 px-2 pb-safe bg-surface border-t border-outline-variant flat no shadows">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 hover:bg-surface-container transition-all active:scale-90 duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-label-lg text-label-lg">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-5 py-1 hover:bg-surface-container transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="description" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="font-label-lg text-label-lg">Documents</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 hover:bg-surface-container transition-all active:scale-90 duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="analytics">analytics</span>
+<span class="font-label-lg text-label-lg">Reports</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 hover:bg-surface-container transition-all active:scale-90 duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-label-lg text-label-lg">Profile</span>
+</a>
+</nav>
+</body></html>

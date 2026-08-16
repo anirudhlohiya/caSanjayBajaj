@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Profile &amp; Settings - GST Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-container": "#242a30",
+                      "secondary-fixed": "#d7e2ff",
+                      "on-surface": "#191c1d",
+                      "error": "#ba1a1a",
+                      "on-secondary-container": "#064287",
+                      "on-error": "#ffffff",
+                      "inverse-on-surface": "#f0f1f2",
+                      "on-tertiary": "#ffffff",
+                      "background": "#f8f9fa",
+                      "secondary": "#305ea4",
+                      "inverse-primary": "#b2c7f3",
+                      "on-secondary-fixed-variant": "#0e458a",
+                      "outline-variant": "#c4c6cf",
+                      "on-secondary": "#ffffff",
+                      "tertiary-fixed-dim": "#c2c7cf",
+                      "outline": "#74777f",
+                      "secondary-fixed-dim": "#abc7ff",
+                      "primary-fixed-dim": "#b2c7f3",
+                      "surface-tint": "#4a5e86",
+                      "inverse-surface": "#2e3132",
+                      "on-primary-fixed": "#011b3e",
+                      "surface-dim": "#d9dadb",
+                      "on-tertiary-fixed-variant": "#42474e",
+                      "error-container": "#ffdad6",
+                      "surface-bright": "#f8f9fa",
+                      "on-tertiary-fixed": "#171c22",
+                      "on-tertiary-container": "#8b9198",
+                      "surface": "#f8f9fa",
+                      "on-secondary-fixed": "#001b3f",
+                      "on-background": "#191c1d",
+                      "secondary-container": "#87b1fd",
+                      "tertiary-fixed": "#dee3eb",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "surface-container": "#edeeef",
+                      "on-primary-fixed-variant": "#32476c",
+                      "primary": "#001433",
+                      "on-error-container": "#93000a",
+                      "primary-fixed": "#d7e2ff",
+                      "tertiary": "#10161b",
+                      "surface-container-highest": "#e1e3e4",
+                      "primary-container": "#12294d",
+                      "surface-variant": "#e1e3e4",
+                      "on-primary-container": "#7c91bb",
+                      "surface-container-low": "#f3f4f5",
+                      "surface-container-high": "#e7e8e9",
+                      "on-surface-variant": "#44474e"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "1rem",
+                      "stack-sm": "0.5rem",
+                      "margin-mobile": "1rem",
+                      "container-padding": "1.25rem",
+                      "stack-lg": "1.5rem",
+                      "stack-md": "1rem",
+                      "margin-tablet": "2rem"
+              },
+              "fontFamily": {
+                      "label-lg": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "title-lg": ["Inter"],
+                      "label-md": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-sm": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "label-lg": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "title-lg": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "label-md": ["11px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background h-full font-sans antialiased overflow-x-hidden flex flex-col pt-16 pb-20">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-on-surface flex justify-between items-center h-16 px-gutter w-full fixed top-0 z-50 border-b border-outline-variant dark:border-tertiary-container">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high dark:hover:bg-tertiary-container transition-colors active:scale-95 duration-100 text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed">GST Portal</h1>
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high dark:hover:bg-tertiary-container transition-colors active:scale-95 duration-100 text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-4xl mx-auto px-margin-mobile md:px-margin-tablet py-stack-lg flex flex-col gap-stack-lg">
+<!-- Profile Header Card -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-container-padding shadow-[0px_2px_8px_rgba(18,41,77,0.05)] flex flex-col md:flex-row items-center gap-stack-lg">
+<div class="relative w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-primary-container shrink-0">
+<img class="w-full h-full object-cover" data-alt="Professional headshot of a person in business casual attire against a clean, light grey studio background. The lighting is soft and even, typical of modern corporate photography. The image conveys trust and reliability suitable for a financial services portal profile picture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsWF8oF_4qMpbdarf8hQdCcc9FPs0GeL57sxuGy1HZ4nMuToIzGbEMg6zcYlc1WkgYQPGAESZEliOD5Q62JVIIsmiXxHiuol6QrA8rpjADs_UK01hrDpNMuxBbx_1fBrkRS5c-NUB-gdmWPE4qRALNtajh6OE4kOfVMfeiec3okqHkxVoz_fl-oPE2riAuhFIO7lkk5kMYT3rqLxVyG6Qaeug8z4IRBsb34n5nx2pt2yAuY5p9RbrKXQ"/>
+</div>
+<div class="flex flex-col items-center md:items-start text-center md:text-left">
+<h2 class="font-headline-md text-headline-md text-on-surface">Alex Mercer</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Senior Tax Consultant</p>
+<div class="mt-stack-sm flex flex-wrap justify-center md:justify-start gap-2">
+<span class="inline-flex items-center gap-1 bg-surface-container-low px-3 py-1 rounded-full border border-outline-variant font-label-md text-label-md text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">mail</span> alex.mercer@example.com
+                    </span>
+<span class="inline-flex items-center gap-1 bg-surface-container-low px-3 py-1 rounded-full border border-outline-variant font-label-md text-label-md text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">phone</span> +1 (555) 123-4567
+                    </span>
+</div>
+</div>
+<div class="md:ml-auto w-full md:w-auto">
+<button class="w-full md:w-auto bg-surface-container-lowest border border-outline-variant text-on-surface-variant px-4 py-2 rounded-lg font-label-lg text-label-lg hover:bg-surface-container-low transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">edit</span> Edit Profile
+                </button>
+</div>
+</section>
+<!-- Settings Section -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<!-- Account Settings -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-container-padding shadow-[0px_2px_8px_rgba(18,41,77,0.05)] flex flex-col gap-stack-md">
+<h3 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2 border-b border-outline-variant pb-2">
+<span class="material-symbols-outlined text-primary">manage_accounts</span> Account Settings
+                </h3>
+<div class="flex flex-col gap-2">
+<button class="flex items-center justify-between w-full p-3 rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<span class="font-body-lg text-body-lg text-on-surface">Change Password</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<button class="flex items-center justify-between w-full p-3 rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined">security</span>
+</div>
+<span class="font-body-lg text-body-lg text-on-surface">Two-Factor Authentication</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Preferences -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-container-padding shadow-[0px_2px_8px_rgba(18,41,77,0.05)] flex flex-col gap-stack-md">
+<h3 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2 border-b border-outline-variant pb-2">
+<span class="material-symbols-outlined text-primary">tune</span> Preferences
+                </h3>
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between p-2">
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg text-on-surface">Notification Preferences</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Email &amp; SMS alerts for GST updates</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-2">
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg text-on-surface">Biometric Login</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Use FaceID / TouchID on mobile app</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+</section>
+<!-- Logout Action -->
+<section class="mt-auto">
+<button class="w-full bg-error-container text-on-error-container p-4 rounded-xl flex items-center justify-center gap-2 hover:bg-[#ffd1cc] transition-colors font-title-lg text-title-lg">
+<span class="material-symbols-outlined">logout</span> Logout
+            </button>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center h-20 px-2 pb-safe bg-surface dark:bg-on-surface border-t border-outline-variant dark:border-tertiary-container">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container px-5 py-1 hover:bg-surface-container dark:hover:bg-tertiary-container transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-lg text-label-lg mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container px-5 py-1 hover:bg-surface-container dark:hover:bg-tertiary-container transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-label-lg text-label-lg mt-1">Documents</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container px-5 py-1 hover:bg-surface-container dark:hover:bg-tertiary-container transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-lg text-label-lg mt-1">Reports</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-on-secondary-container text-on-secondary-container dark:text-secondary-fixed rounded-full px-5 py-1 hover:bg-surface-container dark:hover:bg-tertiary-container transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-lg text-label-lg mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

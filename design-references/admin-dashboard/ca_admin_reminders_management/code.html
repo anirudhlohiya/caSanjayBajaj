@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reminders - Corporate Accounts Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#305ea4",
+                        "outline": "#74777f",
+                        "on-primary-fixed": "#011b3e",
+                        "on-primary-container": "#7c91bb",
+                        "primary-fixed-dim": "#b2c7f3",
+                        "surface-dim": "#d8dadc",
+                        "surface-bright": "#f7f9fb",
+                        "background": "#f7f9fb",
+                        "surface-variant": "#e0e3e5",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#44474e",
+                        "on-surface": "#191c1e",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary-fixed": "#d3e4fe",
+                        "on-secondary-fixed-variant": "#0e458a",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#001b3f",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#abc7ff",
+                        "surface-tint": "#4a5e86",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#041528",
+                        "on-primary-fixed-variant": "#32476c",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e0e3e5",
+                        "tertiary-fixed-dim": "#b7c8e1",
+                        "on-tertiary-container": "#8191a9",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "primary-container": "#12294d",
+                        "primary": "#001433",
+                        "secondary-container": "#87b1fd",
+                        "on-background": "#191c1e",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#eff1f3",
+                        "outline-variant": "#c4c6cf",
+                        "surface-container": "#eceef0",
+                        "surface": "#f7f9fb",
+                        "inverse-primary": "#b2c7f3",
+                        "on-secondary-container": "#064287",
+                        "tertiary-container": "#1a2a3e",
+                        "on-tertiary-fixed-variant": "#38485d",
+                        "on-tertiary-fixed": "#0b1c30",
+                        "primary-fixed": "#d7e2ff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#d7e2ff",
+                        "surface-container-low": "#f2f4f6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "md": "16px",
+                        "container-margin": "24px",
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "numeric-data": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "numeric-data": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .data-table-hover:hover {
+            background-color: #F1F5F9;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- TopNavBar -->
+<nav class="bg-surface dark:bg-surface-container-lowest text-primary dark:text-primary-fixed border-b border-outline-variant dark:border-outline flat no shadows fixed top-0 w-full z-50 flex justify-between items-center px-container-margin py-sm">
+<div class="flex items-center gap-md">
+<span class="font-headline-lg text-headline-lg font-bold text-secondary dark:text-secondary-fixed">CA Admin</span>
+</div>
+<div class="flex items-center gap-container-margin">
+<!-- Search on Left -->
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-xl pr-sm py-xs border border-outline-variant rounded bg-surface-container-lowest focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim text-body-md w-64 transition-all" placeholder="Search..." type="text"/>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-xs text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors scale-95 duration-150 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-xs text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors scale-95 duration-150 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-[32px] h-[32px] rounded-full overflow-hidden border border-outline-variant ml-sm cursor-pointer hover:bg-surface-container-low transition-colors">
+<img alt="Administrator Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a corporate administrator, taken in a bright modern office with light filtering through large windows. The lighting is soft and natural, creating a clean, trustworthy aesthetic. The colors are neutral with a subtle hint of navy blue in the subject's attire." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC822v1TbptT0e8U_tw-qzw4iaN8XOqFx6nY_auXF-8w3nRRQlL20gYA0pSUZzNYTpQjwoz5fltZZnGimLW-jDhlzMTTJKkk6rFb2YMwDy77SvHMDg_nvmQ4UKgqL_FFTKxdhfymeqxyPXbi5DacRiyATI2VpCpvTFc_VZQWSfJIVSgehKCJ4DpJMLaOuL-iWXQHwmkvDSzc9q8KioLhJPY1OIQbokVPxIlYEo2wuiPhXdomo6dXZrWsw"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- SideNavBar & Main Content Wrapper -->
+<div class="flex h-screen pt-[64px]">
+<!-- SideNavBar -->
+<aside class="bg-surface-container-lowest dark:bg-surface-container-low border-r border-outline-variant dark:border-outline flat no shadows fixed left-0 top-0 h-full z-40 flex flex-col pt-[64px] px-md w-[240px] md:w-[64px] lg:w-[240px] hidden md:flex transition-all">
+<div class="py-lg border-b border-outline-variant dark:border-outline mb-md flex flex-col items-center lg:items-start lg:flex-row gap-sm overflow-hidden">
+<div class="w-[40px] h-[40px] rounded shrink-0 bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<img alt="Firm Logo" class="w-full h-full object-cover rounded" data-alt="A minimalist vector logo representing a modern financial institution, featuring clean geometric shapes in a strict navy blue and white color palette. The design is stark, professional, and free of unnecessary ornamentation, reflecting a calm efficiency." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTu2ZNCpTem8y5eRUrYWvqwh6OhXKO7NyQSF1tFVnAeqeEPTN_sDTk3z3hT5vIiJZPOrusL-jylxV63kI1EXHjhp_sIGeTezbH5rn0AdwSHlIztj0sdFow5nRv2CdQQVVBinw-BvAyY7LjV_DJtGndcyjdYBwRTLiiz49DcpPWW3wzI-yXBAabYC6Vu_FrDOWhhxbsA48xEkyA1I4__M4WT7Er2vVdPdIOKus6IJx0eAYk20fC0FD2wg"/>
+</div>
+<div class="hidden lg:flex flex-col">
+<span class="font-headline-sm text-headline-sm font-bold text-secondary dark:text-secondary-fixed truncate w-[140px]">Corporate Accounts</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate w-[140px]">Admin Portal</span>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-xs overflow-y-auto w-full">
+<!-- Dashboard -->
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="dashboard">dashboard</span>
+<span class="font-body-md text-body-md hidden lg:inline-block">Dashboard</span>
+</a>
+<!-- Clients -->
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="groups">groups</span>
+<span class="font-body-md text-body-md hidden lg:inline-block">Clients</span>
+</a>
+<!-- Documents -->
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="description">description</span>
+<span class="font-body-md text-body-md hidden lg:inline-block">Documents</span>
+</a>
+<!-- Reports -->
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="assessment">assessment</span>
+<span class="font-body-md text-body-md hidden lg:inline-block">Reports</span>
+</a>
+<!-- Reminders (Active) -->
+<a class="flex items-center gap-md px-sm py-sm bg-secondary text-on-secondary dark:bg-secondary-container dark:text-on-secondary-container rounded-lg translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+<span class="font-body-md text-body-md hidden lg:inline-block font-semibold">Reminders</span>
+</a>
+<!-- Staff -->
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="badge">badge</span>
+<span class="font-body-md text-body-md hidden lg:inline-block">Staff</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-md px-sm py-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg group mt-auto mb-md" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md hidden lg:inline-block">Settings</span>
+</a>
+</nav>
+<div class="mt-auto pb-md hidden lg:block">
+<button class="w-full bg-secondary text-on-secondary font-body-md text-body-md py-sm rounded hover:bg-primary-container transition-colors flex items-center justify-center gap-sm shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    Add New Client
+                </button>
+</div>
+<!-- Mobile CTA icon only -->
+<div class="mt-auto pb-md hidden md:flex lg:hidden justify-center w-full">
+<button class="w-[40px] h-[40px] bg-secondary text-on-secondary rounded-full hover:bg-primary-container transition-colors flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-0 md:ml-[64px] lg:ml-[240px] p-3 md:p-4 xl:p-6 bg-background overflow-y-auto">
+<div class="max-w-7xl mx-auto flex flex-col gap-container-margin">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row md:items-center justify-between gap-md">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Client Reminders</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Manage filing statuses and dispatch notifications.</p>
+</div>
+<div class="flex items-center gap-sm self-start md:self-auto">
+<button class="bg-surface-container-lowest border border-outline-variant text-on-surface px-md py-sm rounded hover:bg-surface-container-low transition-colors font-body-md text-body-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                            Filter
+                        </button>
+<button class="bg-secondary text-on-secondary px-md py-sm rounded hover:bg-primary-container transition-colors font-body-md text-body-md flex items-center gap-xs shadow-sm">
+<span class="material-symbols-outlined text-[18px]">send</span>
+                            Send Reminders (<span id="selected-count">2</span>)
+                        </button>
+</div>
+</header>
+<!-- Pending Actions Table Card -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+<div class="p-lg border-b border-outline-variant bg-surface-bright">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Pending Filings (Current Period)</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-bright font-label-md text-label-md text-on-surface-variant border-b border-outline-variant uppercase">
+<th class="p-md w-[48px] text-center">
+<input class="rounded border-outline-variant text-secondary focus:ring-secondary-fixed-dim w-4 h-4 cursor-pointer" type="checkbox"/>
+</th>
+<th class="p-md">Client Entity</th>
+<th class="p-md">Filing Type</th>
+<th class="p-md">Due Date</th>
+<th class="p-md">Status</th>
+<th class="p-md text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<!-- Row 1 (Selected) -->
+<tr class="border-b border-outline-variant data-table-hover transition-colors bg-secondary-fixed-dim/10">
+<td class="p-md text-center">
+<input checked="" class="rounded border-outline-variant text-secondary focus:ring-secondary-fixed-dim w-4 h-4 cursor-pointer" type="checkbox"/>
+</td>
+<td class="p-md font-medium text-primary">Acme Corp Solutions</td>
+<td class="p-md">GSTR-1</td>
+<td class="p-md text-error font-medium">Oct 11, 2023</td>
+<td class="p-md">
+<span class="inline-flex items-center px-sm py-[2px] rounded-full bg-error-container text-on-error-container font-label-md text-label-md">Overdue</span>
+</td>
+<td class="p-md text-right">
+<button class="text-secondary hover:text-primary-container transition-colors font-body-sm font-medium">Send Now</button>
+</td>
+</tr>
+<!-- Row 2 (Selected) -->
+<tr class="border-b border-outline-variant data-table-hover transition-colors bg-secondary-fixed-dim/10">
+<td class="p-md text-center">
+<input checked="" class="rounded border-outline-variant text-secondary focus:ring-secondary-fixed-dim w-4 h-4 cursor-pointer" type="checkbox"/>
+</td>
+<td class="p-md font-medium text-primary">Global Tech Industries</td>
+<td class="p-md">TDS Return (Q2)</td>
+<td class="p-md">Oct 15, 2023</td>
+<td class="p-md">
+<span class="inline-flex items-center px-sm py-[2px] rounded-full bg-surface-variant text-on-surface-variant font-label-md text-label-md">Pending</span>
+</td>
+<td class="p-md text-right">
+<button class="text-secondary hover:text-primary-container transition-colors font-body-sm font-medium">Send Now</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="border-b border-outline-variant data-table-hover transition-colors">
+<td class="p-md text-center">
+<input class="rounded border-outline-variant text-secondary focus:ring-secondary-fixed-dim w-4 h-4 cursor-pointer" type="checkbox"/>
+</td>
+<td class="p-md font-medium text-primary">Stark Logistics Ltd.</td>
+<td class="p-md">GSTR-3B</td>
+<td class="p-md">Oct 20, 2023</td>
+<td class="p-md">
+<span class="inline-flex items-center px-sm py-[2px] rounded-full bg-surface-variant text-on-surface-variant font-label-md text-label-md">Pending</span>
+</td>
+<td class="p-md text-right">
+<button class="text-secondary hover:text-primary-container transition-colors font-body-sm font-medium">Send Now</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="data-table-hover transition-colors">
+<td class="p-md text-center">
+<input class="rounded border-outline-variant text-secondary focus:ring-secondary-fixed-dim w-4 h-4 cursor-pointer" type="checkbox"/>
+</td>
+<td class="p-md font-medium text-primary">Wayne Enterprises</td>
+<td class="p-md">PF Contribution</td>
+<td class="p-md">Oct 15, 2023</td>
+<td class="p-md">
+<span class="inline-flex items-center px-sm py-[2px] rounded-full bg-surface-variant text-on-surface-variant font-label-md text-label-md">Pending</span>
+</td>
+<td class="p-md text-right">
+<button class="text-secondary hover:text-primary-container transition-colors font-body-sm font-medium">Send Now</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+</div>
+</body></html>
