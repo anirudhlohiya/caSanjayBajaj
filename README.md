@@ -36,7 +36,7 @@ android-wrapper/            # Kotlin WebView shell (Phase 4)
 ## Status
 
 - Phase 0 (foundations + docs) — **done**
-- Phase 1 (backend) — **in progress**
+- Phase 1 (backend) — **code complete**, awaiting AWS credentials to run against real services
 - Phase 2 (admin web) — not started
 - Phase 3 (client PWA) — not started
 - Phase 4 (Android wrapper) — not started
