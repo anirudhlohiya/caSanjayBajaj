@@ -1,0 +1,68 @@
+<div class="min-h-full flex items-center justify-center bg-background p-6">
+  <div
+    class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-outline-variant p-8 flex flex-col gap-6"
+  >
+    <div class="flex flex-col items-center justify-center gap-2">
+      <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-2">
+        <span class="material-symbols-outlined text-on-primary text-3xl" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+      </div>
+      <h1 class="font-headline-lg text-headline-lg text-secondary">CA Admin</h1>
+      <p class="font-body-sm text-body-sm text-on-surface-variant">Corporate Accounts Portal</p>
+    </div>
+
+    <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="email">Email Address</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none" style="font-size: 18px">mail</span>
+          <input
+            id="email"
+            formControlName="email"
+            class="w-full pl-10 pr-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim transition-all"
+            placeholder="admin@firm.com"
+            type="email"
+          />
+        </div>
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <span class="text-error text-body-sm">Enter a valid email address</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="password">Password</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none" style="font-size: 18px">lock</span>
+          <input
+            id="password"
+            formControlName="password"
+            class="w-full pl-10 pr-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim transition-all"
+            placeholder="••••••••"
+            type="password"
+          />
+        </div>
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <span class="text-error text-body-sm">Password must be at least 8 characters</span>
+        }
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="loading()"
+        class="mt-2 w-full bg-primary hover:bg-secondary text-on-primary font-headline-sm text-headline-sm py-2 px-4 rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        @if (loading()) {
+          <span class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
+        } @else {
+          <span>Login</span>
+          <span class="material-symbols-outlined" style="font-size: 18px">arrow_forward</span>
+        }
+      </button>
+    </form>
+
+    <div class="text-center border-t border-outline-variant pt-4">
+      <p class="font-body-sm text-body-sm text-outline">
+        Secure institutional access only.
+      </p>
+    </div>
+  </div>
+</div>

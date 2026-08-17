@@ -1,0 +1,162 @@
+<app-page-header title="GST Clients" subtitle="Manage client accounts, documents and filing activity">
+  <button
+    class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md flex items-center hover:bg-secondary transition-colors"
+    (click)="openAdd()"
+  >
+    <span class="material-symbols-outlined mr-1" style="font-size: 18px">person_add</span>
+    Add New Client
+  </button>
+</app-page-header>
+
+<div class="flex items-center gap-2 mb-4">
+  <div class="relative flex-1 max-w-md">
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 18px">search</span>
+    <input
+      class="w-full pl-10 pr-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-shadow text-body-sm"
+      placeholder="Search clients, emails, GST numbers..."
+      [value]="query()"
+      (input)="query.set($any($event.target).value)"
+    />
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  @if (loading()) {
+    <app-spinner />
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-surface-bright border-b border-outline-variant">
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Client Name</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Email</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">GST Number</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Type</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Status</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Joined</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-body-sm">
+          @for (c of filtered(); track c.id) {
+            <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors cursor-pointer" (click)="viewClient(c.id)">
+              <td class="p-4 font-medium text-on-surface">{{ c.name }}</td>
+              <td class="p-4 text-on-surface-variant">{{ c.email }}</td>
+              <td class="p-4 font-numeric-data text-numeric-data text-on-surface-variant tabular-nums">{{ c.gstin ?? '—' }}</td>
+              <td class="p-4 text-on-surface-variant">{{ c.user_type.toUpperCase() }}</td>
+              <td class="p-4"><app-status-chip [status]="c.status" /></td>
+              <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(c.created_at) }}</td>
+              <td class="p-4 text-right whitespace-nowrap" (click)="$event.stopPropagation()">
+                <button
+                  class="text-secondary hover:text-on-primary-fixed-variant p-1 rounded hover:bg-primary-fixed-dim transition-colors mr-1"
+                  title="View Details"
+                  (click)="viewClient(c.id)"
+                >
+                  <span class="material-symbols-outlined" style="font-size: 20px">visibility</span>
+                </button>
+                <button
+                  class="text-secondary hover:text-on-primary-fixed-variant p-1 rounded hover:bg-primary-fixed-dim transition-colors"
+                  title="Send Reminder"
+                  (click)="sendReminder(c.id)"
+                >
+                  <span class="material-symbols-outlined" style="font-size: 20px">mail</span>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7">
+                <app-empty-state icon="groups" message="No clients found" hint="Add your first client to get started" />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="p-2 border-t border-outline-variant bg-surface-bright">
+      <app-pagination
+        [page]="page()"
+        [pageSize]="pageSize()"
+        [total]="total()"
+        [totalPages]="totalPages()"
+        (pageChange)="pageChanged($event)"
+      />
+    </div>
+  }
+</div>
+
+<app-modal [open]="showAdd()" (close)="showAdd.set(false)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-headline-md text-headline-md text-on-surface">Add New Client</h2>
+      <button class="text-on-surface-variant hover:text-on-surface" (click)="showAdd.set(false)">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form class="flex flex-col gap-4" [formGroup]="addForm" (ngSubmit)="submitAdd()">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1 sm:col-span-2">
+          <label class="font-label-md text-label-md text-on-surface" for="c-name">Full Name</label>
+          <input id="c-name" formControlName="name"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+            placeholder="Acme Corporation" />
+          @if (addForm.controls.name.touched && addForm.controls.name.invalid) {
+            <span class="text-error text-body-sm">Name is required</span>
+          }
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="c-email">Email</label>
+          <input id="c-email" formControlName="email" type="email"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+            placeholder="billing@acme.com" />
+          @if (addForm.controls.email.touched && addForm.controls.email.invalid) {
+            <span class="text-error text-body-sm">Valid email required</span>
+          }
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="c-password">Temporary Password</label>
+          <input id="c-password" formControlName="password" type="password"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+          @if (addForm.controls.password.touched && addForm.controls.password.invalid) {
+            <span class="text-error text-body-sm">Minimum 8 characters</span>
+          }
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="c-phone">Phone (optional)</label>
+          <input id="c-phone" formControlName="phone"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+            placeholder="9876543210" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="c-gstin">GSTIN (optional)</label>
+          <input id="c-gstin" formControlName="gstin"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+            placeholder="29ABCDE1234F1Z5" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="c-type">Account Type</label>
+          <select id="c-type" formControlName="user_type"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+            <option value="gst">GST</option>
+            <option value="itr">ITR</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="c-status">Status</label>
+          <select id="c-status" formControlName="status"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-2">
+        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showAdd.set(false)">Cancel</button>
+        <button type="submit" [disabled]="adding()"
+          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+          {{ adding() ? 'Creating…' : 'Create Client' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>

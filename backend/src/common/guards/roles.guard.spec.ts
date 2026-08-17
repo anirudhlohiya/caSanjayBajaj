@@ -43,7 +43,12 @@ describe('PermissionsGuard', () => {
     const guard = new PermissionsGuard(reflector);
     expect(() =>
       guard.canActivate(
-        makeCtx({ type: 'admin', sub: 'a3', role: 'staff', permissions: ['view_clients'] }),
+        makeCtx({
+          type: 'admin',
+          sub: 'a3',
+          role: 'staff',
+          permissions: ['view_clients'],
+        }),
       ),
     ).toThrow(ForbiddenException);
   });
@@ -68,7 +73,9 @@ describe('RolesGuard', () => {
     reflector.getAllAndOverride = jest.fn().mockReturnValue(['super_admin']);
     const guard = new RolesGuard(reflector);
     expect(
-      guard.canActivate(makeCtx({ type: 'admin', sub: 'a1', role: 'super_admin' })),
+      guard.canActivate(
+        makeCtx({ type: 'admin', sub: 'a1', role: 'super_admin' }),
+      ),
     ).toBe(true);
   });
 

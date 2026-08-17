@@ -1,0 +1,54 @@
+<app-page-header title="Audit Logs" subtitle="A record of administrative actions">
+</app-page-header>
+
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  <select
+    class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary text-body-sm"
+    [value]="actionFilter()"
+    (change)="actionFilter.set($any($event.target).value); applyFilter()"
+  >
+    <option value="">All actions</option>
+    <option value="staff.create">staff.create</option>
+    <option value="staff.update">staff.update</option>
+    <option value="staff.deactivate">staff.deactivate</option>
+    <option value="staff.permissions">staff.permissions</option>
+  </select>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  @if (loading()) {
+    <app-spinner />
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-surface-bright border-b border-outline-variant">
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Timestamp</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Admin</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Action</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Target</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Details</th>
+          </tr>
+        </thead>
+        <tbody class="text-body-sm">
+          @for (l of logs(); track l.id) {
+            <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
+              <td class="p-4 text-on-surface-variant tabular-nums whitespace-nowrap">{{ fmtDate(l.created_at) }}</td>
+              <td class="p-4 font-medium text-on-surface">{{ l.admin?.name ?? 'System' }}</td>
+              <td class="p-4 text-on-surface">{{ actionLabel(l.action) }}</td>
+              <td class="p-4 text-on-surface-variant">{{ l.target_user?.name ?? (l.target_period?.period_label ?? '—') }}</td>
+              <td class="p-4 text-on-surface-variant max-w-xs truncate">{{ l.detail | json }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5"><app-empty-state icon="history" message="No audit activity" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="p-2 border-t border-outline-variant bg-surface-bright">
+      <app-pagination [page]="page()" [pageSize]="pageSize()" [total]="total()" [totalPages]="totalPages()" (pageChange)="pageChanged($event)" />
+    </div>
+  }
+</div>

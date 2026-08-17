@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+@import 'tailwindcss';
+@source './app';
+@source './index.html';
+
+@theme {
+  --color-surface: #f7f9fb;
+  --color-surface-dim: #d8dadc;
+  --color-surface-bright: #f7f9fb;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f4f6;
+  --color-surface-container: #eceef0;
+  --color-surface-container-high: #e6e8ea;
+  --color-surface-container-highest: #e0e3e5;
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #44474e;
+  --color-outline: #74777f;
+  --color-outline-variant: #c4c6cf;
+  --color-primary: #001433;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #12294d;
+  --color-on-primary-container: #7c91bb;
+  --color-secondary: #305ea4;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #87b1fd;
+  --color-on-secondary-container: #064287;
+  --color-tertiary: #041528;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-background: #f7f9fb;
+  --color-on-background: #191c1e;
+  --color-primary-fixed: #d7e2ff;
+  --color-primary-fixed-dim: #b2c7f3;
+  --color-secondary-fixed: #d7e2ff;
+  --color-secondary-fixed-dim: #abc7ff;
+  --color-inverse-surface: #2d3133;
+  --color-inverse-on-surface: #eff1f3;
+  --color-row-hover: #f1f5f9;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-headline-lg: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-headline-md: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-headline-sm: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-body-lg: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-body-md: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-body-sm: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-label-md: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-numeric-data: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --text-headline-lg: 24px;
+  --text-headline-lg--line-height: 32px;
+  --text-headline-lg--letter-spacing: -0.02em;
+  --text-headline-lg--font-weight: 600;
+  --text-headline-md: 20px;
+  --text-headline-md--line-height: 28px;
+  --text-headline-md--letter-spacing: -0.01em;
+  --text-headline-md--font-weight: 600;
+  --text-headline-sm: 16px;
+  --text-headline-sm--line-height: 24px;
+  --text-headline-sm--font-weight: 600;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-lg--font-weight: 400;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-body-md--font-weight: 400;
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 18px;
+  --text-body-sm--font-weight: 400;
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--letter-spacing: 0.05em;
+  --text-label-md--font-weight: 600;
+  --text-numeric-data: 14px;
+  --text-numeric-data--line-height: 20px;
+  --text-numeric-data--font-weight: 500;
+
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-container-margin: 24px;
+  --spacing-gutter: 16px;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  display: inline-block;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-container-highest);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

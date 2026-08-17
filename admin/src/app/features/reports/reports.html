@@ -1,0 +1,138 @@
+<app-page-header title="Reports" subtitle="Sent reports across all clients">
+  <button
+    class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md flex items-center hover:bg-secondary transition-colors"
+    (click)="openSend()"
+  >
+    <span class="material-symbols-outlined mr-1" style="font-size: 18px">upload_file</span>
+    Send Report
+  </button>
+</app-page-header>
+
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  <select
+    class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary text-body-sm"
+    [value]="periodFilter()"
+    (change)="periodFilter.set($any($event.target).value); applyFilters()"
+  >
+    <option value="">All periods</option>
+    @for (p of periods(); track p.id) {
+      <option [value]="p.id">{{ p.period_label }}</option>
+    }
+  </select>
+  <select
+    class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary text-body-sm"
+    [value]="typeFilter()"
+    (change)="typeFilter.set($any($event.target).value); applyFilters()"
+  >
+    <option value="">All report types</option>
+    <option value="gstr_1">GSTR 1</option>
+    <option value="gstr_3b">GSTR 3B</option>
+    <option value="reconciliation">Reconciliation</option>
+    <option value="other">Other</option>
+  </select>
+  <button
+    class="px-3 py-2 border border-outline-variant rounded text-on-surface-variant hover:bg-surface-container-high text-body-sm flex items-center gap-1"
+    (click)="periodFilter.set(''); typeFilter.set(''); applyFilters()"
+  >
+    <span class="material-symbols-outlined" style="font-size: 16px">filter_list</span>
+    Reset
+  </button>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  @if (loading()) {
+    <app-spinner />
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-surface-bright border-b border-outline-variant">
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Client</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Report</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Period</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Filename</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Sent</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-body-sm">
+          @for (r of reports(); track r.id) {
+            <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
+              <td class="p-4 font-medium text-on-surface">{{ r.user?.name ?? '—' }}</td>
+              <td class="p-4 text-on-surface">{{ reportTypeLabel(r.report_type) }}</td>
+              <td class="p-4 text-on-surface-variant">{{ r.filing_period?.period_label ?? '—' }}</td>
+              <td class="p-4 text-on-surface-variant max-w-xs truncate">{{ r.original_filename }}</td>
+              <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(r.sent_at) }}</td>
+              <td class="p-4 text-right whitespace-nowrap">
+                <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors" title="Download"
+                  (click)="download(r)" [disabled]="isDownloading(r.id)">
+                  <span class="material-symbols-outlined" style="font-size: 20px">download</span>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6"><app-empty-state icon="assessment" message="No reports found" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="p-2 border-t border-outline-variant bg-surface-bright">
+      <app-pagination [page]="page()" [pageSize]="pageSize()" [total]="total()" [totalPages]="totalPages()" (pageChange)="pageChanged($event)" />
+    </div>
+  }
+</div>
+
+<app-modal [open]="showSend()" (close)="showSend.set(false)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-headline-md text-headline-md text-on-surface">Send Report</h2>
+      <button class="text-on-surface-variant hover:text-on-surface" (click)="showSend.set(false)">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form class="flex flex-col gap-4" [formGroup]="sendForm" (ngSubmit)="submitSend()">
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="s-client">Client</label>
+        <select id="s-client" formControlName="user_id"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+          @for (c of clients(); track c.id) {
+            <option [value]="c.id">{{ c.name }} ({{ c.gstin ?? c.email }})</option>
+          }
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="s-period">Filing Period</label>
+        <select id="s-period" formControlName="filing_period_id"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+          @for (p of periods(); track p.id) {
+            <option [value]="p.id">{{ p.period_label }}</option>
+          }
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="s-type">Report Type</label>
+        <select id="s-type" formControlName="report_type"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+          <option value="gstr_1">GSTR 1</option>
+          <option value="gstr_3b">GSTR 3B</option>
+          <option value="reconciliation">Reconciliation</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="s-file">Report File (PDF)</label>
+        <input id="s-file" type="file" accept=".pdf,.xls,.xlsx,image/*" (change)="onFileSelected($event)"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface" />
+      </div>
+      <div class="flex justify-end gap-2 mt-2">
+        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showSend.set(false)">Cancel</button>
+        <button type="submit" [disabled]="sending()"
+          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+          {{ sending() ? 'Uploading…' : 'Send Report' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>

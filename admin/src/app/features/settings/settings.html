@@ -1,0 +1,95 @@
+<app-page-header title="Settings" subtitle="Manage filing periods and reminders configuration">
+  <button
+    class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md flex items-center hover:bg-secondary transition-colors"
+    (click)="openAdd()"
+  >
+    <span class="material-symbols-outlined mr-1" style="font-size: 18px">add</span>
+    New Period
+  </button>
+</app-page-header>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  @if (loading()) {
+    <app-spinner />
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-surface-bright border-b border-outline-variant">
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Period</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Code</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Due Date</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Status</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-body-sm">
+          @for (p of periods(); track p.id) {
+            <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
+              <td class="p-4 font-medium text-on-surface">{{ p.period_label }}</td>
+              <td class="p-4 text-on-surface-variant tabular-nums">{{ p.period_code }}</td>
+              <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(p.due_date) }}</td>
+              <td class="p-4"><app-status-chip [status]="p.is_open ? 'open' : 'inactive'" /></td>
+              <td class="p-4 text-right whitespace-nowrap">
+                <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors"
+                  title="{{ p.is_open ? 'Close period' : 'Reopen period' }}"
+                  (click)="toggleOpen(p)">
+                  <span class="material-symbols-outlined" style="font-size: 20px">
+                    {{ p.is_open ? 'lock' : 'lock_open' }}
+                  </span>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5"><app-empty-state icon="calendar_month" message="No filing periods defined" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<app-modal [open]="showAdd()" (close)="showAdd.set(false)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-headline-md text-headline-md text-on-surface">New Filing Period</h2>
+      <button class="text-on-surface-variant hover:text-on-surface" (click)="showAdd.set(false)">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form class="flex flex-col gap-4" [formGroup]="addForm" (ngSubmit)="submitAdd()">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="p-label">Period Label</label>
+          <input id="p-label" formControlName="period_label"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+            placeholder="July 2026" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="p-code">Period Code</label>
+          <input id="p-code" formControlName="period_code"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+            placeholder="2026-07" />
+        </div>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="p-due">Due Date</label>
+        <input id="p-due" formControlName="due_date" type="date"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+      </div>
+      <label class="flex items-center gap-2 text-body-md text-body-md">
+        <input type="checkbox" formControlName="is_open" class="accent-secondary w-4 h-4" />
+        Open for submissions
+      </label>
+      <div class="flex justify-end gap-2 mt-2">
+        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showAdd.set(false)">Cancel</button>
+        <button type="submit" [disabled]="saving()"
+          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+          {{ saving() ? 'Creating…' : 'Create Period' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>

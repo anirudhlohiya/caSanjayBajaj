@@ -22,9 +22,10 @@ describe('AuthService', () => {
   const permissions = {
     find: jest.fn(),
   } as unknown as Repository<Permission>;
+  const refreshTokensSave = jest.fn();
   const refreshTokens = {
-    save: jest.fn(),
-    create: jest.fn((v) => v),
+    save: refreshTokensSave,
+    create: jest.fn((v: object) => v),
     findOne: jest.fn(),
     update: jest.fn(),
   } as unknown as Repository<RefreshToken>;
@@ -71,7 +72,7 @@ describe('AuthService', () => {
 
       expect(result.access_token).toBe('access-token');
       expect(result.refresh_token).toBe('refresh-token');
-      expect(refreshTokens.save).toHaveBeenCalled();
+      expect(refreshTokensSave).toHaveBeenCalled();
     });
 
     it('rejects invalid password', async () => {
@@ -99,7 +100,10 @@ describe('AuthService', () => {
       });
 
       await expect(
-        service.loginUser({ email: 'nobody@example.com', password: 'password123' }),
+        service.loginUser({
+          email: 'nobody@example.com',
+          password: 'password123',
+        }),
       ).rejects.toThrow(UnauthorizedException);
     });
   });

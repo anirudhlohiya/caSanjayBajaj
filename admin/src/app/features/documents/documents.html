@@ -1,0 +1,87 @@
+<app-page-header title="Documents" subtitle="Review client uploads across all clients">
+</app-page-header>
+
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  <select
+    class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary text-body-sm"
+    [value]="statusFilter()"
+    (change)="statusFilter.set($any($event.target).value); applyFilters()"
+  >
+    <option value="">All statuses</option>
+    <option value="pending">Pending upload</option>
+    <option value="received">Pending review</option>
+    <option value="processed">Processed</option>
+  </select>
+  <select
+    class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary text-body-sm"
+    [value]="periodFilter()"
+    (change)="periodFilter.set($any($event.target).value); applyFilters()"
+  >
+    <option value="">All periods</option>
+    @for (p of periods(); track p.id) {
+      <option [value]="p.id">{{ p.period_label }}</option>
+    }
+  </select>
+  <button
+    class="px-3 py-2 border border-outline-variant rounded text-on-surface-variant hover:bg-surface-container-high text-body-sm flex items-center gap-1"
+    (click)="statusFilter.set(''); periodFilter.set(''); applyFilters()"
+  >
+    <span class="material-symbols-outlined" style="font-size: 16px">filter_list</span>
+    Reset
+  </button>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  @if (loading()) {
+    <app-spinner />
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-surface-bright border-b border-outline-variant">
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Client</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Filename</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Period</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Type</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Size</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Uploaded</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Status</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-body-sm">
+          @for (d of docs(); track d.id) {
+            <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
+              <td class="p-4 font-medium text-on-surface">{{ d.user?.name ?? '—' }}</td>
+              <td class="p-4 text-on-surface-variant max-w-xs truncate">{{ d.original_filename }}</td>
+              <td class="p-4 text-on-surface-variant">{{ d.filing_period?.period_label ?? '—' }}</td>
+              <td class="p-4 text-on-surface-variant uppercase">{{ d.file_type }}</td>
+              <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtBytes(d.file_size_bytes) }}</td>
+              <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(d.uploaded_at) }}</td>
+              <td class="p-4"><app-status-chip [status]="d.status" /></td>
+              <td class="p-4 text-right whitespace-nowrap">
+                <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors mr-1" title="Download"
+                  (click)="download(d)" [disabled]="isDownloading(d.id)">
+                  <span class="material-symbols-outlined" style="font-size: 20px">download</span>
+                </button>
+                @if (d.status === 'received') {
+                  <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors" title="Mark processed"
+                    (click)="markProcessed(d)" [disabled]="isProcessing(d.id)">
+                    <span class="material-symbols-outlined" style="font-size: 20px">check</span>
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8"><app-empty-state icon="description" message="No documents match the filters" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="p-2 border-t border-outline-variant bg-surface-bright">
+      <app-pagination [page]="page()" [pageSize]="pageSize()" [total]="total()" [totalPages]="totalPages()" (pageChange)="pageChanged($event)" />
+    </div>
+  }
+</div>

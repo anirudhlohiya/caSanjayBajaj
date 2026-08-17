@@ -1,0 +1,154 @@
+<app-page-header title="Staff & Permissions" subtitle="Manage administrator accounts and their access">
+  <button
+    class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md flex items-center hover:bg-secondary transition-colors"
+    (click)="openAdd()"
+  >
+    <span class="material-symbols-outlined mr-1" style="font-size: 18px">person_add</span>
+    Add Staff
+  </button>
+</app-page-header>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  @if (loading()) {
+    <app-spinner />
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-surface-bright border-b border-outline-variant">
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Name</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Email</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Role</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Status</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Created</th>
+            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-body-sm">
+          @for (a of staff(); track a.id) {
+            <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
+              <td class="p-4 font-medium text-on-surface">{{ a.name }}</td>
+              <td class="p-4 text-on-surface-variant">{{ a.email }}</td>
+              <td class="p-4 text-on-surface-variant capitalize">{{ a.role.replace('_', ' ') }}</td>
+              <td class="p-4"><app-status-chip [status]="a.status" /></td>
+              <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(a.created_at) }}</td>
+              <td class="p-4 text-right whitespace-nowrap">
+                @if (a.role !== 'super_admin') {
+                  <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors mr-1" title="Manage permissions"
+                    (click)="openPermissions(a)">
+                    <span class="material-symbols-outlined" style="font-size: 20px">shield</span>
+                  </button>
+                  @if (a.status === 'active') {
+                    <button class="text-error hover:bg-error-container/50 p-1 rounded transition-colors" title="Deactivate"
+                      (click)="deactivate(a)">
+                      <span class="material-symbols-outlined" style="font-size: 20px">person_off</span>
+                    </button>
+                  } @else {
+                    <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors" title="Reactivate"
+                      (click)="reactivate(a)">
+                      <span class="material-symbols-outlined" style="font-size: 20px">person_add</span>
+                    </button>
+                  }
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6"><app-empty-state icon="badge" message="No staff accounts" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<app-modal [open]="showAdd()" (close)="showAdd.set(false)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-headline-md text-headline-md text-on-surface">Add Staff Account</h2>
+      <button class="text-on-surface-variant hover:text-on-surface" (click)="showAdd.set(false)">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form class="flex flex-col gap-4" [formGroup]="addForm" (ngSubmit)="submitAdd()">
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="st-name">Full Name</label>
+        <input id="st-name" formControlName="name"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="st-email">Email</label>
+        <input id="st-email" formControlName="email" type="email"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="st-password">Temporary Password</label>
+        <input id="st-password" formControlName="password" type="password"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="st-role">Role</label>
+          <select id="st-role" formControlName="role"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+            <option value="staff">Staff</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="st-status">Status</label>
+          <select id="st-status" formControlName="status"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-2">
+        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showAdd.set(false)">Cancel</button>
+        <button type="submit" [disabled]="adding()"
+          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+          {{ adding() ? 'Creating…' : 'Create Staff' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>
+
+<app-modal [open]="!!permAdmin()" (close)="permAdmin.set(null)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-headline-md text-headline-md text-on-surface">
+        Permissions — {{ permAdmin()?.name ?? '' }}
+      </h2>
+      <button class="text-on-surface-variant hover:text-on-surface" (click)="permAdmin.set(null)">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    @if (permLoading()) {
+      <app-spinner />
+    } @else {
+      <div class="space-y-2">
+        @for (entry of permissionEntries(); track entry[0]) {
+          <label class="flex items-center justify-between gap-2 p-3 border border-outline-variant rounded cursor-pointer hover:bg-surface-container-low transition-colors">
+            <span class="text-body-md text-body-md text-on-surface">{{ entry[1] }}</span>
+            <input
+              type="checkbox"
+              class="accent-secondary w-4 h-4"
+              [checked]="granted().has(entry[0])"
+              (change)="togglePermission(entry[0], $any($event.target).checked)"
+            />
+          </label>
+        }
+      </div>
+      <div class="flex justify-end gap-2 mt-4">
+        <button class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="permAdmin.set(null)">Cancel</button>
+        <button (click)="savePermissions()" [disabled]="permSaving()"
+          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+          {{ permSaving() ? 'Saving…' : 'Save Permissions' }}
+        </button>
+      </div>
+    }
+  </div>
+</app-modal>

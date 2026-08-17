@@ -1,0 +1,197 @@
+@if (loading()) {
+  <app-spinner />
+} @else if (client(); as c) {
+  <app-page-header [title]="c.name" [subtitle]="c.email">
+    <button
+      class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded font-label-md text-label-md flex items-center hover:bg-surface-container-high transition-colors"
+      (click)="sendReminder()"
+    >
+      <span class="material-symbols-outlined mr-1" style="font-size: 18px">mail</span>
+      Send Reminder
+    </button>
+    <button
+      class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md flex items-center hover:bg-secondary transition-colors"
+      (click)="showReport.set(true)"
+    >
+      <span class="material-symbols-outlined mr-1" style="font-size: 18px">upload_file</span>
+      Send Report
+    </button>
+  </app-page-header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+    <div class="lg:col-span-1 bg-surface-container-lowest border border-outline-variant rounded-lg p-5 h-fit">
+      <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Client Profile</h3>
+      <dl class="space-y-3 text-body-md text-body-md">
+        <div class="flex justify-between gap-2">
+          <dt class="text-on-surface-variant">GSTIN</dt>
+          <dd class="text-on-surface tabular-nums font-medium">{{ c.gstin ?? '—' }}</dd>
+        </div>
+        <div class="flex justify-between gap-2">
+          <dt class="text-on-surface-variant">Phone</dt>
+          <dd class="text-on-surface font-medium">{{ c.phone ?? '—' }}</dd>
+        </div>
+        <div class="flex justify-between gap-2">
+          <dt class="text-on-surface-variant">Type</dt>
+          <dd class="text-on-surface font-medium">{{ c.user_type.toUpperCase() }}</dd>
+        </div>
+        <div class="flex justify-between gap-2">
+          <dt class="text-on-surface-variant">Status</dt>
+          <dd><app-status-chip [status]="c.status" /></dd>
+        </div>
+        <div class="flex justify-between gap-2">
+          <dt class="text-on-surface-variant">Joined</dt>
+          <dd class="text-on-surface tabular-nums">{{ fmtDate(c.created_at) }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="lg:col-span-3 space-y-6">
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+        <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface">Documents</h3>
+          <span class="text-body-sm text-on-surface-variant">{{ docTotal() }} total</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-surface-bright border-b border-outline-variant">
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Filename</th>
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Period</th>
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Type</th>
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Size</th>
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Uploaded</th>
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Status</th>
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="text-body-sm">
+              @for (d of docs(); track d.id) {
+                <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
+                  <td class="p-4 font-medium text-on-surface max-w-xs truncate">{{ d.original_filename }}</td>
+                  <td class="p-4 text-on-surface-variant">{{ d.filing_period?.period_label ?? '—' }}</td>
+                  <td class="p-4 text-on-surface-variant uppercase">{{ d.file_type }}</td>
+                  <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtBytes(d.file_size_bytes) }}</td>
+                  <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(d.uploaded_at) }}</td>
+                  <td class="p-4"><app-status-chip [status]="d.status" /></td>
+                  <td class="p-4 text-right whitespace-nowrap">
+                    <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors mr-1" title="Download"
+                      (click)="downloadDocument(d)" [disabled]="isDownloading(d.id)">
+                      <span class="material-symbols-outlined" style="font-size: 20px">download</span>
+                    </button>
+                    @if (d.status === 'received') {
+                      <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors" title="Mark processed"
+                        (click)="markProcessed(d)" [disabled]="isProcessing(d.id)">
+                        <span class="material-symbols-outlined" style="font-size: 20px">check</span>
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7"><app-empty-state icon="description" message="No documents yet" /></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (docPages() > 1) {
+          <div class="p-2 border-t border-outline-variant bg-surface-bright">
+            <app-pagination [page]="docPage()" [pageSize]="10" [total]="docTotal()" [totalPages]="docPages()" (pageChange)="docPageChanged($event)" />
+          </div>
+        }
+      </div>
+
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+        <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface">Reports</h3>
+          <span class="text-body-sm text-on-surface-variant">{{ reportTotal() }} total</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-surface-bright border-b border-outline-variant">
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Report</th>
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Period</th>
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Filename</th>
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Sent</th>
+                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="text-body-sm">
+              @for (r of reports(); track r.id) {
+                <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
+                  <td class="p-4 font-medium text-on-surface uppercase">{{ r.report_type.replace('_', ' ') }}</td>
+                  <td class="p-4 text-on-surface-variant">{{ r.filing_period?.period_label ?? '—' }}</td>
+                  <td class="p-4 text-on-surface-variant max-w-xs truncate">{{ r.original_filename }}</td>
+                  <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(r.sent_at) }}</td>
+                  <td class="p-4 text-right whitespace-nowrap">
+                    <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors" title="Download"
+                      (click)="downloadReport(r)" [disabled]="isDownloading(r.id)">
+                      <span class="material-symbols-outlined" style="font-size: 20px">download</span>
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5"><app-empty-state icon="assessment" message="No reports sent yet" /></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (reportPages() > 1) {
+          <div class="p-2 border-t border-outline-variant bg-surface-bright">
+            <app-pagination [page]="reportPage()" [pageSize]="10" [total]="reportTotal()" [totalPages]="reportPages()" (pageChange)="reportPageChanged($event)" />
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<app-modal [open]="showReport()" (close)="showReport.set(false)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-headline-md text-headline-md text-on-surface">Send Report</h2>
+      <button class="text-on-surface-variant hover:text-on-surface" (click)="showReport.set(false)">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form class="flex flex-col gap-4" [formGroup]="reportForm" (ngSubmit)="submitReport()">
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="r-period">Filing Period</label>
+        <select id="r-period" formControlName="filing_period_id"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+          @for (p of periods(); track p.id) {
+            <option [value]="p.id">{{ p.period_label }} (due {{ fmtDate(p.due_date) }})</option>
+          }
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="r-type">Report Type</label>
+        <select id="r-type" formControlName="report_type"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+          <option value="gstr_1">GSTR 1</option>
+          <option value="gstr_3b">GSTR 3B</option>
+          <option value="reconciliation">Reconciliation</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="r-file">Report File (PDF)</label>
+        <input id="r-file" type="file" accept=".pdf,.xls,.xlsx,image/*" (change)="onFileSelected($event)"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface" />
+        @if (reportForm.controls.file.touched && !reportForm.controls.file.value) {
+          <span class="text-error text-body-sm">Please choose a file</span>
+        }
+      </div>
+      <div class="flex justify-end gap-2 mt-2">
+        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showReport.set(false)">Cancel</button>
+        <button type="submit" [disabled]="sending()"
+          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+          {{ sending() ? 'Uploading…' : 'Send Report' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>

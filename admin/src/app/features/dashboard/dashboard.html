@@ -1,0 +1,112 @@
+<app-page-header title="Overview" subtitle="Welcome back{{ adminName() ? ', ' + adminName() : '' }}"></app-page-header>
+
+@if (loading()) {
+  <app-spinner />
+} @else if (stats(); as s) {
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col justify-between">
+      <span class="font-headline-sm text-headline-sm text-on-surface-variant">Total GST Clients</span>
+      <div class="mt-2">
+        <span class="font-headline-lg text-headline-lg text-primary tabular-nums">{{ fmt(s.total_clients) }}</span>
+      </div>
+      <div class="flex items-center mt-2 text-[12px] font-medium text-on-secondary-container bg-secondary-fixed-dim/30 w-fit px-2 py-0.5 rounded-full">
+        <span class="material-symbols-outlined text-[14px] mr-1">person</span>
+        {{ fmt(s.active_clients) }} active
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col justify-between">
+      <span class="font-headline-sm text-headline-sm text-on-surface-variant">Pending Documents</span>
+      <div class="mt-2">
+        <span class="font-headline-lg text-headline-lg text-primary tabular-nums">{{ fmt(s.documents_received) }}</span>
+      </div>
+      <div class="flex items-center mt-2 text-[12px] font-medium text-error bg-error-container/50 w-fit px-2 py-0.5 rounded-full">
+        <span class="material-symbols-outlined text-[14px] mr-1">warning</span>
+        Awaiting review
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col justify-between">
+      <span class="font-headline-sm text-headline-sm text-on-surface-variant">Reports Sent This Month</span>
+      <div class="mt-2">
+        <span class="font-headline-lg text-headline-lg text-primary tabular-nums">{{ fmt(s.reports_this_month) }}</span>
+      </div>
+      <div class="flex items-center mt-2 text-[12px] font-medium text-on-surface-variant">
+        <span class="material-symbols-outlined text-[14px] mr-1">check_circle</span>
+        {{ fmt(s.reports_total) }} all time
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col justify-between">
+      <span class="font-headline-sm text-headline-sm text-on-surface-variant">Reminders Sent</span>
+      <div class="mt-2">
+        <span class="font-headline-lg text-headline-lg text-primary tabular-nums">{{ fmt(s.reminders_sent_total) }}</span>
+      </div>
+      <div class="flex items-center mt-2 text-[12px] font-medium text-on-secondary-container bg-secondary-fixed-dim/30 w-fit px-2 py-0.5 rounded-full">
+        <span class="material-symbols-outlined text-[14px] mr-1">schedule_send</span>
+        {{ fmt(s.open_periods) }} open periods
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
+    <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+      <div class="px-4 py-2 border-b border-outline-variant bg-surface">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface">Recent Activity</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-surface font-label-md text-label-md text-on-surface-variant border-b border-outline-variant">
+            <tr>
+              <th class="px-4 py-2 font-semibold">Client Name</th>
+              <th class="px-4 py-2 font-semibold">Action Taken</th>
+              <th class="px-4 py-2 font-semibold">Status</th>
+              <th class="px-4 py-2 font-semibold text-right">Date</th>
+            </tr>
+          </thead>
+          <tbody class="font-body-md text-body-md text-on-surface">
+            @for (item of s.recent_activity; track item.created_at + item.type + item.client_name) {
+              <tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+                <td class="px-4 py-2 h-12 font-medium">{{ item.client_name }}</td>
+                <td class="px-4 py-2 h-12 text-on-surface-variant">{{ item.action }}</td>
+                <td class="px-4 py-2 h-12">
+                  <app-status-chip [status]="item.status" />
+                </td>
+                <td class="px-4 py-2 h-12 text-right tabular-nums text-on-surface-variant">
+                  {{ item.created_at | date: 'dd MMM yyyy' }}
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4">
+                  <app-empty-state icon="history" message="No recent activity yet" />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+      <div class="px-4 py-2 border-b border-outline-variant bg-surface">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface">Upcoming Due Dates</h2>
+      </div>
+      <ul class="divide-y divide-outline-variant">
+        @for (p of s.upcoming_due_dates; track p.id) {
+          <li class="px-4 py-3 flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <p class="font-body-md text-body-md text-on-surface truncate">{{ p.period_label }}</p>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">{{ p.period_code }}</p>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="font-numeric-data text-numeric-data text-on-surface tabular-nums">{{ p.due_date | date: 'dd MMM yyyy' }}</p>
+            </div>
+          </li>
+        } @empty {
+          <li class="px-4 py-3 text-body-sm text-on-surface-variant">No open periods</li>
+        }
+      </ul>
+    </div>
+  </div>
+}
