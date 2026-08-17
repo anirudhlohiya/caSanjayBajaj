@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+@import 'tailwindcss';
+@source './app';
+@source './index.html';
+
+@theme {
+  /* Fiscal Integrity — Client Portal token set */
+  --color-primary: #001433;
+  --color-primary-container: #12294d;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #ffffff;
+  --color-secondary: #305ea4;
+  --color-secondary-container: #87b1fd;
+  --color-on-secondary-container: #064287;
+  --color-surface: #f8f9fa;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container: #eef1f4;
+  --color-surface-variant: #e1e3e4;
+  --color-outline: #74777f;
+  --color-outline-variant: #c4c6cf;
+  --color-on-surface: #191c1d;
+  --color-on-surface-variant: #44474e;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-report-ready-bg: #e8edf5;
+  --color-report-ready: #2c5aa0;
+  --color-card-border: #dde2e8;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-headline: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --text-display-lg: 32px;
+  --text-display-lg--line-height: 40px;
+  --text-display-lg--font-weight: 700;
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 32px;
+  --text-headline-md--font-weight: 600;
+  --text-headline-sm: 20px;
+  --text-headline-sm--line-height: 28px;
+  --text-headline-sm--font-weight: 600;
+  --text-title-lg: 18px;
+  --text-title-lg--line-height: 24px;
+  --text-title-lg--font-weight: 600;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-body-sm: 12px;
+  --text-body-sm--line-height: 16px;
+  --text-label-lg: 12px;
+  --text-label-lg--line-height: 16px;
+  --text-label-lg--font-weight: 600;
+  --text-label-lg--letter-spacing: 0.05em;
+  --text-label-md: 11px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--font-weight: 500;
+
+  --shadow-card: 0 2px 8px rgba(18, 41, 77, 0.05);
+  --shadow-fab: 0 6px 16px rgba(0, 20, 51, 0.35);
+  --shadow-modal: 0 8px 24px rgba(0, 20, 51, 0.18);
+  --radius-input: 8px;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    font-size: 14px;
+    line-height: 20px;
+    margin: 0;
+  }
+
+  .numeric {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: 400;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  .symbol-filled {
+    font-variation-settings: 'FILL' 1;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-family: inherit;
+  }
+}

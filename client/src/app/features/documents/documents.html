@@ -1,0 +1,147 @@
+<div class="flex flex-col gap-4 pb-10">
+  <div>
+    <h1 class="text-headline-md font-semibold text-on-surface">Documents</h1>
+    <p class="text-body-md text-on-surface-variant">
+      {{ total() }} document{{ total() === 1 ? '' : 's' }} · {{ filteredLabel() }}
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-3">
+    <div class="flex gap-2 overflow-x-auto pb-1">
+      @for (chip of filterChips; track chip.key) {
+        <button
+          (click)="setFilter(chip.key)"
+          [class]="
+            'shrink-0 rounded-full px-4 py-1.5 text-body-md font-medium transition ' +
+            (filter() === chip.key
+              ? 'bg-primary text-on-primary'
+              : 'bg-surface-variant text-on-surface-variant')
+          "
+        >
+          {{ chip.label }}
+        </button>
+      }
+    </div>
+
+    <select
+      [ngModel]="periodId()"
+      (ngModelChange)="setPeriod($event)"
+      class="h-11 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+    >
+      <option value="">All filing periods</option>
+      @for (period of periods(); track period.id) {
+        <option [value]="period.id">{{ period.period_label }}</option>
+      }
+    </select>
+  </div>
+
+  @if (loading()) {
+    <app-spinner />
+  } @else if (docs().length === 0) {
+    <div class="rounded-2xl border border-card-border bg-surface-container-lowest">
+      <app-empty-state
+        icon="folder_off"
+        title="No documents here"
+        message="Nothing matches this filter yet. Try a different period or status."
+      />
+    </div>
+  } @else {
+    <div class="flex flex-col gap-2">
+      @for (doc of docs(); track doc.id) {
+        <button
+          (click)="selectDoc(doc)"
+          class="flex items-center gap-3 rounded-xl border border-card-border bg-surface-container-lowest p-3 text-left shadow-card"
+        >
+          <span class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-surface-variant">
+            <span class="material-symbols-outlined text-[22px] text-on-surface-variant">{{ fileIcon(doc) }}</span>
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-body-md font-medium text-on-surface">{{ doc.original_filename }}</p>
+            <p class="mt-0.5 text-label-md text-on-surface-variant">
+              {{ periodLabel(doc.filing_period) }} · {{ fileSize(doc.file_size_bytes) }}
+            </p>
+            <p class="text-label-md text-on-surface-variant">
+              Uploaded {{ doc.uploaded_at | date: 'd MMM, h:mm a' }}
+            </p>
+          </div>
+          <app-status-chip [status]="doc.status" />
+        </button>
+      }
+    </div>
+
+    @if (total() > pageSize) {
+      <div class="flex items-center justify-between">
+        <button
+          (click)="prevPage()"
+          [disabled]="page() <= 1"
+          class="rounded-lg px-4 py-2 text-body-md font-semibold text-secondary disabled:opacity-40"
+        >
+          Previous
+        </button>
+        <span class="numeric text-body-md text-on-surface-variant">
+          Page {{ page() }} of {{ totalPages() }}
+        </span>
+        <button
+          (click)="nextPage()"
+          [disabled]="page() * pageSize >= total()"
+          class="rounded-lg px-4 py-2 text-body-md font-semibold text-secondary disabled:opacity-40"
+        >
+          Next
+        </button>
+      </div>
+    }
+  }
+</div>
+
+@if (selectedDoc(); as doc) {
+  <div class="fixed inset-0 z-40 bg-primary/40" (click)="closeDoc()"></div>
+  <div class="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md rounded-t-3xl bg-surface-container-lowest shadow-modal">
+    <div class="mx-auto mt-2 h-1 w-10 rounded-full bg-outline-variant"></div>
+    <div class="p-5">
+      <div class="flex items-start gap-3">
+        <span class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-surface-variant">
+          <span class="material-symbols-outlined text-[26px] text-on-surface-variant">{{ fileIcon(doc) }}</span>
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="break-words text-title-lg font-semibold text-on-surface">{{ doc.original_filename }}</p>
+          <div class="mt-1.5">
+            <app-status-chip [status]="doc.status" />
+          </div>
+        </div>
+        <button (click)="closeDoc()" class="flex size-8 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-variant">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <dl class="mt-4 grid grid-cols-2 gap-3 text-body-md">
+        <div>
+          <dt class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Filing period</dt>
+          <dd class="mt-0.5 font-medium text-on-surface">{{ periodLabel(doc.filing_period) }}</dd>
+        </div>
+        <div>
+          <dt class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Size</dt>
+          <dd class="mt-0.5 font-medium text-on-surface">{{ fileSize(doc.file_size_bytes) }}</dd>
+        </div>
+        <div>
+          <dt class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Uploaded</dt>
+          <dd class="mt-0.5 font-medium text-on-surface">{{ doc.uploaded_at | date: 'd MMM yyyy, h:mm a' }}</dd>
+        </div>
+        <div>
+          <dt class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Processed</dt>
+          <dd class="mt-0.5 font-medium text-on-surface">
+            {{ doc.processed_at ? (doc.processed_at | date: 'd MMM yyyy') : '—' }}
+          </dd>
+        </div>
+      </dl>
+
+      <button
+        (click)="download(doc)"
+        [disabled]="downloading()"
+        class="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-primary text-body-lg font-semibold text-on-primary disabled:opacity-50"
+      >
+        <span class="material-symbols-outlined text-[20px]">download</span>
+        View / download
+      </button>
+    </div>
+  </div>
+}

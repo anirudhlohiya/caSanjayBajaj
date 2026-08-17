@@ -1,0 +1,141 @@
+@if (loading()) {
+  <app-spinner />
+} @else {
+  <div class="flex flex-col gap-5 pb-24">
+    <div>
+      <h1 class="text-headline-md font-semibold text-on-surface">
+        Hello, {{ firstName() }}
+      </h1>
+      <p class="text-body-md text-on-surface-variant">
+        Here's what needs your attention.
+      </p>
+    </div>
+
+    @if (unreadCount() > 0) {
+      <button
+        routerLink="/notifications"
+        class="flex items-center gap-3 rounded-xl border border-card-border bg-surface-container-lowest p-4 text-left shadow-card"
+      >
+        <span class="flex size-10 items-center justify-center rounded-full bg-report-ready-bg">
+          <span class="material-symbols-outlined text-report-ready">notifications_active</span>
+        </span>
+        <span class="flex-1">
+          <span class="block text-title-lg font-semibold text-on-surface">
+            {{ unreadCount() }} new update{{ unreadCount() === 1 ? '' : 's' }}
+          </span>
+          <span class="block text-body-md text-on-surface-variant">
+            Tap to view notifications
+          </span>
+        </span>
+        <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+      </button>
+    }
+
+    <section class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-title-lg font-semibold text-on-surface">Pending uploads</h2>
+        <button routerLink="/documents/upload" class="text-body-md font-semibold text-secondary">
+          Upload now
+        </button>
+      </div>
+
+      @if (pendingDocs().length === 0) {
+        <div class="rounded-xl border border-dashed border-outline-variant bg-surface-container-lowest">
+          <app-empty-state
+            icon="task_alt"
+            title="All caught up!"
+            message="No documents waiting for this period. Upload new documents when ready."
+          />
+        </div>
+      } @else {
+        <div class="overflow-hidden rounded-xl border border-card-border bg-surface-container-lowest shadow-card">
+          @for (doc of pendingDocs(); track doc.id) {
+            <div class="flex items-center gap-3 px-4 py-3">
+              <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface-variant">
+                <span class="material-symbols-outlined text-on-surface-variant">description</span>
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-body-md font-medium text-on-surface">{{ doc.original_filename }}</p>
+                <p class="text-label-md text-on-surface-variant">{{ periodLabel(doc.filing_period) }}</p>
+              </div>
+              <app-status-chip [status]="doc.status" />
+            </div>
+          }
+          @if (pendingDocs().length >= 3) {
+            <button routerLink="/documents" class="block w-full border-t border-card-border px-4 py-3 text-center text-body-md font-semibold text-secondary">
+              View all documents
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-title-lg font-semibold text-on-surface">Latest report</h2>
+        <button routerLink="/reports" class="text-body-md font-semibold text-secondary">View all</button>
+      </div>
+
+      @if (latestReport(); as report) {
+        <div class="rounded-xl border border-card-border bg-surface-container-lowest p-4 shadow-card">
+          <div class="flex items-start gap-3">
+            <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-report-ready-bg">
+              <span class="material-symbols-outlined text-report-ready">verified</span>
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="text-title-lg font-semibold text-on-surface">{{ periodLabel(report.filing_period) }}</p>
+              <p class="mt-0.5 text-body-md text-on-surface-variant">
+                {{ report.report_type.replace('_', ' ').toUpperCase() }}
+              </p>
+              <div class="mt-2">
+                <app-status-chip status="ready" />
+              </div>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="rounded-xl border border-dashed border-outline-variant bg-surface-container-lowest">
+          <app-empty-state
+            icon="description"
+            title="No reports yet"
+            message="When your CA shares a report, it will appear here."
+          />
+        </div>
+      }
+    </section>
+
+    @if (openPeriods().length > 0) {
+      <section class="flex flex-col gap-3">
+        <h2 class="text-title-lg font-semibold text-on-surface">Open filing periods</h2>
+        <div class="flex flex-col gap-2">
+          @for (period of openPeriods(); track period.id) {
+            <button
+              [routerLink]="['/documents']"
+              [queryParams]="{ period: period.id }"
+              class="flex items-center gap-3 rounded-xl border border-card-border bg-surface-container-lowest p-4 text-left shadow-card"
+            >
+              <span class="flex size-10 items-center justify-center rounded-full bg-secondary-container">
+                <span class="material-symbols-outlined text-on-secondary-container">event</span>
+              </span>
+              <span class="flex-1">
+                <span class="block text-title-lg font-semibold text-on-surface">{{ period.period_label }}</span>
+                <span class="block text-body-md text-on-surface-variant">
+                  Due {{ period.due_date | date: 'd MMM yyyy' }}
+                </span>
+              </span>
+              <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    <button
+      (click)="router.navigate(['/documents/upload'])"
+      class="fixed bottom-24 right-5 z-20 flex size-14 items-center justify-center rounded-full bg-primary text-on-primary shadow-fab transition-transform active:scale-95"
+      aria-label="Upload documents"
+    >
+      <span class="material-symbols-outlined text-[28px]">add</span>
+    </button>
+  </div>
+}

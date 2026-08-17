@@ -15,7 +15,7 @@ docs/                       # Full project documentation set (start here)
 design-references/          # Approved UI mockups (client + admin)
 backend/                    # NestJS API (Phase 1)
 admin/                      # Angular admin dashboard (Phase 2)
-client-web/                 # Angular client PWA (Phase 3)
+client/                     # Angular client PWA (Phase 3)
 android-wrapper/            # Kotlin WebView shell (Phase 4)
 ```
 
@@ -38,6 +38,6 @@ android-wrapper/            # Kotlin WebView shell (Phase 4)
 - Phase 0 (foundations + docs) — **done**
 - Phase 1 (backend) — **code complete**, awaiting AWS credentials to run against real services
 - Phase 2 (admin web) — **code complete** (in `admin/`), awaiting AWS credentials for live smoke test
-- Phase 3 (client PWA) — not started
+- Phase 3 (client PWA) — **code complete** (in `client/`), awaiting AWS credentials for live smoke test
 - Phase 4 (Android wrapper) — not started
 - Phase 5 (deploy) — not started

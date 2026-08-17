@@ -13,6 +13,7 @@ import {
   NotificationsService,
   isPushSubscription,
 } from '../notifications/notifications.service';
+import { ReportNotificationsService } from '../notifications/report-notifications.service';
 import { StorageService } from '../storage/storage.service';
 import { UsersService } from '../users/users.service';
 import { CreateReportDto, ReportFilterQueryDto } from './dto/report.dto';
@@ -25,6 +26,7 @@ export class ReportsService {
     private readonly periods: Repository<GstFilingPeriod>,
     private readonly storage: StorageService,
     private readonly notifications: NotificationsService,
+    private readonly reportNotifications: ReportNotificationsService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -72,6 +74,9 @@ export class ReportsService {
     const reportUrl = `${process.env.API_BASE_URL ?? ''}/reports/${report.id}`;
     const title = 'Your GST report is ready';
     const body = `${period?.period_label ?? 'Your'} ${report.report_type.replace('_', ' ').toUpperCase()} report is ready to view in the app.`;
+    const deepLink = '/reports';
+
+    await this.reportNotifications.record(user.id, title, body, deepLink);
 
     const pushTargets = await this.usersService.getTokensForPush(user.id);
     for (const token of pushTargets) {

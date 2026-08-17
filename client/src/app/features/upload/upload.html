@@ -1,0 +1,143 @@
+<div class="flex flex-col gap-5 pb-10">
+  <app-page-header title="Upload Documents" subtitle="Share your GST documents securely" [back]="true" />
+
+  @if (error()) {
+    <div class="flex items-center gap-2 rounded-lg border border-error/20 bg-error-container px-3 py-2.5 text-body-md text-on-error-container">
+      <span class="material-symbols-outlined text-[18px]">error</span>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  @if (queuedCount() > 0) {
+    <div class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+      <span class="material-symbols-outlined text-[20px] text-amber-700">cloud_queue</span>
+      <div class="flex-1">
+        <p class="text-title-lg font-semibold text-amber-800">
+          {{ queuedCount() }} upload{{ queuedCount() === 1 ? '' : 's' }} waiting
+        </p>
+        <p class="text-body-md text-amber-700">
+          Saved offline. We'll send them when you're back online.
+        </p>
+        <button
+          (click)="resumeQueued()"
+          [disabled]="busy()"
+          class="mt-2 rounded-lg bg-amber-800 px-4 py-2 text-body-md font-semibold text-white disabled:opacity-50"
+        >
+          Send now
+        </button>
+      </div>
+    </div>
+  }
+
+  <label class="flex flex-col gap-1.5">
+    <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Filing period</span>
+    <select
+      [ngModel]="selectedPeriodId()"
+      (ngModelChange)="selectedPeriodId.set($event)"
+      class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-3 text-body-lg text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+    >
+      @for (period of periods(); track period.id) {
+        <option [value]="period.id">
+          {{ period.period_label }} (due {{ period.due_date | date: 'd MMM yyyy' }})
+        </option>
+      }
+    </select>
+  </label>
+
+  <input
+    id="file-input"
+    type="file"
+    multiple
+    accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.xlsx,.xls,.csv,application/pdf,image/*,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+    class="hidden"
+    (change)="onFilesSelected($event)"
+  />
+
+  <button
+    type="button"
+    (click)="dropZoneClick()"
+    class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-outline-variant bg-surface-container-lowest px-6 py-10 text-center"
+  >
+    <span class="material-symbols-outlined text-[36px] text-secondary">upload_file</span>
+    <span class="text-title-lg font-semibold text-on-surface">Choose files</span>
+    <span class="text-body-md text-on-surface-variant">
+      PDF, image or Excel · up to 50 MB each
+    </span>
+  </button>
+
+  @if (items().length > 0) {
+    <div class="flex flex-col gap-2">
+      @for (item of items(); track item.id) {
+        <div class="flex items-center gap-3 rounded-xl border border-card-border bg-surface-container-lowest p-3 shadow-card">
+          <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface-variant">
+            <span class="material-symbols-outlined text-[20px] text-on-surface-variant">
+              {{ item.file.type.includes('image/') ? 'image' : item.file.name.endsWith('.pdf') ? 'picture_as_pdf' : 'table_chart' }}
+            </span>
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-body-md font-medium text-on-surface">{{ item.file.name }}</p>
+            <p class="text-label-md text-on-surface-variant">{{ formatSize(item.file.size) }}</p>
+
+            @if (item.status === 'uploading') {
+              <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-variant">
+                <div
+                  class="h-full rounded-full bg-secondary transition-all"
+                  [style.width.%]="item.progress"
+                ></div>
+              </div>
+            }
+
+            @if (item.status === 'failed') {
+              <p class="text-body-sm text-error">Upload failed — tap retry</p>
+            }
+            @if (item.status === 'queued') {
+              <p class="text-body-sm text-amber-700">Queued — will retry when online</p>
+            }
+            @if (item.status === 'success') {
+              <p class="text-body-sm text-emerald-700">Uploaded</p>
+            }
+          </div>
+
+          @if (item.status === 'pending' || item.status === 'failed') {
+            <button
+              (click)="removeItem(item.id)"
+              class="flex size-8 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-variant"
+              aria-label="Remove file"
+            >
+              <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          } @else if (item.status === 'uploading') {
+            <span class="numeric text-body-md font-medium text-on-surface-variant">{{ item.progress }}%</span>
+          } @else {
+            <span class="material-symbols-outlined text-[20px] text-emerald-600">
+              {{ item.status === 'success' ? 'check_circle' : 'schedule' }}
+            </span>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (canUpload()) {
+    <button
+      (click)="uploadAll()"
+      [disabled]="busy()"
+      class="flex h-12 items-center justify-center gap-2 rounded-[8px] bg-primary text-body-lg font-semibold text-on-primary disabled:opacity-50"
+    >
+      @if (busy()) {
+        <span class="size-5 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+      }
+      Upload {{ pendingUploadCount() }} file{{ pendingUploadCount() === 1 ? '' : 's' }}
+    </button>
+  }
+
+  @if (allDone()) {
+    <button
+      (click)="goToDocuments()"
+      class="flex h-12 items-center justify-center gap-2 rounded-[8px] bg-secondary-container text-body-lg font-semibold text-on-secondary-container"
+    >
+      View my documents
+      <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+    </button>
+  }
+</div>

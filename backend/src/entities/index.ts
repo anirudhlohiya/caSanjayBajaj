@@ -7,6 +7,7 @@ import { Permission } from './permission.entity';
 import { RefreshToken } from './refresh-token.entity';
 import { Reminder } from './reminder.entity';
 import { Report } from './report.entity';
+import { ReportNotification } from './report-notification.entity';
 import { User } from './user.entity';
 
 export const entities = [
@@ -20,6 +21,7 @@ export const entities = [
   AuditLog,
   RefreshToken,
   DeviceToken,
+  ReportNotification,
 ];
 
 export {
@@ -32,5 +34,6 @@ export {
   RefreshToken,
   Reminder,
   Report,
+  ReportNotification,
   User,
 };

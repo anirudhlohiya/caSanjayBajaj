@@ -1,0 +1,62 @@
+<div class="flex flex-col gap-4 pb-10">
+  <div>
+    <h1 class="text-headline-md font-semibold text-on-surface">Filing reports</h1>
+    <p class="text-body-md text-on-surface-variant">
+      Reports shared by your CA · {{ total() }} total
+    </p>
+  </div>
+
+  <select
+    [ngModel]="periodId()"
+    (ngModelChange)="setPeriod($event)"
+    class="h-11 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+  >
+    <option value="">All filing periods</option>
+    @for (period of periods(); track period.id) {
+      <option [value]="period.id">{{ period.period_label }}</option>
+    }
+  </select>
+
+  @if (loading()) {
+    <app-spinner />
+  } @else if (reports().length === 0) {
+    <div class="rounded-2xl border border-card-border bg-surface-container-lowest">
+      <app-empty-state
+        icon="description"
+        title="No reports yet"
+        message="Your CA will share reports here once they're ready. You'll get a notification when one arrives."
+      />
+    </div>
+  } @else {
+    <div class="flex flex-col gap-2">
+      @for (report of reports(); track report.id) {
+        <div class="flex items-center gap-3 rounded-xl border border-card-border bg-surface-container-lowest p-3 shadow-card">
+          <span class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-report-ready-bg">
+            <span class="material-symbols-outlined text-[22px] text-report-ready">verified</span>
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="text-title-lg font-semibold text-on-surface">
+              {{ periodLabel(report.filing_period) }}
+            </p>
+            <p class="mt-0.5 text-body-md text-on-surface-variant">{{ typeLabel(report) }}</p>
+            <p class="mt-0.5 text-label-md text-on-surface-variant">
+              {{ report.sent_at | date: 'd MMM yyyy, h:mm a' }}
+            </p>
+          </div>
+          <button
+            (click)="download(report)"
+            [disabled]="downloading() === report.id"
+            class="flex size-11 items-center justify-center rounded-full bg-secondary-container text-on-secondary-container"
+            aria-label="Download report"
+          >
+            @if (downloading() === report.id) {
+              <span class="size-5 animate-spin rounded-full border-2 border-on-secondary-container/40 border-t-on-secondary-container"></span>
+            } @else {
+              <span class="material-symbols-outlined">download</span>
+            }
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,66 @@
+<div class="flex min-h-dvh flex-col bg-surface">
+  <app-toast-container />
+
+  <div class="bg-primary px-6 pb-16 pt-12 text-on-primary">
+    <div class="flex size-14 items-center justify-center rounded-2xl bg-primary-container">
+      <span class="material-symbols-outlined text-[32px] text-on-primary-container">account_balance</span>
+    </div>
+    <h1 class="mt-5 text-display-lg font-bold">GST Portal</h1>
+    <p class="mt-1 text-body-lg text-on-primary/80">
+      Secure document sharing &amp; filing reports
+    </p>
+  </div>
+
+  <div class="-mt-8 flex-1 rounded-t-3xl bg-surface-container-lowest px-6 pt-8">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+      @if (error()) {
+        <div class="flex items-center gap-2 rounded-lg border border-error/20 bg-error-container px-3 py-2.5 text-body-md text-on-error-container">
+          <span class="material-symbols-outlined text-[18px]">error</span>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <label class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Email</span>
+        <input
+          formControlName="email"
+          type="email"
+          autocomplete="email"
+          placeholder="you@example.com"
+          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+        />
+      </label>
+
+      <label class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Password</span>
+        <input
+          formControlName="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Your password"
+          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+        />
+      </label>
+
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p class="text-body-sm text-error">Enter a valid email address.</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="form.invalid || loading()"
+        class="mt-2 flex h-12 items-center justify-center gap-2 rounded-[8px] bg-primary text-body-lg font-semibold text-on-primary transition disabled:opacity-50"
+      >
+        @if (loading()) {
+          <span class="size-5 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+        }
+        Sign in
+      </button>
+
+      <p class="mt-4 text-center text-body-md text-on-surface-variant">
+        Provided to you by
+        <span class="font-semibold text-on-surface">CA Sanjay Bajaj &amp; Co.</span>
+      </p>
+    </form>
+  </div>
+</div>

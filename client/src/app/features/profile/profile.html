@@ -1,0 +1,140 @@
+<div class="flex flex-col gap-5 pb-10">
+  <div class="flex flex-col items-center gap-2 pt-2 text-center">
+    <span class="flex size-16 items-center justify-center rounded-full bg-secondary-container text-headline-sm font-semibold text-on-secondary-container">
+      {{ initials() }}
+    </span>
+    <div>
+      <h1 class="text-headline-sm font-semibold text-on-surface">{{ auth.userProfile()?.name }}</h1>
+      <p class="text-body-md text-on-surface-variant">{{ auth.userProfile()?.email }}</p>
+      @if (auth.userProfile()?.gstin) {
+        <p class="mt-0.5 text-body-md font-medium text-on-surface">GSTIN: {{ auth.userProfile()?.gstin }}</p>
+      }
+    </div>
+  </div>
+
+  <section class="rounded-xl border border-card-border bg-surface-container-lowest shadow-card">
+    <h2 class="border-b border-card-border px-4 py-3 text-title-lg font-semibold text-on-surface">Contact</h2>
+    <form [formGroup]="phoneForm" (ngSubmit)="savePhone()" class="flex flex-col gap-3 p-4">
+      <label class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Phone</span>
+        <input
+          formControlName="phone"
+          type="tel"
+          placeholder="+91 98XXXXXXXX"
+          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+        />
+      </label>
+      <button
+        type="submit"
+        [disabled]="savingPhone()"
+        class="flex h-11 items-center justify-center rounded-[8px] bg-primary text-body-lg font-semibold text-on-primary disabled:opacity-50"
+      >
+        Save phone number
+      </button>
+    </form>
+  </section>
+
+  <section class="rounded-xl border border-card-border bg-surface-container-lowest shadow-card">
+    <h2 class="border-b border-card-border px-4 py-3 text-title-lg font-semibold text-on-surface">Notifications</h2>
+    <div class="flex flex-col">
+      <div class="flex items-center justify-between gap-3 px-4 py-3">
+        <div>
+          <p class="text-body-md font-medium text-on-surface">Push notifications</p>
+          <p class="text-body-sm text-on-surface-variant">
+            Alerts when a report is ready or a reminder is due
+          </p>
+        </div>
+        @if (pushSupported()) {
+          <button
+            (click)="togglePush(!pushEnabled())"
+            [disabled]="pushBusy()"
+            [class]="
+              'relative h-7 w-12 rounded-full transition ' +
+              (pushEnabled() ? 'bg-secondary' : 'bg-outline-variant') +
+              (pushBusy() ? ' opacity-60' : '')
+            "
+            aria-label="Toggle push notifications"
+          >
+            <span
+              class="absolute top-0.5 size-6 rounded-full bg-white shadow transition-all"
+              [style.left.px]="pushEnabled() ? 22 : 2"
+            ></span>
+          </button>
+        } @else {
+          <p class="text-body-sm text-on-surface-variant">Unavailable</p>
+        }
+      </div>
+      <div class="flex items-center justify-between gap-3 border-t border-card-border px-4 py-3">
+        <div>
+          <p class="text-body-md font-medium text-on-surface">Email notifications</p>
+          <p class="text-body-sm text-on-surface-variant">Send updates to {{ auth.userProfile()?.email }}</p>
+        </div>
+        <button
+          (click)="toggleEmail(!emailEnabled())"
+          [class]="
+            'relative h-7 w-12 rounded-full transition ' +
+            (emailEnabled() ? 'bg-secondary' : 'bg-outline-variant')
+          "
+          aria-label="Toggle email notifications"
+        >
+          <span
+            class="absolute top-0.5 size-6 rounded-full bg-white shadow transition-all"
+            [style.left.px]="emailEnabled() ? 22 : 2"
+          ></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-card-border bg-surface-container-lowest shadow-card">
+    <h2 class="border-b border-card-border px-4 py-3 text-title-lg font-semibold text-on-surface">Security</h2>
+    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="flex flex-col gap-3 p-4">
+      <label class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Current password</span>
+        <input
+          formControlName="current_password"
+          type="password"
+          autocomplete="current-password"
+          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+        />
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">New password</span>
+        <input
+          formControlName="new_password"
+          type="password"
+          autocomplete="new-password"
+          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+        />
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Confirm new password</span>
+        <input
+          formControlName="confirm"
+          type="password"
+          autocomplete="new-password"
+          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+        />
+      </label>
+      <button
+        type="submit"
+        [disabled]="passwordBusy()"
+        class="flex h-11 items-center justify-center rounded-[8px] bg-primary text-body-lg font-semibold text-on-primary disabled:opacity-50"
+      >
+        Change password
+      </button>
+    </form>
+  </section>
+
+  <button
+    (click)="auth.logout()"
+    class="flex h-12 items-center justify-center gap-2 rounded-[8px] border border-error/30 bg-error-container text-body-lg font-semibold text-on-error-container"
+  >
+    <span class="material-symbols-outlined text-[20px]">logout</span>
+    Log out
+  </button>
+
+  <p class="pb-4 text-center text-label-md text-on-surface-variant">
+    GST Portal · CA Sanjay Bajaj &amp; Co.
+  </p>
+</div>
