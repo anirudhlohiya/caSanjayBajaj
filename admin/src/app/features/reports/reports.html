@@ -43,7 +43,41 @@
   @if (loading()) {
     <app-spinner />
   } @else {
-    <div class="overflow-x-auto">
+    <div class="md:hidden divide-y divide-outline-variant">
+      @for (r of reports(); track r.id) {
+        <div class="p-4">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <p class="font-headline-sm text-headline-sm text-on-surface truncate">{{ r.user?.name ?? '—' }}</p>
+              <p class="text-body-sm text-on-surface-variant truncate">{{ r.original_filename }}</p>
+            </div>
+            <button class="btn-icon shrink-0" title="Download" (click)="download(r)" [disabled]="isDownloading(r.id)">
+              <span class="material-symbols-outlined" style="font-size: 20px">download</span>
+            </button>
+          </div>
+          <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-body-sm">
+            <div>
+              <dt class="font-label-md text-label-md text-on-surface-variant">Report</dt>
+              <dd class="text-on-surface">{{ reportTypeLabel(r.report_type) }}</dd>
+            </div>
+            <div>
+              <dt class="font-label-md text-label-md text-on-surface-variant">Period</dt>
+              <dd class="text-on-surface">{{ r.filing_period?.period_label ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt class="font-label-md text-label-md text-on-surface-variant">Sent</dt>
+              <dd class="text-on-surface tabular-nums">{{ fmtDate(r.sent_at) }}</dd>
+            </div>
+          </dl>
+        </div>
+      } @empty {
+        <div class="p-4">
+          <app-empty-state icon="assessment" message="No reports found" />
+        </div>
+      }
+    </div>
+
+    <div class="hidden md:block overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-surface-bright border-b border-outline-variant">

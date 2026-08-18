@@ -12,7 +12,54 @@
   @if (loading()) {
     <app-spinner />
   } @else {
-    <div class="overflow-x-auto">
+    <div class="md:hidden divide-y divide-outline-variant">
+      @for (a of staff(); track a.id) {
+        <div class="p-4">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <p class="font-headline-sm text-headline-sm text-on-surface truncate">{{ a.name }}</p>
+              <p class="text-body-sm text-on-surface-variant truncate">{{ a.email }}</p>
+            </div>
+            <app-status-chip [status]="a.status" />
+          </div>
+          <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-body-sm">
+            <div>
+              <dt class="font-label-md text-label-md text-on-surface-variant">Role</dt>
+              <dd class="text-on-surface capitalize">{{ a.role.replace('_', ' ') }}</dd>
+            </div>
+            <div>
+              <dt class="font-label-md text-label-md text-on-surface-variant">Created</dt>
+              <dd class="text-on-surface tabular-nums">{{ fmtDate(a.created_at) }}</dd>
+            </div>
+          </dl>
+          @if (a.role !== 'super_admin') {
+            <div class="mt-3 flex gap-2">
+              <button class="btn-outline flex-1" (click)="openPermissions(a)">
+                <span class="material-symbols-outlined" style="font-size: 18px">shield</span>
+                Permissions
+              </button>
+              @if (a.status === 'active') {
+                <button class="btn-outline flex-1 text-error hover:bg-error-container/50" (click)="deactivate(a)">
+                  <span class="material-symbols-outlined" style="font-size: 18px">person_off</span>
+                  Deactivate
+                </button>
+              } @else {
+                <button class="btn-outline flex-1" (click)="reactivate(a)">
+                  <span class="material-symbols-outlined" style="font-size: 18px">person_add</span>
+                  Reactivate
+                </button>
+              }
+            </div>
+          }
+        </div>
+      } @empty {
+        <div class="p-4">
+          <app-empty-state icon="badge" message="No staff accounts" />
+        </div>
+      }
+    </div>
+
+    <div class="hidden md:block overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-surface-bright border-b border-outline-variant">

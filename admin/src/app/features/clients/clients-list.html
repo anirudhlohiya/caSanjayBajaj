@@ -24,7 +24,49 @@
   @if (loading()) {
     <app-spinner />
   } @else {
-    <div class="overflow-x-auto">
+    <div class="md:hidden divide-y divide-outline-variant">
+      @for (c of filtered(); track c.id) {
+        <div class="p-4 cursor-pointer transition-colors hover:bg-surface-container-low" (click)="viewClient(c.id)">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <p class="font-headline-sm text-headline-sm text-on-surface truncate">{{ c.name }}</p>
+              <p class="text-body-sm text-on-surface-variant truncate">{{ c.email }}</p>
+            </div>
+            <app-status-chip [status]="c.status" />
+          </div>
+          <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-body-sm">
+            <div class="min-w-0">
+              <dt class="font-label-md text-label-md text-on-surface-variant">GST Number</dt>
+              <dd class="font-numeric-data text-numeric-data text-on-surface tabular-nums truncate">{{ c.gstin ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt class="font-label-md text-label-md text-on-surface-variant">Type</dt>
+              <dd class="text-on-surface uppercase">{{ c.user_type }}</dd>
+            </div>
+            <div>
+              <dt class="font-label-md text-label-md text-on-surface-variant">Joined</dt>
+              <dd class="text-on-surface tabular-nums">{{ fmtDate(c.created_at) }}</dd>
+            </div>
+          </dl>
+          <div class="mt-3 flex gap-2">
+            <button class="btn-outline flex-1" (click)="viewClient(c.id)">
+              <span class="material-symbols-outlined" style="font-size: 18px">visibility</span>
+              View
+            </button>
+            <button class="btn-outline flex-1" (click)="sendReminder(c.id)">
+              <span class="material-symbols-outlined" style="font-size: 18px">mail</span>
+              Remind
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="p-4">
+          <app-empty-state icon="groups" message="No clients found" hint="Add your first client to get started" />
+        </div>
+      }
+    </div>
+
+    <div class="hidden md:block overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-surface-bright border-b border-outline-variant">

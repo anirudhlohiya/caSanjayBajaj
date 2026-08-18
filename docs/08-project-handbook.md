@@ -161,6 +161,12 @@ snake_case in the API (`filing_period_id`, `file_size_bytes`, `report_type`, etc
 - **Tailwind gotcha:** Angular's builder only auto-detects **JSON** PostCSS config —
   `admin/postcss.config.json` with `{"plugins": {"@tailwindcss/postcss": {}}}` +
   `@source './app'` in `styles.css`. Do NOT use a `postcss.config.js` (silently ignored).
+- **UI polish (done, uncommitted as of 64d94fa):** reusable component classes in `styles.css`
+  (`@layer components`): `.btn-primary`, `.btn-outline`, `.btn-icon`, `.input`, `.card`,
+  `.label`, `.th`. Every list screen renders **stacked mobile cards** below `md` (tables stay
+  for `md+`): dashboard recent activity, clients-list, documents, reports, staff, audit,
+  reminders send log, settings (filing periods). Pattern: `md:hidden` card `@for` + `hidden
+  md:block` table wrapper.
 - API base: `src/environments/environment.ts` = `http://localhost:3000/api/v1`; runtime
   override via `localStorage.FP_API_URL`.
 - Tokens: `localStorage` `fp_admin_access` / `fp_admin_refresh`; single-flight refresh interceptor.
@@ -311,8 +317,11 @@ set `FP_VAPID_KEY` / subscribe in Profile), and the automated reminder cron.
   push handlers are appended post-build by `client/scripts/patch-sw.js`.
 - **SES sandbox:** only sends to verified recipients; request production access before real
   clients. The domain `lohiyaanirudh.tech` verification is PENDING (add DNS TXT to use it).
-- **Admin UI polish:** user reported the admin UI "looks bad" — open task: review admin
-  templates/styles vs. `docs/04-uiux-design-brief.md` and polish the visual design.
+- **Admin UI polish (done, working tree):** user reported the admin UI "looks bad" and wanted
+  mobile-friendly. Fixed by adding `@layer components` utility classes (`.btn-primary`,
+  `.btn-outline`, `.btn-icon`, `.input`, `.card`, `.label`, `.th`) and converting every list
+  screen to stacked card layouts on mobile (`md:hidden` cards + `hidden md:block` tables).
+  `ng build` clean, `ng test` 1/1 green. Awaiting user's visual sign-off.
 - **Open question:** whether to keep the browser PWA as the primary client or invest in the
   Phase 4 Android WebView wrapper for Play Store distribution.
 - **Next steps (pending):** Phase 4 Android wrapper; Phase 5 deploy (EC2, Nginx, Let's Encrypt,

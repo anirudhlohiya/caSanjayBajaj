@@ -35,7 +35,55 @@
   @if (loading()) {
     <app-spinner />
   } @else {
-    <div class="overflow-x-auto">
+    <div class="md:hidden divide-y divide-outline-variant">
+      @for (d of docs(); track d.id) {
+        <div class="p-4">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <p class="font-headline-sm text-headline-sm text-on-surface truncate">{{ d.user?.name ?? '—' }}</p>
+              <p class="text-body-sm text-on-surface-variant truncate">{{ d.original_filename }}</p>
+            </div>
+            <app-status-chip [status]="d.status" />
+          </div>
+          <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-body-sm">
+            <div>
+              <dt class="font-label-md text-label-md text-on-surface-variant">Period</dt>
+              <dd class="text-on-surface">{{ d.filing_period?.period_label ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt class="font-label-md text-label-md text-on-surface-variant">Type</dt>
+              <dd class="text-on-surface uppercase">{{ d.file_type }}</dd>
+            </div>
+            <div>
+              <dt class="font-label-md text-label-md text-on-surface-variant">Size</dt>
+              <dd class="text-on-surface tabular-nums">{{ fmtBytes(d.file_size_bytes) }}</dd>
+            </div>
+            <div>
+              <dt class="font-label-md text-label-md text-on-surface-variant">Uploaded</dt>
+              <dd class="text-on-surface tabular-nums">{{ fmtDate(d.uploaded_at) }}</dd>
+            </div>
+          </dl>
+          <div class="mt-3 flex gap-2">
+            <button class="btn-outline flex-1" (click)="download(d)" [disabled]="isDownloading(d.id)">
+              <span class="material-symbols-outlined" style="font-size: 18px">download</span>
+              Download
+            </button>
+            @if (d.status === 'received') {
+              <button class="btn-primary flex-1" (click)="markProcessed(d)" [disabled]="isProcessing(d.id)">
+                <span class="material-symbols-outlined" style="font-size: 18px">check</span>
+                Process
+              </button>
+            }
+          </div>
+        </div>
+      } @empty {
+        <div class="p-4">
+          <app-empty-state icon="description" message="No documents match the filters" />
+        </div>
+      }
+    </div>
+
+    <div class="hidden md:block overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-surface-bright border-b border-outline-variant">

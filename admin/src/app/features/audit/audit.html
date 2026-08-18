@@ -19,7 +19,37 @@
   @if (loading()) {
     <app-spinner />
   } @else {
-    <div class="overflow-x-auto">
+    <div class="md:hidden divide-y divide-outline-variant">
+      @for (l of logs(); track l.id) {
+        <div class="p-4">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <p class="font-headline-sm text-headline-sm text-on-surface truncate">{{ actionLabel(l.action) }}</p>
+              <p class="text-body-sm text-on-surface-variant tabular-nums">{{ fmtDate(l.created_at) }}</p>
+            </div>
+            <span class="shrink-0 rounded-full bg-surface-container px-2 py-0.5 text-[12px] font-medium text-on-surface-variant">
+              {{ l.admin?.name ?? 'System' }}
+            </span>
+          </div>
+          <dl class="mt-3 grid grid-cols-1 gap-y-2 text-body-sm">
+            <div class="min-w-0">
+              <dt class="font-label-md text-label-md text-on-surface-variant">Target</dt>
+              <dd class="text-on-surface truncate">{{ l.target_user?.name ?? (l.target_period?.period_label ?? '—') }}</dd>
+            </div>
+            <div class="min-w-0">
+              <dt class="font-label-md text-label-md text-on-surface-variant">Details</dt>
+              <dd class="text-on-surface-variant break-words">{{ l.detail | json }}</dd>
+            </div>
+          </dl>
+        </div>
+      } @empty {
+        <div class="p-4">
+          <app-empty-state icon="history" message="No audit activity" />
+        </div>
+      }
+    </div>
+
+    <div class="hidden md:block overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-surface-bright border-b border-outline-variant">
