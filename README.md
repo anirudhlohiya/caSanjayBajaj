@@ -11,7 +11,8 @@ docs/                       # Full project documentation set (start here)
   ├── 03-app-flow.md        #   App Flow — every screen, click, path
   ├── 04-uiux-design-brief.md  # UI/UX Design Brief — look & feel
   ├── 05-backend-schema.md  #   Backend Schema — tables, auth, relations
-  └── 06-implementation-plan.md # Step-by-step build sequence
+  ├── 06-implementation-plan.md # Step-by-step build sequence
+  └── 07-aws-reference.md    #   AWS + push setup, reusable per client
 design-references/          # Approved UI mockups (client + admin)
 backend/                    # NestJS API (Phase 1)
 admin/                      # Angular admin dashboard (Phase 2)

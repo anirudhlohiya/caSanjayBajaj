@@ -11,7 +11,7 @@ import { AuthService } from './auth.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Admin, Permission, RefreshToken]),
-    JwtModule.register({}),
+    JwtModule.register({ global: true }),
   ],
   controllers: [AuthController],
   providers: [AuthService],
