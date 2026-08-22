@@ -1,7 +1,7 @@
 {
-  "name": "GST Portal",
-  "short_name": "GST Portal",
-  "description": "Your secure gateway to share documents and receive GST reports from CA Sanjay Bajaj & Co.",
+  "name": "SN Bajaj And Co",
+  "short_name": "SN Bajaj And Co",
+  "description": "Your secure gateway to share documents and receive GST reports from SN Bajaj And Co.",
   "theme_color": "#001433",
   "background_color": "#f8f9fa",
   "display": "standalone",
