@@ -29,7 +29,7 @@ export default () => ({
 
   ses: {
     sourceEmail: process.env.SES_SOURCE_EMAIL ?? '',
-    sourceName: process.env.SES_SOURCE_NAME ?? 'CA Sanjay Bajaj & Co.',
+    sourceName: process.env.SES_SOURCE_NAME ?? 'SN Bajaj And Co',
   },
 
   firebase: {
@@ -55,5 +55,13 @@ export default () => ({
 
   cors: {
     origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true,
+  },
+
+  androidApp: {
+    minVersion: process.env.APP_ANDROID_MIN_VERSION ?? '1.0.0',
+    latestVersion: process.env.APP_ANDROID_LATEST_VERSION ?? '1.0.0',
+    storeUrl:
+      process.env.PLAY_STORE_URL ??
+      'https://play.google.com/store/apps/details?id=com.snbajaj.portal',
   },
 });
