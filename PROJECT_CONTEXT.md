@@ -2,30 +2,43 @@
 
 > This file is the single source of truth for any AI coding tool (Claude Code, Cursor,
 > Copilot, etc.) working on this project. It reflects the project's CURRENT state after
-> Phases 0–5 tooling. Treat everything below as fixed requirements unless explicitly told
-> otherwise. Companion docs (read in this order): `docs/08-project-handbook.md` (deep
-> context + gotchas), `docs/09-run-and-test-guide.md` (run/test locally),
-> `docs/10-phase5-deploy-runbook.md` (deploy + security checklist).
+> Phases 0–5 tooling + branding + Android wrapper build-out. Treat everything below as
+> fixed requirements unless explicitly told otherwise. Companion docs (read in this
+> order): `docs/08-project-handbook.md` (deep context + gotchas),
+> `docs/09-run-and-test-guide.md` (run/test locally), `docs/10-phase5-deploy-runbook.md`
+> (deploy + security checklist).
 
 ## 1. What this project is
 
-A platform for **CA Sanjay Bajaj & Co.** (chartered accountant firm) to manage document
-collection, GST report delivery, and filing reminders for ~150 GST clients (Phase 1),
-replacing a manual email/WhatsApp process. ITR users (~750) are Phase 2 scope, not built.
+A platform for **SN Bajaj And Co** (chartered accountant firm — renamed Aug 2026 from
+"CA Sanjay Bajaj & Co."; brand applied across all three apps, emails and the Android
+launcher) to manage document collection, GST report delivery, and filing reminders for
+~150 GST clients (Phase 1), replacing a manual email/WhatsApp process. ITR users (~750)
+are Phase 2 scope, not built.
 
-Three components (all three are CODE COMPLETE and smoke-tested against real AWS):
+Three components:
 
-1. **Client PWA** ("Fiscal Integrity") — Angular 20 installable mobile-first web app in
-   `client/`. Clients log in (email+password or OTP signup/reset), upload documents per
-   filing period directly to S3 via pre-signed URLs, track document status, download GST
-   reports, receive in-app notifications + email + browser web-push.
-2. **Admin web panel** ("Fiscal Precision") — Angular 20 dashboard in `admin/`, served at
-   `/admin/` in production. The CA (super admin) and staff manage clients, review
-   documents, upload/send reports, send reminders, manage staff permissions, view audit
-   logs and filing periods.
+1. **Client PWA** ("SN Bajaj And Co – GST Client Portal") — Angular 20 installable
+   mobile-first web app in `client/`. Clients log in (email+password or OTP
+   signup/reset), upload documents per filing period directly to S3 via pre-signed URLs,
+   track document status, download GST reports, receive in-app notifications + email +
+   browser web-push.
+2. **Admin web panel** ("SN Bajaj And Co – Admin") — Angular 20 dashboard in `admin/`,
+   served at `/admin/` in production. The CA (super admin) and staff manage clients,
+   review documents, upload/send reports, send reminders, manage staff permissions, view
+   audit logs and filing periods.
 3. **Backend API** — NestJS 11 (TypeScript) monolith in `backend/`, global prefix
    `api/v1`, Swagger at `/api/docs` (**disabled when NODE_ENV=production**). TypeORM +
    PostgreSQL 16. Serves both frontends.
+
+4. **Android app** (`android-wrapper/`, package `com.snbajaj.portal`) — Kotlin WebView
+   shell around the deployed client PWA with a **server-driven forced-update gate**
+   (`GET /api/v1/app/version` → `{min_version, latest_version, store_url}`, driven by
+   env `APP_ANDROID_MIN_VERSION` / `APP_ANDROID_LATEST_VERSION` / `PLAY_STORE_URL`).
+   App opens normally even when outdated; document upload/download is BLOCKED with a
+   non-dismissable Play Store dialog when `VERSION_NAME < min_version`. Debug APK v1.0.0
+   builds green via Gradle 8.14.2 / AGP 8.7.3 / compileSdk 36 / targetSdk 35; launcher
+   icons generated from root `logo.jfif`.
 
 ## 2. Hard constraint: cost
 
@@ -35,7 +48,16 @@ minimize AWS running cost (target ≈ ₹0–100/month):
   localhost-only), Nginx, both static SPAs. No RDS, no ALB, no ECS.
 - Free-tier services only: S3 (private buckets, pre-signed URLs), SES email, self-hosted
   VAPID web push (NO Firebase/FCM account), Let's Encrypt SSL.
-- No paid third-party services.
+- No paid third-party services. Scale ceiling ~1000 users total — fine on one micro box.
+
+## 3. Deployment priorities (user-stated order)
+
+1. **Android app first** (client-facing) — wrapper code complete; needs live URL to load.
+2. **Admin panel second** — must be reachable from any device after deploy.
+3. **Client PWA last** (it's what the Android app wraps).
+Domain `lohiyaanirudh.tech` is OWNED by the user; Option A agreed: agent provisions AWS
+via AWS CLI installed locally (`C:\Users\Admin\AppData\Local\Programs\Amazon\AWSCLIV2\aws.exe`,
+added to user PATH). User runs `aws configure` THEMSELVES (never paste secrets in chat).
 
 ## 3. User roles
 
@@ -71,15 +93,26 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
 ## 5. Current phase status
 
 - Phase 0 docs, 1 backend, 2 admin, 3 client PWA — **DONE** (live E2E passed vs real S3/SES)
-- Phase 4 Android wrapper (`android-wrapper/`, Kotlin WebView shell) — NOT STARTED;
-  decide after live deployment proves the PWA works for users
+- Branding + logo — **DONE** (commit `0eb0b78`): "SN Bajaj And Co" everywhere; root
+  `logo.jfif` converted into PWA icons (8 sizes), favicons (both apps), Android mipmaps,
+  Play Store 512px icon (`android-wrapper/store-assets/play-store-icon-512.png`).
+- Admin bug-fix pass — **DONE** (commit `f2cdb1b`): report uploads were being ABORTED
+  mid-flight (`firstValueFrom` on `observe:'events'` cancelled the XHR — fixed via
+  completion-promise UploadService); "All unfiled" reminders were impossible to send
+  (stale required validator — fixed with dynamic validators); removed impossible
+  super_admin staff option; pagination gap markers now render; sidebar "Add New Client"
+  opens the add modal (`/clients?action=add`). Full API sweep vs live backend passed.
+- Phase 4 Android wrapper — **CODE COMPLETE** (commit `9a89c5e`); debug APK at
+  `android-wrapper/store-assets/sn-bajaj-co-debug-v1.0.0.apk`; release AAB pending
+  Play Store account ($25) OR sideload debug/release-signed APK.
 - Phase 5 deploy — **KIT COMPLETE in `deploy/`**: `bootstrap-server.sh` (one-time EC2
   setup), `nginx-ca-platform.conf`, `ecosystem.config.js` (PM2), `backup.sh` (nightly
   pg_dump→S3 cron), `deploy-from-local.ps1` (builds locally, ships bundles, updates
-  backend from git). Actual provisioning = follow `docs/10-phase5-deploy-runbook.md`.
-- Remaining pre-launch manual steps: run the runbook on a real EC2, DNS A record,
-  `certbot --nginx -d <DOMAIN>`, SES production access, set REAL super-admin credentials,
-  backup cron install, timezone `Asia/Kolkata`.
+  backend from git). AWS CLI v2 installed locally; provisioning = run
+  `docs/10-phase5-deploy-runbook.md` §2–§7 once user configures credentials.
+- Remaining pre-launch manual steps: `aws configure` (user), EC2 launch, DNS A record for
+  `lohiyaanirudh.tech`, `certbot --nginx -d lohiyaanirudh.tech`, SES production access,
+  REAL super-admin credentials, backup cron install, timezone `Asia/Kolkata`.
 
 ## 6. Functional notes (implemented)
 
@@ -115,21 +148,24 @@ Accepted residual risks documented there too (localStorage JWTs, single instance
 ## 8. Repo layout
 
 ```
-backend/    NestJS API (code complete, hardened)
-admin/      Angular admin dashboard ("Fiscal Precision")
-client/     Angular client PWA ("Fiscal Integrity")
+backend/    NestJS API (code complete, hardened, + app-version endpoint)
+admin/      Angular admin dashboard ("SN Bajaj And Co - Admin")
+client/     Angular client PWA ("SN Bajaj And Co – GST Client Portal")
 deploy/     Phase 5 deployment kit (see its README)
 docs/       01–10 documentation set (08 handbook, 09 run guide, 10 deploy runbook)
 design-references/  approved UI mockups
-android-wrapper/    empty placeholder (Phase 4)
+android-wrapper/    Android WebView app (com.snbajaj.portal) + store assets + debug APK
+logo.jfif           source brand logo (1280x960) — regenerate icons from this
 admin-web/, client-web/  STALE EMPTY folders from planning — DO NOT USE
 ```
 
 Git: origin https://github.com/anirudhlohiya/caSanjayBajaj.git, branch `main`.
-Recent commits (Phase-5 tooling milestone): `02ef465` OTP signup/password-reset feature;
-`7b478f0` API hardening + production build config; `52bc88c` deploy kit. Secrets policy
-unchanged — only `.env.example`, never real `.env`; verified before push via
-`.gitignore` (`backend/.env` ignored) and a staged-content secret scan.
+Recent commits: `02ef465` OTP signup/password-reset; `7b478f0` API hardening + prod build
+config; `52bc88c` deploy kit; `300e153` runbooks; `0eb0b78` SN Bajaj And Co branding +
+logo assets; `f2cdb1b` admin bug fixes (uploads/reminders/staff/pagination);
+`9a89c5e` Android wrapper with forced-update gate. Secrets policy unchanged — only
+`.env.example`, never real `.env`; verified before push via `.gitignore`
+(`backend/.env` ignored) and a staged-content secret scan.
 
 ## 9. Explicit non-goals for Phase 1
 
@@ -138,10 +174,13 @@ no RDS; no multi-region/HA; no ITR logic; no payments/billing.
 
 ## 10. Open items
 
+- **BLOCKED on user**: run `aws configure` with IAM programmatic keys (needs EC2, S3,
+  SES, IAM read permissions), then agent executes the deploy runbook end-to-end.
+- DNS A record `lohiyaanirudh.tech` → EC2 public IP (user creates at their registrar).
 - Live-test browser push delivery end-to-end (needs HTTPS + Profile-page subscription).
 - Observe one reminder-cron firing in production-like conditions.
-- Client sign-off on reworked mobile-friendly admin UI.
-- Phase 4 go/no-go decision (Play Store presence vs PWA-only).
+- Android release signing + Play Store listing ($25 Google dev account) or sideload APK.
+- SES production access request (sandbox exit) before real client emails flow.
 
 ## 11. Non-negotiable rules for contributors
 
