@@ -9,6 +9,18 @@ export const routes: Routes = [
     canActivate: [guestGuard],
   },
   {
+    path: 'signup',
+    loadComponent: () =>
+      import('./features/auth/signup').then((m) => m.Signup),
+    canActivate: [guestGuard],
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password').then((m) => m.ForgotPassword),
+    canActivate: [guestGuard],
+  },
+  {
     path: 'documents/upload',
     loadComponent: () =>
       import('./features/upload/upload').then((m) => m.Upload),

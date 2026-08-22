@@ -122,4 +122,30 @@ export class AuthService {
     localStorage.removeItem(APP.tokens.access);
     localStorage.removeItem(APP.tokens.refresh);
   }
+
+  async sendOtp(email: string, purpose: 'signup' | 'reset_password'): Promise<void> {
+    await firstValueFrom(
+      this.api.post('/auth/otp/send', { email, purpose }),
+    );
+  }
+
+  async verifyOtp(email: string, otp_code: string, purpose: 'signup' | 'reset_password'): Promise<void> {
+    await firstValueFrom(
+      this.api.post('/auth/otp/verify', { email, otp_code, purpose }),
+    );
+  }
+
+  async signup(email: string, password: string, name: string, phone?: string): Promise<void> {
+    const tokens = await firstValueFrom(
+      this.api.post<AuthTokens>('/auth/signup', { email, password, name, phone }),
+    );
+    this.setTokens(tokens);
+    await this.loadProfile();
+  }
+
+  async resetPassword(email: string, newPassword: string): Promise<void> {
+    await firstValueFrom(
+      this.api.post('/auth/reset-password', { email, password: newPassword }),
+    );
+  }
 }

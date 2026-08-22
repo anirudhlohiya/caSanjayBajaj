@@ -8,12 +8,18 @@ import { Admin } from '../entities/admin.entity';
 import { Permission } from '../entities/permission.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { User } from '../entities/user.entity';
+import { OtpVerification } from '../entities/otp-verification.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 describe('AuthService', () => {
   let service: AuthService;
   const users = {
     createQueryBuilder: jest.fn(),
     findOneBy: jest.fn(),
+    findOne: jest.fn(),
+    save: jest.fn(),
+    create: jest.fn((v: object) => v),
+    update: jest.fn(),
   } as unknown as Repository<User>;
   const admins = {
     createQueryBuilder: jest.fn(),
@@ -29,6 +35,15 @@ describe('AuthService', () => {
     findOne: jest.fn(),
     update: jest.fn(),
   } as unknown as Repository<RefreshToken>;
+  const otpVerifications = {
+    save: jest.fn(),
+    create: jest.fn((v: object) => v),
+    findOne: jest.fn(),
+    delete: jest.fn(),
+  } as unknown as Repository<OtpVerification>;
+  const notificationsService = {
+    sendEmail: jest.fn().mockResolvedValue(true),
+  } as unknown as NotificationsService;
   const jwtService = {
     signAsync: jest.fn().mockResolvedValue('access-token'),
     sign: jest.fn().mockReturnValue('refresh-token'),
@@ -43,6 +58,8 @@ describe('AuthService', () => {
         { provide: 'AdminRepository', useValue: admins },
         { provide: 'PermissionRepository', useValue: permissions },
         { provide: 'RefreshTokenRepository', useValue: refreshTokens },
+        { provide: 'OtpVerificationRepository', useValue: otpVerifications },
+        { provide: NotificationsService, useValue: notificationsService },
         { provide: JwtService, useValue: jwtService },
       ],
     }).compile();

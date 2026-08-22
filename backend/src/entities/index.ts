@@ -9,6 +9,7 @@ import { Reminder } from './reminder.entity';
 import { Report } from './report.entity';
 import { ReportNotification } from './report-notification.entity';
 import { User } from './user.entity';
+import { OtpVerification } from './otp-verification.entity';
 
 export const entities = [
   User,
@@ -22,6 +23,7 @@ export const entities = [
   RefreshToken,
   DeviceToken,
   ReportNotification,
+  OtpVerification,
 ];
 
 export {
@@ -36,4 +38,6 @@ export {
   Report,
   ReportNotification,
   User,
+  OtpVerification,
 };
+

@@ -10,6 +10,7 @@ import { ToastService } from '../../core/services/toast.service';
   imports: [ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',
+  styles: [':host { display: block; height: 100%; }'],
 })
 export class Login {
   private readonly fb = inject(FormBuilder);

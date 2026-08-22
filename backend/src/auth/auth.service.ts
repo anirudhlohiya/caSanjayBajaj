@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   UnauthorizedException,
@@ -13,12 +14,16 @@ import {
   AdminStatus,
   SubjectType,
   UserStatus,
+  UserType,
 } from '../common/enums';
 import { Admin } from '../entities/admin.entity';
 import { Permission } from '../entities/permission.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { User } from '../entities/user.entity';
+import { OtpVerification } from '../entities/otp-verification.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 import { AuthTokensDto, LoginDto, RefreshDto } from './dto/auth.dto';
+import { SendOtpDto, VerifyOtpDto, SignupDto, ResetPasswordDto } from './dto/otp.dto';
 
 interface TokenPayload {
   sub: string;
@@ -37,6 +42,9 @@ export class AuthService {
     private readonly permissions: Repository<Permission>,
     @InjectRepository(RefreshToken)
     private readonly refreshTokens: Repository<RefreshToken>,
+    @InjectRepository(OtpVerification)
+    private readonly otpVerifications: Repository<OtpVerification>,
+    private readonly notifications: NotificationsService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -202,5 +210,167 @@ export class AuthService {
       d: 24 * 60 * 60 * 1000,
     };
     return value * multipliers[unit];
+  }
+
+  async sendOtp(dto: SendOtpDto): Promise<{ success: boolean }> {
+    const emailLower = dto.email.toLowerCase();
+
+    if (dto.purpose === 'signup') {
+      const userExists = await this.users.findOne({
+        where: { email: emailLower },
+      });
+      if (userExists) {
+        throw new BadRequestException('Email is already registered');
+      }
+    } else if (dto.purpose === 'reset_password') {
+      const userExists = await this.users.findOne({
+        where: { email: emailLower },
+      });
+      if (!userExists) {
+        throw new BadRequestException('Email is not registered');
+      }
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await this.otpVerifications.delete({ email: emailLower, purpose: dto.purpose });
+    await this.otpVerifications.save(
+      this.otpVerifications.create({
+        email: emailLower,
+        otp_code: otpCode,
+        purpose: dto.purpose,
+        expires_at: expiresAt,
+        verified: false,
+      }),
+    );
+
+    console.log(`[OTP] Generated OTP for ${emailLower} (${dto.purpose}): ${otpCode}`);
+
+    const subject = dto.purpose === 'signup'
+      ? 'Filing App — Email Verification OTP'
+      : 'Filing App — Password Reset OTP';
+
+    const actionText = dto.purpose === 'signup' ? 'verify your email' : 'reset your password';
+    const htmlBody = `
+      <div style="font-family: sans-serif; padding: 20px; color: #191c1e; background-color: #f7f9fb;">
+        <h2 style="color: #001433;">CA Sanjay Bajaj & Co.</h2>
+        <p>You requested an OTP to ${actionText}.</p>
+        <div style="font-size: 24px; font-weight: bold; padding: 15px 0; letter-spacing: 2px; color: #305ea4;">
+          ${otpCode}
+        </div>
+        <p style="font-size: 13px; color: #74777f;">
+          This code is valid for 5 minutes. If you did not make this request, please ignore this email.
+        </p>
+      </div>
+    `;
+
+    await this.notifications.sendEmail(
+      { email: emailLower },
+      subject,
+      htmlBody,
+    );
+
+    return { success: true };
+  }
+
+  async verifyOtp(dto: VerifyOtpDto): Promise<{ success: boolean }> {
+    const emailLower = dto.email.toLowerCase();
+
+    const record = await this.otpVerifications.findOne({
+      where: { email: emailLower, purpose: dto.purpose, verified: false },
+      order: { created_at: 'DESC' },
+    });
+
+    if (!record) {
+      throw new BadRequestException('No verification request found for this email');
+    }
+
+    if (record.expires_at < new Date()) {
+      throw new BadRequestException('OTP has expired. Please request a new one');
+    }
+
+    if (record.otp_code !== dto.otp_code) {
+      throw new BadRequestException('Invalid OTP code');
+    }
+
+    record.verified = true;
+    await this.otpVerifications.save(record);
+
+    return { success: true };
+  }
+
+  async signup(dto: SignupDto): Promise<AuthTokensDto> {
+    const emailLower = dto.email.toLowerCase();
+
+    const verification = await this.otpVerifications.findOne({
+      where: { email: emailLower, purpose: 'signup', verified: true },
+      order: { updated_at: 'DESC' },
+    });
+
+    if (!verification) {
+      throw new BadRequestException('Email not verified. Please request and verify OTP first');
+    }
+
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    if (verification.updated_at < tenMinutesAgo) {
+      throw new BadRequestException('Verification expired. Please request a new OTP');
+    }
+
+    const exists = await this.users.findOne({ where: { email: emailLower } });
+    if (exists) {
+      throw new BadRequestException('Email is already registered');
+    }
+
+    const passwordHash = await argon2.hash(dto.password);
+    const user = await this.users.save(
+      this.users.create({
+        name: dto.name,
+        email: emailLower,
+        password_hash: passwordHash,
+        phone: dto.phone ?? null,
+        user_type: UserType.GST,
+        status: UserStatus.ACTIVE,
+      }),
+    );
+
+    await this.otpVerifications.delete({ email: emailLower, purpose: 'signup' });
+
+    const payload: TokenPayload = {
+      sub: user.id,
+      type: 'user',
+      email: user.email,
+    };
+    return this.issueTokens(payload, SubjectType.USER, user.id);
+  }
+
+  async resetPassword(dto: ResetPasswordDto): Promise<{ success: boolean }> {
+    const emailLower = dto.email.toLowerCase();
+
+    const verification = await this.otpVerifications.findOne({
+      where: { email: emailLower, purpose: 'reset_password', verified: true },
+      order: { updated_at: 'DESC' },
+    });
+
+    if (!verification) {
+      throw new BadRequestException('Email not verified. Please request and verify OTP first');
+    }
+
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    if (verification.updated_at < tenMinutesAgo) {
+      throw new BadRequestException('Verification expired. Please request a new OTP');
+    }
+
+    const user = await this.users.findOne({ where: { email: emailLower } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const passwordHash = await argon2.hash(dto.password);
+    await this.users.update(user.id, { password_hash: passwordHash });
+
+    await this.otpVerifications.delete({ email: emailLower, purpose: 'reset_password' });
+
+    return { success: true };
   }
 }

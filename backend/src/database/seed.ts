@@ -5,7 +5,8 @@ import * as argon2 from 'argon2';
 import type { Repository } from 'typeorm';
 import { Admin } from '../entities/admin.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
-import { AdminRole } from '../common/enums';
+import { User } from '../entities/user.entity';
+import { AdminRole, UserType, UserStatus } from '../common/enums';
 import { SeedModule } from './seed.module';
 
 async function run() {
@@ -17,6 +18,7 @@ async function run() {
   const periods: Repository<GstFilingPeriod> = app.get(
     getRepositoryToken(GstFilingPeriod),
   );
+  const users: Repository<User> = app.get(getRepositoryToken(User));
 
   // Seed Super Admin
   const email = config.get<string>('superAdmin.email');
@@ -41,6 +43,25 @@ async function run() {
     console.log('Super Admin already exists — skipping');
   }
 
+  // Seed Test Client User
+  const clientEmail = 'anirudhlohiya999@gmail.com';
+  const clientPassword = 'Client@2026';
+  const clientExists = await users.findOneBy({ email: clientEmail });
+  if (!clientExists) {
+    await users.save(
+      users.create({
+        name: 'Anirudh Lohiya',
+        email: clientEmail,
+        password_hash: await argon2.hash(clientPassword),
+        user_type: UserType.GST,
+        status: UserStatus.ACTIVE,
+      }),
+    );
+    console.log('Test Client User created:', clientEmail);
+  } else {
+    console.log('Test Client User already exists — skipping');
+  }
+
   // Seed default filing periods (current + next 2 months)
   const now = new Date();
   for (let offset = 0; offset < 3; offset++) {
@@ -60,7 +81,7 @@ async function run() {
           period_code: periodCode,
           due_date: due.toISOString().slice(0, 10),
           is_open: true,
-        }),
+         }),
       );
       console.log('Filing period created:', periodLabel);
     }
@@ -74,3 +95,4 @@ run().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
