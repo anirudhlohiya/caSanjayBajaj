@@ -1,131 +1,154 @@
 # Project Context — CA Practice Management Platform (Phase 1: GST Module)
 
-> This file is the single source of truth for any AI coding tool (Claude Code, Cursor, Copilot, etc.) working on this project. Treat everything below as fixed project requirements, not suggestions — do not substitute different technologies, patterns, or architecture unless explicitly told to.
+> This file is the single source of truth for any AI coding tool (Claude Code, Cursor,
+> Copilot, etc.) working on this project. It reflects the project's CURRENT state after
+> Phases 0–5 tooling. Treat everything below as fixed requirements unless explicitly told
+> otherwise. Companion docs (read in this order): `docs/08-project-handbook.md` (deep
+> context + gotchas), `docs/09-run-and-test-guide.md` (run/test locally),
+> `docs/10-phase5-deploy-runbook.md` (deploy + security checklist).
 
 ## 1. What this project is
 
-A platform for a Chartered Accountant (CA) firm to manage document collection, GST report delivery, and filing reminders for clients, replacing a fully manual process. Two client types exist: **GST users** (150, Phase 1 — this document) and **ITR users** (750, Phase 2 — not yet scoped in detail).
+A platform for **CA Sanjay Bajaj & Co.** (chartered accountant firm) to manage document
+collection, GST report delivery, and filing reminders for ~150 GST clients (Phase 1),
+replacing a manual email/WhatsApp process. ITR users (~750) are Phase 2 scope, not built.
 
-Three components:
-1. **Android mobile app** (native, Kotlin) — used by GST users to upload documents and receive reports.
-2. **Admin web panel** (Angular, mobile-responsive) — used by the CA (Super Admin) and staff to manage clients, review documents, send reports, and send reminders.
-3. **Backend API** (Node.js + NestJS) — serves both clients, talks to the database, S3, SES, and FCM.
+Three components (all three are CODE COMPLETE and smoke-tested against real AWS):
+
+1. **Client PWA** ("Fiscal Integrity") — Angular 20 installable mobile-first web app in
+   `client/`. Clients log in (email+password or OTP signup/reset), upload documents per
+   filing period directly to S3 via pre-signed URLs, track document status, download GST
+   reports, receive in-app notifications + email + browser web-push.
+2. **Admin web panel** ("Fiscal Precision") — Angular 20 dashboard in `admin/`, served at
+   `/admin/` in production. The CA (super admin) and staff manage clients, review
+   documents, upload/send reports, send reminders, manage staff permissions, view audit
+   logs and filing periods.
+3. **Backend API** — NestJS 11 (TypeScript) monolith in `backend/`, global prefix
+   `api/v1`, Swagger at `/api/docs` (**disabled when NODE_ENV=production**). TypeORM +
+   PostgreSQL 16. Serves both frontends.
 
 ## 2. Hard constraint: cost
 
-The client is budget-sensitive and new to cloud software. **Every architecture decision must minimize AWS running cost.** Concretely:
-- Use AWS Free Tier services wherever eligible.
-- Backend API and database run on a **single EC2 instance** (t3.micro / t2.micro) — do not introduce a separate managed database (RDS) in Phase 1.
-- Do not introduce paid third-party services (e.g., no Twilio, no paid push providers, no WhatsApp Business API) in Phase 1.
-- Prefer free tools: Amazon SES (email), Firebase Cloud Messaging (push, free), Let's Encrypt (SSL, free).
+The client is budget-sensitive and new to cloud software. Every architecture decision must
+minimize AWS running cost (target ≈ ₹0–100/month):
+- Single EC2 t3.micro/t2.micro runs EVERYTHING: API (PM2), PostgreSQL 16 (self-hosted,
+  localhost-only), Nginx, both static SPAs. No RDS, no ALB, no ECS.
+- Free-tier services only: S3 (private buckets, pre-signed URLs), SES email, self-hosted
+  VAPID web push (NO Firebase/FCM account), Let's Encrypt SSL.
+- No paid third-party services.
 
 ## 3. User roles
 
 | Role | Where | Access |
 |---|---|---|
-| **GST User** | Mobile app only | Login, upload documents per filing period, view document status, view/download reports (full history), receive reminders |
-| **Super Admin** (the CA) | Admin web panel | Full access: view all clients & documents, upload/send reports, trigger reminders, manage staff accounts & permissions |
-| **Staff Admin** | Admin web panel | Limited access, granted per-permission by Super Admin (e.g., view assigned clients, upload reports, send reminders) — cannot manage other staff or global settings unless explicitly granted |
+| **GST User** | Client PWA | Login/OTP signup, upload documents per filing period, view status, download reports (full history), get reminders |
+| **Super Admin** (the CA) | Admin panel | Everything: clients, documents, reports, reminders, staff accounts, granular permissions |
+| **Staff Admin** | Admin panel | Limited access granted per-permission by Super Admin (`view_clients, view_documents, upload_reports, send_reminders, manage_staff, view_audit_logs, manage_settings`) |
 
-Permissions should be modeled as granular flags per staff account, not fixed roles — this must support future changes without schema rework.
+Permissions are granular flags per staff account, enforced SERVER-SIDE by NestJS guards.
 
-## 4. Functional requirements — Phase 1 (GST)
-
-### 4.1 Authentication
-- Email + password login for both mobile app and admin panel.
-- Passwords hashed with bcrypt or argon2 — never store plaintext.
-- JWT access token + refresh token pattern.
-- Future (v1.1, not in initial build): Android BiometricPrompt to unlock a locally stored session — this is a device-side convenience layer only, it does not replace server-side auth.
-
-### 4.2 Document upload (GST user, mobile app)
-- User selects a **filing period** (e.g. "July 2026") and uploads one or more files (PDF / image / Excel).
-- Files upload **directly to S3** using short-lived pre-signed upload URLs issued by the backend — files must never be proxied through the EC2 server.
-- Each document has a status: `pending` → `received` → `processed`.
-- S3 bucket is **private**; all reads happen via signed URLs with short expiry, never public URLs.
-
-### 4.3 Admin document review & report delivery
-- Admin panel lists clients, filterable by filing period and status.
-- Admin can view/download a client's uploaded documents for a period via signed URLs.
-- Admin uploads the completed GST report against a specific client + filing period + report type.
-- Report becomes visible to that client immediately in their "Reports" section.
-- **Full report history is retained** — not just the latest report — tagged by period and type.
-- On report upload, automatically trigger: 1) push notification (FCM), 2) email (SES) — both link back into the app. **Never** send the report as a raw email attachment.
-
-### 4.4 GST due-date reminders
-- Scheduled job checks upcoming GST due dates daily (configurable number of days before due date) and auto-sends reminders (push + email) to users who haven't filed/uploaded yet for that period.
-- Admin can also manually trigger/resend a reminder to one user or a group at any time.
-- **Every reminder send (automatic or manual) must be logged**: user, period, channel, status, timestamp, triggered_by (system or admin id). This log must be visible in the admin panel so staff can see who's already been reminded and avoid duplicate sends.
-
-### 4.5 Admin roles & permissions
-- Super Admin creates/deactivates staff accounts and assigns granular permissions.
-- All admin actions (document access, report uploads, reminders sent) are logged with actor + timestamp for accountability (`audit_logs`).
-
-## 5. Technology stack (fixed — do not substitute)
+## 4. Technology stack (fixed — do not substitute)
 
 | Layer | Technology |
 |---|---|
-| Admin web app | Angular |
-| Backend API | Node.js + NestJS (TypeScript) |
-| Mobile app | Kotlin, native Android (no cross-platform framework, no iOS in Phase 1) |
-| Database | PostgreSQL, **self-hosted on the same EC2 instance** as the API (Phase 1). Migration path to Amazon RDS is a Phase-2-or-later decision, not now. |
-| File storage | Amazon S3 (private bucket, signed URLs only) |
-| Email notifications | Amazon SES |
-| Push notifications | Firebase Cloud Messaging (FCM) |
-| Hosting | Single Amazon EC2 instance (t3.micro/t2.micro), Nginx reverse proxy, Let's Encrypt SSL |
-| Backups | Nightly cron job: `pg_dump` → upload to a separate S3 bucket/prefix |
+| Admin web | Angular 20 standalone + Tailwind v4 (`postcss.config.json` — JSON, NOT .js; Angular ignores JS PostCSS configs) |
+| Client | Angular 20 PWA (@angular/service-worker) + Tailwind v4; build patches `ngsw-worker.js` via `client/scripts/patch-sw.js` to add push handlers |
+| Backend | Node.js 22 + NestJS 11 (TypeScript), TypeORM, class-validator, argon2, @nestjs/schedule cron |
+| Database | PostgreSQL 16 self-hosted on same EC2 (dev: Docker container `ca-pg` or local install); migrations ONLY (`synchronize:false`) |
+| File storage | Amazon S3 private buckets; pre-signed PUT (300s TTL) / GET URLs; bytes never proxy through API |
+| Email | Amazon SES v2 (`SES_SOURCE_EMAIL`; skipped silently if unset) |
+| Push | Web Push protocol, `web-push` npm lib, VAPID keys in `.env` (`FIREBASE_VAPID_*` names are legacy — no Firebase); skipped if unset |
+| Hosting | Single EC2 (Amazon Linux 2023), Nginx reverse proxy, PM2 (`node --env-file=.env dist/main.js`), Let's Encrypt |
+| Tests | Backend Jest (unit + e2e health smoke); Frontends Karma/Jasmine ChromeHeadless |
 
-## 6. Database schema — outline
+### Production URL layout (Phase 5)
+Single domain, path-routed by Nginx: `/` = client PWA, `/admin/` = admin SPA (built with
+`--base-href=/admin/`), `/api/` proxied to 127.0.0.1:3000. Both SPAs use RELATIVE prod API
+base (`environment.prod.ts` → `apiBaseUrl:'/api/v1'`, wired via angular.json
+fileReplacements) — CORS irrelevant in production. Dev uses absolute
+`http://localhost:3000/api/v1`.
+
+## 5. Current phase status
+
+- Phase 0 docs, 1 backend, 2 admin, 3 client PWA — **DONE** (live E2E passed vs real S3/SES)
+- Phase 4 Android wrapper (`android-wrapper/`, Kotlin WebView shell) — NOT STARTED;
+  decide after live deployment proves the PWA works for users
+- Phase 5 deploy — **KIT COMPLETE in `deploy/`**: `bootstrap-server.sh` (one-time EC2
+  setup), `nginx-ca-platform.conf`, `ecosystem.config.js` (PM2), `backup.sh` (nightly
+  pg_dump→S3 cron), `deploy-from-local.ps1` (builds locally, ships bundles, updates
+  backend from git). Actual provisioning = follow `docs/10-phase5-deploy-runbook.md`.
+- Remaining pre-launch manual steps: run the runbook on a real EC2, DNS A record,
+  `certbot --nginx -d <DOMAIN>`, SES production access, set REAL super-admin credentials,
+  backup cron install, timezone `Asia/Kolkata`.
+
+## 6. Functional notes (implemented)
+
+- Auth: argon2 passwords; JWT access 15m + rotating refresh 30d (refresh tokens hashed in
+  DB); OTP-based signup/forgot-password for clients (`otp_verifications` table).
+  Tokens per surface: admin `fp_admin_access/refresh`, client `fp_user_access/refresh`
+  (localStorage).
+- Document flow: client requests `POST /documents/upload-url` → PUTs directly to S3 →
+  `POST /documents/:id/confirm`. Statuses `pending → received → processed`. Offline queue
+  (IndexedDB) in client app.
+- Report flow: admin uploads via pre-signed URL → confirm triggers in-app notification +
+  FCM-style web push + SES email (link into app, NEVER raw attachment). Full report
+  history kept per period/type (gstr_1, gstr_3b, reconciliation, other).
+- Reminders: daily cron 08:00 server time (hardcoded; `REMINDER_CRON` env parsed but
+  UNUSED) for open periods due within `REMINDER_LEAD_DAYS`; manual sends logged in
+  `reminders` table visible in admin panel.
+- Seed (`npm run seed`): super admin from env + test client
+  `anirudhlohiya999@gmail.com` / `Client@2026` + current+next-2 filing periods (due 11th
+  of following month). Dev-only credentials; must be replaced before production.
+- Pagination everywhere: `{items,total,page,pageSize,totalPages}`; snake_case filters.
+
+## 7. Security posture (as of Phase 5 hardening)
+
+Implemented in code: helmet headers; rate limiting (@nestjs/throttler: global 120/min/IP,
+login 5/min, OTP flows 3/min); Swagger off in prod; fail-fast boot check (prod refuses to
+start without JWT secrets ≥32 chars + DB password); ValidationPipe whitelist+transform;
+argon2; TypeORM parameterized queries; permission guards; audit_logs for privileged admin
+actions; S3 private buckets short-TTL signed URLs. npm audit clean in all three apps.
+Infra checklist lives in `docs/10-phase5-deploy-runbook.md` §9 (SG lockdown, TLS/HSTS,
+CORS_ORIGIN restriction, localhost-only Postgres scram-sha-256, backup verification).
+Accepted residual risks documented there too (localStorage JWTs, single instance, no WAF).
+
+## 8. Repo layout
 
 ```
-users
-  id, name, email, password_hash, phone, user_type ('gst' | 'itr'),
-  status, created_at
-
-admins
-  id, name, email, password_hash, role ('super_admin' | 'staff'), created_at
-
-permissions
-  id, admin_id (FK -> admins), permission_key, granted (boolean)
-
-documents
-  id, user_id (FK -> users), filing_period, s3_key, file_type,
-  status ('pending' | 'received' | 'processed'), uploaded_at
-
-reports
-  id, user_id (FK -> users), filing_period, report_type, s3_key,
-  sent_at, sent_by_admin_id (FK -> admins)
-
-reminders
-  id, user_id (FK -> users), filing_period, channel ('push' | 'email'),
-  status, sent_at, triggered_by ('system' | admin_id)
-
-gst_filing_periods
-  id, period_label, due_date
-
-audit_logs
-  id, admin_id (FK -> admins), action, target_user_id, timestamp
+backend/    NestJS API (code complete, hardened)
+admin/      Angular admin dashboard ("Fiscal Precision")
+client/     Angular client PWA ("Fiscal Integrity")
+deploy/     Phase 5 deployment kit (see its README)
+docs/       01–10 documentation set (08 handbook, 09 run guide, 10 deploy runbook)
+design-references/  approved UI mockups
+android-wrapper/    empty placeholder (Phase 4)
+admin-web/, client-web/  STALE EMPTY folders from planning — DO NOT USE
 ```
 
-## 7. API design conventions
+Git: origin https://github.com/anirudhlohiya/caSanjayBajaj.git, branch `main`.
+Recent commits (Phase-5 tooling milestone): `02ef465` OTP signup/password-reset feature;
+`7b478f0` API hardening + production build config; `52bc88c` deploy kit. Secrets policy
+unchanged — only `.env.example`, never real `.env`; verified before push via
+`.gitignore` (`backend/.env` ignored) and a staged-content secret scan.
 
-- REST, JSON, versioned under `/api/v1/`.
-- Auth via `Authorization: Bearer <JWT>` header.
-- File upload flow: client calls `POST /api/v1/documents/upload-url` → backend returns a pre-signed S3 PUT URL + document record id → client uploads directly to S3 → client calls `POST /api/v1/documents/:id/confirm` to mark as received.
-- File download flow: client/admin calls `GET /api/v1/documents/:id/download-url` → backend returns a short-lived signed GET URL.
-- All list endpoints (documents, reports, reminders, users) support pagination and filtering by `filing_period` and `status`.
-- Role/permission checks enforced via NestJS guards, not just UI-level hiding.
+## 9. Explicit non-goals for Phase 1
 
-## 8. Explicit non-goals for Phase 1
+No iOS/native app (PWA + optional thin wrapper later); no WhatsApp notifications (later);
+no RDS; no multi-region/HA; no ITR logic; no payments/billing.
 
-- No iOS app.
-- No WhatsApp notifications (planned later).
-- No managed RDS database (self-hosted Postgres on EC2 only).
-- No multi-region / high-availability setup (single EC2 instance is accepted).
-- No ITR-specific logic (Phase 2, separate scoping).
-- No in-app payments or billing.
+## 10. Open items
 
-## 9. Open items to confirm with the client before/while building
+- Live-test browser push delivery end-to-end (needs HTTPS + Profile-page subscription).
+- Observe one reminder-cron firing in production-like conditions.
+- Client sign-off on reworked mobile-friendly admin UI.
+- Phase 4 go/no-go decision (Play Store presence vs PWA-only).
 
-- Exact document file types and expected size/volume per user per month.
-- Exact GST due-date rule (fixed day of month vs. varies by filing type) for the reminder scheduler.
-- Exact staff permission list needed.
+## 11. Non-negotiable rules for contributors
+
+1. Fixed stack — do not substitute technologies (§4).
+2. Files never proxy through the API server — S3 signed URLs only.
+3. No plaintext passwords; no public S3 URLs; no unencrypted traffic in prod.
+4. Every reminder send and privileged admin action is logged.
+5. Never commit secrets (`.env`, keys, VAPID private key). Only `.env.example` is committed.
+6. Keep AWS cost minimal (Free Tier, one EC2, no paid services).
+7. The user is cost-sensitive and new to cloud — keep things simple and documented.

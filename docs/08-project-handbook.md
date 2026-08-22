@@ -257,6 +257,11 @@ the admin/client origins before production.
 
 ## 10. How to run everything locally
 
+> **Beginner-friendly version:** the full walkthrough — prerequisites, Docker *and* native
+> Windows PostgreSQL paths, `.env` explained key by key, AWS wiring, a manual E2E test
+> script, and a troubleshooting table — lives in **`09-run-and-test-guide.md`**.
+> The short version is below.
+
 ```bash
 # 1. Database (Postgres 16 in Docker — container "ca-pg", volume "ca-pg-data")
 docker run -d --name ca-pg -e POSTGRES_PASSWORD=<DB_PASSWORD> -e POSTGRES_DB=ca_sanjay_gst -p 5432:5432 postgres:16
