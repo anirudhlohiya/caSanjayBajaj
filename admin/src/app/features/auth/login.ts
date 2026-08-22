@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+﻿import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -32,11 +32,11 @@ export class Login {
     }
     this.loading.set(true);
     try {
-      const user = await this.auth.login(
+      await this.auth.login(
         this.form.controls.email.value,
         this.form.controls.password.value,
       );
-      void this.router.navigate([user.role === 'super_admin' ? '/dashboard' : '/dashboard']);
+      void this.router.navigate(['/dashboard']);
     } catch {
       this.toast.error('Invalid email or password');
     } finally {

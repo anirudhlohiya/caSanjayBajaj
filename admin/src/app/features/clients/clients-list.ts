@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ClientsService } from '../../core/services/feature.services';
 import { ToastService } from '../../core/services/toast.service';
 import { Client } from '../../core/models';
@@ -22,6 +22,7 @@ export class ClientsList implements OnInit {
   private readonly clientsService = inject(ClientsService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
 
   readonly loading = signal(true);
@@ -57,6 +58,9 @@ export class ClientsList implements OnInit {
 
   ngOnInit(): void {
     void this.load();
+    if (this.route.snapshot.queryParamMap.get('action') === 'add') {
+      this.openAdd();
+    }
   }
 
   async load(): Promise<void> {

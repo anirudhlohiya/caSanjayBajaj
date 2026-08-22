@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ClientsService,
   PeriodsService,
@@ -49,6 +50,20 @@ export class Reminders implements OnInit {
     filing_period_id: ['', Validators.required],
     channels: this.fb.nonNullable.array<string>([]),
   });
+
+  constructor() {
+    this.form.controls.target.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((target: string) => {
+        const control = this.form.controls.user_id;
+        if (target === 'all') {
+          control.clearValidators();
+        } else {
+          control.setValidators([Validators.required]);
+        }
+        control.updateValueAndValidity();
+      });
+  }
 
   ngOnInit(): void {
     void this.loadMeta();

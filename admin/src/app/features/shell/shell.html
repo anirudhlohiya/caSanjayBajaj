@@ -25,6 +25,7 @@
 
     <button
       routerLink="/clients"
+      [queryParams]="{ action: 'add' }"
       (click)="closeMobile()"
       class="mx-md mb-md flex items-center justify-center gap-sm px-sm py-sm rounded bg-secondary text-on-secondary hover:opacity-90 transition-opacity shrink-0"
     >

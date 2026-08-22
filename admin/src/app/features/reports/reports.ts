@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { firstValueFrom } from 'rxjs';
 import {
   ClientsService,
   PeriodsService,
@@ -127,7 +126,7 @@ export class Reports implements OnInit {
         contentType: file.type || 'application/pdf',
         file_size_bytes: file.size,
       });
-      await firstValueFrom(this.upload.upload(upload_url, file, file.type || 'application/pdf'));
+      await this.upload.upload(upload_url, file, file.type || 'application/pdf');
       await this.reportsService.confirm(report_id);
       this.toast.success('Report uploaded and client notified');
       this.showSend.set(false);

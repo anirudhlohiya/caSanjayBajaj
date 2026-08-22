@@ -24,17 +24,24 @@ import {
         >
           <span class="material-symbols-outlined">chevron_left</span>
         </button>
-        @for (p of pages(); track p) {
-          <button
-            class="w-8 h-8 rounded font-label-md text-label-md transition-colors"
-            [class.bg-secondary]="p === page()"
-            [class.text-on-secondary]="p === page()"
-            [class.text-on-surface]="p !== page()"
-            [class.hover:bg-surface-container-high]="p !== page()"
-            (click)="go(p)"
-          >
-            {{ p }}
-          </button>
+        @for (p of pages(); track $index) {
+          @if (p === '…') {
+            <span
+              class="w-8 h-8 rounded font-label-md text-label-md text-on-surface-variant flex items-center justify-center select-none"
+              >…</span
+            >
+          } @else {
+            <button
+              class="w-8 h-8 rounded font-label-md text-label-md transition-colors"
+              [class.bg-secondary]="p === page()"
+              [class.text-on-secondary]="p === page()"
+              [class.text-on-surface]="p !== page()"
+              [class.hover:bg-surface-container-high]="p !== page()"
+              (click)="go(p)"
+            >
+              {{ p }}
+            </button>
+          }
         }
         <button
           class="p-1 rounded text-on-surface-variant hover:bg-surface-container-high disabled:opacity-40 disabled:cursor-not-allowed"
@@ -62,7 +69,7 @@ export class Pagination {
     Math.min(this.page() * this.pageSize(), this.total()),
   );
 
-  readonly pages = computed(() => {
+  readonly pages = computed<(number | '…')[]>(() => {
     const total = this.totalPages();
     const current = this.page();
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -76,7 +83,7 @@ export class Pagination {
       out.push(p);
       prev = p;
     }
-    return out.filter((p): p is number => p !== '…');
+    return out;
   });
 
   go(page: number): void {
