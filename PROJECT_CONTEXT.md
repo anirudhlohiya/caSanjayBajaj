@@ -92,27 +92,29 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
 
 ## 5. Current phase status
 
-- Phase 0 docs, 1 backend, 2 admin, 3 client PWA — **DONE** (live E2E passed vs real S3/SES)
-- Branding + logo — **DONE** (commit `0eb0b78`): "SN Bajaj And Co" everywhere; root
-  `logo.jfif` converted into PWA icons (8 sizes), favicons (both apps), Android mipmaps,
-  Play Store 512px icon (`android-wrapper/store-assets/play-store-icon-512.png`).
-- Admin bug-fix pass — **DONE** (commit `f2cdb1b`): report uploads were being ABORTED
-  mid-flight (`firstValueFrom` on `observe:'events'` cancelled the XHR — fixed via
-  completion-promise UploadService); "All unfiled" reminders were impossible to send
-  (stale required validator — fixed with dynamic validators); removed impossible
-  super_admin staff option; pagination gap markers now render; sidebar "Add New Client"
-  opens the add modal (`/clients?action=add`). Full API sweep vs live backend passed.
-- Phase 4 Android wrapper — **CODE COMPLETE** (commit `9a89c5e`); debug APK at
-  `android-wrapper/store-assets/sn-bajaj-co-debug-v1.0.0.apk`; release AAB pending
-  Play Store account ($25) OR sideload debug/release-signed APK.
-- Phase 5 deploy — **KIT COMPLETE in `deploy/`**: `bootstrap-server.sh` (one-time EC2
-  setup), `nginx-ca-platform.conf`, `ecosystem.config.js` (PM2), `backup.sh` (nightly
-  pg_dump→S3 cron), `deploy-from-local.ps1` (builds locally, ships bundles, updates
-  backend from git). AWS CLI v2 installed locally; provisioning = run
-  `docs/10-phase5-deploy-runbook.md` §2–§7 once user configures credentials.
-- Remaining pre-launch manual steps: `aws configure` (user), EC2 launch, DNS A record for
-  `lohiyaanirudh.tech`, `certbot --nginx -d lohiyaanirudh.tech`, SES production access,
-  REAL super-admin credentials, backup cron install, timezone `Asia/Kolkata`.
+- Phases 0–3 — **DONE**. Phase 4 Android wrapper — **DONE** (code + debug APK).
+- Branding — **DONE**: "SN Bajaj And Co" everywhere; logo-derived icons (commit `0eb0b78`).
+- Admin bug-fix pass — **DONE** (`f2cdb1b`): aborted S3 report uploads fixed; bulk
+  reminders validator fixed; staff/pagination/AddClient polish.
+- **DEPLOYED & LIVE (Aug 23 2026)**: https://lohiyaanirudh.tech on EC2 t3.micro
+  `i-09f7e0f0d3fc6414b` (IP 65.0.45.190, ap-south-1, AMI al2023 ami-06a83a7a581c729a9).
+  - SSH: `ssh ca-ec2` (alias in `%USERPROFILE%\.ssh\config` → key `F:\Anirudh\ca-platform-key.pem`).
+    Server layout: `/opt/ca-app/repo` = git clone; `/opt/ca-app/backend` = symlink →
+    `repo/backend` (the NestJS app + `.env`, chmod 600); `/opt/ca-app/frontend/site` =
+    client PWA with `admin/` subdir; PM2 app `ca-api` (boot-persisted via pm2 startup);
+    Postgres 16 localhost-only (password in server `.env`); certbot TLS auto-renew.
+  - Nginx: security headers repeated in EVERY location (nginx add_header inheritance!),
+    HSTS, http2; template updated in deploy kit (`8b74c1a`). rsync-release bug fixed:
+    extract OUTSIDE web root or --delete eats the source dir.
+  - Prod super admin: sanjay@gmail.com / password given to user in chat (changeable).
+  - Backups: nightly 02:30 cron → s3://ca-sanjay-backups/postgres/ (tested OK).
+  - Full prod API E2E verified over HTTPS: auth+guards+429 throttle, users CRUD,
+    periods, documents, reports presign→S3 PUT→confirm→download round-trip, reminders
+    send+log, staff permissions grant/revoke, audit logs, Swagger off, redirects.
+- **KNOWN OPEN ITEM — SES SANDBOX**: AWS SES still in sandbox → emails to unverified
+  recipients are rejected ("Email address is not verified"). `anirudhlohiya999@gmail.com`
+  verification initiated (user must click AWS email); REAL fix = user requests SES
+  production access in AWS console. Push reminders show failed until a device subscribes.
 
 ## 6. Functional notes (implemented)
 
@@ -174,13 +176,14 @@ no RDS; no multi-region/HA; no ITR logic; no payments/billing.
 
 ## 10. Open items
 
-- **BLOCKED on user**: run `aws configure` with IAM programmatic keys (needs EC2, S3,
-  SES, IAM read permissions), then agent executes the deploy runbook end-to-end.
-- DNS A record `lohiyaanirudh.tech` → EC2 public IP (user creates at their registrar).
-- Live-test browser push delivery end-to-end (needs HTTPS + Profile-page subscription).
-- Observe one reminder-cron firing in production-like conditions.
-- Android release signing + Play Store listing ($25 Google dev account) or sideload APK.
-- SES production access request (sandbox exit) before real client emails flow.
+- **SES production access** (user action in AWS console) — until granted, reminder/OTP
+  emails only deliver to verified identities. `anirudhlohiya999@gmail.com` verification
+  email pending user click.
+- Browser-push live delivery test once a real device subscribes (Profile page).
+- Android: sideload debug APK to verify shell + forced-update gate; later Play release
+  ($25 dev account) with signed AAB; then raise `APP_ANDROID_MIN_VERSION` on each release.
+- Consider revoking `AmazonEC2FullAccess` from `ca-backend` IAM user now that infra is
+  provisioned (S3+SES suffice for runtime).
 
 ## 11. Non-negotiable rules for contributors
 
