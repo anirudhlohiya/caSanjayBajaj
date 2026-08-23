@@ -18,9 +18,11 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
-    provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable:30000',
-    }),
+    // '?v=2' busts any poisoned service-worker install from earlier builds:
+    // a new script URL forces a fresh worker that claims the page immediately.
+    provideServiceWorker('ngsw-worker.js?v=2', {
+        enabled: !isDevMode(),
+        registrationStrategy: 'registerWhenStable:30000',
+      }),
   ],
 };

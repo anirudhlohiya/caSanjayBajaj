@@ -115,6 +115,26 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   recipients are rejected ("Email address is not verified"). `anirudhlohiya999@gmail.com`
   verification initiated (user must click AWS email); REAL fix = user requests SES
   production access in AWS console. Push reminders show failed until a device subscribes.
+- **PROD BUG-HUNT PASS (Aug 23, commit after `6bb0e49`) — all fixed & verified**:
+  - **Service worker was breaking ALL client API GETs** (`net::ERR_FAILED` on every
+    `/api/**` request through ngsw dataGroups cache) → root cause of "can't login /
+    multiple errors". FIX: removed `dataGroups` from `client/ngsw-config.json` (API
+    responses must never be SW-cached) + registered SW as `'ngsw-worker.js?v=2'` so
+    existing poisoned installs are replaced by a fresh worker that claims the page.
+    Verified with SW ACTIVE: login→dashboard works.
+  - **S3 bucket had NO CORS config** → every browser upload/download failed with CORS
+    errors while server-side PUTs worked. FIX: applied CORS rules to `ca-sanjay-gst-docs`
+    (allowed origins lohiyaanirudh.tech/www/localhost:4200-1; GET/PUT/HEAD; headers *).
+    NOTE: any new bucket needs the same config (aws s3api put-bucket-cors).
+  - Client full E2E now passes 10/10 WITH service worker active: wrong-password error,
+    login, dashboard, **document upload to S3 from browser**, reports, notifications,
+    profile, password change round-trip, **real OTP signup flow end-to-end**
+    (OTP read from pm2 logs for the test), signup→dashboard.
+  - Admin click-sweep clean (only false-positive no-ops remain: Reset w/o filters,
+    page-1 pagination). Sidebar Add-Client modal + inline duplicate-email error live.
+  - Test artifacts cleaned: QA/test-local users deleted from prod DB (only real accounts
+    remain); filing periods re-opened after automated sweeps accidentally closed them
+    (sweep clicks the lock buttons — reopen via Settings if ever needed).
 
 ## 6. Functional notes (implemented)
 
@@ -132,8 +152,9 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   UNUSED) for open periods due within `REMINDER_LEAD_DAYS`; manual sends logged in
   `reminders` table visible in admin panel.
 - Seed (`npm run seed`): super admin from env + test client
-  `anirudhlohiya999@gmail.com` / `Client@2026` + current+next-2 filing periods (due 11th
-  of following month). Dev-only credentials; must be replaced before production.
+  `anirudhlohiya999@gmail.com` (password `12345678`, set by user) + current+next-2
+  filing periods (due 11th of following month). Test client is a REAL test account the
+  user uses; do not delete.
 - Pagination everywhere: `{items,total,page,pageSize,totalPages}`; snake_case filters.
 
 ## 7. Security posture (as of Phase 5 hardening)
