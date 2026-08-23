@@ -10,7 +10,7 @@ echo "== [1/6] swap (t3.micro has 1GB RAM; builds need headroom) =="
 if ! swapon --show=NAME | grep -q '^/swapfile$'; then
   dd if=/dev/zero of=/swapfile bs=128M count=16 status=none
   chmod 600 /swapfile
-  mkswap -q /swapfile
+  mkswap /swapfile
   swapon /swapfile
   grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
 fi
@@ -18,7 +18,7 @@ fi
 echo "== [2/6] system packages =="
 dnf update -y
 dnf install -y git nginx rsync awscli cronie \
-               postgresql16-server postgresql16 \
+               postgresql16-server postgresql16 postgresql16-contrib \
                certbot python3-certbot-nginx
 
 echo "== [3/6] Node.js 22 + PM2 =="

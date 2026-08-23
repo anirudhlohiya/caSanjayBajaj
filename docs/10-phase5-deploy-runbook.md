@@ -93,7 +93,7 @@ Verify while still on HTTP:
 
 - `http://<EC2-DNS>/` → client PWA loads
 - `http://<EC2-DNS>/admin/` → admin login page
-- `http://<EC2-DNS>/health` → JSON ok
+- `http://<EC2-DNS>/api/v1/health` → JSON ok
 
 ## 6. DNS + TLS
 

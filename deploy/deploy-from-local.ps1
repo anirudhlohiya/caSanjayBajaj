@@ -57,21 +57,26 @@ Write-Host '== Releasing static sites + restarting API ==' -ForegroundColor Cyan
 $release = @'
 set -euo pipefail
 SITE=/opt/ca-app/frontend/site
-REPO=/opt/ca-app/backend
+REPO=/opt/ca-app/repo
 
+# Extract OUTSIDE the web root: rsync --delete would otherwise treat a
+# source dir nested inside the destination as extraneous and delete it
+# mid-transfer (rsync exit 24).
+INCOMING=/opt/ca-app/frontend/.incoming-client
+rm -rf "$INCOMING"
+mkdir -p "$INCOMING"
+tar -xzf /tmp/client.tar.gz -C "$INCOMING"
 mkdir -p "$SITE"
-rm -rf "$SITE/.incoming"
-mkdir -p "$SITE/.incoming"
-tar -xzf /tmp/client.tar.gz -C "$SITE/.incoming"
-rsync -a --delete --exclude '/admin/' "$SITE/.incoming/" "$SITE/"
+rsync -a --delete --exclude '/admin/' "$INCOMING/" "$SITE/"
+rm -rf "$INCOMING"
 
-rm -rf "$SITE/admin.incoming" "$SITE/admin.old"
-mkdir -p "$SITE/admin.incoming"
-tar -xzf /tmp/admin.tar.gz -C "$SITE/admin.incoming"
+ADMIN_INCOMING=/opt/ca-app/frontend/.incoming-admin
+rm -rf "$ADMIN_INCOMING" "$SITE/admin.old"
+mkdir -p "$ADMIN_INCOMING"
+tar -xzf /tmp/admin.tar.gz -C "$ADMIN_INCOMING"
 [ -d "$SITE/admin" ] && mv "$SITE/admin" "$SITE/admin.old"
-mv "$SITE/admin.incoming" "$SITE/admin"
-
-rm -rf "$SITE/.incoming" "$SITE/admin.old" /tmp/client.tar.gz /tmp/admin.tar.gz
+mv "$ADMIN_INCOMING" "$SITE/admin"
+rm -rf "$SITE/admin.old" /tmp/client.tar.gz /tmp/admin.tar.gz
 
 nginx -t
 systemctl reload nginx
@@ -79,7 +84,7 @@ systemctl reload nginx
 pm2 startOrReload "$REPO/deploy/ecosystem.config.js"
 pm2 save
 sleep 3
-curl -fsS http://127.0.0.1:3000/health > /dev/null && echo "DEPLOY OK: health check passed"
+curl -fsS http://127.0.0.1:3000/api/v1/health > /dev/null && echo "DEPLOY OK: health check passed"
 '@
   $release | ssh $Server 'bash -s'
 
