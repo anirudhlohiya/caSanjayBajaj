@@ -8,7 +8,7 @@ import { ToastService } from '../../core/services/toast.service';
   imports: [AsyncPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="fixed top-4 right-4 z-[100] flex flex-col gap-2 w-80">
+    <div class="fixed top-4 right-4 left-4 sm:left-auto z-[100] flex flex-col gap-2 sm:w-80">
       @for (toast of toastService.toasts | async; track toast.id) {
         <div
           class="flex items-start gap-2 p-3 rounded-lg border shadow-[0_4px_12px_rgba(0,0,0,0.08)] bg-surface-container-lowest text-on-surface"

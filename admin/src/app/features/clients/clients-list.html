@@ -148,11 +148,21 @@
         </div>
         <div class="flex flex-col gap-1">
           <label class="font-label-md text-label-md text-on-surface" for="c-email">Email</label>
-          <input id="c-email" formControlName="email" type="email"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+          <input id="c-email" formControlName="email" type="email" (input)="dupEmail.set('')"
+            class="px-3 py-2 border rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2"
+            [class.border-error]="dupEmail()"
+            [class.focus:border-secondary]="!dupEmail()"
+            [class.focus:ring-secondary-fixed-dim]="!dupEmail()"
+            [class.focus:ring-error]="dupEmail()"
             placeholder="billing@acme.com" />
           @if (addForm.controls.email.touched && addForm.controls.email.invalid) {
             <span class="text-error text-body-sm">Valid email required</span>
+          }
+          @if (dupEmail()) {
+            <span class="text-error text-body-sm flex items-center gap-1">
+              <span class="material-symbols-outlined" style="font-size: 14px">error</span>
+              {{ dupEmail() }}
+            </span>
           }
         </div>
         <div class="flex flex-col gap-1">

@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClientsService } from '../../core/services/feature.services';
 import { ToastService } from '../../core/services/toast.service';
@@ -24,6 +26,7 @@ export class ClientsList implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly clients = signal<Client[]>([]);
@@ -34,6 +37,7 @@ export class ClientsList implements OnInit {
   readonly query = signal('');
   readonly showAdd = signal(false);
   readonly adding = signal(false);
+  readonly dupEmail = signal('');
 
   readonly filtered = computed(() => {
     const q = this.query().toLowerCase().trim();
@@ -58,9 +62,14 @@ export class ClientsList implements OnInit {
 
   ngOnInit(): void {
     void this.load();
-    if (this.route.snapshot.queryParamMap.get('action') === 'add') {
-      this.openAdd();
-    }
+    // React every time ?action=add arrives (e.g. sidebar button while already
+    // on this page — ngOnInit does not re-run on param-only navigation).
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((qp) => {
+      if (qp.get('action') === 'add') {
+        this.openAdd();
+        void this.router.navigate([], { queryParams: { action: null }, queryParamsHandling: 'merge', replaceUrl: true });
+      }
+    });
   }
 
   async load(): Promise<void> {
@@ -82,6 +91,7 @@ export class ClientsList implements OnInit {
 
   openAdd(): void {
     this.addForm.reset({ user_type: 'gst', status: 'active' });
+    this.dupEmail.set('');
     this.showAdd.set(true);
   }
 
@@ -90,6 +100,7 @@ export class ClientsList implements OnInit {
       this.addForm.markAllAsTouched();
       return;
     }
+    this.dupEmail.set('');
     this.adding.set(true);
     try {
       const f = this.addForm.value;
@@ -105,6 +116,14 @@ export class ClientsList implements OnInit {
       this.toast.success('Client added');
       this.showAdd.set(false);
       await this.load();
+    } catch (err) {
+      const msg = err instanceof HttpErrorResponse ? (err.error?.message ?? '') : '';
+      if (typeof msg === 'string' && /already exists/i.test(msg)) {
+        this.dupEmail.set(msg);
+        this.addForm.controls.email.markAsTouched();
+      } else if (!/already exists/i.test(String(msg))) {
+        throw err;
+      }
     } finally {
       this.adding.set(false);
     }

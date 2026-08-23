@@ -17,7 +17,7 @@
       </div>
       @if (!collapsed()) {
         <div class="whitespace-nowrap">
-          <h2 class="font-headline-sm text-headline-sm font-bold text-secondary">Corporate Accounts</h2>
+          <h2 class="font-headline-sm text-headline-sm font-bold text-secondary">SN Bajaj And Co</h2>
           <p class="font-label-md text-label-md text-on-surface-variant">Admin Portal</p>
         </div>
       }
@@ -91,34 +91,25 @@
         <span class="material-symbols-outlined">{{ collapsed() ? 'menu_open' : 'menu' }}</span>
       </button>
 
-      <div class="hidden md:flex items-center bg-surface-container-lowest border border-outline-variant rounded focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary-fixed-dim px-sm py-xs flex-1 max-w-md">
-        <span class="material-symbols-outlined text-outline mr-xs" style="font-size: 18px">search</span>
-        <input
-          class="bg-transparent border-none outline-none focus:ring-0 text-body-md font-body-md w-full p-0"
-          placeholder="Search..."
-          type="text"
-        />
-      </div>
-
-      <div class="flex items-center gap-sm ml-auto">
-        <button
-          class="p-sm text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors relative"
-          aria-label="Notifications"
-        >
-          <span class="material-symbols-outlined">notifications</span>
-          <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
-        </button>
-        <button
+      <div class="hidden md:flex items-center gap-1 ml-auto">
+        <a
+          routerLink="/settings"
           class="p-sm text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors"
           aria-label="Settings"
         >
           <span class="material-symbols-outlined">settings</span>
-        </button>
+        </a>
         <div
           class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-label-md text-label-md shrink-0"
+          [title]="user()?.email ?? 'Admin'"
         >
           {{ userInitials }}
         </div>
+      </div>
+      <div
+        class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-label-md text-label-md shrink-0 md:hidden"
+      >
+        {{ userInitials }}
       </div>
     </header>
 

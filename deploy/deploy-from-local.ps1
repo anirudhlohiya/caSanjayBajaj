@@ -78,8 +78,8 @@ tar -xzf /tmp/admin.tar.gz -C "$ADMIN_INCOMING"
 mv "$ADMIN_INCOMING" "$SITE/admin"
 rm -rf "$SITE/admin.old" /tmp/client.tar.gz /tmp/admin.tar.gz
 
-nginx -t
-systemctl reload nginx
+sudo nginx -t
+sudo systemctl reload nginx
 
 pm2 startOrReload "$REPO/deploy/ecosystem.config.js"
 pm2 save
