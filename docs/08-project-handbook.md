@@ -205,7 +205,7 @@ snake_case in the API (`filing_period_id`, `file_size_bytes`, `report_type`, etc
 - Routing: `/login`, `/` (shell → dashboard/documents/reports/profile), `/documents/upload`,
   `/notifications`.
 - Scripts: `npm start` (:4201), `npm test`, `npm run build` → `dist/client/browser` (also patches SW).
-- Live-test login (dev DB): `anirudhlohiya999@gmail.com` / `Client@2026`.
+- Live-test login (dev DB): `client.test@snbajaj.com` / `Client@2026`.
 
 ---
 
@@ -226,7 +226,7 @@ Full walkthrough in `docs/07-aws-reference.md` (reusable per client). Summary:
 | AWS region | `ap-south-1` (Mumbai) | `backend/.env` `AWS_REGION` |
 | IAM user | `ca-backend` (S3+SES+SNS full access) | Access keys in `backend/.env` |
 | S3 buckets | `ca-sanjay-gst-docs` (private), `ca-sanjay-backups` (private) | `backend/.env` `S3_DOCS_BUCKET`, `S3_BACKUP_BUCKET` |
-| SES verified identity | `anirudhlohiya999@gmail.com` (SUCCESS); domain `lohiyaanirudh.tech` PENDING | `backend/.env` `SES_SOURCE_EMAIL` |
+| SES verified identity | `client.test@snbajaj.com` (SUCCESS); domain `lohiyaanirudh.tech` PENDING | `backend/.env` `SES_SOURCE_EMAIL` |
 | Web push | Self-generated VAPID keys (public + private) | `backend/.env` `FIREBASE_VAPID_*`; public key also in `client/.../environment.ts` |
 | Super admin | `sanjay@gmail.com` / `Sanjay@2026` (dev) | `backend/.env` `SUPER_ADMIN_*` |
 

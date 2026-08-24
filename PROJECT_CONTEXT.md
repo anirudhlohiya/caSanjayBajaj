@@ -112,8 +112,7 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
     periods, documents, reports presign→S3 PUT→confirm→download round-trip, reminders
     send+log, staff permissions grant/revoke, audit logs, Swagger off, redirects.
 - **KNOWN OPEN ITEM — SES SANDBOX**: AWS SES still in sandbox → emails to unverified
-  recipients are rejected ("Email address is not verified"). `anirudhlohiya999@gmail.com`
-  verification initiated (user must click AWS email); REAL fix = user requests SES
+  recipients are rejected ("Email address is not verified"). REAL fix = user requests SES
   production access in AWS console. Push reminders show failed until a device subscribes.
 - **PROD BUG-HUNT PASS (Aug 23, commit after `6bb0e49`) — all fixed & verified**:
   - **Service worker was breaking ALL client API GETs** (`net::ERR_FAILED` on every
@@ -152,9 +151,10 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   UNUSED) for open periods due within `REMINDER_LEAD_DAYS`; manual sends logged in
   `reminders` table visible in admin panel.
 - Seed (`npm run seed`): super admin from env + test client
-  `anirudhlohiya999@gmail.com` (password `12345678`, set by user) + current+next-2
+  `client.test@snbajaj.com` (password `12345678`, set by user) + current+next-2
   filing periods (due 11th of following month). Test client is a REAL test account the
-  user uses; do not delete.
+  user uses; do not delete. (Renamed from a personal gmail address Aug 25 2026; prod DB
+  row updated to match.)
 - Pagination everywhere: `{items,total,page,pageSize,totalPages}`; snake_case filters.
 
 ## 7. Security posture (as of Phase 5 hardening)
@@ -237,7 +237,8 @@ Status:
   resolving globally Aug 24 2026).
 - **Phase 1 DONE (built & E2E-verified locally)**:
   - `website/` — NEW Astro 5 static site in repo root. 1:1 conversion of
-    `exsiting website/` (kept as-is for content reference). SEO done: meta/OG/Twitter,
+    `exsiting website/` (DELETED Aug 25 2026 after confirming all 14 images the Astro site
+uses live in `website/public/images`; content fully migrated). SEO done: meta/OG/Twitter,
     canonical, sitemap-index.xml (@astrojs/sitemap), robots.txt, LocalBusiness +
     Article JSON-LD, `_headers` security headers for Cloudflare Pages. Blog pages
     (`/blog`, `/blog/[slug]`) fetch published posts from the API at BUILD time via
@@ -335,11 +336,12 @@ Status:
   (2) after DKIM shows Verified, re-submit production access in SES console → Account
   dashboard → Request production access (transactional, use-case: OTP + reminders for
   registered clients of the CA practice, <200/day, suppression+VDM already enabled,
-  contact casnbajaj2015@gmail.com). THEN server-side: flip prod+local
-  `SES_SOURCE_EMAIL` from support@lohiyaanirudh.tech → `support@snbajaj.com`, pm2
-  restart, live OTP test through real signup. NOTE: pre-existing email identities
-  (casnbajaj2015@, anirudhlohiya999@) show UNVERIFIED — clicking their confirmation
-  mails enables sandbox-mode testing to those addresses meanwhile.
+  contact casnbajaj2015@gmail.com). THEN server-side: pm2 restart and live OTP test
+  through real signup — DONE AHEAD OF TIME: prod+local `SES_SOURCE_EMAIL` already set to
+  `alerts@snbajaj.com` (Aug 25 2026; no mailbox behind it, one-way OTP sender). Sending
+  stays broken until DKIM Verified + production access granted. NOTE: pre-existing email
+  identity (casnbajaj2015@) shows UNVERIFIED — clicking its confirmation
+  mail enables sandbox-mode testing to that address meanwhile.
 - Browser-push live delivery test once a real device subscribes (Profile page).
 - Android: sideload v1.0.1 debug APK (built, android-wrapper/app/build/outputs/apk/debug/)
   to verify shell against app.snbajaj.com; later Play release ($25 dev account) with

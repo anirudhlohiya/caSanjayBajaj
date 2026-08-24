@@ -209,7 +209,7 @@ npm run start:dev          # starts API with watch mode
 What the seeder creates (idempotent — safe to re-run):
 
 1. **Super admin** — from your `SUPER_ADMIN_*` env values.
-2. **One test client user** — `anirudhlohiya999@gmail.com` / `Client@2026`
+2. **One test client user** — `client.test@snbajaj.com` / `Client@2026`
    (hardcoded dev-only credential in `src/database/seed.ts`).
 3. **GST filing periods** — current month + next two months, open, due date = 11th of the
    following month.
@@ -283,7 +283,7 @@ npm start -- --port 4201
 
 Verify: open http://localhost:4200 → no wait — open **http://localhost:4201** → `/login`.
 
-Log in with the seeded test client: `anirudhlohiya999@gmail.com` / `Client@2026`.
+Log in with the seeded test client: `client.test@snbajaj.com` / `Client@2026`.
 You should see the Dashboard: greeting, pending-upload count, latest report slot, and the
 three open filing periods.
 
@@ -482,7 +482,7 @@ Postgres  localhost:5432  db=ca_sanjay_gst  user=postgres
 | Role | Email | Password | Source |
 |---|---|---|---|
 | Super admin | value of `SUPER_ADMIN_EMAIL` (e.g. `sanjay@gmail.com`) | value of `SUPER_ADMIN_PASSWORD` (e.g. `Sanjay@2026`) | `.env` via seed |
-| Test client | `anirudhlohiya999@gmail.com` | `Client@2026` | hardcoded in `src/database/seed.ts` |
+| Test client | `client.test@snbajaj.com` | `Client@2026` | hardcoded in `src/database/seed.ts` |
 
 ### Command cheat-sheet (fresh machine → all three running)
 

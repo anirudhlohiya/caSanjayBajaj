@@ -44,7 +44,7 @@ async function run() {
   }
 
   // Seed Test Client User
-  const clientEmail = 'anirudhlohiya999@gmail.com';
+  const clientEmail = 'client.test@snbajaj.com';
   const clientPassword = 'Client@2026';
   const clientExists = await users.findOneBy({ email: clientEmail });
   if (!clientExists) {
