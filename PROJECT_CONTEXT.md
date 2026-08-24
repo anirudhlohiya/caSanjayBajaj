@@ -276,6 +276,20 @@ Status:
   - Known quirk: double CORS registration in main.ts (NestFactory cors:true +
     enableCors) yields ACAO:* instead of origin echo — harmless (Bearer auth, no
     cookies), revisit if tightening later.
+- **Post-cutover incident (Aug 24 2026, fixed)**: admin panel blank at
+  admin.snbajaj.com/admin/ — redeploying with plain `npm run build` emitted
+  `<base href="/">` instead of `/admin/`, so the browser fetched assets from the wrong
+  path and module scripts died on MIME errors. Fix: `"baseHref": "/admin/"` set
+  permanently in admin/angular.json production config — ALWAYS rebuild admin with it
+  (it's now automatic). Blog list page h2→h1 SEO fix shipped in same commit (fb0c052).
+- **Browser E2E suite (Playwright + system Edge, headless)**: 25/25 checks across all
+  four properties — marketing home/blog nav, enquiry form submit → lead lands in admin
+  Enquiries tab → marked contacted; admin bad-login rejection, good login, sidebar
+  modules, Website post create (auto-slug) → publish → visible in public API feed →
+  delete, audit log entries visible ("blog_post · create"), staff page, logout; portal
+  shell + invalid-login handling; old-domain redirect map. Zero unexpected console
+  errors anywhere. Test harness lives outside repo (temp dir); artifacts cleaned from
+  prod DB after runs.
 - **Phase 3 PENDING**: Search Console + sitemap submission after cutover; www.snbajaj.com
   attach failed initially (stale-record error) and was NOT yet completed — retry Custom
   domains → www.snbajaj.com; SES DKIM verify snbajaj.com (3 CNAMEs) once user ready.
