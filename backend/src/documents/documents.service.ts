@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -31,7 +32,17 @@ export class DocumentsService {
 
   async requestUploadUrl(auth: AuthUser, dto: CreateUploadUrlDto) {
     // Admin may specify a target user; a client only ever targets themselves
-    const targetUserId = auth.type === 'admin' ? dto.user_id! : auth.sub;
+    let targetUserId: string;
+    if (auth.type === 'admin') {
+      if (!dto.user_id) {
+        throw new BadRequestException(
+          'user_id is required when an admin requests an upload URL',
+        );
+      }
+      targetUserId = dto.user_id;
+    } else {
+      targetUserId = auth.sub;
+    }
 
     const period = await this.periods.findOneBy({ id: dto.filing_period_id });
     if (!period) throw new NotFoundException('Filing period not found');
