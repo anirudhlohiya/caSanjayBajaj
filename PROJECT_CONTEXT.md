@@ -296,14 +296,31 @@ Status:
 
 ## 10. Open items
 
-- **SES production access** (user action in AWS console) — until granted, reminder/OTP
-  emails only deliver to verified identities. `anirudhlohiya999@gmail.com` verification
-  email pending user click.
+- **SES production access — ACTIVE BLOCKER for public signups (Aug 25 2026 runbook)**:
+  OTP/reminder emails cannot reach arbitrary clients while SES is sandboxed. State:
+  `ProductionAccessEnabled=false`, a PRIOR request was **DENIED** (case
+  178759654800949, ~Aug 21 — likely because no sending identity was verified then).
+  Progress made via CLI: `snbajaj.com` Easy-DKIM identity CREATED (tokens issued),
+  account details set (TRANSACTIONAL / https://snbajaj.com / EN). Remaining USER steps:
+  (1) paste 3 DKIM CNAME records `<token>._domainkey.snbajaj.com → <token>.dkim.amazonses.com`
+  grey-cloud in Cloudflare (tokens in session log / re-fetchable via
+  `aws sesv2 get-email-identity --email-identity snbajaj.com --region ap-south-1`);
+  (2) after DKIM shows Verified, re-submit production access in SES console → Account
+  dashboard → Request production access (transactional, use-case: OTP + reminders for
+  registered clients of the CA practice, <200/day, suppression+VDM already enabled,
+  contact casnbajaj2015@gmail.com). THEN server-side: flip prod+local
+  `SES_SOURCE_EMAIL` from support@lohiyaanirudh.tech → `support@snbajaj.com`, pm2
+  restart, live OTP test through real signup. NOTE: pre-existing email identities
+  (casnbajaj2015@, anirudhlohiya999@) show UNVERIFIED — clicking their confirmation
+  mails enables sandbox-mode testing to those addresses meanwhile.
 - Browser-push live delivery test once a real device subscribes (Profile page).
-- Android: sideload debug APK to verify shell + forced-update gate; later Play release
-  ($25 dev account) with signed AAB; then raise `APP_ANDROID_MIN_VERSION` on each release.
+- Android: sideload v1.0.1 debug APK (built, android-wrapper/app/build/outputs/apk/debug/)
+  to verify shell against app.snbajaj.com; later Play release ($25 dev account) with
+  signed AAB; then raise `APP_ANDROID_MIN_VERSION` on each release.
 - Consider revoking `AmazonEC2FullAccess` from `ca-backend` IAM user now that infra is
   provisioned (S3+SES suffice for runtime).
+- Optional hardening: single CORS registration in main.ts (drop NestFactory cors:true)
+  so ACAO reflects configured origins instead of *.
 
 ## 11. Non-negotiable rules for contributors
 
