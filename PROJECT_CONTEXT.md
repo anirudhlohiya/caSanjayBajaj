@@ -168,6 +168,33 @@ Infra checklist lives in `docs/10-phase5-deploy-runbook.md` §9 (SG lockdown, TL
 CORS_ORIGIN restriction, localhost-only Postgres scram-sha-256, backup verification).
 Accepted residual risks documented there too (localStorage JWTs, single instance, no WAF).
 
+### 7b. Security audit + hardening pass (Aug 24 2026, commits d721c07 + 68f02bd)
+
+Full codebase audit after the snbajaj.com cutover. Findings fixed and deployed to prod:
+- **trust proxy (critical)**: Express did not trust nginx's X-Forwarded-For, so
+  ThrottlerGuard saw every request as 127.0.0.1 — one shared bucket for ALL users
+  (an attacker's brute-force would lock out everyone). `app.set('trust proxy', 1)`
+  in main.ts restores per-client-IP buckets.
+- **CORS double registration**: factory `{cors:true}` (ACAO:*) shadowed by later
+  `enableCors(allowlist)` — removed; only the origin allowlist applies now.
+- **OTP hashed at rest**: otp_verifications.otp_code now stores sha256 hash
+  (`this.hashToken`), verify compares hashes. Old plaintext rows expire within
+  minutes (TTL) — no migration needed.
+- **OTP logging removed**: codes were printed to console on send.
+- **Upload hardening**: contentType allowlist (pdf/images/office/csv/zip) via DTO
+  `@IsIn`; filename rejects path separators; admin upload-url without user_id is a
+  clean 400 (was a DB NOT NULL 500).
+- **S3 lifecycle**: both buckets get abort-incomplete-multipart-uploads after 7 days
+  (cost protection against stuffed uploads). NOTE: presigned PUT cannot enforce size;
+  file_size_bytes is client-declared — residual cost risk accepted (private bucket,
+  per-user prefixes, tiny user base).
+- **Secrets scan clean**: full git history + working tree contain no real credentials
+  (only doc placeholders AKIA.../ChangeMe_Local_1); no .env/.pem/keystore tracked;
+  VAPID public key client-side by design; obsolete debug APK removed from git.
+- OTP attempt-counter per record NOT added: risk assessed LOW (3/min throttle × 5-min
+  TTL ≈ ≤15 guesses vs 1M space) — documented instead of schema change.
+
+
 ## 8. Repo layout
 
 ```
@@ -179,7 +206,7 @@ docs/       01–10 documentation set (08 handbook, 09 run guide, 10 deploy runb
 design-references/  approved UI mockups
 android-wrapper/    Android WebView app (com.snbajaj.portal) + store assets + debug APK
 logo.jfif           source brand logo (1280x960) — regenerate icons from this
-admin-web/, client-web/  STALE EMPTY folders from planning — DO NOT USE
+admin-web/, client-web/  stale empty planning folders — deleted Aug 25 2026
 ```
 
 Git: origin https://github.com/anirudhlohiya/caSanjayBajaj.git, branch `main`.
@@ -319,8 +346,11 @@ Status:
   signed AAB; then raise `APP_ANDROID_MIN_VERSION` on each release.
 - Consider revoking `AmazonEC2FullAccess` from `ca-backend` IAM user now that infra is
   provisioned (S3+SES suffice for runtime).
-- Optional hardening: single CORS registration in main.ts (drop NestFactory cors:true)
-  so ACAO reflects configured origins instead of *.
+- **Security audit DONE (Aug 25 2026, §7b)** — trust proxy / CORS / OTP hashing /
+  upload allowlist fixes deployed; secrets scan clean; S3 MPU lifecycle rules added.
+- **Cost check Aug 25 2026**: 1× t3.micro + single 20 GB gp3 volume, NO EIP, no
+  snapshots, S3 ≈14 KB total. Well inside Free Tier while eligible (~$9/mo after).
+
 
 ## 11. Non-negotiable rules for contributors
 
