@@ -16,6 +16,7 @@ export const PERMISSIONS = [
   'manage_staff',
   'view_audit_logs',
   'manage_settings',
+  'manage_website',
 ] as const;
 export type PermissionKey = (typeof PERMISSIONS)[number];
 
@@ -171,4 +172,31 @@ export interface ReportUploadUrl {
 export interface SendReminderResult {
   total: number;
   sent: number;
+}
+
+export type PostStatus = 'draft' | 'published';
+export type LeadStatus = 'new' | 'contacted' | 'closed';
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content_md: string;
+  status: PostStatus;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Lead {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  query_type: string | null;
+  message: string;
+  status: LeadStatus;
+  source_ip: string | null;
+  created_at: string;
 }

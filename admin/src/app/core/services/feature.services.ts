@@ -3,10 +3,12 @@ import { firstValueFrom } from 'rxjs';
 import { ApiClient } from './api-client.service';
 import type {
   AuditLog,
+  BlogPost,
   Client,
   DashboardStats,
   Document,
   FilingPeriod,
+  Lead,
   PaginatedResult,
   Permission,
   Reminder,
@@ -231,6 +233,62 @@ export class AuditService {
   list(params: { page?: number; pageSize?: number; admin_id?: string; action?: string; from?: string; to?: string } = {}) {
     return firstValueFrom(
       this.api.get<PaginatedResult<AuditLog>>('/admin/audit-logs', params),
+    );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class WebsiteService {
+  private readonly api = inject(ApiClient);
+
+  listPosts(params: { page?: number; pageSize?: number; status?: string } = {}) {
+    return firstValueFrom(
+      this.api.get<PaginatedResult<BlogPost>>('/admin/website/blog-posts', params),
+    );
+  }
+
+  getPost(id: string) {
+    return firstValueFrom(this.api.get<BlogPost>(`/admin/website/blog-posts/${id}`));
+  }
+
+  createPost(body: { title: string; slug?: string; excerpt?: string; content_md: string }) {
+    return firstValueFrom(this.api.post<BlogPost>('/admin/website/blog-posts', body));
+  }
+
+  updatePost(
+    id: string,
+    body: { title?: string; slug?: string; excerpt?: string; content_md?: string },
+  ) {
+    return firstValueFrom(this.api.patch<BlogPost>(`/admin/website/blog-posts/${id}`, body));
+  }
+
+  publishPost(id: string) {
+    return firstValueFrom(
+      this.api.post<BlogPost>(`/admin/website/blog-posts/${id}/publish`),
+    );
+  }
+
+  unpublishPost(id: string) {
+    return firstValueFrom(
+      this.api.post<BlogPost>(`/admin/website/blog-posts/${id}/unpublish`),
+    );
+  }
+
+  deletePost(id: string) {
+    return firstValueFrom(
+      this.api.delete<{ success: boolean }>(`/admin/website/blog-posts/${id}`),
+    );
+  }
+
+  listLeads(params: { page?: number; pageSize?: number; status?: string } = {}) {
+    return firstValueFrom(
+      this.api.get<PaginatedResult<Lead>>('/admin/website/leads', params),
+    );
+  }
+
+  setLeadStatus(id: string, status: string) {
+    return firstValueFrom(
+      this.api.patch<Lead>(`/admin/website/leads/${id}/status`, { status }),
     );
   }
 }

@@ -32,6 +32,7 @@ export class Shell {
     { label: 'Reports', route: '/reports', icon: 'assessment', show: () => this.auth.hasPermission('upload_reports') },
     { label: 'Reminders', route: '/reminders', icon: 'notifications_active', show: () => this.auth.hasPermission('send_reminders') },
     { label: 'Staff', route: '/staff', icon: 'badge', show: () => this.auth.isSuperAdmin() },
+    { label: 'Website', route: '/website', icon: 'language', show: () => this.auth.hasPermission('manage_website') },
     { label: 'Audit Logs', route: '/audit', icon: 'history', show: () => this.auth.hasPermission('view_audit_logs') },
     { label: 'Settings', route: '/settings', icon: 'settings', show: () => this.auth.hasPermission('manage_settings') },
   ];

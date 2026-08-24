@@ -1,0 +1,304 @@
+<app-page-header title="Website" subtitle="Manage blog posts for snbajaj.com and review website enquiries">
+</app-page-header>
+
+<div class="flex gap-2 mb-4">
+  <button
+    (click)="switchTab('blogs')"
+    class="px-4 py-2 rounded font-label-md text-label-md transition-colors {{ tab() === 'blogs' ? 'bg-secondary text-on-secondary' : 'bg-surface-container-lowest border border-outline-variant text-on-surface-variant hover:bg-surface-container-high' }}"
+  >
+    Blog Posts
+  </button>
+  <button
+    (click)="switchTab('leads')"
+    class="px-4 py-2 rounded font-label-md text-label-md transition-colors {{ tab() === 'leads' ? 'bg-secondary text-on-secondary' : 'bg-surface-container-lowest border border-outline-variant text-on-surface-variant hover:bg-surface-container-high' }}"
+  >
+    Enquiries
+    <span class="ml-1 inline-flex items-center justify-center px-1.5 rounded-full text-[12px] bg-primary-container text-on-primary-container">{{ leadTotal() }}</span>
+  </button>
+</div>
+
+<!-- ================= BLOGS TAB ================= -->
+@if (tab() === 'blogs') {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+    <div class="px-4 py-3 border-b border-outline-variant bg-surface flex flex-wrap items-center justify-between gap-2">
+      <h3 class="font-headline-sm text-headline-sm text-on-surface">Blog Posts</h3>
+      <div class="flex gap-2 items-center">
+        <select
+          class="px-2 py-1 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm focus:outline-none focus:border-secondary"
+          [value]="postStatusFilter()"
+          (change)="postStatusFilter.set($any($event.target).value); filterPosts()"
+        >
+          <option value="">All statuses</option>
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+        </select>
+        <button
+          (click)="openNewPost()"
+          class="px-3 py-1.5 rounded bg-secondary text-on-secondary font-label-md text-label-md hover:opacity-90 flex items-center gap-1"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px">add</span>
+          New Post
+        </button>
+      </div>
+    </div>
+
+    @if (postsLoading()) {
+      <app-spinner />
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-surface-bright border-b border-outline-variant">
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Title</th>
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Slug</th>
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Status</th>
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Published</th>
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Last Updated</th>
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="text-body-sm">
+            @for (p of posts(); track p.id) {
+              <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
+                <td class="p-4 font-medium text-on-surface">{{ p.title }}</td>
+                <td class="p-4 text-on-surface-variant font-mono text-[12px]">/blog/{{ p.slug }}</td>
+                <td class="p-4"><app-status-chip [status]="p.status" /></td>
+                <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(p.published_at) }}</td>
+                <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(p.updated_at) }}</td>
+                <td class="p-4">
+                  <div class="flex flex-wrap gap-1.5">
+                    @if (busyPostId() === p.id) {
+                      <span class="w-5 h-5 mt-1 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span>
+                    } @else {
+                      <button
+                        class="btn-outline px-2 py-1 text-body-sm"
+                        (click)="openEditPost(p)"
+                      >
+                        Edit
+                      </button>
+                      @if (p.status === 'draft') {
+                        <button
+                          class="px-2 py-1 rounded text-body-sm bg-secondary text-on-secondary hover:opacity-90"
+                          (click)="publish(p)"
+                        >
+                          Publish
+                        </button>
+                      } @else {
+                        <button
+                          class="btn-outline px-2 py-1 text-body-sm"
+                          (click)="unpublish(p)"
+                        >
+                          Unpublish
+                        </button>
+                      }
+                      <button
+                        class="btn-outline px-2 py-1 text-body-sm text-error hover:bg-error-container/50"
+                        (click)="deletePost(p)"
+                      >
+                        Delete
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6"><app-empty-state icon="article" message="No blog posts yet — create your first one" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="p-2 border-t border-outline-variant bg-surface-bright">
+        <app-pagination [page]="postPage()" [pageSize]="postPageSize()" [total]="postTotal()" [totalPages]="postTotalPages()" (pageChange)="postPageChanged($event)" />
+      </div>
+    }
+  </div>
+}
+
+<!-- ================= LEADS TAB ================= -->
+@if (tab() === 'leads') {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+    <div class="px-4 py-3 border-b border-outline-variant bg-surface flex flex-wrap items-center justify-between gap-2">
+      <h3 class="font-headline-sm text-headline-sm text-on-surface">Website Enquiries</h3>
+      <select
+        class="px-2 py-1 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm focus:outline-none focus:border-secondary"
+        [value]="leadStatusFilter()"
+        (change)="leadStatusFilter.set($any($event.target).value); filterLeads()"
+      >
+        <option value="">All statuses</option>
+        <option value="new">New</option>
+        <option value="contacted">Contacted</option>
+        <option value="closed">Closed</option>
+      </select>
+    </div>
+
+    @if (leadsLoading()) {
+      <app-spinner />
+    } @else {
+      <div class="md:hidden divide-y divide-outline-variant">
+        @for (l of leads(); track l.id) {
+          <div class="p-4 space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <p class="font-headline-sm text-headline-sm text-on-surface truncate">{{ l.full_name }}</p>
+                <p class="text-body-sm text-on-surface-variant">{{ fmtDate(l.created_at) }}</p>
+              </div>
+              <app-status-chip [status]="l.status" />
+            </div>
+            <dl class="grid grid-cols-2 gap-x-3 gap-y-2 text-body-sm">
+              <div>
+                <dt class="font-label-md text-label-md text-on-surface-variant">Phone</dt>
+                <dd><a class="text-secondary underline" href="tel:{{ l.phone }}">{{ l.phone }}</a></dd>
+              </div>
+              <div>
+                <dt class="font-label-md text-label-md text-on-surface-variant">Email</dt>
+                <dd class="truncate"><a class="text-secondary underline" href="mailto:{{ l.email }}">{{ l.email }}</a></dd>
+              </div>
+              <div class="col-span-2">
+                <dt class="font-label-md text-label-md text-on-surface-variant">Service</dt>
+                <dd>{{ l.query_type ?? '—' }}</dd>
+              </div>
+              <div class="col-span-2">
+                <dt class="font-label-md text-label-md text-on-surface-variant">Message</dt>
+                <dd class="whitespace-pre-line">{{ l.message }}</dd>
+              </div>
+            </dl>
+            <div class="flex gap-1.5 pt-1">
+              @if (l.status === 'new') {
+                <button class="btn-outline px-2 py-1 text-body-sm" (click)="setLeadStatus(l, 'contacted')">Mark contacted</button>
+              }
+              @if (l.status !== 'closed') {
+                <button class="btn-outline px-2 py-1 text-body-sm" (click)="setLeadStatus(l, 'closed')">Close</button>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="p-4"><app-empty-state icon="inbox" message="No enquiries yet" /></div>
+        }
+      </div>
+
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-surface-bright border-b border-outline-variant">
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Received</th>
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Name</th>
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Contact</th>
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Service</th>
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Message</th>
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Status</th>
+              <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="text-body-sm">
+            @for (l of leads(); track l.id) {
+              <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors align-top">
+                <td class="p-4 text-on-surface-variant tabular-nums whitespace-nowrap">{{ fmtDate(l.created_at) }}</td>
+                <td class="p-4 font-medium text-on-surface whitespace-nowrap">{{ l.full_name }}</td>
+                <td class="p-4 text-on-surface-variant">
+                  <a class="block underline hover:text-secondary" href="tel:{{ l.phone }}">{{ l.phone }}</a>
+                  <a class="block underline hover:text-secondary break-all" href="mailto:{{ l.email }}">{{ l.email }}</a>
+                </td>
+                <td class="p-4 text-on-surface-variant whitespace-nowrap">{{ l.query_type ?? '—' }}</td>
+                <td class="p-4 max-w-xs text-on-surface-variant">
+                  @if (expandedLeadId() === l.id) {
+                    <span class="whitespace-pre-line">{{ l.message }}</span>
+                    <button class="block mt-1 text-secondary underline" (click)="toggleExpand(l.id)">Show less</button>
+                  } @else {
+                    <span>{{ (l.message.length > 80 ? l.message.slice(0, 80) + '…' : l.message) }}</span>
+                    @if (l.message.length > 80) {
+                      <button class="block mt-1 text-secondary underline" (click)="toggleExpand(l.id)">Read more</button>
+                    }
+                  }
+                </td>
+                <td class="p-4"><app-status-chip [status]="l.status" /></td>
+                <td class="p-4">
+                  <div class="flex flex-col gap-1.5">
+                    @if (l.status === 'new') {
+                      <button class="btn-outline px-2 py-1 whitespace-nowrap" (click)="setLeadStatus(l, 'contacted')">Mark contacted</button>
+                    }
+                    @if (l.status === 'contacted') {
+                      <button class="btn-outline px-2 py-1 whitespace-nowrap" (click)="setLeadStatus(l, 'closed')">Close</button>
+                    }
+                    @if (l.status === 'closed') {
+                      <button class="btn-outline px-2 py-1 whitespace-nowrap" (click)="setLeadStatus(l, 'new')">Reopen</button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7"><app-empty-state icon="inbox" message="No enquiries yet" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="p-2 border-t border-outline-variant bg-surface-bright">
+        <app-pagination [page]="leadPage()" [pageSize]="leadPageSize()" [total]="leadTotal()" [totalPages]="leadTotalPages()" (pageChange)="leadPageChanged($event)" />
+      </div>
+    }
+  </div>
+}
+
+<!-- ================= POST EDITOR MODAL ================= -->
+@if (editorOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-md">
+    <div class="absolute inset-0 bg-black/40" (click)="closeEditor()"></div>
+    <div class="relative bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between sticky top-0 bg-surface-container-lowest z-10">
+        <h3 class="font-headline-md text-headline-md text-on-surface">
+          {{ editingId() ? 'Edit Post' : 'New Blog Post' }}
+        </h3>
+        <button class="p-1 text-on-surface-variant hover:bg-surface-container-high rounded" (click)="closeEditor()" aria-label="Close editor">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form class="px-6 py-5 flex flex-col gap-4" [formGroup]="postForm" (ngSubmit)="savePost()">
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="bp-title">Title *</label>
+          <input id="bp-title" type="text" formControlName="title" (input)="onTitleInput()"
+            placeholder="e.g. GST filing deadlines you should know in 2026"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="bp-slug">URL slug</label>
+          <input id="bp-slug" type="text" formControlName="slug"
+            (input)="slugTouched.set(true)"
+            placeholder="auto-generated from title"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface font-mono text-body-sm focus:outline-none focus:border-secondary" />
+          <p class="text-body-sm text-on-surface-variant">Public URL will be snbajaj.com/blog/&lt;slug&gt;</p>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="bp-excerpt">Excerpt (shown on the blog list)</label>
+          <textarea id="bp-excerpt" formControlName="excerpt" rows="2" maxlength="500"
+            placeholder="One or two lines summarising the post"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary"></textarea>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="bp-content">Content (Markdown) *</label>
+          <textarea id="bp-content" formControlName="content_md" rows="14" required
+            placeholder="Write the article in Markdown:&#10;## A heading&#10;&#10;Some paragraph text with **bold** and *italic*.&#10;&#10;- a bullet point&#10;- another point"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface font-mono text-body-sm leading-relaxed focus:outline-none focus:border-secondary"></textarea>
+          <p class="text-body-sm text-on-surface-variant">Markdown supported: # headings, **bold**, *italic*, - lists, [links](url)</p>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant">
+          <button type="button" class="btn-outline px-4 py-2" (click)="closeEditor()">Cancel</button>
+          <button type="submit" [disabled]="savingPost()"
+            class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60 flex items-center gap-2">
+            @if (savingPost()) {
+              <span class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
+            }
+            {{ editingId() ? 'Save Changes' : 'Create Draft' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

@@ -45,6 +45,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/staff/staff').then((m) => m.Staff),
       },
       {
+        path: 'website',
+        canActivate: [permissionGuard('manage_website')],
+        loadComponent: () => import('./features/website/website').then((m) => m.Website),
+      },
+      {
         path: 'audit',
         canActivate: [permissionGuard('view_audit_logs')],
         loadComponent: () => import('./features/audit/audit').then((m) => m.Audit),
