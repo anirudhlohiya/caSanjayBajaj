@@ -18,6 +18,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Session notes / chat transcripts (not project code)
+prompt.txt
+
 # OS / editor
 .DS_Store
 Thumbs.db

@@ -195,6 +195,52 @@ logo assets; `f2cdb1b` admin bug fixes (uploads/reminders/staff/pagination);
 No iOS/native app (PWA + optional thin wrapper later); no WhatsApp notifications (later);
 no RDS; no multi-region/HA; no ITR logic; no payments/billing.
 
+## 9b. Website migration project (Aug 2026) — snbajaj.com
+
+Goal: move the firm's public face to **snbajaj.com** (purchased on Namecheap), host it
+FREE on Cloudflare Pages, keep portal/admin/API on EC2 under subdomains, retire
+lohiyaanirudh.tech by not renewing. Agreed layout: snbajaj.com/www = Astro marketing
+site + blog; `app.` = client PWA; `admin.` = admin panel; `api.` = backend API.
+Decisions locked: staff permission key `manage_website` added; leads save to DB AND
+email the firm (`WEBSITE_LEAD_NOTIFY_EMAIL`, default casnbajaj2015@gmail.com); blog
+content is Markdown written in admin panel; public posts are branded "S N Bajaj And Co".
+
+Status:
+- **Phase 0 DONE**: domain on Cloudflare NS (`alec`/`clara.ns.cloudflare.com`, verified
+  resolving globally Aug 24 2026).
+- **Phase 1 DONE (built & E2E-verified locally)**:
+  - `website/` — NEW Astro 5 static site in repo root. 1:1 conversion of
+    `exsiting website/` (kept as-is for content reference). SEO done: meta/OG/Twitter,
+    canonical, sitemap-index.xml (@astrojs/sitemap), robots.txt, LocalBusiness +
+    Article JSON-LD, `_headers` security headers for Cloudflare Pages. Blog pages
+    (`/blog`, `/blog/[slug]`) fetch published posts from the API at BUILD time via
+    `PUBLIC_API_BASE_URL` (see `website/.env.example`); empty/failed API → site still
+    builds with empty blog. Enquiry form POSTs JSON to `/website/leads` with honeypot
+    field `company`. NOTE: Astro getStaticPaths is hoisted — API base must come from an
+    imported module (`website/src/lib/api.ts`), NOT a frontmatter const.
+  - Backend — `website/` module: tables `blog_posts` (slug unique, status draft/
+    published, markdown in `content_md`) and `leads` (status new/contacted/closed,
+    source_ip) via migration `1787563472838-AddWebsiteTables` (run locally OK; prod run
+    pending cutover). Public endpoints: GET `/website/blog-posts[/:slug]`,
+    POST `/website/leads` (5/min throttle, honeypot rejected). Admin endpoints under
+    `/admin/website/*` guarded by new permission `manage_website`. Publishing/unpublishing/
+    editing/deleting a live post fires Cloudflare Pages Deploy Hook from env
+    `CLOUDFLARE_DEPLOY_HOOK_URL` (skipped silently if unset). New dep: `marked`.
+    Audit actions: blog_post.create/.published/.draft/.delete.
+  - Admin panel — new "Website" page (`features/website/`) with Blogs tab (create/edit/
+    publish/unpublish/delete, markdown editor modal, auto-slug) + Enquiries tab
+    (list/filter, mark contacted/closed/reopen); sidebar item shows with
+    `manage_website`; staff page checkbox appears automatically. Builds green.
+- **Phase 2 PENDING (cutover day)**: nginx server blocks + certs for app./admin./api.;
+  Cloudflare DNS records; rebuild portal+admin+APK against new URLs; connect Cloudflare
+  Pages to repo (root dir `website`, build `npm run build`, output `dist`, set
+  PUBLIC_API_BASE_URL env) + custom domains snbajaj.com/www + create Deploy Hook → put
+  URL into server `.env` as CLOUDFLARE_DEPLOY_HOOK_URL; SES DKIM verify snbajaj.com;
+  update CORS_ORIGIN to include https://snbajaj.com (+www) because the marketing site
+  calls api.snbajaj.com cross-origin; run migration on prod DB; 301 redirects from
+  lohiyaanirudh.tech.
+- **Phase 3 PENDING**: Search Console + sitemap submission after cutover.
+
 ## 10. Open items
 
 - **SES production access** (user action in AWS console) — until granted, reminder/OTP
