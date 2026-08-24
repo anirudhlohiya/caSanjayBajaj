@@ -81,7 +81,7 @@ async function run() {
           period_code: periodCode,
           due_date: due.toISOString().slice(0, 10),
           is_open: true,
-         }),
+        }),
       );
       console.log('Filing period created:', periodLabel);
     }
@@ -95,4 +95,3 @@ run().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-

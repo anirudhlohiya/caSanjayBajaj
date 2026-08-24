@@ -3,7 +3,12 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { AuthTokensDto, LoginDto, RefreshDto } from './dto/auth.dto';
-import { SendOtpDto, VerifyOtpDto, SignupDto, ResetPasswordDto } from './dto/otp.dto';
+import {
+  SendOtpDto,
+  VerifyOtpDto,
+  SignupDto,
+  ResetPasswordDto,
+} from './dto/otp.dto';
 
 const AUTH_ATTEMPTS = { default: { limit: 5, ttl: 60_000 } };
 const OTP_FLOWS = { default: { limit: 3, ttl: 60_000 } };
@@ -76,4 +81,3 @@ export class AuthController {
     return this.authService.resetPassword(dto);
   }
 }
-

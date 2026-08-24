@@ -23,7 +23,12 @@ import { User } from '../entities/user.entity';
 import { OtpVerification } from '../entities/otp-verification.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuthTokensDto, LoginDto, RefreshDto } from './dto/auth.dto';
-import { SendOtpDto, VerifyOtpDto, SignupDto, ResetPasswordDto } from './dto/otp.dto';
+import {
+  SendOtpDto,
+  VerifyOtpDto,
+  SignupDto,
+  ResetPasswordDto,
+} from './dto/otp.dto';
 
 interface TokenPayload {
   sub: string;
@@ -234,7 +239,10 @@ export class AuthService {
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    await this.otpVerifications.delete({ email: emailLower, purpose: dto.purpose });
+    await this.otpVerifications.delete({
+      email: emailLower,
+      purpose: dto.purpose,
+    });
     await this.otpVerifications.save(
       this.otpVerifications.create({
         email: emailLower,
@@ -245,13 +253,17 @@ export class AuthService {
       }),
     );
 
-    console.log(`[OTP] Generated OTP for ${emailLower} (${dto.purpose}): ${otpCode}`);
+    console.log(
+      `[OTP] Generated OTP for ${emailLower} (${dto.purpose}): ${otpCode}`,
+    );
 
-    const subject = dto.purpose === 'signup'
-      ? 'Filing App — Email Verification OTP'
-      : 'Filing App — Password Reset OTP';
+    const subject =
+      dto.purpose === 'signup'
+        ? 'Filing App — Email Verification OTP'
+        : 'Filing App — Password Reset OTP';
 
-    const actionText = dto.purpose === 'signup' ? 'verify your email' : 'reset your password';
+    const actionText =
+      dto.purpose === 'signup' ? 'verify your email' : 'reset your password';
     const htmlBody = `
       <div style="font-family: sans-serif; padding: 20px; color: #191c1e; background-color: #f7f9fb;">
         <h2 style="color: #001433;">SN Bajaj And Co</h2>
@@ -283,11 +295,15 @@ export class AuthService {
     });
 
     if (!record) {
-      throw new BadRequestException('No verification request found for this email');
+      throw new BadRequestException(
+        'No verification request found for this email',
+      );
     }
 
     if (record.expires_at < new Date()) {
-      throw new BadRequestException('OTP has expired. Please request a new one');
+      throw new BadRequestException(
+        'OTP has expired. Please request a new one',
+      );
     }
 
     if (record.otp_code !== dto.otp_code) {
@@ -309,12 +325,16 @@ export class AuthService {
     });
 
     if (!verification) {
-      throw new BadRequestException('Email not verified. Please request and verify OTP first');
+      throw new BadRequestException(
+        'Email not verified. Please request and verify OTP first',
+      );
     }
 
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     if (verification.updated_at < tenMinutesAgo) {
-      throw new BadRequestException('Verification expired. Please request a new OTP');
+      throw new BadRequestException(
+        'Verification expired. Please request a new OTP',
+      );
     }
 
     const exists = await this.users.findOne({ where: { email: emailLower } });
@@ -334,7 +354,10 @@ export class AuthService {
       }),
     );
 
-    await this.otpVerifications.delete({ email: emailLower, purpose: 'signup' });
+    await this.otpVerifications.delete({
+      email: emailLower,
+      purpose: 'signup',
+    });
 
     const payload: TokenPayload = {
       sub: user.id,
@@ -353,12 +376,16 @@ export class AuthService {
     });
 
     if (!verification) {
-      throw new BadRequestException('Email not verified. Please request and verify OTP first');
+      throw new BadRequestException(
+        'Email not verified. Please request and verify OTP first',
+      );
     }
 
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     if (verification.updated_at < tenMinutesAgo) {
-      throw new BadRequestException('Verification expired. Please request a new OTP');
+      throw new BadRequestException(
+        'Verification expired. Please request a new OTP',
+      );
     }
 
     const user = await this.users.findOne({ where: { email: emailLower } });
@@ -369,7 +396,10 @@ export class AuthService {
     const passwordHash = await argon2.hash(dto.password);
     await this.users.update(user.id, { password_hash: passwordHash });
 
-    await this.otpVerifications.delete({ email: emailLower, purpose: 'reset_password' });
+    await this.otpVerifications.delete({
+      email: emailLower,
+      purpose: 'reset_password',
+    });
 
     return { success: true };
   }

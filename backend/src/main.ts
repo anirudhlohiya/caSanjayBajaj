@@ -13,13 +13,19 @@ async function bootstrap() {
   const config = app.get(ConfigService);
 
   if (config.get('nodeEnv') === 'production') {
-    for (const key of ['jwt.accessSecret', 'jwt.refreshSecret', 'database.password']) {
+    for (const key of [
+      'jwt.accessSecret',
+      'jwt.refreshSecret',
+      'database.password',
+    ]) {
       if (!config.get<string>(key)) {
         throw new Error(`Refusing to start in production: missing ${key}`);
       }
     }
     if ((config.get<string>('jwt.accessSecret') ?? '').length < 32) {
-      throw new Error('Refusing to start in production: JWT_ACCESS_SECRET too short (<32 chars)');
+      throw new Error(
+        'Refusing to start in production: JWT_ACCESS_SECRET too short (<32 chars)',
+      );
     }
   }
 

@@ -15,6 +15,7 @@ import { AuditModule } from './audit/audit.module';
 import { StorageModule } from './storage/storage.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AppVersionModule } from './app-version/app-version.module';
+import { WebsiteModule } from './website/website.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -36,6 +37,7 @@ import { HealthController } from './health.controller';
     StorageModule,
     NotificationsModule,
     AppVersionModule,
+    WebsiteModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

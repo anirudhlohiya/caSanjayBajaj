@@ -58,6 +58,17 @@ export enum DevicePlatform {
   ANDROID = 'android',
 }
 
+export enum PostStatus {
+  DRAFT = 'draft',
+  PUBLISHED = 'published',
+}
+
+export enum LeadStatus {
+  NEW = 'new',
+  CONTACTED = 'contacted',
+  CLOSED = 'closed',
+}
+
 export const PERMISSIONS = [
   'view_clients',
   'view_documents',
@@ -66,6 +77,7 @@ export const PERMISSIONS = [
   'manage_staff',
   'view_audit_logs',
   'manage_settings',
+  'manage_website',
 ] as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[number];

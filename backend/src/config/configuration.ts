@@ -64,4 +64,10 @@ export default () => ({
       process.env.PLAY_STORE_URL ??
       'https://play.google.com/store/apps/details?id=com.snbajaj.portal',
   },
+
+  website: {
+    deployHookUrl: process.env.CLOUDFLARE_DEPLOY_HOOK_URL ?? '',
+    leadNotifyEmail:
+      process.env.WEBSITE_LEAD_NOTIFY_EMAIL ?? 'casnbajaj2015@gmail.com',
+  },
 });
