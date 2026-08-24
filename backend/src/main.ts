@@ -1,15 +1,16 @@
 import { INestApplication, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create<INestApplication>(AppModule, {
-    cors: true,
-  });
+  const app = await NestFactory.create<
+    INestApplication & NestExpressApplication
+  >(AppModule);
   const config = app.get(ConfigService);
 
   if (config.get('nodeEnv') === 'production') {
@@ -30,6 +31,12 @@ async function bootstrap() {
   }
 
   app.use(helmet());
+
+  // nginx terminates TLS and proxies to us; trust its X-Forwarded-For so
+  // req.ip (and therefore ThrottlerGuard buckets) is the real client IP.
+  // Without this, every request shares one bucket (127.0.0.1) and the auth
+  // rate limits would lock out ALL users collectively.
+  app.set('trust proxy', 1);
 
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(

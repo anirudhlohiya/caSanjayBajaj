@@ -246,15 +246,11 @@ export class AuthService {
     await this.otpVerifications.save(
       this.otpVerifications.create({
         email: emailLower,
-        otp_code: otpCode,
+        otp_code: this.hashToken(otpCode),
         purpose: dto.purpose,
         expires_at: expiresAt,
         verified: false,
       }),
-    );
-
-    console.log(
-      `[OTP] Generated OTP for ${emailLower} (${dto.purpose}): ${otpCode}`,
     );
 
     const subject =
@@ -306,7 +302,7 @@ export class AuthService {
       );
     }
 
-    if (record.otp_code !== dto.otp_code) {
+    if (record.otp_code !== this.hashToken(dto.otp_code)) {
       throw new BadRequestException('Invalid OTP code');
     }
 
