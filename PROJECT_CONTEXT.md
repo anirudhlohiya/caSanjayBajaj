@@ -262,9 +262,9 @@ uses live in `website/public/images`; content fully migrated). SEO done: meta/OG
 - **Phase 2 DONE (cutover executed Aug 24 2026)**:
   - Cloudflare Pages project `snbajaj-site` connected to repo (root dir `website`,
     build `npm run build`, output `dist`, env `PUBLIC_API_BASE_URL=https://api.snbajaj.com/api/v1`,
-    `NODE_VERSION=22`). Custom domain `snbajaj.com` active. Deploy Hook NOT yet created
-    (user's UI shows no Deploy hooks section) — after publishing a post, manually click
-    Retry/Create deployment in the Pages dashboard until hook is wired.
+    `NODE_VERSION=22`). Custom domain `snbajaj.com` active. Deploy Hook CREATED Aug 25 2026
+    (Workers builds hook, branch main) and set as prod `CLOUDFLARE_DEPLOY_HOOK_URL` —
+    publishing/unpublishing a post now auto-rebuilds the site in ~1–2 min; verified end-to-end.
   - DNS: app./admin./api. = A records → 65.0.45.190, **DNS only (grey cloud)** so
     Let's Encrypt can validate directly; snbajaj.com/www point at Pages (proxied).
   - EC2: three new nginx confs in `/etc/nginx/conf.d/{app,admin,api}.snbajaj.conf`
