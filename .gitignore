@@ -48,3 +48,6 @@ android-wrapper/app/build/
 *.tfstate
 *.tfstate.*
 .terraform/
+# scratch logs from support sessions
+log.txt
+error.txt

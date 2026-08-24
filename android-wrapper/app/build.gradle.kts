@@ -11,8 +11,8 @@ android {
         applicationId = "com.snbajaj.portal"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
     }
 
     buildFeatures {
@@ -21,8 +21,8 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "APP_URL", "\"https://lohiyaanirudh.tech\"")
-            buildConfigField("String", "API_BASE_URL", "\"https://lohiyaanirudh.tech/api/v1\"")
+            buildConfigField("String", "APP_URL", "\"https://app.snbajaj.com\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://api.snbajaj.com/api/v1\"")
         }
         release {
             isMinifyEnabled = false
@@ -30,8 +30,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            buildConfigField("String", "APP_URL", "\"https://lohiyaanirudh.tech\"")
-            buildConfigField("String", "API_BASE_URL", "\"https://lohiyaanirudh.tech/api/v1\"")
+            buildConfigField("String", "APP_URL", "\"https://app.snbajaj.com\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://api.snbajaj.com/api/v1\"")
         }
     }
 
