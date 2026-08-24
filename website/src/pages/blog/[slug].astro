@@ -1,0 +1,79 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { fetchPublishedPosts, fetchPostBySlug, fmtDate } from '../../lib/api';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const posts = await fetchPublishedPosts();
+  return posts.map((p) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const post = await fetchPostBySlug(slug ?? '');
+
+if (!post) {
+  return Astro.redirect('/blog');
+}
+
+const site = Astro.site ?? new URL('https://snbajaj.com');
+
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: post.title,
+  description: post.excerpt ?? undefined,
+  datePublished: post.published_at ?? undefined,
+  dateModified: post.updated_at,
+  author: {
+    '@type': 'Organization',
+    name: 'S N Bajaj And Co.',
+    url: site.href,
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'S N Bajaj And Co.',
+    logo: { '@type': 'ImageObject', url: new URL('/images/logo.png', site).href },
+  },
+  mainEntityOfPage: new URL(`/blog/${post.slug}/`, site).href,
+};
+---
+
+<Base
+  title={`${post.title} | S N Bajaj And Co`}
+  description={
+    post.excerpt ??
+    `Insights from S N Bajaj And Co — Chartered Accountants in Surat. ${post.title}`
+  }
+  canonical={`/blog/${post.slug}`}
+  ogType="article"
+>
+  <Header active="Blog" />
+
+  <article class="Article_Section section">
+    <div class="Heading" style="align-items:flex-start; text-align:left; gap:14px;">
+      <span>Blog</span>
+      <h2 style="font-size:2.6rem;">{post.title}</h2>
+    </div>
+    <div class="Article_Meta">
+      <i class="ri-user-3-line"></i>
+      <span>S N Bajaj And Co</span>
+      <span>•</span>
+      <time datetime={post.published_at ?? undefined}>{fmtDate(post.published_at)}</time>
+    </div>
+
+    <div class="Article_Content" set:html={post.content_html} />
+
+    <div style="margin-top:50px;">
+      <button class="btn About_btn">
+        <a href="/#Contact Us">Talk to a CA →</a>
+      </button>
+    </div>
+  </article>
+
+  <Footer />
+
+  <script type="application/ld+json" set:html={JSON.stringify(articleLd)} />
+</Base>

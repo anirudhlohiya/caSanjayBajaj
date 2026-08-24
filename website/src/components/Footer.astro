@@ -1,0 +1,36 @@
+---
+const year = new Date().getFullYear();
+---
+
+<div class="footer section">
+  <div class="logo">
+    <img src="/images/logo.png" alt="S N Bajaj And Co — Chartered Accountants, Surat" />
+  </div>
+  <ul class="footer_Menu">
+    <li><a href="/#Home">Home</a></li>
+    <li><a href="/#About">About</a></li>
+    <li><a href="/#Services">Services</a></li>
+    <li><a href="/blog">Blog</a></li>
+    <li><a href="/#Contact Us">Contacts</a></li>
+  </ul>
+  <p>©Copyright {year} All Rights Reserved by <span>S N Bajaj And Co.</span></p>
+</div>
+
+<script>
+  const menu = document.querySelector<HTMLUListElement>('#menu');
+  const toggle = document.querySelector<HTMLElement>('#toggle');
+
+  toggle?.addEventListener('click', function () {
+    menu?.classList.toggle('Show_menu');
+  });
+
+  const navbar = document.querySelector<HTMLElement>('.navbar');
+  window.addEventListener('scroll', function () {
+    if (!navbar) return;
+    if (window.scrollY > 100) {
+      navbar.classList.add('sticky');
+    } else {
+      navbar.classList.remove('sticky');
+    }
+  });
+</script>

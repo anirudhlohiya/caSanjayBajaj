@@ -1,0 +1,39 @@
+---
+interface Props {
+  active?: string;
+}
+
+const { active = '' } = Astro.props;
+
+const links = [
+  { href: '/#Home', label: 'Home', id: 'Home' },
+  { href: '/#About', label: 'About', id: 'About' },
+  { href: '/#Services', label: 'Services', id: 'Services' },
+  { href: '/blog', label: 'Blog', id: 'Blog' },
+  { href: '/#Contact Us', label: 'Contact Us', id: 'Contact Us' },
+];
+---
+
+<div class="navbar">
+  <i class="ri-menu-fill" id="toggle"></i>
+  <div class="logo">
+    <a href="/" aria-label="S N Bajaj And Co home">
+      <img src="/images/logo.png" alt="S N Bajaj And Co — Chartered Accountants, Surat" />
+    </a>
+  </div>
+  <ul id="menu" class="menu">
+    {
+      links.map((l) => (
+        <li>
+          <a href={l.href} class={active === l.id ? 'active' : ''}>
+            {l.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <button class="nav_btn btn">
+    <a href="/#Contact Us">Let's Start</a>
+    <i class="ri-arrow-right-up-line"></i>
+  </button>
+</div>

@@ -1,0 +1,91 @@
+---
+/**
+ * Website enquiry form — posts JSON to the backend public leads endpoint.
+ * Includes a honeypot field ("company") that must stay empty.
+ */
+---
+
+<form id="contact-form" class="Contact_Form" novalidate>
+  <div class="Inputs_Head">
+    <div class="Input_Box">
+      <input type="text" name="full_name" placeholder="FullName" required autocomplete="name" />
+      <input type="email" name="email" placeholder="Email" required autocomplete="email" />
+    </div>
+    <div class="Input_Box">
+      <input type="tel" name="phone" placeholder="Phone no." required autocomplete="tel" />
+      <input type="text" name="query_type" placeholder="Your Query (e.g. GST, Income Tax, Loan)" />
+    </div>
+  </div>
+
+  <!-- Honeypot: hidden from humans, bots fill it and get rejected -->
+  <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+    <label>Leave this field empty <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+  </div>
+
+  <textarea name="message" placeholder="Write here" required></textarea>
+  <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+  <button type="submit" class="button">Submit</button>
+</form>
+
+<script>
+  const API_BASE =
+    import.meta.env.PUBLIC_API_BASE_URL ?? 'https://api.snbajaj.com/api/v1';
+
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const statusEl = document.getElementById('form-status');
+
+  function setStatus(msg: string, ok: boolean) {
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+    statusEl.style.color = ok ? '#1b5e20' : '#b3261e';
+    statusEl.style.fontWeight = '600';
+    statusEl.style.marginTop = '10px';
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const payload = {
+      full_name: String(data.get('full_name') ?? '').trim(),
+      email: String(data.get('email') ?? '').trim(),
+      phone: String(data.get('phone') ?? '').trim(),
+      query_type: String(data.get('query_type') ?? '').trim(),
+      message: String(data.get('message') ?? '').trim(),
+      company: String(data.get('company') ?? ''),
+    };
+
+    if (!payload.full_name || !payload.email || !payload.phone || !payload.message) {
+      setStatus('Please fill in your name, email, phone and message.', false);
+      return;
+    }
+
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'Sending…';
+    }
+    try {
+      const res = await fetch(`${API_BASE}/website/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        setStatus(
+          'Thank you! Your enquiry has been received — we will get back to you shortly.',
+          true,
+        );
+        form.reset();
+      } else {
+        setStatus('Failed to send. Please call us at +91 99098 31995.', false);
+      }
+    } catch {
+      setStatus('Network error. Please try again later or call +91 99098 31995.', false);
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = 'Submit';
+      }
+    }
+  });
+</script>

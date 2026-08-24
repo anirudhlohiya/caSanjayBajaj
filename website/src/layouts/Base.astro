@@ -1,0 +1,106 @@
+---
+import '../styles/site.css';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Path for canonical URL, e.g. "/blog" (no trailing slash needed) */
+  canonical?: string;
+  ogType?: string;
+  /** Skip indexing (e.g. empty states) — defaults to index,follow */
+  robots?: string;
+}
+
+const {
+  title,
+  description,
+  canonical = '',
+  ogType = 'website',
+  robots = 'index, follow',
+} = Astro.props;
+
+const site = Astro.site ?? new URL('https://snbajaj.com');
+const canonicalUrl = new URL(canonical, site).href;
+const ogImage = new URL('/images/logo.png', site).href;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'AccountingService',
+  name: 'S N Bajaj And Co.',
+  alternateName: 'CA Sanjay Bajaj',
+  description:
+    'Chartered Accountant firm in Surat offering accounting, taxation (GST & Income Tax), audit, loan and business compliance services.',
+  url: site.href,
+  logo: ogImage,
+  image: new URL('/images/aboutca.jpg', site).href,
+  telephone: '+919909831995',
+  email: 'casnbajaj2015@gmail.com',
+  founder: {
+    '@type': 'Person',
+    name: 'CA Sanjay Bajaj',
+    jobTitle: 'Chartered Accountant',
+  },
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress:
+      '2007, Trade House, Opp. MAN DARWAJA FIRE STATION, Ring Road',
+    addressLocality: 'Surat',
+    addressRegion: 'Gujarat',
+    postalCode: '395002',
+    addressCountry: 'IN',
+  },
+  openingHours: 'Mo-Sa 10:00-19:00',
+  sameAs: [
+    'https://www.facebook.com/share/172DEpVK9B/',
+    'https://www.instagram.com/sanju_baba143',
+    'https://x.com/BajajSanju',
+    'https://www.linkedin.com/in/ca-sanjay-bajaj-233188327',
+  ],
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="S N Bajaj And Co." />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Structured data -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    <!-- Remix Icon CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <!-- Splide JS CDN -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css"
+    />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

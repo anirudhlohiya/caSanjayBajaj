@@ -1,0 +1,55 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { fetchPublishedPosts, fmtDate } from '../../lib/api';
+
+export const prerender = true;
+
+const posts = await fetchPublishedPosts();
+---
+
+<Base
+  title="Tax & Finance Insights Blog | S N Bajaj And Co, Surat"
+  description="Practical articles on GST, income tax, accounting and business compliance from CA Sanjay Bajaj — Chartered Accountant in Surat."
+  canonical="/blog"
+>
+  <Header active="Blog" />
+
+  <div class="Blog section">
+    <div class="Heading">
+      <span>Blog</span>
+      <h2>Tax & Finance Insights</h2>
+      <p style="max-width: 700px; text-align: center; font-size: 18px; line-height: 30px;">
+        Practical guidance on GST, income tax, accounting and business compliance —
+        written by the team at S N Bajaj And Co.
+      </p>
+    </div>
+
+    <div class="Blog_List">
+      {
+        posts.map((post) => (
+          <article class="Blog_Card">
+            <time datetime={post.published_at ?? undefined}>{fmtDate(post.published_at)}</time>
+            <h2>
+              <a href={`/blog/${post.slug}/`}>{post.title}</a>
+            </h2>
+            {post.excerpt && <p>{post.excerpt}</p>}
+            <a class="read_more" href={`/blog/${post.slug}/`}>
+              Read more →
+            </a>
+          </article>
+        ))
+      }
+      {
+        posts.length === 0 && (
+          <p style="grid-column: 1 / -1; font-size: 1.1rem;">
+            Articles are on the way. Please check back soon.
+          </p>
+        )
+      }
+    </div>
+  </div>
+
+  <Footer />
+</Base>
