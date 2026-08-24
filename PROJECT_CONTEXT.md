@@ -231,15 +231,54 @@ Status:
     publish/unpublish/delete, markdown editor modal, auto-slug) + Enquiries tab
     (list/filter, mark contacted/closed/reopen); sidebar item shows with
     `manage_website`; staff page checkbox appears automatically. Builds green.
-- **Phase 2 PENDING (cutover day)**: nginx server blocks + certs for app./admin./api.;
-  Cloudflare DNS records; rebuild portal+admin+APK against new URLs; connect Cloudflare
-  Pages to repo (root dir `website`, build `npm run build`, output `dist`, set
-  PUBLIC_API_BASE_URL env) + custom domains snbajaj.com/www + create Deploy Hook → put
-  URL into server `.env` as CLOUDFLARE_DEPLOY_HOOK_URL; SES DKIM verify snbajaj.com;
-  update CORS_ORIGIN to include https://snbajaj.com (+www) because the marketing site
-  calls api.snbajaj.com cross-origin; run migration on prod DB; 301 redirects from
-  lohiyaanirudh.tech.
-- **Phase 3 PENDING**: Search Console + sitemap submission after cutover.
+- **Phase 2 DONE (cutover executed Aug 24 2026)**:
+  - Cloudflare Pages project `snbajaj-site` connected to repo (root dir `website`,
+    build `npm run build`, output `dist`, env `PUBLIC_API_BASE_URL=https://api.snbajaj.com/api/v1`,
+    `NODE_VERSION=22`). Custom domain `snbajaj.com` active. Deploy Hook NOT yet created
+    (user's UI shows no Deploy hooks section) — after publishing a post, manually click
+    Retry/Create deployment in the Pages dashboard until hook is wired.
+  - DNS: app./admin./api. = A records → 65.0.45.190, **DNS only (grey cloud)** so
+    Let's Encrypt can validate directly; snbajaj.com/www point at Pages (proxied).
+  - EC2: three new nginx confs in `/etc/nginx/conf.d/{app,admin,api}.snbajaj.conf`
+    (portal + admin serve SPAs and proxy relative `/api/` to :3000 — CORS-free; api.
+    proxies everything). Certbot issued one SAN cert for all three names with
+    http→https redirects (`--redirect`). lohiyaanirudh.tech conf replaced with 301
+    map: `/api/* → api.` (path kept), `/admin* → admin.` (path kept), `/ → snbajaj.com`,
+    everything else → `app.` (PWA deep links). Old APK v1.0.0 users keep working via
+    these redirects. Backups of prior conf in `/opt/ca-app/backups/`.
+  - Prod deploy: repo pulled to fdd596a; rsync repo/backend → /opt/ca-app/backend
+    (excl node_modules/dist/.env); npm ci; migration AddWebsiteTables RUN on prod;
+    nest build; pm2 restart. `.env`: CORS_ORIGIN now lists all five origins
+    (lohiyaanirudh.tech, app., admin., snbajaj.com, www). CLOUDFLARE_DEPLOY_HOOK_URL
+    still unset (hook pending).
+  - Admin SPA rebuilt locally & swapped into `/opt/ca-app/frontend/site/admin`
+    (bundle main-VIXEWUYW.js); client PWA unchanged (no rebuild needed).
+  - Android wrapper v1.0.1 (versionCode 2): APP_URL=https://app.snbajaj.com,
+    API_BASE_URL=https://api.snbajaj.com/api/v1; debug APK built
+    (android-wrapper/app/build/outputs/apk/debug/app-debug.apk) — user sideload pending.
+  - E2E on prod: 13/13 PASS (admin login → create/publish post → public feed +
+    markdown by slug → lead accepted from snbajaj.com origin → honeypot rejected →
+    admin inbox shows lead → audit trail → cleanup; portal/admin shells 200 on their
+    hosts; relative /api proxy works). All four redirect mappings verified 301.
+- Gotchas hit during cutover (do not repeat):
+  - Cloudflare Pages monorepo: leaving Root directory `/` fails ENOENT package.json —
+    must be `website`.
+  - Stale apex A record (auto-created at zone setup) blocks attaching the apex as a
+    Pages custom domain ("externally managed DNS records") — delete it first.
+  - Don't attach app/admin/api to the Pages project — they belong to EC2 as grey-cloud
+    A records.
+  - EC2 SG port 22 was IP-pinned; ISP rotates IPs (49.36.91.x) — update rule via AWS
+    CLI when SSH times out (ca-backend IAM user has EC2 perms).
+  - This nginx is Amazon-Linux style: configs live in /etc/nginx/conf.d/ (no
+    sites-available). Reload is async — sleep before smoke-testing.
+  - API response keys are snake_case (`access_token`); blog DTO field is `content_md`;
+    publish/unpublish are POST, not PATCH; lead DTO uses `full_name`.
+  - Known quirk: double CORS registration in main.ts (NestFactory cors:true +
+    enableCors) yields ACAO:* instead of origin echo — harmless (Bearer auth, no
+    cookies), revisit if tightening later.
+- **Phase 3 PENDING**: Search Console + sitemap submission after cutover; www.snbajaj.com
+  attach failed initially (stale-record error) and was NOT yet completed — retry Custom
+  domains → www.snbajaj.com; SES DKIM verify snbajaj.com (3 CNAMEs) once user ready.
 
 ## 10. Open items
 
