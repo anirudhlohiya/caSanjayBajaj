@@ -321,6 +321,12 @@ uses live in `website/public/images`; content fully migrated). SEO done: meta/OG
 - **Phase 3 PENDING**: Search Console + sitemap submission after cutover; www.snbajaj.com
   attach failed initially (stale-record error) and was NOT yet completed — retry Custom
   domains → www.snbajaj.com; SES DKIM verify snbajaj.com (3 CNAMEs) once user ready.
+- **Admin UI Redesign & PWA Bugfix (Aug 25 2026)**:
+  - Applied Vercel-inspired design language (`DESIGN.md` installed via getdesign tool) to the Admin Portal, upgrading to slate-50/white surface, black-ink buttons, custom cards with soft shadows, and emerald/rose/blue/indigo status badges.
+  - Refactored `shell.html` sidebar to a clean stark white, styled navigation links, and added glassmorphic backdrop header.
+  - Added `:host { display: flex; width: 100%; height: 100%; }` to `shell.ts` and `width: 100%` to `app.ts` to fix layout shrinking bugs under empty table states.
+  - Fixed Client PWA `PageHeader` component bug where back button was evaluating but not executing the signal-wrapped callback.
+  - Verified local and live E2E via browser subagent after deploying to production.
 
 ## 10. Open items
 

@@ -1,6 +1,6 @@
 <app-page-header title="GST Clients" subtitle="Manage client accounts, documents and filing activity">
   <button
-    class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md flex items-center hover:bg-secondary transition-colors"
+    class="btn-primary"
     (click)="openAdd()"
   >
     <span class="material-symbols-outlined mr-1" style="font-size: 18px">person_add</span>
@@ -10,9 +10,9 @@
 
 <div class="flex items-center gap-2 mb-4">
   <div class="relative flex-1 max-w-md">
-    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 18px">search</span>
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-[18px]">search</span>
     <input
-      class="w-full pl-10 pr-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-shadow text-body-sm"
+      class="input pl-10"
       placeholder="Search clients, emails, GST numbers..."
       [value]="query()"
       (input)="query.set($any($event.target).value)"
@@ -20,32 +20,32 @@
   </div>
 </div>
 
-<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+<div class="card overflow-hidden">
   @if (loading()) {
     <app-spinner />
   } @else {
-    <div class="md:hidden divide-y divide-outline-variant">
+    <div class="md:hidden divide-y divide-neutral-100">
       @for (c of filtered(); track c.id) {
-        <div class="p-4 cursor-pointer transition-colors hover:bg-surface-container-low" (click)="viewClient(c.id)">
+        <div class="p-4 cursor-pointer transition-colors hover:bg-neutral-50/50" (click)="viewClient(c.id)">
           <div class="flex items-start justify-between gap-2">
             <div class="min-w-0">
-              <p class="font-headline-sm text-headline-sm text-on-surface truncate">{{ c.name }}</p>
-              <p class="text-body-sm text-on-surface-variant truncate">{{ c.email }}</p>
+              <p class="text-sm font-semibold text-neutral-900 truncate">{{ c.name }}</p>
+              <p class="text-xs text-neutral-500 truncate">{{ c.email }}</p>
             </div>
             <app-status-chip [status]="c.status" />
           </div>
-          <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-body-sm">
+          <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
             <div class="min-w-0">
-              <dt class="font-label-md text-label-md text-on-surface-variant">GST Number</dt>
-              <dd class="font-numeric-data text-numeric-data text-on-surface tabular-nums truncate">{{ c.gstin ?? '—' }}</dd>
+              <dt class="text-neutral-400">GST Number</dt>
+              <dd class="font-mono text-neutral-800 tabular-nums truncate">{{ c.gstin ?? '—' }}</dd>
             </div>
             <div>
-              <dt class="font-label-md text-label-md text-on-surface-variant">Type</dt>
-              <dd class="text-on-surface uppercase">{{ c.user_type }}</dd>
+              <dt class="text-neutral-400">Type</dt>
+              <dd class="text-neutral-800 uppercase">{{ c.user_type }}</dd>
             </div>
             <div>
-              <dt class="font-label-md text-label-md text-on-surface-variant">Joined</dt>
-              <dd class="text-on-surface tabular-nums">{{ fmtDate(c.created_at) }}</dd>
+              <dt class="text-neutral-400">Joined</dt>
+              <dd class="text-neutral-800 tabular-nums">{{ fmtDate(c.created_at) }}</dd>
             </div>
           </dl>
           <div class="mt-3 flex gap-2">
@@ -69,35 +69,35 @@
     <div class="hidden md:block overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="bg-surface-bright border-b border-outline-variant">
-            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Client Name</th>
-            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Email</th>
-            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">GST Number</th>
-            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Type</th>
-            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Status</th>
-            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Joined</th>
-            <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+          <tr class="bg-neutral-50 border-b border-neutral-100">
+            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">Client Name</th>
+            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">Email</th>
+            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">GST Number</th>
+            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">Type</th>
+            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">Joined</th>
+            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap text-right">Actions</th>
           </tr>
         </thead>
-        <tbody class="text-body-sm">
+        <tbody class="text-sm text-neutral-700">
           @for (c of filtered(); track c.id) {
-            <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors cursor-pointer" (click)="viewClient(c.id)">
-              <td class="p-4 font-medium text-on-surface">{{ c.name }}</td>
-              <td class="p-4 text-on-surface-variant">{{ c.email }}</td>
-              <td class="p-4 font-numeric-data text-numeric-data text-on-surface-variant tabular-nums">{{ c.gstin ?? '—' }}</td>
-              <td class="p-4 text-on-surface-variant">{{ c.user_type.toUpperCase() }}</td>
+            <tr class="border-b border-neutral-100 hover:bg-neutral-50/50 transition-colors cursor-pointer" (click)="viewClient(c.id)">
+              <td class="p-4 font-medium text-neutral-900">{{ c.name }}</td>
+              <td class="p-4 text-neutral-500">{{ c.email }}</td>
+              <td class="p-4 font-mono text-xs text-neutral-500 tabular-nums">{{ c.gstin ?? '—' }}</td>
+              <td class="p-4 text-neutral-500">{{ c.user_type.toUpperCase() }}</td>
               <td class="p-4"><app-status-chip [status]="c.status" /></td>
-              <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(c.created_at) }}</td>
+              <td class="p-4 text-neutral-500 tabular-nums">{{ fmtDate(c.created_at) }}</td>
               <td class="p-4 text-right whitespace-nowrap" (click)="$event.stopPropagation()">
                 <button
-                  class="text-secondary hover:text-on-primary-fixed-variant p-1 rounded hover:bg-primary-fixed-dim transition-colors mr-1"
+                  class="p-1.5 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors mr-1"
                   title="View Details"
                   (click)="viewClient(c.id)"
                 >
                   <span class="material-symbols-outlined" style="font-size: 20px">visibility</span>
                 </button>
                 <button
-                  class="text-secondary hover:text-on-primary-fixed-variant p-1 rounded hover:bg-primary-fixed-dim transition-colors"
+                  class="p-1.5 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
                   title="Send Reminder"
                   (click)="sendReminder(c.id)"
                 >

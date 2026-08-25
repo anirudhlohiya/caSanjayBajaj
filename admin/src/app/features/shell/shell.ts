@@ -15,7 +15,7 @@ interface NavItem {
   imports: [RouterLink, RouterLinkActive, RouterOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shell.html',
-  styles: [':host { display: flex; height: 100%; }'],
+  styles: [':host { display: flex; width: 100%; height: 100%; }'],
 })
 export class Shell {
   private readonly auth = inject(AuthService);

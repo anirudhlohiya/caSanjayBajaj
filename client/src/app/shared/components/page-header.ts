@@ -8,7 +8,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     <div class="flex items-center gap-3">
       @if (back()) {
         <button
-          (click)="onBack()"
+          (click)="goBack()"
           class="flex size-10 items-center justify-center rounded-full text-on-surface hover:bg-surface-variant"
           aria-label="Go back"
         >
@@ -34,4 +34,11 @@ export class PageHeader {
   readonly subtitle = input('');
   readonly back = input(false);
   readonly onBack = input<() => void>(() => history.back());
+
+  goBack(): void {
+    const fn = this.onBack();
+    if (fn) {
+      fn();
+    }
+  }
 }

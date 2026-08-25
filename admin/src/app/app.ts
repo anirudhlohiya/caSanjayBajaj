@@ -11,6 +11,6 @@ import { ToastContainer } from './shared/components/toast-container';
     <router-outlet />
     <app-toast-container />
   `,
-  styles: [':host { display: block; height: 100%; }'],
+  styles: [':host { display: block; width: 100%; height: 100%; }'],
 })
 export class App {}
