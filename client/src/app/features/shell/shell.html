@@ -1,32 +1,49 @@
-<div class="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
+<div class="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface dark:bg-neutral-950">
   <app-toast-container />
 
   @if (!online()) {
-    <div class="flex items-center gap-2 bg-error-container px-4 py-2 text-body-md font-medium text-on-error-container">
+    <div class="flex items-center gap-2 bg-amber-50 border-b border-amber-100 px-4 py-2 text-xs font-medium text-amber-800">
       <span class="material-symbols-outlined text-[18px]">cloud_off</span>
       You're offline — uploads will be queued and retried.
     </div>
   }
 
-  <header class="sticky top-0 z-30 border-b border-neutral-100 bg-white/90 backdrop-blur-md">
-    <div class="flex items-center gap-3 px-4 py-3">
-      <div class="flex size-9 items-center justify-center rounded-lg bg-neutral-900 text-white shadow-sm">
-        <span class="material-symbols-outlined text-[18px]">account_balance</span>
+  @if (notificationDenied()) {
+    <div class="flex items-start gap-3 bg-amber-50 border-b border-amber-100 px-4 py-3">
+      <span class="material-symbols-outlined text-[18px] text-amber-600 shrink-0 mt-0.5">notifications_off</span>
+      <p class="text-xs text-amber-800 flex-1">
+        <strong>App notifications are off.</strong> Go to your browser or device settings to turn on notifications for important updates from S N Bajaj And Co.
+      </p>
+    </div>
+  }
+
+  <header class="sticky top-0 z-30 border-b border-neutral-100 bg-white/90 backdrop-blur-md dark:bg-neutral-950/90 dark:border-neutral-800">
+    <div class="flex items-center gap-3 px-4 py-2.5">
+      <div class="flex size-9 items-center justify-center rounded-lg bg-neutral-900 overflow-hidden shadow-sm dark:bg-neutral-800">
+        <img src="/logo.jpg" alt="S N Bajaj And Co Logo" class="size-9 object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <span class="material-symbols-outlined text-white text-[18px] hidden items-center justify-center">account_balance</span>
       </div>
       <div class="min-w-0 flex-1">
-        <p class="truncate text-title-lg font-semibold text-neutral-950 tracking-tight">SN Bajaj And Co</p>
-        <p class="truncate text-label-md text-neutral-400 font-medium">GST Client Portal</p>
+        <p class="truncate text-sm font-bold text-neutral-950 tracking-tight leading-tight dark:text-white">S N Bajaj And Co</p>
+        <p class="truncate text-[11px] text-neutral-400 font-medium">GST Client Portal</p>
       </div>
       <button
+        (click)="router.navigate(['/settings'])"
+        class="flex size-9 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-950 transition-colors cursor-pointer dark:hover:bg-neutral-800 dark:text-neutral-400"
+        aria-label="Settings"
+      >
+        <span class="material-symbols-outlined text-[20px]">settings</span>
+      </button>
+      <button
         routerLink="/notifications"
-        class="relative flex size-10 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-950 transition-colors cursor-pointer"
+        class="relative flex size-9 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-950 transition-colors cursor-pointer dark:hover:bg-neutral-800 dark:text-neutral-400"
         aria-label="Notifications"
       >
         <span class="material-symbols-outlined text-[20px]">notifications</span>
       </button>
       <button
         (click)="router.navigate(['/profile'])"
-        class="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 font-mono text-xs font-semibold hover:bg-neutral-200 transition-colors cursor-pointer"
+        class="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 font-mono text-xs font-semibold hover:bg-neutral-200 transition-colors cursor-pointer dark:bg-neutral-800 dark:text-neutral-300"
         aria-label="Profile"
       >
         {{ initials() }}
@@ -34,11 +51,21 @@
     </div>
   </header>
 
-  <main class="flex-1 px-4 pb-24 pt-4">
+  <main class="relative flex-1 px-4 pb-24 pt-4 dark:text-neutral-100">
     <router-outlet />
+
+    <!-- FAB: Upload button - constrained within max-w-md container -->
+    <button
+      (click)="router.navigate(['/documents/upload'])"
+      class="fixed bottom-24 right-4 z-20 flex size-14 items-center justify-center rounded-full bg-neutral-950 text-white shadow-lg transition-transform active:scale-95 cursor-pointer dark:bg-white dark:text-neutral-950 max-md:right-4"
+      style="right: clamp(16px, calc((100vw - 448px) / 2 + 16px), 50vw - 16px);"
+      aria-label="Upload documents"
+    >
+      <span class="material-symbols-outlined text-[28px]">add</span>
+    </button>
   </main>
 
-  <nav class="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md border-t border-neutral-100 bg-white/95 backdrop-blur-md">
+  <nav class="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md border-t border-neutral-100 bg-white/95 backdrop-blur-md dark:bg-neutral-950/95 dark:border-neutral-800">
     <div class="grid grid-cols-4">
       @for (item of navItems; track item.label) {
         <a
@@ -48,14 +75,14 @@
           [class]="
             'flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors ' +
             (rla.isActive
-              ? 'text-neutral-950 font-semibold'
-              : 'text-neutral-400 hover:text-neutral-600')
+              ? 'text-neutral-950 font-semibold dark:text-white'
+              : 'text-neutral-400 hover:text-neutral-600 dark:text-neutral-500')
           "
         >
           <span
             [class]="
               'flex w-12 items-center justify-center rounded-full py-0.5 transition-all ' +
-              (rla.isActive ? 'bg-neutral-100 text-neutral-950' : '')
+              (rla.isActive ? 'bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white' : '')
             "
           >
             <span class="material-symbols-outlined text-[20px]" [class.symbol-filled]="rla.isActive">

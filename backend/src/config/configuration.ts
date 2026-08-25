@@ -29,7 +29,7 @@ export default () => ({
 
   ses: {
     sourceEmail: process.env.SES_SOURCE_EMAIL ?? '',
-    sourceName: process.env.SES_SOURCE_NAME ?? 'SN Bajaj And Co',
+    sourceName: process.env.SES_SOURCE_NAME ?? 'S N BAJAJ AND CO',
   },
 
   firebase: {

@@ -57,7 +57,7 @@ async function bootstrap() {
 
   if (config.get('nodeEnv') !== 'production') {
     const swagger = new DocumentBuilder()
-      .setTitle('SN Bajaj And Co - Platform API')
+      .setTitle('S N BAJAJ AND CO - Platform API')
       .setDescription(
         'Phase 1 (GST): clients, documents, reports, reminders, staff & audit.',
       )

@@ -36,9 +36,15 @@ export class Dashboard {
   readonly latestReport = signal<Report | null>(null);
   readonly openPeriods = signal<GstFilingPeriod[]>([]);
   readonly unreadCount = signal(0);
+  readonly notifDenied = signal(false);
+  readonly notifDefault = signal(false);
 
   constructor() {
     void this.load();
+    if ('Notification' in window) {
+      this.notifDenied.set(Notification.permission === 'denied');
+      this.notifDefault.set(Notification.permission === 'default');
+    }
   }
 
   async load(): Promise<void> {

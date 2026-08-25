@@ -13,6 +13,7 @@ import {
 } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { PushService } from '../../core/services/push.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { UploadQueueService } from '../../core/services/upload-queue.service';
 import { UploadService } from '../../core/services/upload.service';
 import { ToastContainer } from '../../shared/components/toast-container';
@@ -28,7 +29,10 @@ export class Shell implements OnInit {
   readonly auth = inject(AuthService);
   readonly router = inject(Router);
   readonly online = signal(navigator.onLine);
+  readonly notificationDenied = signal(false);
 
+  // Inject ThemeService to initialize theming on shell load
+  private readonly themeService = inject(ThemeService);
   private readonly push = inject(PushService);
   private readonly queue = inject(UploadQueueService);
   private readonly upload = inject(UploadService);
@@ -60,6 +64,17 @@ export class Shell implements OnInit {
     }
     void this.push.init();
     void this.flushQueue();
+    this.checkNotificationPermission();
+  }
+
+  checkNotificationPermission(): void {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'denied') {
+      this.notificationDenied.set(true);
+    } else if (Notification.permission === 'default') {
+      // Show banner only if not granted (not denied - that's a different message)
+      this.notificationDenied.set(false);
+    }
   }
 
   private async flushQueue(): Promise<void> {

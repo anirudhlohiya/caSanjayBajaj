@@ -327,6 +327,12 @@ uses live in `website/public/images`; content fully migrated). SEO done: meta/OG
   - Added `:host { display: flex; width: 100%; height: 100%; }` to `shell.ts` and `width: 100%` to `app.ts` to fix layout shrinking bugs under empty table states.
   - Fixed Client PWA `PageHeader` component bug where back button was evaluating but not executing the signal-wrapped callback.
   - Verified local and live E2E via browser subagent after deploying to production.
+- **Client PWA Vercel Redesign (Aug 25 2026)**:
+  - Updated `client/src/styles.css` Tailwind theme tokens to match Vercel design: slate-50 `#fafafa` background, neutral-950 `#171717` primary ink, `#0070f3` blue secondary accent, `#ebebeb` hairline borders, and soft stacked shadows.
+  - Redesigned `shell.html` header to use `bg-white/90 backdrop-blur-md`, dark `bg-neutral-900` logo icon, and clean neutral bottom navigation with `bg-neutral-100` active state pill.
+  - Redesigned `dashboard.html`: uppercase tracking section labels, neutral card icons, unified `.card` wrapper, and `bg-neutral-950` FAB.
+  - Redesigned `documents.html`: `rounded-full` neutral chip filters, white backdrop bottom modal drawer, `bg-neutral-100` doc icons.
+  - Redesigned `upload.html`: cleaner form select, white dashed drop zone, neutral progress bar, and `bg-neutral-900` primary upload button.
 
 ## 10. Open items
 

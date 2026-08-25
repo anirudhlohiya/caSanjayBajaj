@@ -1,0 +1,134 @@
+<div class="flex flex-col gap-6 pb-10">
+  <app-page-header title="Settings" [back]="true" />
+
+  <!-- Theme -->
+  <section class="card overflow-hidden">
+    <div class="border-b border-neutral-100 px-4 py-3">
+      <h2 class="text-sm font-semibold text-neutral-950">Appearance</h2>
+      <p class="text-xs text-neutral-400 mt-0.5">Choose how the app looks on your device</p>
+    </div>
+    <div class="divide-y divide-neutral-100">
+      @for (opt of themeOptions; track opt.value) {
+        <button
+          (click)="setTheme(opt.value)"
+          class="flex w-full items-center gap-4 px-4 py-3.5 text-left cursor-pointer hover:bg-neutral-50 transition-colors"
+        >
+          <span class="flex size-9 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600">
+            <span class="material-symbols-outlined text-[20px]">{{ opt.icon }}</span>
+          </span>
+          <span class="flex-1">
+            <span class="block text-sm font-medium text-neutral-800">{{ opt.label }}</span>
+          </span>
+          @if (theme.mode() === opt.value) {
+            <span class="material-symbols-outlined text-[20px] text-neutral-900">check_circle</span>
+          } @else {
+            <span class="size-5 rounded-full border-2 border-neutral-200"></span>
+          }
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- Notifications -->
+  <section class="card overflow-hidden">
+    <div class="border-b border-neutral-100 px-4 py-3">
+      <h2 class="text-sm font-semibold text-neutral-950">Notifications</h2>
+    </div>
+    <div class="divide-y divide-neutral-100">
+      <div class="flex items-center justify-between gap-3 px-4 py-3.5">
+        <div>
+          <p class="text-sm font-medium text-neutral-800">Push notifications</p>
+          <p class="text-xs text-neutral-400 mt-0.5">Alerts when a report is ready or a reminder is due</p>
+        </div>
+        @if (pushSupported()) {
+          <button
+            (click)="togglePush(!pushEnabled())"
+            [disabled]="pushBusy()"
+            [class]="
+              'relative h-7 w-12 rounded-full transition-colors ' +
+              (pushEnabled() ? 'bg-neutral-900' : 'bg-neutral-200') +
+              (pushBusy() ? ' opacity-60' : '')
+            "
+            aria-label="Toggle push notifications"
+          >
+            <span
+              class="absolute top-0.5 size-6 rounded-full bg-white shadow-sm transition-all"
+              [style.left.px]="pushEnabled() ? 22 : 2"
+            ></span>
+          </button>
+        } @else {
+          <p class="text-xs text-neutral-400">Unavailable</p>
+        }
+      </div>
+      <div class="flex items-center justify-between gap-3 px-4 py-3.5">
+        <div>
+          <p class="text-sm font-medium text-neutral-800">Email notifications</p>
+          <p class="text-xs text-neutral-400 mt-0.5">Receive updates via email</p>
+        </div>
+        <button
+          (click)="toggleEmail(!emailEnabled())"
+          [class]="
+            'relative h-7 w-12 rounded-full transition-colors ' +
+            (emailEnabled() ? 'bg-neutral-900' : 'bg-neutral-200')
+          "
+          aria-label="Toggle email notifications"
+        >
+          <span
+            class="absolute top-0.5 size-6 rounded-full bg-white shadow-sm transition-all"
+            [style.left.px]="emailEnabled() ? 22 : 2"
+          ></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Change Password -->
+  <section class="card overflow-hidden">
+    <div class="border-b border-neutral-100 px-4 py-3">
+      <h2 class="text-sm font-semibold text-neutral-950">Security</h2>
+      <p class="text-xs text-neutral-400 mt-0.5">Change your account password</p>
+    </div>
+    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="flex flex-col gap-4 p-4">
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Current password</span>
+        <input
+          formControlName="current_password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Enter current password"
+          class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-100"
+        />
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">New password</span>
+        <input
+          formControlName="new_password"
+          type="password"
+          autocomplete="new-password"
+          placeholder="At least 8 characters"
+          class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-100"
+        />
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Confirm new password</span>
+        <input
+          formControlName="confirm"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Repeat new password"
+          class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-100"
+        />
+      </label>
+      <button
+        type="submit"
+        [disabled]="passwordBusy()"
+        class="flex h-11 items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
+      >
+        @if (passwordBusy()) {
+          <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+        }
+        Update password
+      </button>
+    </form>
+  </section>
+</div>

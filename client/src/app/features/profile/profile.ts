@@ -3,15 +3,16 @@ import {
   Component,
   inject,
   signal,
+  ViewChild,
+  ElementRef,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/feature.services';
-import { PushService } from '../../core/services/push.service';
 
-const PUSH_PREF_KEY = 'fp_push_enabled';
-const EMAIL_PREF_KEY = 'fp_email_enabled';
+const PHOTO_KEY = 'fp_profile_photo';
 
 @Component({
   selector: 'app-profile',
@@ -24,24 +25,16 @@ export class Profile {
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
   readonly auth = inject(AuthService);
+  readonly router = inject(Router);
   private readonly profileService = inject(ProfileService);
-  private readonly push = inject(PushService);
 
-  readonly pushEnabled = signal(localStorage.getItem(PUSH_PREF_KEY) === '1');
-  readonly emailEnabled = signal(localStorage.getItem(EMAIL_PREF_KEY) !== '0');
-  readonly pushSupported = signal(true);
-  readonly pushBusy = signal(false);
   readonly savingPhone = signal(false);
-  readonly passwordBusy = signal(false);
+  readonly photoUrl = signal<string | null>(localStorage.getItem(PHOTO_KEY));
+
+  @ViewChild('photoInput') photoInput!: ElementRef<HTMLInputElement>;
 
   readonly phoneForm = this.fb.nonNullable.group({
     phone: ['', [Validators.pattern(/^[0-9+\-\s]{10,20}$/)]],
-  });
-
-  readonly passwordForm = this.fb.nonNullable.group({
-    current_password: ['', [Validators.required, Validators.minLength(8)]],
-    new_password: ['', [Validators.required, Validators.minLength(8)]],
-    confirm: ['', [Validators.required]],
   });
 
   async ngOnInit(): Promise<void> {
@@ -50,41 +43,31 @@ export class Profile {
     } catch {
       /* auth guard handles redirect */
     }
-    this.pushSupported.set(this.push.supported());
-    if (this.push.supported()) {
-      this.pushEnabled.set(await this.push.isSubscribed());
-    }
     const profile = this.auth.userProfile();
     if (profile?.phone) {
       this.phoneForm.controls.phone.setValue(profile.phone);
     }
   }
 
-  async togglePush(enabled: boolean): Promise<void> {
-    if (this.pushBusy()) return;
-    this.pushBusy.set(true);
-    try {
-      if (enabled) {
-        const ok = await this.push.requestAndSubscribe();
-        if (!ok) {
-          this.toast.error('Push notifications could not be enabled for this browser.');
-          return;
-        }
-      } else {
-        await this.push.unsubscribe();
-      }
-      localStorage.setItem(PUSH_PREF_KEY, enabled ? '1' : '0');
-      this.pushEnabled.set(enabled);
-      this.toast.success(enabled ? 'Push notifications enabled.' : 'Push notifications disabled.');
-    } finally {
-      this.pushBusy.set(false);
-    }
+  triggerPhotoUpload(): void {
+    this.photoInput.nativeElement.click();
   }
 
-  toggleEmail(enabled: boolean): void {
-    localStorage.setItem(EMAIL_PREF_KEY, enabled ? '1' : '0');
-    this.emailEnabled.set(enabled);
-    this.toast.success(enabled ? 'Email notifications enabled.' : 'Email notifications disabled.');
+  onPhotoSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      this.toast.error('Image must be under 2 MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      localStorage.setItem(PHOTO_KEY, dataUrl);
+      this.photoUrl.set(dataUrl);
+      this.toast.success('Profile photo updated.');
+    };
+    reader.readAsDataURL(file);
   }
 
   async savePhone(): Promise<void> {
@@ -102,29 +85,6 @@ export class Profile {
       /* interceptor toasts */
     } finally {
       this.savingPhone.set(false);
-    }
-  }
-
-  async changePassword(): Promise<void> {
-    const form = this.passwordForm;
-    if (form.invalid) {
-      this.toast.error('Passwords must be at least 8 characters.');
-      return;
-    }
-    if (form.getRawValue().new_password !== form.getRawValue().confirm) {
-      this.toast.error('New passwords do not match.');
-      return;
-    }
-    this.passwordBusy.set(true);
-    try {
-      const { current_password, new_password } = form.getRawValue();
-      await this.profileService.changePassword(current_password, new_password);
-      this.toast.success('Password changed successfully.');
-      form.reset();
-    } catch {
-      /* interceptor toasts */
-    } finally {
-      this.passwordBusy.set(false);
     }
   }
 

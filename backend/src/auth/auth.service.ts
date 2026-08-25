@@ -262,7 +262,7 @@ export class AuthService {
       dto.purpose === 'signup' ? 'verify your email' : 'reset your password';
     const htmlBody = `
       <div style="font-family: sans-serif; padding: 20px; color: #191c1e; background-color: #f7f9fb;">
-        <h2 style="color: #001433;">SN Bajaj And Co</h2>
+        <h2 style="color: #001433;">S N BAJAJ AND CO</h2>
         <p>You requested an OTP to ${actionText}.</p>
         <div style="font-size: 24px; font-weight: bold; padding: 15px 0; letter-spacing: 2px; color: #305ea4;">
           ${otpCode}

@@ -70,6 +70,10 @@ export class Signup {
       await this.auth.verifyOtp(email, otp_code, 'signup');
       await this.auth.signup(email, password, name, phone || undefined);
       this.toast.success('Registration successful!');
+      // Ask for notification permission after signup
+      if ('Notification' in window && Notification.permission === 'default') {
+        void Notification.requestPermission();
+      }
       await this.router.navigate(['/dashboard']);
     } catch (err) {
       this.error.set(

@@ -1,140 +1,133 @@
-<div class="flex flex-col gap-5 pb-10">
-  <div class="flex flex-col items-center gap-2 pt-2 text-center">
-    <span class="flex size-16 items-center justify-center rounded-full bg-secondary-container text-headline-sm font-semibold text-on-secondary-container">
-      {{ initials() }}
-    </span>
-    <div>
-      <h1 class="text-headline-sm font-semibold text-on-surface">{{ auth.userProfile()?.name }}</h1>
-      <p class="text-body-md text-on-surface-variant">{{ auth.userProfile()?.email }}</p>
-      @if (auth.userProfile()?.gstin) {
-        <p class="mt-0.5 text-body-md font-medium text-on-surface">GSTIN: {{ auth.userProfile()?.gstin }}</p>
-      }
+<div class="flex flex-col gap-6 pb-10">
+
+  <!-- Profile avatar & info -->
+  <div class="card p-5">
+    <div class="flex items-start gap-4">
+      <!-- Avatar / Photo -->
+      <div class="relative shrink-0">
+        @if (photoUrl()) {
+          <img
+            [src]="photoUrl()"
+            alt="Profile photo"
+            class="size-18 rounded-full object-cover border-2 border-neutral-100"
+          />
+        } @else {
+          <div class="flex size-18 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 font-bold text-xl">
+            {{ initials() }}
+          </div>
+        }
+        <!-- Edit photo button -->
+        <button
+          (click)="triggerPhotoUpload()"
+          class="absolute -bottom-1 -right-1 flex size-7 items-center justify-center rounded-full bg-neutral-900 text-white shadow-md cursor-pointer hover:bg-neutral-700 transition-colors"
+          aria-label="Change profile photo"
+        >
+          <span class="material-symbols-outlined text-[14px]">photo_camera</span>
+        </button>
+        <input #photoInput type="file" accept="image/*" class="hidden" (change)="onPhotoSelected($event)" />
+      </div>
+
+      <!-- Name & info -->
+      <div class="min-w-0 flex-1">
+        <h1 class="text-base font-bold text-neutral-950 truncate">{{ auth.userProfile()?.name }}</h1>
+        <p class="text-xs text-neutral-500 mt-0.5 truncate">{{ auth.userProfile()?.email }}</p>
+        @if (auth.userProfile()?.phone) {
+          <p class="text-xs text-neutral-500 mt-0.5">{{ auth.userProfile()?.phone }}</p>
+        }
+      </div>
+
+      <!-- Settings link -->
+      <button
+        (click)="router.navigate(['/settings'])"
+        class="flex size-9 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 transition-colors cursor-pointer"
+        aria-label="Go to settings"
+      >
+        <span class="material-symbols-outlined text-[20px]">settings</span>
+      </button>
     </div>
   </div>
 
-  <section class="rounded-xl border border-card-border bg-surface-container-lowest shadow-card">
-    <h2 class="border-b border-card-border px-4 py-3 text-title-lg font-semibold text-on-surface">Contact</h2>
-    <form [formGroup]="phoneForm" (ngSubmit)="savePhone()" class="flex flex-col gap-3 p-4">
+  <!-- GST & Business Details -->
+  @if (auth.userProfile()?.gstin || auth.userProfile()?.gstin === '') {
+    @if (auth.userProfile()?.gstin) {
+      <section class="card overflow-hidden">
+        <div class="border-b border-neutral-100 px-4 py-3">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">GST Details</h2>
+        </div>
+        <div class="divide-y divide-neutral-50 px-4">
+          <div class="flex items-center justify-between py-3">
+            <span class="text-xs font-medium text-neutral-500">GSTIN</span>
+            <span class="text-xs font-mono font-semibold text-neutral-800">{{ auth.userProfile()?.gstin }}</span>
+          </div>
+        </div>
+      </section>
+    }
+  }
+
+  <!-- Contact Info -->
+  <section class="card overflow-hidden">
+    <div class="border-b border-neutral-100 px-4 py-3">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Contact</h2>
+    </div>
+    <form [formGroup]="phoneForm" (ngSubmit)="savePhone()" class="flex flex-col gap-4 p-4">
       <label class="flex flex-col gap-1.5">
-        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Phone</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Phone number</span>
         <input
           formControlName="phone"
           type="tel"
           placeholder="+91 98XXXXXXXX"
-          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+          class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
         />
       </label>
       <button
         type="submit"
         [disabled]="savingPhone()"
-        class="flex h-11 items-center justify-center rounded-[8px] bg-primary text-body-lg font-semibold text-on-primary disabled:opacity-50"
+        class="flex h-11 items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
       >
+        @if (savingPhone()) {
+          <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+        }
         Save phone number
       </button>
     </form>
   </section>
 
-  <section class="rounded-xl border border-card-border bg-surface-container-lowest shadow-card">
-    <h2 class="border-b border-card-border px-4 py-3 text-title-lg font-semibold text-on-surface">Notifications</h2>
-    <div class="flex flex-col">
-      <div class="flex items-center justify-between gap-3 px-4 py-3">
-        <div>
-          <p class="text-body-md font-medium text-on-surface">Push notifications</p>
-          <p class="text-body-sm text-on-surface-variant">
-            Alerts when a report is ready or a reminder is due
-          </p>
-        </div>
-        @if (pushSupported()) {
-          <button
-            (click)="togglePush(!pushEnabled())"
-            [disabled]="pushBusy()"
-            [class]="
-              'relative h-7 w-12 rounded-full transition ' +
-              (pushEnabled() ? 'bg-secondary' : 'bg-outline-variant') +
-              (pushBusy() ? ' opacity-60' : '')
-            "
-            aria-label="Toggle push notifications"
-          >
-            <span
-              class="absolute top-0.5 size-6 rounded-full bg-white shadow transition-all"
-              [style.left.px]="pushEnabled() ? 22 : 2"
-            ></span>
-          </button>
-        } @else {
-          <p class="text-body-sm text-on-surface-variant">Unavailable</p>
-        }
-      </div>
-      <div class="flex items-center justify-between gap-3 border-t border-card-border px-4 py-3">
-        <div>
-          <p class="text-body-md font-medium text-on-surface">Email notifications</p>
-          <p class="text-body-sm text-on-surface-variant">Send updates to {{ auth.userProfile()?.email }}</p>
-        </div>
-        <button
-          (click)="toggleEmail(!emailEnabled())"
-          [class]="
-            'relative h-7 w-12 rounded-full transition ' +
-            (emailEnabled() ? 'bg-secondary' : 'bg-outline-variant')
-          "
-          aria-label="Toggle email notifications"
-        >
-          <span
-            class="absolute top-0.5 size-6 rounded-full bg-white shadow transition-all"
-            [style.left.px]="emailEnabled() ? 22 : 2"
-          ></span>
-        </button>
-      </div>
+  <!-- Settings quick links -->
+  <section class="card overflow-hidden">
+    <div class="divide-y divide-neutral-100">
+      <button
+        (click)="router.navigate(['/settings'])"
+        class="flex w-full items-center gap-3 px-4 py-3.5 text-left cursor-pointer hover:bg-neutral-50 transition-colors"
+      >
+        <span class="flex size-9 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600">
+          <span class="material-symbols-outlined text-[18px]">settings</span>
+        </span>
+        <span class="flex-1 text-sm font-medium text-neutral-800">Settings & Security</span>
+        <span class="material-symbols-outlined text-[18px] text-neutral-400">chevron_right</span>
+      </button>
+      <button
+        (click)="router.navigate(['/notifications'])"
+        class="flex w-full items-center gap-3 px-4 py-3.5 text-left cursor-pointer hover:bg-neutral-50 transition-colors"
+      >
+        <span class="flex size-9 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600">
+          <span class="material-symbols-outlined text-[18px]">notifications</span>
+        </span>
+        <span class="flex-1 text-sm font-medium text-neutral-800">Notifications</span>
+        <span class="material-symbols-outlined text-[18px] text-neutral-400">chevron_right</span>
+      </button>
     </div>
   </section>
 
-  <section class="rounded-xl border border-card-border bg-surface-container-lowest shadow-card">
-    <h2 class="border-b border-card-border px-4 py-3 text-title-lg font-semibold text-on-surface">Security</h2>
-    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="flex flex-col gap-3 p-4">
-      <label class="flex flex-col gap-1.5">
-        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Current password</span>
-        <input
-          formControlName="current_password"
-          type="password"
-          autocomplete="current-password"
-          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
-        />
-      </label>
-      <label class="flex flex-col gap-1.5">
-        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">New password</span>
-        <input
-          formControlName="new_password"
-          type="password"
-          autocomplete="new-password"
-          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
-        />
-      </label>
-      <label class="flex flex-col gap-1.5">
-        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Confirm new password</span>
-        <input
-          formControlName="confirm"
-          type="password"
-          autocomplete="new-password"
-          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
-        />
-      </label>
-      <button
-        type="submit"
-        [disabled]="passwordBusy()"
-        class="flex h-11 items-center justify-center rounded-[8px] bg-primary text-body-lg font-semibold text-on-primary disabled:opacity-50"
-      >
-        Change password
-      </button>
-    </form>
-  </section>
-
+  <!-- Logout -->
   <button
     (click)="auth.logout()"
-    class="flex h-12 items-center justify-center gap-2 rounded-[8px] border border-error/30 bg-error-container text-body-lg font-semibold text-on-error-container"
+    class="flex h-11 items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors cursor-pointer"
   >
     <span class="material-symbols-outlined text-[20px]">logout</span>
     Log out
   </button>
 
-  <p class="pb-4 text-center text-label-md text-on-surface-variant">
-    SN Bajaj And Co - GST Client Portal
+  <p class="pb-4 text-center text-xs text-neutral-400">
+    S N Bajaj And Co — GST Client Portal
   </p>
 </div>

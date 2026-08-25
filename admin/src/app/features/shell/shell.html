@@ -11,13 +11,14 @@
   >
     <div class="flex items-center gap-3 px-5 py-6 overflow-hidden shrink-0">
       <div
-        class="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center shrink-0 shadow-sm"
+        class="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center shrink-0 shadow-sm overflow-hidden border border-neutral-200"
       >
-        <span class="material-symbols-outlined text-white text-[18px]">account_balance</span>
+        <img src="/logo.jpg" alt="Logo" class="w-full h-full object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'" />
+        <span class="material-symbols-outlined text-white text-[18px] hidden">account_balance</span>
       </div>
       @if (!collapsed()) {
         <div class="whitespace-nowrap">
-          <h2 class="text-sm font-semibold text-neutral-900 tracking-tight">SN Bajaj And Co</h2>
+          <h2 class="text-sm font-semibold text-neutral-900 tracking-tight">S N BAJAJ AND CO</h2>
           <p class="text-xs text-neutral-400">Admin Portal</p>
         </div>
       }

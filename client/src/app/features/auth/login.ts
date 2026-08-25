@@ -31,6 +31,10 @@ export class Login {
     try {
       const { email, password } = this.form.getRawValue();
       await this.auth.login(email, password);
+      // Ask for notification permission after successful login
+      if ('Notification' in window && Notification.permission === 'default') {
+        void Notification.requestPermission();
+      }
       await this.router.navigate(['/dashboard']);
     } catch (err) {
       this.error.set(
