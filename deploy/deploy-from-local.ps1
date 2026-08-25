@@ -36,7 +36,12 @@ tar -czf "$tmpDir\admin.tar.gz"  -C "$root\admin\dist\admin\browser"  .
 tar -czf "$tmpDir\client.tar.gz" -C "$root\client\dist\client\browser" .
 
 Write-Host "== Uploading bundles to $Server ==" -ForegroundColor Cyan
-scp "$tmpDir\admin.tar.gz" "$tmpDir\client.tar.gz" "${Server}:/tmp/"
+$keyPath = "F:\Anirudh\ca-platform-key.pem"
+if (Test-Path $keyPath) {
+  scp -o StrictHostKeyChecking=no -i $keyPath "$tmpDir\admin.tar.gz" "$tmpDir\client.tar.gz" "${Server}:/tmp/"
+} else {
+  scp -o StrictHostKeyChecking=no "$tmpDir\admin.tar.gz" "$tmpDir\client.tar.gz" "${Server}:/tmp/"
+}
 
 if (-not ($SkipBackend -or $FrontendsOnly)) {
   Write-Host '== Updating backend on server from origin/main ==' -ForegroundColor Cyan
@@ -50,7 +55,11 @@ npm run migration:run
 npm run build
 echo "backend build ok"
 '@
-  $backendUpdate | ssh $Server 'bash -s'
+  if (Test-Path $keyPath) {
+    $backendUpdate | ssh -o StrictHostKeyChecking=no -i $keyPath $Server 'bash -s'
+  } else {
+    $backendUpdate | ssh -o StrictHostKeyChecking=no $Server 'bash -s'
+  }
 }
 
 Write-Host '== Releasing static sites + restarting API ==' -ForegroundColor Cyan
@@ -86,7 +95,11 @@ pm2 save
 sleep 3
 curl -fsS http://127.0.0.1:3000/api/v1/health > /dev/null && echo "DEPLOY OK: health check passed"
 '@
-  $release | ssh $Server 'bash -s'
+  if (Test-Path $keyPath) {
+    $release | ssh -o StrictHostKeyChecking=no -i $keyPath $Server 'bash -s'
+  } else {
+    $release | ssh -o StrictHostKeyChecking=no $Server 'bash -s'
+  }
 
 Remove-Item -Recurse -Force $tmpDir
 Write-Host 'Deploy complete.' -ForegroundColor Green
