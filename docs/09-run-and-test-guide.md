@@ -349,8 +349,8 @@ Restart the API afterwards — restart the backend whenever `.env` changes.
 3. **Sandbox limitation:** until you request *production access*, SES only delivers to
    other verified addresses. For real client emails, submit the production-access request
    (free, usually approved in ~24 h).
-4. Optional: verify the domain `lohiyaanirudh.tech` (add the DKIM TXT/CNAME records shown
-   in the console) so mail comes from `@lohiyaanirudh.tech`.
+4. Optional: verify the domain `snbajaj.com` (add the DKIM TXT/CNAME records shown
+   in the console) so mail comes from `@snbajaj.com`.
 
 ### 7.4 Web push (VAPID — no Firebase)
 

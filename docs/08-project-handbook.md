@@ -226,7 +226,7 @@ Full walkthrough in `docs/07-aws-reference.md` (reusable per client). Summary:
 | AWS region | `ap-south-1` (Mumbai) | `backend/.env` `AWS_REGION` |
 | IAM user | `ca-backend` (S3+SES+SNS full access) | Access keys in `backend/.env` |
 | S3 buckets | `ca-sanjay-gst-docs` (private), `ca-sanjay-backups` (private) | `backend/.env` `S3_DOCS_BUCKET`, `S3_BACKUP_BUCKET` |
-| SES verified identity | `client.test@snbajaj.com` (SUCCESS); domain `lohiyaanirudh.tech` PENDING | `backend/.env` `SES_SOURCE_EMAIL` |
+| SES verified identity | `client.test@snbajaj.com` (SUCCESS); domain `snbajaj.com` PENDING | `backend/.env` `SES_SOURCE_EMAIL` |
 | Web push | Self-generated VAPID keys (public + private) | `backend/.env` `FIREBASE_VAPID_*`; public key also in `client/.../environment.ts` |
 | Super admin | `sanjay@gmail.com` / `Sanjay@2026` (dev) | `backend/.env` `SUPER_ADMIN_*` |
 
@@ -321,7 +321,7 @@ set `FP_VAPID_KEY` / subscribe in Profile), and the automated reminder cron.
 - **Service worker:** stock Angular worker always overwrites any custom `ngsw-worker.js`;
   push handlers are appended post-build by `client/scripts/patch-sw.js`.
 - **SES sandbox:** only sends to verified recipients; request production access before real
-  clients. The domain `lohiyaanirudh.tech` verification is PENDING (add DNS TXT to use it).
+  clients. The domain `snbajaj.com` verification is PENDING (add DNS TXT to use it).
 - **Admin UI polish (done, working tree):** user reported the admin UI "looks bad" and wanted
   mobile-friendly. Fixed by adding `@layer components` utility classes (`.btn-primary`,
   `.btn-outline`, `.btn-icon`, `.input`, `.card`, `.label`, `.th`) and converting every list

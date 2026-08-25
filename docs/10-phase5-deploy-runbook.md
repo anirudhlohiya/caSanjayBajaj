@@ -31,7 +31,7 @@ irrelevant in production. The admin app is served under `/admin/`
 | S3 buckets `ca-sanjay-gst-docs`, `ca-sanjay-backups` | §3 | private, block-public ON |
 | SES verified sender + production access requested | §4 | sandbox blocks non-verified recipients |
 | VAPID keys generated | §5 | `npx web-push generate-vapid-keys` |
-| A domain you control | any registrar | e.g. `lohiyaanirudh.tech` |
+| A domain you control | any registrar | e.g. `snbajaj.com` |
 | Key pair `.pem` downloaded once | EC2 → Key pairs | keep safe, never commit |
 | From Windows: OpenSSH client working | `ssh -V` | ships with Win10/11 |
 

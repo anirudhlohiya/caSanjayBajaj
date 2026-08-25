@@ -1,6 +1,6 @@
 # SN Bajaj And Co — Android Client App
 
-Native WebView wrapper around the client portal (`https://lohiyaanirudh.tech`) with a
+Native WebView wrapper around the client portal (`https://app.snbajaj.com`) with a
 server-controlled forced-update gate.
 
 ## How the forced update works
