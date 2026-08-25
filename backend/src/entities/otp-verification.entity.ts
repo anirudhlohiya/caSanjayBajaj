@@ -14,7 +14,7 @@ export class OtpVerification {
   @Column({ type: 'varchar', length: 255 })
   email: string;
 
-  @Column({ type: 'varchar', length: 6 })
+  @Column({ type: 'varchar', length: 64 })
   otp_code: string;
 
   @Column({ type: 'varchar', length: 30 })
