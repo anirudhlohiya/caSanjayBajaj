@@ -5,29 +5,29 @@
 @source './index.html';
 
 @theme {
-  /* SN Bajaj And Co - client portal token set */
-  --color-primary: #001433;
-  --color-primary-container: #12294d;
+  /* SN Bajaj And Co - client portal Vercel token set */
+  --color-primary: #171717;
+  --color-primary-container: #f5f5f5;
   --color-on-primary: #ffffff;
-  --color-on-primary-container: #ffffff;
-  --color-secondary: #305ea4;
-  --color-secondary-container: #87b1fd;
-  --color-on-secondary-container: #064287;
-  --color-surface: #f8f9fa;
+  --color-on-primary-container: #171717;
+  --color-secondary: #0070f3;
+  --color-secondary-container: #d3e5ff;
+  --color-on-secondary-container: #0070f3;
+  --color-surface: #fafafa;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container: #eef1f4;
-  --color-surface-variant: #e1e3e4;
-  --color-outline: #74777f;
-  --color-outline-variant: #c4c6cf;
-  --color-on-surface: #191c1d;
-  --color-on-surface-variant: #44474e;
-  --color-error: #ba1a1a;
+  --color-surface-container: #f5f5f5;
+  --color-surface-variant: #ebebeb;
+  --color-outline: #888888;
+  --color-outline-variant: #ebebeb;
+  --color-on-surface: #171717;
+  --color-on-surface-variant: #666666;
+  --color-error: #ee0000;
   --color-on-error: #ffffff;
-  --color-error-container: #ffdad6;
-  --color-on-error-container: #93000a;
-  --color-report-ready-bg: #e8edf5;
-  --color-report-ready: #2c5aa0;
-  --color-card-border: #dde2e8;
+  --color-error-container: #f7d4d6;
+  --color-on-error-container: #ee0000;
+  --color-report-ready-bg: #d3e5ff;
+  --color-report-ready: #0070f3;
+  --color-card-border: #ebebeb;
 
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
     Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -60,10 +60,10 @@
   --text-label-md--line-height: 16px;
   --text-label-md--font-weight: 500;
 
-  --shadow-card: 0 2px 8px rgba(18, 41, 77, 0.05);
-  --shadow-fab: 0 6px 16px rgba(0, 20, 51, 0.35);
-  --shadow-modal: 0 8px 24px rgba(0, 20, 51, 0.18);
-  --radius-input: 8px;
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.02), 0 4px 16px rgba(0,0,0,0.01);
+  --shadow-fab: 0 4px 12px rgba(0,0,0,0.15);
+  --shadow-modal: 0 8px 24px rgba(0,0,0,0.08);
+  --radius-input: 6px;
 }
 
 @layer base {

@@ -8,25 +8,25 @@
     </div>
   }
 
-  <header class="sticky top-0 z-30 border-b border-card-border bg-surface-container-lowest/95 backdrop-blur">
+  <header class="sticky top-0 z-30 border-b border-neutral-100 bg-white/90 backdrop-blur-md">
     <div class="flex items-center gap-3 px-4 py-3">
-      <div class="flex size-9 items-center justify-center rounded-lg bg-primary-container text-on-primary-container">
-        <span class="material-symbols-outlined text-[20px]">account_balance</span>
+      <div class="flex size-9 items-center justify-center rounded-lg bg-neutral-900 text-white shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">account_balance</span>
       </div>
       <div class="min-w-0 flex-1">
-        <p class="truncate text-title-lg font-semibold text-on-surface">SN Bajaj And Co</p>
-        <p class="truncate text-label-md text-on-surface-variant">GST Client Portal</p>
+        <p class="truncate text-title-lg font-semibold text-neutral-950 tracking-tight">SN Bajaj And Co</p>
+        <p class="truncate text-label-md text-neutral-400 font-medium">GST Client Portal</p>
       </div>
       <button
         routerLink="/notifications"
-        class="relative flex size-10 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-variant"
+        class="relative flex size-10 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-950 transition-colors cursor-pointer"
         aria-label="Notifications"
       >
-        <span class="material-symbols-outlined">notifications</span>
+        <span class="material-symbols-outlined text-[20px]">notifications</span>
       </button>
       <button
         (click)="router.navigate(['/profile'])"
-        class="flex size-10 items-center justify-center rounded-full bg-secondary-container text-on-secondary-container"
+        class="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 font-mono text-xs font-semibold hover:bg-neutral-200 transition-colors cursor-pointer"
         aria-label="Profile"
       >
         {{ initials() }}
@@ -38,7 +38,7 @@
     <router-outlet />
   </main>
 
-  <nav class="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md border-t border-card-border bg-surface-container-lowest">
+  <nav class="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md border-t border-neutral-100 bg-white/95 backdrop-blur-md">
     <div class="grid grid-cols-4">
       @for (item of navItems; track item.label) {
         <a
@@ -48,17 +48,17 @@
           [class]="
             'flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors ' +
             (rla.isActive
-              ? 'text-on-secondary-container'
-              : 'text-on-surface-variant')
+              ? 'text-neutral-950 font-semibold'
+              : 'text-neutral-400 hover:text-neutral-600')
           "
         >
           <span
             [class]="
-              'flex w-14 items-center justify-center rounded-full py-1 ' +
-              (rla.isActive ? 'bg-secondary-container' : '')
+              'flex w-12 items-center justify-center rounded-full py-0.5 transition-all ' +
+              (rla.isActive ? 'bg-neutral-100 text-neutral-950' : '')
             "
           >
-            <span class="material-symbols-outlined text-[22px]" [class.symbol-filled]="rla.isActive">
+            <span class="material-symbols-outlined text-[20px]" [class.symbol-filled]="rla.isActive">
               {{ item.icon }}
             </span>
           </span>
