@@ -333,6 +333,14 @@ uses live in `website/public/images`; content fully migrated). SEO done: meta/OG
   - Redesigned `dashboard.html`: uppercase tracking section labels, neutral card icons, unified `.card` wrapper, and `bg-neutral-950` FAB.
   - Redesigned `documents.html`: `rounded-full` neutral chip filters, white backdrop bottom modal drawer, `bg-neutral-100` doc icons.
   - Redesigned `upload.html`: cleaner form select, white dashed drop zone, neutral progress bar, and `bg-neutral-900` primary upload button.
+- **Client PWA Settings, Dark Mode, Profile Redesign & Brand Updates (Aug 25 2026)**:
+  - Standardized the brand name as **"S N BAJAJ AND CO"** across client/admin titles, PWA manifests, login/signup forms, and backend SES templates/emails.
+  - Copied `logo.jfif` to the admin assets directory (`admin/public/logo.jpg`) and updated the admin login and shell sidebar screens to display the image.
+  - Created client `ThemeService` and Settings module (`/settings`) with support for System default, Light, and Dark modes (applying slate-50/neutral-950 Vercel tokens).
+  - Redesigned Profile page with LocalStorage-backed base64 photo avatar upload and dynamic GSTIN details display card.
+  - Added automatic notification permission checks on auth callbacks and a warning banner in the shell if permissions are denied.
+  - Adjusted mobile FAB button positioning using CSS `clamp` sizing logic.
+  - Seeded local DB container (`ca-pg`) and fully verified E2E flows through automated browser testing.
 
 ## 10. Open items
 
