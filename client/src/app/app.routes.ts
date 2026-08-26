@@ -66,6 +66,21 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/settings/settings').then((m) => m.Settings),
       },
+      {
+        path: 'support',
+        loadComponent: () =>
+          import('./features/support/support').then((m) => m.Support),
+      },
+      {
+        path: 'support/new',
+        loadComponent: () =>
+          import('./features/support/new-ticket').then((m) => m.NewTicket),
+      },
+      {
+        path: 'support/:id',
+        loadComponent: () =>
+          import('./features/support/ticket-detail').then((m) => m.TicketDetail),
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

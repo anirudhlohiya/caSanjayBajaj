@@ -1,0 +1,65 @@
+<div class="flex min-h-dvh flex-col bg-surface">
+  <app-page-header title="New Support Ticket" subtitle="Describe your request and we'll respond promptly" [back]="true" />
+
+  <div class="flex-1 px-6 pb-8">
+    @if (error()) {
+      <div class="mb-4 flex items-center gap-2 rounded-lg border border-error/20 bg-error-container px-3 py-2.5 text-body-md text-on-error-container">
+        <span class="material-symbols-outlined text-[18px]">error</span>
+        <span>{{ error() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+      <label class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Subject</span>
+        <input
+          formControlName="subject"
+          type="text"
+          placeholder="e.g. Need GSTR-1 for March 2026"
+          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+        />
+      </label>
+
+      <label class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Category</span>
+        <select formControlName="category"
+          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none transition focus:border-secondary">
+          @for (cat of categories; track cat[0]) {
+            <option [value]="cat[0]">{{ cat[1] }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Priority</span>
+        <select formControlName="priority"
+          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none transition focus:border-secondary">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </label>
+
+      <label class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Message</span>
+        <textarea
+          formControlName="message"
+          rows="5"
+          placeholder="Describe what you need in detail..."
+          class="rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-lg text-on-surface outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 resize-none"
+        ></textarea>
+      </label>
+
+      <button
+        type="submit"
+        [disabled]="form.invalid || saving()"
+        class="mt-2 flex h-12 items-center justify-center gap-2 rounded-[8px] bg-primary text-body-lg font-semibold text-on-primary transition disabled:opacity-50"
+      >
+        @if (saving()) {
+          <span class="size-5 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+        }
+        Submit Ticket
+      </button>
+    </form>
+  </div>
+</div>

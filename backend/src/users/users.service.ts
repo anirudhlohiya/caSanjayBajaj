@@ -38,13 +38,23 @@ export class UsersService {
     });
     if (exists)
       throw new BadRequestException('A user with this email already exists');
+
+    if (dto.gstin) {
+      const gstinExists = await this.users.findOneBy({
+        gstin: dto.gstin.toUpperCase(),
+      });
+      if (gstinExists) {
+        throw new BadRequestException('A user with this GSTIN already exists');
+      }
+    }
+
     const password_hash = await argon2.hash(dto.password);
     const user = this.users.create({
       name: dto.name,
       email: dto.email.toLowerCase(),
       password_hash,
       phone: dto.phone ?? null,
-      gstin: dto.gstin ?? null,
+      gstin: dto.gstin?.toUpperCase() ?? null,
       user_type: dto.user_type ?? UserType.GST,
       status: dto.status ?? UserStatus.ACTIVE,
     });

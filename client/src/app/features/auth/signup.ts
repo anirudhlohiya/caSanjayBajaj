@@ -30,6 +30,7 @@ export class Signup {
     otp_code: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]],
     name: ['', [Validators.required]],
     phone: [''],
+    gstin: [''],
     password: ['', [Validators.required, Validators.minLength(8)]],
     confirm_password: ['', [Validators.required]],
   });
@@ -56,7 +57,7 @@ export class Signup {
   async verifyAndSignup(): Promise<void> {
     if (this.signupForm.invalid || this.loading()) return;
 
-    const { otp_code, name, phone, password, confirm_password } = this.signupForm.getRawValue();
+    const { otp_code, name, phone, gstin, password, confirm_password } = this.signupForm.getRawValue();
 
     if (password !== confirm_password) {
       this.error.set('Passwords do not match.');
@@ -68,7 +69,7 @@ export class Signup {
     try {
       const email = this.emailForm.controls.email.value;
       await this.auth.verifyOtp(email, otp_code, 'signup');
-      await this.auth.signup(email, password, name, phone || undefined);
+      await this.auth.signup(email, password, name, phone || undefined, gstin?.toUpperCase() || undefined);
       this.toast.success('Registration successful!');
       // Ask for notification permission after signup
       if ('Notification' in window && Notification.permission === 'default') {

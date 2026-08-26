@@ -101,6 +101,18 @@
         </label>
 
         <label class="flex flex-col gap-1.5">
+          <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">GSTIN (Optional)</span>
+          <input
+            formControlName="gstin"
+            type="text"
+            maxlength="15"
+            placeholder="29ABCDE1234F1Z5"
+            class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg font-mono text-on-surface outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+          />
+          <span class="text-body-sm text-on-surface-variant">Enter your 15-character GSTIN if you are a GST-registered business</span>
+        </label>
+
+        <label class="flex flex-col gap-1.5">
           <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Password</span>
           <input
             formControlName="password"

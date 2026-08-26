@@ -50,6 +50,21 @@ export const routes: Routes = [
         loadComponent: () => import('./features/website/website').then((m) => m.Website),
       },
       {
+        path: 'services',
+        canActivate: [permissionGuard('manage_website')],
+        loadComponent: () => import('./features/services/services').then((m) => m.ServicesPage),
+      },
+      {
+        path: 'tickets',
+        canActivate: [permissionGuard('view_clients')],
+        loadComponent: () => import('./features/tickets/tickets').then((m) => m.TicketsPage),
+      },
+      {
+        path: 'tickets/:id',
+        canActivate: [permissionGuard('view_clients')],
+        loadComponent: () => import('./features/tickets/ticket-detail').then((m) => m.TicketDetailPage),
+      },
+      {
         path: 'audit',
         canActivate: [permissionGuard('view_audit_logs')],
         loadComponent: () => import('./features/audit/audit').then((m) => m.Audit),

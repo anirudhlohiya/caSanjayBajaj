@@ -16,6 +16,8 @@ import { StorageModule } from './storage/storage.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AppVersionModule } from './app-version/app-version.module';
 import { WebsiteModule } from './website/website.module';
+import { ServicesOfferedModule } from './services-offered/services-offered.module';
+import { TicketsModule } from './tickets/tickets.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -38,6 +40,8 @@ import { HealthController } from './health.controller';
     NotificationsModule,
     AppVersionModule,
     WebsiteModule,
+    ServicesOfferedModule,
+    TicketsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

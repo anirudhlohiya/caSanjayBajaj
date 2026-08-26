@@ -1,0 +1,111 @@
+@if (loading()) {
+  <app-spinner />
+} @else if (ticket(); as t) {
+  <app-page-header [title]="t.subject" [subtitle]="'Ticket from ' + (t.user?.name ?? 'Unknown') + ' · ' + t.category?.replace('_', ' ')">
+    <button class="btn-outline" (click)="goBack()">
+      <span class="material-symbols-outlined mr-1" style="font-size: 18px">arrow_back</span>
+      Back
+    </button>
+    <div class="flex gap-2">
+      @if (t.status !== 'closed') {
+        <button class="px-3 py-2 text-sm rounded border border-neutral-200 text-neutral-600 hover:bg-neutral-50" (click)="changeStatus('closed')">
+          Close Ticket
+        </button>
+      }
+    </div>
+  </app-page-header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div class="lg:col-span-3">
+      <div class="card p-0 overflow-hidden">
+        <div class="divide-y divide-neutral-100">
+          @for (msg of t.messages ?? []; track msg.id) {
+            <div class="p-4" [class.bg-blue-50/30]="isOwnMessage(msg)">
+              <div class="flex items-center gap-2 mb-2">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold"
+                     [class.bg-neutral-900]="!isOwnMessage(msg)"
+                     [class.text-white]="!isOwnMessage(msg)"
+                     [class.bg-blue-600]="isOwnMessage(msg)"
+                     [class.text-white]="isOwnMessage(msg)">
+                  {{ isOwnMessage(msg) ? 'A' : (t.user?.name?.charAt(0) ?? 'U') }}
+                </div>
+                <span class="text-sm font-medium text-neutral-900">
+                  {{ isOwnMessage(msg) ? 'Admin' : (t.user?.name ?? 'Client') }}
+                </span>
+                <span class="text-xs text-neutral-400">{{ fmtDate(msg.created_at) }}</span>
+              </div>
+              <p class="text-sm text-neutral-700 whitespace-pre-wrap pl-9">{{ msg.message }}</p>
+              @if (msg.attachments && msg.attachments.length > 0) {
+                <div class="pl-9 mt-2 flex flex-wrap gap-2">
+                  @for (att of msg.attachments; track att.id) {
+                    <a [href]="att.download_url ?? '#'" target="_blank"
+                       class="inline-flex items-center gap-1 px-2 py-1 text-xs bg-neutral-100 rounded hover:bg-neutral-200 transition-colors">
+                      <span class="material-symbols-outlined" style="font-size: 14px">attach_file</span>
+                      {{ att.original_filename }}
+                    </a>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        @if (t.status !== 'closed') {
+          <div class="p-4 border-t border-neutral-100">
+            <form [formGroup]="replyForm" (ngSubmit)="sendReply()" class="flex gap-2">
+              <textarea formControlName="message" rows="2" placeholder="Type your reply..."
+                class="flex-1 px-3 py-2 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim resize-none">
+              </textarea>
+              <button type="submit" [disabled]="replyForm.invalid || sending()"
+                class="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-medium hover:bg-secondary disabled:opacity-60 self-end cursor-pointer">
+                {{ sending() ? 'Sending…' : 'Send' }}
+              </button>
+            </form>
+          </div>
+        } @else {
+          <div class="p-4 border-t border-neutral-100 text-center text-sm text-neutral-400">
+            This ticket has been closed.
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="lg:col-span-1">
+      <div class="card p-4 space-y-3">
+        <h3 class="text-sm font-semibold text-neutral-900">Ticket Info</h3>
+        <dl class="space-y-2 text-xs">
+          <div class="flex justify-between">
+            <dt class="text-neutral-400">Status</dt>
+            <dd class="font-medium text-neutral-800 uppercase">{{ t.status }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-neutral-400">Priority</dt>
+            <dd class="font-medium text-neutral-800 uppercase">{{ t.priority }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-neutral-400">Category</dt>
+            <dd class="font-medium text-neutral-800">{{ t.category?.replace('_', ' ') }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-neutral-400">Client</dt>
+            <dd class="font-medium text-neutral-800">{{ t.user?.name }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-neutral-400">Email</dt>
+            <dd class="font-medium text-neutral-800">{{ t.user?.email }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-neutral-400">Created</dt>
+            <dd class="font-medium text-neutral-800">{{ fmtDate(t.created_at) }}</dd>
+          </div>
+          @if (t.closed_at) {
+            <div class="flex justify-between">
+              <dt class="text-neutral-400">Closed</dt>
+              <dd class="font-medium text-neutral-800">{{ fmtDate(t.closed_at) }}</dd>
+            </div>
+          }
+        </dl>
+      </div>
+    </div>
+  </div>
+}

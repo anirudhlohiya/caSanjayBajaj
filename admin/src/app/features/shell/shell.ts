@@ -33,6 +33,8 @@ export class Shell {
     { label: 'Reminders', route: '/reminders', icon: 'notifications_active', show: () => this.auth.hasPermission('send_reminders') },
     { label: 'Staff', route: '/staff', icon: 'badge', show: () => this.auth.isSuperAdmin() },
     { label: 'Website', route: '/website', icon: 'language', show: () => this.auth.hasPermission('manage_website') },
+    { label: 'Services', route: '/services', icon: 'home_repair_service', show: () => this.auth.hasPermission('manage_website') },
+    { label: 'Tickets', route: '/tickets', icon: 'support_agent', show: () => this.auth.hasPermission('view_clients') },
     { label: 'Audit Logs', route: '/audit', icon: 'history', show: () => this.auth.hasPermission('view_audit_logs') },
     { label: 'Settings', route: '/settings', icon: 'settings', show: () => this.auth.hasPermission('manage_settings') },
   ];

@@ -9,6 +9,9 @@ import {
   Report,
   ReportNotification,
   ReportType,
+  Service,
+  Ticket,
+  TicketMessage,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -194,5 +197,47 @@ export class ProfileService {
     return firstValueFrom(
       this.api.delete('/me/device-token', { push_token }),
     );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class TicketsService {
+  constructor(private readonly api: ApiClient) {}
+
+  list(opts: { page?: number; pageSize?: number; status?: string } = {}): Promise<PaginatedResult<Ticket>> {
+    const params = new URLSearchParams();
+    if (opts.status) params.set('status', opts.status);
+    params.set('page', String(opts.page ?? 1));
+    params.set('pageSize', String(opts.pageSize ?? 20));
+    return firstValueFrom(
+      this.api.get<PaginatedResult<Ticket>>(`/me/tickets?${params}`),
+    );
+  }
+
+  get(id: string): Promise<Ticket> {
+    return firstValueFrom(this.api.get<Ticket>(`/me/tickets/${id}`));
+  }
+
+  create(body: { subject: string; category?: string; priority?: string; message: string }): Promise<Ticket> {
+    return firstValueFrom(this.api.post<Ticket>('/me/tickets', body));
+  }
+
+  reply(id: string, message: string): Promise<TicketMessage> {
+    return firstValueFrom(
+      this.api.post<TicketMessage>(`/me/tickets/${id}/messages`, { message }),
+    );
+  }
+
+  close(id: string): Promise<Ticket> {
+    return firstValueFrom(this.api.post<Ticket>(`/me/tickets/${id}/close`));
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class ServicesOfferedService {
+  constructor(private readonly api: ApiClient) {}
+
+  listActive(): Promise<Service[]> {
+    return firstValueFrom(this.api.get<Service[]>('/services'));
   }
 }

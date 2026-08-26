@@ -2,11 +2,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
   IsEnum,
+  IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
   Length,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 import { UserStatus, UserType } from '../../common/enums';
 
@@ -26,13 +28,15 @@ export class CreateUserDto {
   password: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
+  @ValidateIf((o) => o.user_type === UserType.GST)
+  @IsNotEmpty({ message: 'Phone is required for GST clients' })
   @IsString()
   @Length(10, 20)
   phone?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
+  @ValidateIf((o) => o.user_type === UserType.GST)
+  @IsNotEmpty({ message: 'GSTIN is required for GST clients' })
   @IsString()
   @Length(15, 15)
   gstin?: string;

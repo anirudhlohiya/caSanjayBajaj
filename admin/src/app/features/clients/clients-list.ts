@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClientsService } from '../../core/services/feature.services';
@@ -12,6 +12,23 @@ import { Modal } from '../../shared/components/modal';
 import { StatusChip } from '../../shared/components/status-chip';
 import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
+
+function gstClientValidator(control: AbstractControl): ValidationErrors | null {
+  const userType = control.get('user_type')?.value;
+  if (userType !== 'gst') return null;
+  const phone = control.get('phone')?.value;
+  const gstin = control.get('gstin')?.value;
+  const errors: ValidationErrors = {};
+  if (!phone || !/^\d{10,20}$/.test(phone)) {
+    errors['phoneRequired'] = true;
+    control.get('phone')?.setErrors({ required: true });
+  }
+  if (!gstin || !/^[0-9A-Za-z]{15}$/.test(gstin)) {
+    errors['gstinRequired'] = true;
+    control.get('gstin')?.setErrors({ required: true });
+  }
+  return Object.keys(errors).length ? errors : null;
+}
 
 @Component({
   selector: 'app-clients-list',
@@ -39,6 +56,19 @@ export class ClientsList implements OnInit {
   readonly adding = signal(false);
   readonly dupEmail = signal('');
 
+  readonly addForm = this.fb.nonNullable.group(
+    {
+      name: ['', [Validators.required, Validators.maxLength(120)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      phone: ['', [Validators.pattern(/^\d{10,20}$/)]],
+      gstin: ['', [Validators.pattern(/^[0-9A-Za-z]{15}$/)]],
+      user_type: ['gst'],
+      status: ['active'],
+    },
+    { validators: gstClientValidator },
+  );
+
   readonly filtered = computed(() => {
     const q = this.query().toLowerCase().trim();
     if (!q) return this.clients();
@@ -50,25 +80,26 @@ export class ClientsList implements OnInit {
     );
   });
 
-  readonly addForm = this.fb.nonNullable.group({
-    name: ['', [Validators.required, Validators.maxLength(120)]],
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
-    phone: ['', [Validators.pattern(/^\d{10,20}$/)]],
-    gstin: ['', [Validators.pattern(/^[0-9A-Za-z]{15}$/)]],
-    user_type: ['gst'],
-    status: ['active'],
-  });
-
   ngOnInit(): void {
     void this.load();
-    // React every time ?action=add arrives (e.g. sidebar button while already
-    // on this page — ngOnInit does not re-run on param-only navigation).
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((qp) => {
       if (qp.get('action') === 'add') {
         this.openAdd();
         void this.router.navigate([], { queryParams: { action: null }, queryParamsHandling: 'merge', replaceUrl: true });
       }
+    });
+    this.addForm.get('user_type')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      const phoneCtrl = this.addForm.get('phone');
+      const gstinCtrl = this.addForm.get('gstin');
+      if (this.addForm.get('user_type')?.value === 'gst') {
+        phoneCtrl?.setValidators([Validators.required, Validators.pattern(/^\d{10,20}$/)]);
+        gstinCtrl?.setValidators([Validators.required, Validators.pattern(/^[0-9A-Za-z]{15}$/)]);
+      } else {
+        phoneCtrl?.clearValidators();
+        gstinCtrl?.clearValidators();
+      }
+      phoneCtrl?.updateValueAndValidity();
+      gstinCtrl?.updateValueAndValidity();
     });
   }
 
@@ -92,6 +123,12 @@ export class ClientsList implements OnInit {
   openAdd(): void {
     this.addForm.reset({ user_type: 'gst', status: 'active' });
     this.dupEmail.set('');
+    const phoneCtrl = this.addForm.get('phone');
+    const gstinCtrl = this.addForm.get('gstin');
+    phoneCtrl?.setValidators([Validators.required, Validators.pattern(/^\d{10,20}$/)]);
+    gstinCtrl?.setValidators([Validators.required, Validators.pattern(/^[0-9A-Za-z]{15}$/)]);
+    phoneCtrl?.updateValueAndValidity();
+    gstinCtrl?.updateValueAndValidity();
     this.showAdd.set(true);
   }
 

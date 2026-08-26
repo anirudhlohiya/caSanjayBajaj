@@ -1,0 +1,76 @@
+<app-page-header title="Support Tickets" subtitle="Manage client support requests and document inquiries" />
+
+<div class="flex items-center gap-2 mb-4">
+  <button
+    class="px-3 py-1.5 rounded-full text-sm transition-colors cursor-pointer"
+    [class.bg-neutral-900]="statusFilter() === ''"
+    [class.text-white]="statusFilter() === ''"
+    [class.bg-neutral-100]="statusFilter() !== ''"
+    [class.text-neutral-600]="statusFilter() !== ''"
+    (click)="filterByStatus('')"
+  >All</button>
+  <button
+    class="px-3 py-1.5 rounded-full text-sm transition-colors cursor-pointer"
+    [class.bg-amber-100]="statusFilter() === 'open'"
+    [class.text-amber-800]="statusFilter() === 'open'"
+    [class.bg-neutral-100]="statusFilter() !== 'open'"
+    [class.text-neutral-600]="statusFilter() !== 'open'"
+    (click)="filterByStatus('open')"
+  >Open</button>
+  <button
+    class="px-3 py-1.5 rounded-full text-sm transition-colors cursor-pointer"
+    [class.bg-blue-100]="statusFilter() === 'replied'"
+    [class.text-blue-800]="statusFilter() === 'replied'"
+    [class.bg-neutral-100]="statusFilter() !== 'replied'"
+    [class.text-neutral-600]="statusFilter() !== 'replied'"
+    (click)="filterByStatus('replied')"
+  >Replied</button>
+  <button
+    class="px-3 py-1.5 rounded-full text-sm transition-colors cursor-pointer"
+    [class.bg-neutral-200]="statusFilter() === 'closed'"
+    [class.text-neutral-700]="statusFilter() === 'closed'"
+    [class.bg-neutral-100]="statusFilter() !== 'closed'"
+    [class.text-neutral-600]="statusFilter() !== 'closed'"
+    (click)="filterByStatus('closed')"
+  >Closed</button>
+</div>
+
+<div class="card overflow-hidden">
+  @if (loading()) {
+    <app-spinner />
+  } @else {
+    <div class="divide-y divide-neutral-100">
+      @for (t of tickets(); track t.id) {
+        <div class="p-4 cursor-pointer hover:bg-neutral-50/50 transition-colors" (click)="openTicket(t.id)">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-semibold text-neutral-900 truncate">{{ t.subject }}</h3>
+                <app-status-chip [status]="t.status" />
+              </div>
+              <p class="text-xs text-neutral-500 mt-1">
+                {{ t.user?.name ?? 'Unknown' }} &middot; {{ t.category?.replace('_', ' ') }} &middot; {{ fmtDate(t.created_at) }}
+              </p>
+            </div>
+            <span class="material-symbols-outlined text-neutral-300" style="font-size: 20px">chevron_right</span>
+          </div>
+        </div>
+      } @empty {
+        <div class="p-8">
+          <app-empty-state icon="support_agent" message="No tickets yet" hint="Client support requests will appear here" />
+        </div>
+      }
+    </div>
+    @if (total() > 0) {
+      <div class="p-2 border-t border-outline-variant bg-surface-bright">
+        <app-pagination
+          [page]="page()"
+          [pageSize]="pageSize()"
+          [total]="total()"
+          [totalPages]="totalPages()"
+          (pageChange)="pageChanged($event)"
+        />
+      </div>
+    }
+  }
+</div>

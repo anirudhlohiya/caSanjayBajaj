@@ -127,3 +127,63 @@ export const REPORT_TYPE_LABELS_LONG: Record<ReportType, string> = {
   reconciliation: 'Reconciliation Statement',
   other: 'Other Report',
 };
+
+export type TicketStatus = 'open' | 'replied' | 'closed';
+export type TicketCategory = 'document_request' | 'general' | 'complaint' | 'other';
+export type TicketPriority = 'low' | 'medium' | 'high';
+
+export interface Ticket {
+  id: string;
+  user_id: string;
+  subject: string;
+  category: TicketCategory;
+  status: TicketStatus;
+  priority: TicketPriority;
+  created_at: string;
+  updated_at: string;
+  closed_at: string | null;
+  messages?: TicketMessage[];
+}
+
+export interface TicketMessage {
+  id: string;
+  ticket_id: string;
+  sender_type: 'user' | 'admin';
+  sender_id: string;
+  message: string;
+  created_at: string;
+  attachments?: TicketAttachment[];
+}
+
+export interface TicketAttachment {
+  id: string;
+  ticket_message_id: string;
+  s3_key: string;
+  original_filename: string;
+  file_size_bytes: string;
+  created_at: string;
+  download_url?: string;
+}
+
+export interface Service {
+  id: string;
+  title: string;
+  description: string;
+  price: string | null;
+  icon: string | null;
+  display_order: number;
+  is_active: boolean;
+}
+
+export const TICKET_CATEGORY_LABELS: Record<TicketCategory, string> = {
+  document_request: 'Document Request',
+  general: 'General Query',
+  complaint: 'Complaint',
+  other: 'Other',
+};
+
+export const TICKET_STATUS_COLORS: Record<TicketStatus, string> = {
+  open: 'bg-amber-100 text-amber-800',
+  replied: 'bg-blue-100 text-blue-800',
+  closed: 'bg-neutral-200 text-neutral-600',
+};

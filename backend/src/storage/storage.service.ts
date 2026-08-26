@@ -69,6 +69,18 @@ export class StorageService {
     return getSignedUrl(this.client, command, { expiresIn });
   }
 
+  async createTicketUploadUrl(
+    s3Key: string,
+    contentType: string,
+  ): Promise<string> {
+    const command = new PutObjectCommand({
+      Bucket: this.docsBucket,
+      Key: s3Key,
+      ContentType: contentType,
+    });
+    return getSignedUrl(this.client, command, { expiresIn: 300 });
+  }
+
   async health(): Promise<boolean> {
     try {
       const command = new PutObjectCommand({

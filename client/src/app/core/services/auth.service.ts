@@ -135,9 +135,9 @@ export class AuthService {
     );
   }
 
-  async signup(email: string, password: string, name: string, phone?: string): Promise<void> {
+  async signup(email: string, password: string, name: string, phone?: string, gstin?: string): Promise<void> {
     const tokens = await firstValueFrom(
-      this.api.post<AuthTokens>('/auth/signup', { email, password, name, phone }),
+      this.api.post<AuthTokens>('/auth/signup', { email, password, name, phone, gstin }),
     );
     this.setTokens(tokens);
     await this.loadProfile();

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Admin } from '../entities/admin.entity';
+import { ClientPreRegistration } from '../entities/client-pre-registration.entity';
 import { Permission } from '../entities/permission.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { User } from '../entities/user.entity';
@@ -18,6 +19,7 @@ import { AuthService } from './auth.service';
       Permission,
       RefreshToken,
       OtpVerification,
+      ClientPreRegistration,
     ]),
     JwtModule.register({ global: true }),
     NotificationsModule,

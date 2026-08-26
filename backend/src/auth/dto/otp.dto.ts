@@ -2,10 +2,12 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
   IsIn,
+  IsNotEmpty,
   IsOptional,
   IsString,
   Length,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 
 export class SendOtpDto {
@@ -51,6 +53,12 @@ export class SignupDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @ApiPropertyOptional({ description: 'GSTIN (15 chars) — required for GST clients' })
+  @IsOptional()
+  @IsString()
+  @Length(15, 15, { message: 'GSTIN must be exactly 15 characters' })
+  gstin?: string;
 }
 
 export class ResetPasswordDto {

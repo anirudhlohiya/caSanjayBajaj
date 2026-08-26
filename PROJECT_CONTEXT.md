@@ -1,8 +1,8 @@
-# Project Context — CA Practice Management Platform (Phase 1: GST Module)
+# Project Context — CA Practice Management Platform
 
 > This file is the single source of truth for any AI coding tool (Claude Code, Cursor,
 > Copilot, etc.) working on this project. It reflects the project's CURRENT state after
-> Phases 0–5 tooling + branding + Android wrapper build-out. Treat everything below as
+> Phases 0–5 + Phases 6–8 (GST/ITR types, services, tickets). Treat everything below as
 > fixed requirements unless explicitly told otherwise. Companion docs (read in this
 > order): `docs/08-project-handbook.md` (deep context + gotchas),
 > `docs/09-run-and-test-guide.md` (run/test locally), `docs/10-phase5-deploy-runbook.md`
@@ -12,25 +12,24 @@
 
 A platform for **SN Bajaj And Co** (chartered accountant firm — renamed Aug 2026 from
 "CA Sanjay Bajaj & Co."; brand applied across all three apps, emails and the Android
-launcher) to manage document collection, GST report delivery, and filing reminders for
-~150 GST clients (Phase 1), replacing a manual email/WhatsApp process. ITR users (~750)
-are Phase 2 scope, not built.
+launcher) to manage document collection, GST report delivery, filing reminders, services
+showcase, and support tickets for ~150 GST clients + ~750 ITR clients.
 
-Three components:
+Four components:
 
 1. **Client PWA** ("SN Bajaj And Co – GST Client Portal") — Angular 20 installable
    mobile-first web app in `client/`. Clients log in (email+password or OTP
-   signup/reset), upload documents per filing period directly to S3 via pre-signed URLs,
-   track document status, download GST reports, receive in-app notifications + email +
-   browser web-push.
+   signup/reset with optional GSTIN), upload documents per filing period directly to S3
+   via pre-signed URLs, track document status, download GST reports, receive in-app
+   notifications + email + browser web-push, browse services, and create support tickets.
 2. **Admin web panel** ("SN Bajaj And Co – Admin") — Angular 20 dashboard in `admin/`,
-   served at `/admin/` in production. The CA (super admin) and staff manage clients,
-   review documents, upload/send reports, send reminders, manage staff permissions, view
-   audit logs and filing periods.
+   served at `/admin/` in production. The CA (super admin) and staff manage clients
+   (GST vs ITR types), review documents, upload/send reports, send reminders, manage
+   staff permissions, manage services offered, handle support tickets with file
+   attachments, view audit logs, and manage filing periods.
 3. **Backend API** — NestJS 11 (TypeScript) monolith in `backend/`, global prefix
    `api/v1`, Swagger at `/api/docs` (**disabled when NODE_ENV=production**). TypeORM +
    PostgreSQL 16. Serves both frontends.
-
 4. **Android app** (`android-wrapper/`, package `com.snbajaj.portal`) — Kotlin WebView
    shell around the deployed client PWA with a **server-driven forced-update gate**
    (`GET /api/v1/app/version` → `{min_version, latest_version, store_url}`, driven by
@@ -55,17 +54,17 @@ minimize AWS running cost (target ≈ ₹0–100/month):
 1. **Android app first** (client-facing) — wrapper code complete; needs live URL to load.
 2. **Admin panel second** — must be reachable from any device after deploy.
 3. **Client PWA last** (it's what the Android app wraps).
-Domain `lohiyaanirudh.tech` is OWNED by the user; Option A agreed: agent provisions AWS
-via AWS CLI installed locally (`C:\Users\Admin\AppData\Local\Programs\Amazon\AWSCLIV2\aws.exe`,
-added to user PATH). User runs `aws configure` THEMSELVES (never paste secrets in chat).
+Domain `snbajaj.com` is the primary domain. EC2 serves app/admin/api subdomains; the
+marketing website is hosted on Cloudflare Pages.
 
 ## 3. User roles
 
 | Role | Where | Access |
 |---|---|---|
-| **GST User** | Client PWA | Login/OTP signup, upload documents per filing period, view status, download reports (full history), get reminders |
-| **Super Admin** (the CA) | Admin panel | Everything: clients, documents, reports, reminders, staff accounts, granular permissions |
-| **Staff Admin** | Admin panel | Limited access granted per-permission by Super Admin (`view_clients, view_documents, upload_reports, send_reminders, manage_staff, view_audit_logs, manage_settings`) |
+| **GST User** | Client PWA | Login/OTP signup (with GSTIN), upload documents per filing period, view status, download reports (full history), get reminders, browse services, create support tickets |
+| **ITR User** | Client PWA | Login/OTP signup (name + email + phone only, no GSTIN), browse services, create support tickets (no document upload — ITR is Phase 2) |
+| **Super Admin** (the CA) | Admin panel | Everything: clients (GST/ITR types), documents, reports, reminders, staff accounts, granular permissions, services CRUD, ticket management |
+| **Staff Admin** | Admin panel | Limited access granted per-permission by Super Admin (`view_clients, view_documents, upload_reports, send_reminders, manage_staff, view_audit_logs, manage_settings, manage_services, manage_tickets`) |
 
 Permissions are granular flags per staff account, enforced SERVER-SIDE by NestJS guards.
 
@@ -96,6 +95,29 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
 - Branding — **DONE**: "SN Bajaj And Co" everywhere; logo-derived icons (commit `0eb0b78`).
 - Admin bug-fix pass — **DONE** (`f2cdb1b`): aborted S3 report uploads fixed; bulk
   reminders validator fixed; staff/pagination/AddClient polish.
+- **Phase 6 (Aug 26 2026) — GST vs ITR Client Types + Pre-Registration — DONE**:
+  - GST users must provide GSTIN + phone + email on signup; ITR users provide name + email + phone only (no GSTIN).
+  - Backend `CreateUserDto` uses `@ValidateIf` for conditional GSTIN/phone validation based on `user_type` field.
+  - `auth.service.ts` sets `user_type` to `gst` (if GSTIN present) or `itr` on signup.
+  - `users.service.ts` enforces GSTIN uniqueness on account creation.
+  - Admin form (`clients-list.ts/html`) dynamically shows required/optional labels based on account type.
+  - Client PWA signup includes optional GSTIN field.
+  - **Pre-registration entity** (`client_pre_registrations` table) allows admin to bulk-register GST clients before they self-register.
+  - When a client signs up with a GSTIN matching a pre-registration, their account is auto-linked (`linked_user_id`).
+  - **One-time import script**: `backend/scripts/import-clients.ts` reads Excel files (columns: name, email, phone, gstin, user_type) for bulk import of ~150 GST clients.
+- **Phase 7 (Aug 26 2026) — Admin-Managed Services — DONE**:
+  - New `services` table (`id, title, description, price, icon, display_order, is_active`).
+  - Public `GET /api/v1/services` returns active services (ordered by `display_order`).
+  - Admin CRUD at `/admin/services` (create, edit, deactivate, reorder).
+  - Admin UI at `/services` route with add/edit modal.
+  - Website (`index.astro`) fetches services dynamically from API on page load; hardcoded fallback if API unavailable.
+- **Phase 8 (Aug 26 2026) — Ticket/Support System — DONE**:
+  - New tables: `tickets` (subject, category, status: open/replied/closed, priority), `ticket_messages` (user_id, message, is_admin), `ticket_attachments` (message_id, filename, url, size, mime_type).
+  - Backend: client endpoints `GET/POST /me/tickets`, `GET /me/tickets/:id`, `POST /me/tickets/:id/messages`, `POST /me/tickets/:id/close`; admin endpoints `GET/POST /admin/tickets`, `GET /admin/tickets/:id`, `POST /admin/tickets/:id/messages`, `POST /admin/tickets/:id/status`.
+  - `StorageService.createTicketUploadUrl()` for ticket file attachments.
+  - Admin UI: tickets list with status filters (`/tickets`), ticket detail with message thread and reply (`/tickets/:id`).
+  - Client PWA: support tab in bottom nav (5-tab layout), ticket list (`/support`), new ticket form (`/support/new`), ticket detail with chat bubbles (`/support/:id`).
+  - Services/Tickets nav items added to admin shell sidebar.
 - **DEPLOYED & LIVE (Aug 23 2026)**: https://lohiyaanirudh.tech on EC2 t3.micro
   `i-09f7e0f0d3fc6414b` (IP 65.0.45.190, ap-south-1, AMI al2023 ami-06a83a7a581c729a9).
   - SSH: `ssh ca-ec2` (alias in `%USERPROFILE%\.ssh\config` → key `F:\Anirudh\ca-platform-key.pem`).
@@ -140,7 +162,10 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
 - Auth: argon2 passwords; JWT access 15m + rotating refresh 30d (refresh tokens hashed in
   DB); OTP-based signup/forgot-password for clients (`otp_verifications` table).
   Tokens per surface: admin `fp_admin_access/refresh`, client `fp_user_access/refresh`
-  (localStorage).
+  (localStorage). GST users must provide GSTIN + phone; ITR users only name + email + phone.
+- Pre-registration: admin-created records in `client_pre_registrations` table for bulk
+  GST client onboarding. When a client signs up with a matching GSTIN, their account is
+  auto-linked (`linked_user_id`). Import script: `npx ts-node scripts/import-clients.ts file.xlsx`.
 - Document flow: client requests `POST /documents/upload-url` → PUTs directly to S3 →
   `POST /documents/:id/confirm`. Statuses `pending → received → processed`. Offline queue
   (IndexedDB) in client app.
@@ -150,6 +175,12 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
 - Reminders: daily cron 08:00 server time (hardcoded; `REMINDER_CRON` env parsed but
   UNUSED) for open periods due within `REMINDER_LEAD_DAYS`; manual sends logged in
   `reminders` table visible in admin panel.
+- Services: admin CRUD at `/admin/services`; public `GET /services` returns active services
+  ordered by `display_order`. Website fetches dynamically; hardcoded fallback if API down.
+- Tickets: clients create support tickets (subject, category, priority, description) and
+  attach files. Threaded messages (user + admin). Status flow: open → replied → closed.
+  Admin replies trigger in-app notification + email (when SES production access granted).
+  File attachments uploaded via pre-signed S3 URLs.
 - Seed (`npm run seed`): super admin from env + test client
   `client.test@snbajaj.com` (password `12345678`, set by user) + current+next-2
   filing periods (due 11th of following month). Test client is a REAL test account the
@@ -198,32 +229,49 @@ Full codebase audit after the snbajaj.com cutover. Findings fixed and deployed t
 ## 8. Repo layout
 
 ```
-backend/    NestJS API (code complete, hardened, + app-version endpoint)
+backend/    NestJS API (services-offered module, tickets module, import script)
 admin/      Angular admin dashboard ("SN Bajaj And Co - Admin")
 client/     Angular client PWA ("SN Bajaj And Co – GST Client Portal")
+website/    Astro 5 marketing site + blog (snbajaj.com)
 deploy/     Phase 5 deployment kit (see its README)
 docs/       01–10 documentation set (08 handbook, 09 run guide, 10 deploy runbook)
 design-references/  approved UI mockups
 android-wrapper/    Android WebView app (com.snbajaj.portal) + store assets + debug APK
 logo.jfif           source brand logo (1280x960) — regenerate icons from this
-admin-web/, client-web/  stale empty planning folders — deleted Aug 25 2026
 ```
 
-Git: origin https://github.com/anirudhlohiya/caSanjayBajaj.git, branch `main`.
-Recent commits: `dab524e` deploy script SSH key detection; `482eb6e` docs cleanup (retired
-lohiyaanirudh.tech refs); `e0e9a8a` OTP column length 64 for hashed OTPs;
-`6fd73fb`+`440bdea` Vercel theme redesign (admin + client), dark mode, settings, profile
-photo, GSTIN, brand/logo; `009d1d9`+`f0a6ae4` admin/client shell layout fixes;
-`8b20ed6` deploy hook wired; `b703ccd`+`d721c07`+`68f02bd` security hardening (trust
-proxy, CORS, OTP hashing, upload allowlist); `0020037` retire legacy site + rebrand
-sender to alerts@snbajaj.com. Secrets policy unchanged — only `.env.example`, never real
-`.env`; verified before push via `.gitignore` and a staged-content secret scan.
-- `CREDENTIALS.txt` at repo root: admin + client login details for testing (do NOT commit).
+### Key new backend modules (Phase 6–8)
 
-## 9. Explicit non-goals for Phase 1
+| Module | Path | Purpose |
+|---|---|---|
+| `ServicesOfferedModule` | `backend/src/services-offered/` | Admin CRUD + public GET for services offered |
+| `TicketsModule` | `backend/src/tickets/` | Client + admin ticket management with threaded messages + attachments |
+| `WebsiteModule` | `backend/src/website/` | Blog posts + enquiry leads (Phase 1–2) |
+
+### Key new entities
+
+| Entity | Table | Purpose |
+|---|---|---|
+| `ClientPreRegistration` | `client_pre_registrations` | Admin pre-registered GST clients for auto-linking on signup |
+| `Service` | `services` | Admin-managed services displayed on website + client PWA |
+| `Ticket` | `tickets` | Support tickets with subject, category, status, priority |
+| `TicketMessage` | `ticket_messages` | Threaded messages within tickets (user + admin) |
+| `TicketAttachment` | `ticket_attachments` | File attachments on ticket messages (S3 pre-signed URLs) |
+
+### Key new migrations
+
+| Migration | Purpose |
+|---|---|
+| `1787700000000` | Creates `client_pre_registrations` table |
+| `1787700000001` | Creates `services` table |
+| `1787700000002` | Creates `tickets`, `ticket_messages`, `ticket_attachments` tables |
+
+Git: origin https://github.com/anirudhlohiya/caSanjayBajaj.git, branch `main`.
+
+## 9. Explicit non-goals
 
 No iOS/native app (PWA + optional thin wrapper later); no WhatsApp notifications (later);
-no RDS; no multi-region/HA; no ITR logic; no payments/billing.
+no RDS; no multi-region/HA; no payments/billing; no FCM/Firebase (self-hosted VAPID push).
 
 ## 9b. Website migration project (Aug 2026) — snbajaj.com
 

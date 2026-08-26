@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { createHash } from 'crypto';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import {
   AdminRole,
   AdminStatus,
@@ -17,6 +17,7 @@ import {
   UserType,
 } from '../common/enums';
 import { Admin } from '../entities/admin.entity';
+import { ClientPreRegistration } from '../entities/client-pre-registration.entity';
 import { Permission } from '../entities/permission.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { User } from '../entities/user.entity';
@@ -49,6 +50,8 @@ export class AuthService {
     private readonly refreshTokens: Repository<RefreshToken>,
     @InjectRepository(OtpVerification)
     private readonly otpVerifications: Repository<OtpVerification>,
+    @InjectRepository(ClientPreRegistration)
+    private readonly preRegistrations: Repository<ClientPreRegistration>,
     private readonly notifications: NotificationsService,
     private readonly jwtService: JwtService,
   ) {}
@@ -338,6 +341,9 @@ export class AuthService {
       throw new BadRequestException('Email is already registered');
     }
 
+    const gstinUpper = dto.gstin?.toUpperCase() ?? null;
+    const userType = gstinUpper ? UserType.GST : UserType.ITR;
+
     const passwordHash = await argon2.hash(dto.password);
     const user = await this.users.save(
       this.users.create({
@@ -345,10 +351,27 @@ export class AuthService {
         email: emailLower,
         password_hash: passwordHash,
         phone: dto.phone ?? null,
-        user_type: UserType.GST,
+        gstin: gstinUpper,
+        user_type: userType,
         status: UserStatus.ACTIVE,
       }),
     );
+
+    // Auto-link pre-registered client if GSTIN matches
+    if (gstinUpper) {
+      const preReg = await this.preRegistrations.findOne({
+        where: { gstin: gstinUpper, linked_user_id: IsNull() },
+      });
+      if (preReg) {
+        preReg.linked_user_id = user.id;
+        await this.preRegistrations.save(preReg);
+        // Update user with pre-registration data if fields were empty
+        if (!user.phone && preReg.phone) {
+          user.phone = preReg.phone;
+          await this.users.save(user);
+        }
+      }
+    }
 
     await this.otpVerifications.delete({
       email: emailLower,

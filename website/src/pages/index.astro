@@ -135,7 +135,8 @@ import EnquiryForm from '../components/EnquiryForm.astro';
       <span>Our Services</span>
       <h2>"How Can I Help You"</h2>
     </div>
-    <div class="Services_Cards">
+    <div class="Services_Cards" id="services-container">
+      <!-- Hardcoded fallback — replaced dynamically if API responds -->
       <div class="Service_Card">
         <img src="/images/bank.png" alt="Accounts service icon" height="60" width="60" loading="lazy" />
         <h2>Accounts</h2>
@@ -371,6 +372,41 @@ import EnquiryForm from '../components/EnquiryForm.astro';
   <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.10/typed.js" integrity="sha512-tQQXRDB2wEmuJGtFrmmoFYzNTq8StA1XJrfO0OQbbTxd9G0CwaTDL6/C1y805IlvBVrMwOqob1kf6r/2U5XXVg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <script>
+    // Fetch services from API and replace hardcoded fallback
+    (async () => {
+      const container = document.getElementById('services-container');
+      if (!container) return;
+
+      try {
+        const res = await fetch('https://api.snbajaj.com/api/v1/services');
+        if (!res.ok) throw new Error('API not available');
+        const services: any[] = await res.json();
+        if (!services.length) return;
+
+        // Icon map for service categories (fallback to a generic icon)
+        const iconMap: Record<string, string> = {
+          accounts: '/images/bank.png',
+          taxation: '/images/tax.png',
+          loan: '/images/loan.png',
+          finance: '/images/finance.png',
+          business: '/images/business.png',
+        };
+
+        container.innerHTML = services.map((s: any) => {
+          const icon = iconMap[s.title?.toLowerCase()] || s.icon || '/images/services.png';
+          return `
+            <div class="Service_Card">
+              <img src="${icon}" alt="${s.title} service icon" height="60" width="60" loading="lazy" />
+              <h2>${s.title}</h2>
+              <p>${s.description}</p>
+            </div>
+          `;
+        }).join('');
+      } catch {
+        // API unavailable — keep hardcoded fallback
+      }
+    })();
+
     // Testimonials slider
     const slider = document.querySelector('.Testimonials_Splide');
     if (slider) {

@@ -1,0 +1,89 @@
+<app-page-header title="Support" subtitle="Get help with your documents and filings">
+  <a routerLink="/support/new"
+     class="inline-flex items-center gap-1 px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-medium">
+    <span class="material-symbols-outlined" style="font-size: 18px">add</span>
+    New Ticket
+  </a>
+</app-page-header>
+
+<div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+  <button
+    class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
+    [class.bg-on-surface]="statusFilter() === ''"
+    [class.text-on-primary]="statusFilter() === ''"
+    [class.bg-surface-container]="statusFilter() !== ''"
+    [class.text-on-surface-variant]="statusFilter() !== ''"
+    (click)="filterByStatus('')"
+  >All</button>
+  <button
+    class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
+    [class.bg-amber-100]="statusFilter() === 'open'"
+    [class.text-amber-800]="statusFilter() === 'open'"
+    [class.bg-surface-container]="statusFilter() !== 'open'"
+    [class.text-on-surface-variant]="statusFilter() !== 'open'"
+    (click)="filterByStatus('open')"
+  >Open</button>
+  <button
+    class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
+    [class.bg-blue-100]="statusFilter() === 'replied'"
+    [class.text-blue-800]="statusFilter() === 'replied'"
+    [class.bg-surface-container]="statusFilter() !== 'replied'"
+    [class.text-on-surface-variant]="statusFilter() !== 'replied'"
+    (click)="filterByStatus('replied')"
+  >Replied</button>
+  <button
+    class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
+    [class.bg-neutral-200]="statusFilter() === 'closed'"
+    [class.text-neutral-700]="statusFilter() === 'closed'"
+    [class.bg-surface-container]="statusFilter() !== 'closed'"
+    [class.text-on-surface-variant]="statusFilter() !== 'closed'"
+    (click)="filterByStatus('closed')"
+  >Closed</button>
+</div>
+
+@if (loading()) {
+  <app-spinner />
+} @else {
+  <div class="space-y-3">
+    @for (t of tickets(); track t.id) {
+      <div class="card p-4 cursor-pointer active:scale-[0.98] transition-transform" (click)="openTicket(t.id)">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0 flex-1">
+            <h3 class="text-sm font-semibold text-on-surface truncate">{{ t.subject }}</h3>
+            <p class="text-xs text-on-surface-variant mt-1">
+              {{ categoryLabels[t.category] ?? t.category }} · {{ fmtDate(t.created_at) }}
+            </p>
+          </div>
+          <span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase"
+                [class]="statusColors[t.status] ?? ''">
+            {{ t.status }}
+          </span>
+        </div>
+      </div>
+    } @empty {
+      <app-empty-state
+        icon="support_agent"
+        message="No support tickets yet"
+        hint="Need help? Create a support ticket and we'll get back to you."
+      />
+    }
+  </div>
+
+  @if (total() > 20) {
+    <div class="flex items-center justify-between mt-4 px-2">
+      <button
+        [disabled]="page() <= 1"
+        (click)="pageChanged(page() - 1)"
+        class="px-3 py-1.5 text-sm rounded-lg border border-outline-variant disabled:opacity-40">
+        Previous
+      </button>
+      <span class="text-xs text-on-surface-variant">Page {{ page() }} of {{ totalPages() }}</span>
+      <button
+        [disabled]="page() >= totalPages()"
+        (click)="pageChanged(page() + 1)"
+        class="px-3 py-1.5 text-sm rounded-lg border border-outline-variant disabled:opacity-40">
+        Next
+      </button>
+    </div>
+  }
+}

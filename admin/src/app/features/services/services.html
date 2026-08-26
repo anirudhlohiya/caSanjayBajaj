@@ -1,0 +1,104 @@
+<app-page-header title="Services" subtitle="Manage the services displayed to clients and website visitors">
+  <button class="btn-primary" (click)="openAdd()">
+    <span class="material-symbols-outlined mr-1" style="font-size: 18px">add</span>
+    Add Service
+  </button>
+</app-page-header>
+
+<div class="card overflow-hidden">
+  @if (loading()) {
+    <app-spinner />
+  } @else {
+    <div class="divide-y divide-neutral-100">
+      @for (s of services(); track s.id) {
+        <div class="p-4 flex items-start justify-between gap-4">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-semibold text-neutral-900">{{ s.title }}</h3>
+              @if (!s.is_active) {
+                <span class="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500">Inactive</span>
+              }
+            </div>
+            <p class="text-xs text-neutral-500 mt-1 line-clamp-2">{{ s.description }}</p>
+            <div class="flex items-center gap-3 mt-2 text-xs text-neutral-400">
+              @if (s.price) {
+                <span>{{ s.price }}</span>
+              }
+              @if (s.icon) {
+                <span class="material-symbols-outlined text-[14px]">{{ s.icon }}</span>
+              }
+              <span>Order: {{ s.display_order }}</span>
+            </div>
+          </div>
+          <div class="flex gap-1 shrink-0">
+            <button class="p-1.5 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors" title="Edit" (click)="openEdit(s)">
+              <span class="material-symbols-outlined" style="font-size: 20px">edit</span>
+            </button>
+            @if (s.is_active) {
+              <button class="p-1.5 rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Deactivate" (click)="deactivate(s.id)">
+                <span class="material-symbols-outlined" style="font-size: 20px">delete</span>
+              </button>
+            }
+          </div>
+        </div>
+      } @empty {
+        <div class="p-8">
+          <app-empty-state icon="home_repair_service" message="No services yet" hint="Add your first service to display to clients" />
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<app-modal [open]="showModal()" (close)="showModal.set(false)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-headline-md text-headline-md text-on-surface">{{ editingId() ? 'Edit' : 'Add' }} Service</h2>
+      <button class="text-on-surface-variant hover:text-on-surface" (click)="showModal.set(false)">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="s-title">Title</label>
+        <input id="s-title" formControlName="title" class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" placeholder="e.g. GST Filing" />
+        @if (form.controls.title.touched && form.controls.title.invalid) {
+          <span class="text-error text-body-sm">Title is required</span>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="s-desc">Description</label>
+        <textarea id="s-desc" formControlName="description" rows="3" class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"></textarea>
+        @if (form.controls.description.touched && form.controls.description.invalid) {
+          <span class="text-error text-body-sm">Description is required</span>
+        }
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="s-price">Price (optional)</label>
+          <input id="s-price" formControlName="price" class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" placeholder="e.g. ₹2,000/month" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="s-icon">Icon (optional)</label>
+          <input id="s-icon" formControlName="icon" class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" placeholder="Material icon name" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="s-order">Display Order</label>
+          <input id="s-order" formControlName="display_order" type="number" min="0" class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+        </div>
+        <div class="flex items-center gap-2 pt-6">
+          <input id="s-active" formControlName="is_active" type="checkbox" class="w-4 h-4 accent-primary" />
+          <label for="s-active" class="text-sm text-on-surface">Active</label>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-2">
+        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showModal.set(false)">Cancel</button>
+        <button type="submit" [disabled]="saving()" class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+          {{ saving() ? 'Saving…' : (editingId() ? 'Update' : 'Create') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>

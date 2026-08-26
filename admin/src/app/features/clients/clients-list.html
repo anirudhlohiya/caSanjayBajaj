@@ -174,16 +174,42 @@
           }
         </div>
         <div class="flex flex-col gap-1">
-          <label class="font-label-md text-label-md text-on-surface" for="c-phone">Phone (optional)</label>
+          <label class="font-label-md text-label-md text-on-surface" for="c-phone">
+            Phone <span class="text-error" [class.hidden]="addForm.get('user_type')?.value !== 'gst'">*</span>
+            <span class="text-on-surface-variant text-xs font-normal" [class.hidden]="addForm.get('user_type')?.value !== 'itr'">(optional)</span>
+          </label>
           <input id="c-phone" formControlName="phone"
             class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+            [class.border-error]="addForm.get('phone')?.touched && addForm.get('phone')?.invalid"
             placeholder="9876543210" />
+          @if (addForm.get('phone')?.touched && addForm.get('phone')?.invalid) {
+            <span class="text-error text-body-sm">
+              @if (addForm.get('user_type')?.value === 'gst') {
+                Phone is required for GST clients
+              } @else {
+                Enter a valid phone number (10-20 digits)
+              }
+            </span>
+          }
         </div>
         <div class="flex flex-col gap-1">
-          <label class="font-label-md text-label-md text-on-surface" for="c-gstin">GSTIN (optional)</label>
+          <label class="font-label-md text-label-md text-on-surface" for="c-gstin">
+            GSTIN <span class="text-error" [class.hidden]="addForm.get('user_type')?.value !== 'gst'">*</span>
+            <span class="text-on-surface-variant text-xs font-normal" [class.hidden]="addForm.get('user_type')?.value !== 'itr'">(optional)</span>
+          </label>
           <input id="c-gstin" formControlName="gstin"
             class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+            [class.border-error]="addForm.get('gstin')?.touched && addForm.get('gstin')?.invalid"
             placeholder="29ABCDE1234F1Z5" />
+          @if (addForm.get('gstin')?.touched && addForm.get('gstin')?.invalid) {
+            <span class="text-error text-body-sm">
+              @if (addForm.get('user_type')?.value === 'gst') {
+                GSTIN is required for GST clients (15 characters)
+              } @else {
+                GSTIN must be exactly 15 characters
+              }
+            </span>
+          }
         </div>
         <div class="flex flex-col gap-1">
           <label class="font-label-md text-label-md text-on-surface" for="c-type">Account Type</label>

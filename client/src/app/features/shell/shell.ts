@@ -41,6 +41,7 @@ export class Shell implements OnInit {
     { label: 'Home', icon: 'home', route: '/dashboard' },
     { label: 'Documents', icon: 'folder_copy', route: '/documents' },
     { label: 'Reports', icon: 'description', route: '/reports' },
+    { label: 'Support', icon: 'support_agent', route: '/support' },
     { label: 'Profile', icon: 'person', route: '/profile' },
   ];
 

@@ -15,6 +15,9 @@ import type {
   Report,
   ReportUploadUrl,
   SendReminderResult,
+  Service,
+  Ticket,
+  TicketMessage,
   UploadUrl,
   Admin,
 } from '../models';
@@ -289,6 +292,58 @@ export class WebsiteService {
   setLeadStatus(id: string, status: string) {
     return firstValueFrom(
       this.api.patch<Lead>(`/admin/website/leads/${id}/status`, { status }),
+    );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class ServicesOfferedService {
+  private readonly api = inject(ApiClient);
+
+  list() {
+    return firstValueFrom(this.api.get<Service[]>('/admin/services'));
+  }
+
+  get(id: string) {
+    return firstValueFrom(this.api.get<Service>(`/admin/services/${id}`));
+  }
+
+  create(body: { title: string; description: string; price?: string; icon?: string; display_order?: number; is_active?: boolean }) {
+    return firstValueFrom(this.api.post<Service>('/admin/services', body));
+  }
+
+  update(id: string, body: { title?: string; description?: string; price?: string; icon?: string; display_order?: number; is_active?: boolean }) {
+    return firstValueFrom(this.api.patch<Service>(`/admin/services/${id}`, body));
+  }
+
+  deactivate(id: string) {
+    return firstValueFrom(this.api.delete<{ success: boolean }>(`/admin/services/${id}`));
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class TicketsService {
+  private readonly api = inject(ApiClient);
+
+  list(params: { page?: number; pageSize?: number; status?: string; user_id?: string } = {}) {
+    return firstValueFrom(
+      this.api.get<PaginatedResult<Ticket>>('/admin/tickets', params),
+    );
+  }
+
+  get(id: string) {
+    return firstValueFrom(this.api.get<Ticket>(`/admin/tickets/${id}`));
+  }
+
+  reply(id: string, message: string) {
+    return firstValueFrom(
+      this.api.post<TicketMessage>(`/admin/tickets/${id}/messages`, { message }),
+    );
+  }
+
+  updateStatus(id: string, status: string) {
+    return firstValueFrom(
+      this.api.patch<Ticket>(`/admin/tickets/${id}/status`, { status }),
     );
   }
 }

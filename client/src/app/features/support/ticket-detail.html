@@ -1,0 +1,70 @@
+@if (loading()) {
+  <app-spinner />
+} @else if (ticket(); as t) {
+  <app-page-header [title]="t.subject" [subtitle]="(categoryLabels[t.category] ?? t.category) + ' · ' + t.status.toUpperCase()" [back]="true">
+    <button class="px-3 py-1.5 text-xs rounded-lg border border-on-primary/30 text-on-primary hover:bg-on-primary/10" (click)="closeTicket()">
+      Close
+    </button>
+  </app-page-header>
+
+  <div class="flex-1 px-4 pb-4 space-y-3">
+    @for (msg of t.messages ?? []; track msg.id) {
+      <div class="flex" [class.justify-end]="isOwnMessage(msg)" [class.justify-start]="!isOwnMessage(msg)">
+        <div class="max-w-[85%] rounded-2xl px-4 py-3"
+             [class.bg-primary]="isOwnMessage(msg)"
+             [class.text-on-primary]="isOwnMessage(msg)"
+             [class.bg-surface-container]="!isOwnMessage(msg)"
+             [class.text-on-surface]="!isOwnMessage(msg)">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-[10px] font-semibold uppercase"
+                  [class.text-on-primary/60]="isOwnMessage(msg)"
+                  [class.text-on-surface-variant]="!isOwnMessage(msg)">
+              {{ isOwnMessage(msg) ? 'You' : 'Support' }}
+            </span>
+            <span class="text-[10px]"
+                  [class.text-on-primary/40]="isOwnMessage(msg)"
+                  [class.text-on-surface-variant/60]="!isOwnMessage(msg)">
+              {{ fmtDate(msg.created_at) }}
+            </span>
+          </div>
+          <p class="text-sm whitespace-pre-wrap">{{ msg.message }}</p>
+          @if (msg.attachments && msg.attachments.length > 0) {
+            <div class="mt-2 flex flex-wrap gap-2">
+              @for (att of msg.attachments; track att.id) {
+                <a [href]="att.download_url ?? '#'" target="_blank" download
+                   class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-lg"
+                   [class.bg-on-primary/10]="isOwnMessage(msg)"
+                   [class.text-on-primary]="isOwnMessage(msg)"
+                   [class.bg-surface-container-high]="!isOwnMessage(msg)"
+                   [class.text-secondary]="!isOwnMessage(msg)">
+                  <span class="material-symbols-outlined" style="font-size: 14px">attach_file</span>
+                  {{ att.original_filename }}
+                </a>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (t.status !== 'closed') {
+      <form [formGroup]="replyForm" (ngSubmit)="sendReply()" class="flex gap-2 items-end pt-2">
+        <textarea formControlName="message" rows="2" placeholder="Type your reply..."
+          class="flex-1 px-4 py-2.5 rounded-2xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30 resize-none">
+        </textarea>
+        <button type="submit" [disabled]="replyForm.invalid || sending()"
+          class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shrink-0 disabled:opacity-50">
+          @if (sending()) {
+            <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+          } @else {
+            <span class="material-symbols-outlined" style="font-size: 20px">send</span>
+          }
+        </button>
+      </form>
+    } @else {
+      <div class="text-center py-4 text-sm text-on-surface-variant">
+        This ticket has been closed.
+      </div>
+    }
+  </div>
+}
