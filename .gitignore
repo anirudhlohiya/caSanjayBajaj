@@ -20,6 +20,7 @@ yarn-error.log*
 
 # Session notes / chat transcripts (not project code)
 prompt.txt
+CREDENTIALS.txt
 
 # OS / editor
 .DS_Store

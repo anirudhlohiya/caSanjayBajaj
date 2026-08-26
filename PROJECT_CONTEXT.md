@@ -210,12 +210,15 @@ admin-web/, client-web/  stale empty planning folders — deleted Aug 25 2026
 ```
 
 Git: origin https://github.com/anirudhlohiya/caSanjayBajaj.git, branch `main`.
-Recent commits: `02ef465` OTP signup/password-reset; `7b478f0` API hardening + prod build
-config; `52bc88c` deploy kit; `300e153` runbooks; `0eb0b78` SN Bajaj And Co branding +
-logo assets; `f2cdb1b` admin bug fixes (uploads/reminders/staff/pagination);
-`9a89c5e` Android wrapper with forced-update gate. Secrets policy unchanged — only
-`.env.example`, never real `.env`; verified before push via `.gitignore`
-(`backend/.env` ignored) and a staged-content secret scan.
+Recent commits: `dab524e` deploy script SSH key detection; `482eb6e` docs cleanup (retired
+lohiyaanirudh.tech refs); `e0e9a8a` OTP column length 64 for hashed OTPs;
+`6fd73fb`+`440bdea` Vercel theme redesign (admin + client), dark mode, settings, profile
+photo, GSTIN, brand/logo; `009d1d9`+`f0a6ae4` admin/client shell layout fixes;
+`8b20ed6` deploy hook wired; `b703ccd`+`d721c07`+`68f02bd` security hardening (trust
+proxy, CORS, OTP hashing, upload allowlist); `0020037` retire legacy site + rebrand
+sender to alerts@snbajaj.com. Secrets policy unchanged — only `.env.example`, never real
+`.env`; verified before push via `.gitignore` and a staged-content secret scan.
+- `CREDENTIALS.txt` at repo root: admin + client login details for testing (do NOT commit).
 
 ## 9. Explicit non-goals for Phase 1
 
@@ -372,6 +375,16 @@ uses live in `website/public/images`; content fully migrated). SEO done: meta/OG
   upload allowlist fixes deployed; secrets scan clean; S3 MPU lifecycle rules added.
 - **Cost check Aug 25 2026**: 1× t3.micro + single 20 GB gp3 volume, NO EIP, no
   snapshots, S3 ≈14 KB total. Well inside Free Tier while eligible (~$9/mo after).
+  Orphaned eu-north-1 instance + 8GB volume terminated Aug 25 2026 (was costing
+  ~$0.35/mo). Only remaining charge: public IPv4 ($0.005/hr = ~$0.36/mo). CloudWatch
+  billing alarm set at $2/mo threshold; SNS topic `aws-billing-alerts` sends email to
+  anirudhlohiya999@gmail.com (confirmation pending). AWS Budgets (weekly reports) requires
+  root account to create — user instructions provided.
+- **Logo fix Aug 25 2026**: other AI tool placed 1280×960 logo.jpg into tiny sidebar
+  containers (32×32) — unreadable. Created `logo-icon.png` (128×128 center-crop) for
+  sidebar/header icons and `logo-login.png` (256×256) for login pages. Deployed to both
+  admin + client on server.
+- **CREDENTIALS.txt**: repo root, not committed. Admin + client test login details.
 
 
 ## 11. Non-negotiable rules for contributors
