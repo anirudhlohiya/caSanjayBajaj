@@ -178,7 +178,7 @@ export class TicketsService {
       await this.tickets.save(ticket);
     }
 
-    await this.notifyClient(
+    void this.notifyClient(
       ticket.user_id,
       'New response on your ticket',
       `There is an update on your ticket "${ticket.subject}".`,
@@ -198,7 +198,7 @@ export class TicketsService {
     const saved = await this.tickets.save(ticket);
 
     if (status === TicketStatus.CLOSED && wasOpen) {
-      await this.notifyClient(
+      void this.notifyClient(
         ticket.user_id,
         'Your ticket has been resolved',
         `Your ticket "${ticket.subject}" has been closed. If you need anything else, feel free to create a new ticket.`,

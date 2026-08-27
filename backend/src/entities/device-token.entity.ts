@@ -24,7 +24,7 @@ export class DeviceToken {
   @Column({ type: 'enum', enum: DevicePlatform, default: DevicePlatform.PWA })
   platform: DevicePlatform;
 
-  @Column({ type: 'varchar', length: 500 })
+  @Column({ type: 'text' })
   push_token: string;
 
   @CreateDateColumn({ type: 'timestamptz' })

@@ -74,7 +74,7 @@ export const routes: Routes = [
         canActivate: [permissionGuard('manage_settings')],
         loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
       },
-      { path: '**', redirectTo: 'dashboard' },
+      { path: '**', loadComponent: () => import('./features/not-found/not-found').then((m) => m.NotFound) },
     ],
   },
 ];

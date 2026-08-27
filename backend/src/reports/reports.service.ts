@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -20,6 +21,7 @@ import { CreateReportDto, ReportFilterQueryDto } from './dto/report.dto';
 
 @Injectable()
 export class ReportsService {
+  private readonly logger = new Logger(ReportsService.name);
   constructor(
     @InjectRepository(Report) private readonly reports: Repository<Report>,
     @InjectRepository(GstFilingPeriod)
@@ -70,38 +72,62 @@ export class ReportsService {
       id: report.filing_period_id,
     });
 
-    // Fire notifications (push + email). Never send the file as an attachment.
     const reportUrl = `${process.env.API_BASE_URL ?? ''}/reports/${report.id}`;
     const title = 'Your GST report is ready';
     const body = `${period?.period_label ?? 'Your'} ${report.report_type.replace('_', ' ').toUpperCase()} report is ready to view in the app.`;
     const deepLink = '/reports';
 
+    // Persist the in-app notification immediately so it is never lost.
     await this.reportNotifications.record(user.id, title, body, deepLink);
 
-    const pushTargets = await this.usersService.getTokensForPush(user.id);
-    for (const token of pushTargets) {
-      let subscription: unknown;
-      try {
-        subscription = JSON.parse(token.push_token);
-      } catch {
-        subscription = null;
-      }
-      if (isPushSubscription(subscription)) {
-        await this.notifications.sendPush(subscription, {
-          title,
-          body,
-          url: reportUrl,
-        });
-      }
-    }
-
-    await this.notifications.sendEmail(
-      { email: user.email, name: user.name },
-      title,
-      `<p>Dear ${user.name},</p><p>${body}</p><p><a href="${reportUrl}">Open report in the app</a></p>`,
-    );
+    // Deliver push + email in the background so the confirm request returns
+    // immediately (avoids nginx read timeout 504 when the network is slow).
+    void this.deliverReportNotifications(report, user, reportUrl, title, body);
 
     return report;
+  }
+
+  private async deliverReportNotifications(
+    report: { id: string; user_id: string; report_type: string },
+    user: { id: string; email: string; name: string },
+    reportUrl: string,
+    title: string,
+    body: string,
+  ): Promise<void> {
+    try {
+      const pushTargets = await this.usersService.getTokensForPush(
+        report.user_id,
+      );
+      for (const token of pushTargets) {
+        let subscription: unknown;
+        try {
+          subscription = JSON.parse(token.push_token);
+        } catch {
+          subscription = null;
+        }
+        if (isPushSubscription(subscription)) {
+          try {
+            await this.notifications.sendPush(subscription, {
+              title,
+              body,
+              url: reportUrl,
+            });
+          } catch {
+            /* keep delivering to remaining tokens + email */
+          }
+        }
+      }
+
+      await this.notifications.sendEmail(
+        { email: user.email, name: user.name },
+        title,
+        `<p>Dear ${user.name},</p><p>${body}</p><p><a href="${reportUrl}">Open report in the app</a></p>`,
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Report notification delivery failed for ${report.user_id}: ${(error as Error).message}`,
+      );
+    }
   }
 
   async listForUser(
