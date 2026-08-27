@@ -47,5 +47,23 @@
         </button>
       }
     </div>
+
+    @if (totalPages() > 1) {
+      <div class="flex items-center justify-between gap-2 pt-1">
+        <button
+          (click)="prev()"
+          [disabled]="page() <= 1"
+          class="px-3 py-1.5 text-sm rounded-lg border border-outline-variant disabled:opacity-40">
+          Previous
+        </button>
+        <span class="text-xs text-on-surface-variant">Page {{ page() }} of {{ totalPages() }}</span>
+        <button
+          (click)="next()"
+          [disabled]="page() >= totalPages()"
+          class="px-3 py-1.5 text-sm rounded-lg border border-outline-variant disabled:opacity-40">
+          Next
+        </button>
+      </div>
+    }
   }
 </div>

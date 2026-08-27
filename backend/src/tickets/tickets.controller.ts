@@ -41,6 +41,31 @@ export class ClientTicketsController {
     return this.ticketsService.listForUser(user.sub, query);
   }
 
+  @Post('attachment-upload-url')
+  @ApiOperation({ summary: 'Get presigned URL for attachment upload' })
+  attachmentUploadUrl(
+    @CurrentUser() user: any,
+    @Body() dto: TicketAttachmentUploadDto,
+  ) {
+    return this.ticketsService.createAttachmentUrlForUser(
+      dto.message_id,
+      user.sub,
+      dto,
+    );
+  }
+
+  @Post('attachments/:attachmentId/download-url')
+  @ApiOperation({ summary: 'Get presigned download URL for an attachment' })
+  attachmentDownloadUrl(
+    @CurrentUser() user: any,
+    @Param('attachmentId', ParseUUIDPipe) attachmentId: string,
+  ) {
+    return this.ticketsService.getAttachmentDownloadUrlForUser(
+      attachmentId,
+      user.sub,
+    );
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get ticket detail' })
   get(@CurrentUser() user: any, @Param('id', ParseUUIDPipe) id: string) {
@@ -67,17 +92,6 @@ export class ClientTicketsController {
   @ApiOperation({ summary: 'Close a ticket' })
   close(@CurrentUser() user: any, @Param('id', ParseUUIDPipe) id: string) {
     return this.ticketsService.closeForUser(id, user.sub);
-  }
-
-  @Post(':id/attachment-upload-url')
-  @ApiOperation({ summary: 'Get presigned URL for attachment upload' })
-  attachmentUploadUrl(
-    @Param('id', ParseUUIDPipe) messageTicketId: string,
-    @Body() dto: TicketAttachmentUploadDto,
-  ) {
-    // This uses the message id from the URL param, but we need message id
-    // For simplicity, we'll accept message_id in the body
-    return this.ticketsService.createAttachmentUrl(messageTicketId, dto);
   }
 }
 
@@ -121,5 +135,14 @@ export class AdminTicketsController {
     @Body() dto: UpdateTicketStatusDto,
   ) {
     return this.ticketsService.updateStatus(id, dto.status);
+  }
+
+  @Post('attachments/:attachmentId/download-url')
+  @Permissions('view_clients')
+  @ApiOperation({ summary: 'Get presigned download URL for an attachment' })
+  attachmentDownloadUrl(
+    @Param('attachmentId', ParseUUIDPipe) attachmentId: string,
+  ) {
+    return this.ticketsService.getAttachmentDownloadUrl(attachmentId);
   }
 }

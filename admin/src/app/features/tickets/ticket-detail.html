@@ -18,51 +18,41 @@
   <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
     <div class="lg:col-span-3">
       <div class="card p-0 overflow-hidden">
-        <div class="divide-y divide-neutral-100">
-          @for (msg of t.messages ?? []; track msg.id) {
-            <div class="p-4" [class.bg-blue-50/30]="isOwnMessage(msg)">
-              <div class="flex items-center gap-2 mb-2">
-                <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold"
-                     [class.bg-neutral-900]="!isOwnMessage(msg)"
-                     [class.text-white]="!isOwnMessage(msg)"
-                     [class.bg-blue-600]="isOwnMessage(msg)"
-                     [class.text-white]="isOwnMessage(msg)">
-                  {{ isOwnMessage(msg) ? 'A' : (t.user?.name?.charAt(0) ?? 'U') }}
-                </div>
-                <span class="text-sm font-medium text-neutral-900">
-                  {{ isOwnMessage(msg) ? 'Admin' : (t.user?.name ?? 'Client') }}
-                </span>
-                <span class="text-xs text-neutral-400">{{ fmtDate(msg.created_at) }}</span>
-              </div>
-              <p class="text-sm text-neutral-700 whitespace-pre-wrap pl-9">{{ msg.message }}</p>
-              @if (msg.attachments && msg.attachments.length > 0) {
-                <div class="pl-9 mt-2 flex flex-wrap gap-2">
-                  @for (att of msg.attachments; track att.id) {
-                    <a [href]="att.download_url ?? '#'" target="_blank"
-                       class="inline-flex items-center gap-1 px-2 py-1 text-xs bg-neutral-100 rounded hover:bg-neutral-200 transition-colors">
-                      <span class="material-symbols-outlined" style="font-size: 14px">attach_file</span>
-                      {{ att.original_filename }}
-                    </a>
+        <div class="p-6">
+          <h3 class="text-sm font-semibold text-neutral-900 mb-2">Client Request</h3>
+          @if (t.messages?.[0]; as m) {
+            <p class="text-sm text-neutral-700 whitespace-pre-wrap">{{ m.message }}</p>
+            <p class="mt-2 text-xs text-neutral-400">Submitted {{ fmtDate(m.created_at) }}</p>
+          }
+
+          @if (hasAttachments(t)) {
+            <div class="mt-5">
+              <h4 class="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">Attachments</h4>
+              <div class="flex flex-col gap-2">
+                @for (msg of t.messages ?? []; track msg.id) {
+                  @for (att of msg.attachments ?? []; track att.id) {
+                    <div class="flex items-center gap-3 rounded-lg border border-neutral-200 bg-surface p-2.5">
+                      <span class="material-symbols-outlined text-[20px] text-neutral-400">description</span>
+                      <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm text-neutral-900">{{ att.original_filename }}</p>
+                        <p class="text-xs text-neutral-400">{{ formatSize(att.file_size_bytes) }}</p>
+                      </div>
+                      <button
+                        (click)="download(att)"
+                        [disabled]="downloading()"
+                        class="inline-flex items-center gap-1 rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-200 disabled:opacity-50">
+                        <span class="material-symbols-outlined" style="font-size: 14px">download</span>
+                        Download
+                      </button>
+                    </div>
                   }
-                </div>
-              }
+                }
+              </div>
             </div>
           }
         </div>
 
-        @if (t.status !== 'closed') {
-          <div class="p-4 border-t border-neutral-100">
-            <form [formGroup]="replyForm" (ngSubmit)="sendReply()" class="flex gap-2">
-              <textarea formControlName="message" rows="2" placeholder="Type your reply..."
-                class="flex-1 px-3 py-2 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim resize-none">
-              </textarea>
-              <button type="submit" [disabled]="replyForm.invalid || sending()"
-                class="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-medium hover:bg-secondary disabled:opacity-60 self-end cursor-pointer">
-                {{ sending() ? 'Sending…' : 'Send' }}
-              </button>
-            </form>
-          </div>
-        } @else {
+        @if (t.status === 'closed') {
           <div class="p-4 border-t border-neutral-100 text-center text-sm text-neutral-400">
             This ticket has been closed.
           </div>

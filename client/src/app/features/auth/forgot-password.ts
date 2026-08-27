@@ -3,12 +3,13 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastContainer } from '../../shared/components/toast-container';
+import { AuthLayout } from '../../shared/components/auth-layout';
 import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [ReactiveFormsModule, ToastContainer, RouterLink],
+  imports: [ReactiveFormsModule, ToastContainer, RouterLink, AuthLayout],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './forgot-password.html',
 })

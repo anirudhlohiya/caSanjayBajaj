@@ -9,23 +9,25 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       @if (back()) {
         <button
           (click)="goBack()"
-          class="flex size-10 items-center justify-center rounded-full text-on-surface hover:bg-surface-variant"
+          class="flex size-10 items-center justify-center rounded-full text-on-surface hover:bg-surface-variant shrink-0"
           aria-label="Go back"
         >
           <span class="material-symbols-outlined">arrow_back</span>
         </button>
       }
       <div class="min-w-0 flex-1">
-        <h1 class="truncate text-headline-sm font-semibold text-on-surface">
+        <h1 class="text-xl font-bold tracking-tight text-neutral-950 dark:text-white leading-tight">
           {{ title() }}
         </h1>
         @if (subtitle()) {
-          <p class="truncate text-body-md text-on-surface-variant">
+          <p class="text-sm text-neutral-500 dark:text-neutral-400 leading-snug text-wrap">
             {{ subtitle() }}
           </p>
         }
       </div>
-      <ng-content></ng-content>
+      <div class="shrink-0">
+        <ng-content></ng-content>
+      </div>
     </div>
   `,
 })

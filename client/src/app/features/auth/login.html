@@ -1,82 +1,54 @@
-<div class="flex min-h-dvh flex-col bg-neutral-50">
+<app-auth-layout heroTitle="Welcome back" heroSubtitle="Sign in to your GST client portal">
   <app-toast-container />
 
-  <!-- Hero header -->
-  <div class="relative overflow-hidden bg-neutral-950 px-6 pb-16 pt-12 text-white">
-    <div class="flex items-center gap-3">
-      <div class="flex size-12 items-center justify-center rounded-xl bg-white/10 overflow-hidden border border-white/20">
-        <img src="/logo-login.png" alt="S N Bajaj And Co Logo" class="size-12 object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
-        <span class="material-symbols-outlined text-white text-[26px] hidden items-center justify-center">account_balance</span>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+    @if (error()) {
+      <div class="flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2.5 text-xs text-red-700">
+        <span class="material-symbols-outlined text-[16px]">error</span>
+        <span>{{ error() }}</span>
       </div>
-      <div>
-        <h1 class="text-lg font-bold tracking-tight">S N Bajaj And Co</h1>
-        <p class="text-xs text-white/60 mt-0.5">Chartered Accountants</p>
-      </div>
+    }
+
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Email</span>
+      <input
+        formControlName="email"
+        type="email"
+        autocomplete="email"
+        placeholder="you@example.com"
+        class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
+      />
+    </label>
+
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Password</span>
+      <input
+        formControlName="password"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Your password"
+        class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
+      />
+    </label>
+
+    @if (form.controls.email.touched && form.controls.email.invalid) {
+      <p class="text-xs text-red-600">Enter a valid email address.</p>
+    }
+
+    <button
+      type="submit"
+      [disabled]="form.invalid || loading()"
+      class="mt-2 flex h-11 items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
+    >
+      @if (loading()) {
+        <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+      }
+      Sign in
+    </button>
+
+    <div class="mt-2 flex items-center justify-between text-xs">
+      <a routerLink="/forgot-password" class="font-medium text-neutral-500 hover:text-neutral-900 hover:underline">Forgot password?</a>
+      <a routerLink="/signup" class="font-semibold text-neutral-900 hover:underline">Create account →</a>
     </div>
-    <p class="mt-8 text-2xl font-bold">Welcome back</p>
-    <p class="mt-1 text-sm text-white/70">
-      Sign in to your GST client portal
-    </p>
-    <!-- decorative blobs -->
-    <div class="absolute -right-8 -top-8 size-48 rounded-full bg-white/5"></div>
-    <div class="absolute -right-4 top-16 size-24 rounded-full bg-white/5"></div>
-  </div>
-
-  <div class="-mt-8 flex-1 rounded-t-3xl bg-white px-6 pt-8 shadow-xl">
-    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
-      @if (error()) {
-        <div class="flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2.5 text-xs text-red-700">
-          <span class="material-symbols-outlined text-[16px]">error</span>
-          <span>{{ error() }}</span>
-        </div>
-      }
-
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Email</span>
-        <input
-          formControlName="email"
-          type="email"
-          autocomplete="email"
-          placeholder="you@example.com"
-          class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
-        />
-      </label>
-
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Password</span>
-        <input
-          formControlName="password"
-          type="password"
-          autocomplete="current-password"
-          placeholder="Your password"
-          class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
-        />
-      </label>
-
-      @if (form.controls.email.touched && form.controls.email.invalid) {
-        <p class="text-xs text-red-600">Enter a valid email address.</p>
-      }
-
-      <button
-        type="submit"
-        [disabled]="form.invalid || loading()"
-        class="mt-2 flex h-11 items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
-      >
-        @if (loading()) {
-          <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
-        }
-        Sign in
-      </button>
-
-      <div class="mt-2 flex items-center justify-between text-xs">
-        <a routerLink="/forgot-password" class="font-medium text-neutral-500 hover:text-neutral-900 hover:underline">Forgot password?</a>
-        <a routerLink="/signup" class="font-semibold text-neutral-900 hover:underline">Create account →</a>
-      </div>
-
-      <p class="mt-4 text-center text-xs text-neutral-400">
-        Provided to you by
-        <span class="font-semibold text-neutral-600">S N Bajaj And Co</span>
-      </p>
-    </form>
-  </div>
-</div>
+  </form>
+</app-auth-layout>

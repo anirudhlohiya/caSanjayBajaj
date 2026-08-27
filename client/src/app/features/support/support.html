@@ -25,14 +25,6 @@
   >Open</button>
   <button
     class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
-    [class.bg-blue-100]="statusFilter() === 'replied'"
-    [class.text-blue-800]="statusFilter() === 'replied'"
-    [class.bg-surface-container]="statusFilter() !== 'replied'"
-    [class.text-on-surface-variant]="statusFilter() !== 'replied'"
-    (click)="filterByStatus('replied')"
-  >Replied</button>
-  <button
-    class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
     [class.bg-neutral-200]="statusFilter() === 'closed'"
     [class.text-neutral-700]="statusFilter() === 'closed'"
     [class.bg-surface-container]="statusFilter() !== 'closed'"

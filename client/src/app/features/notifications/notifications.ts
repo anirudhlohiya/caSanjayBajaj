@@ -12,6 +12,8 @@ import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
 import { PageHeader } from '../../shared/components/page-header';
 
+const PAGE_SIZE = 20;
+
 @Component({
   selector: 'app-notifications',
   standalone: true,
@@ -26,24 +28,45 @@ export class Notifications {
 
   readonly loading = signal(true);
   readonly items = signal<ReportNotification[]>([]);
+  readonly page = signal(1);
+  readonly totalPages = signal(1);
+  readonly total = signal(0);
   readonly hasUnread = signal(false);
 
   constructor() {
     void this.load();
   }
 
-  async load(): Promise<void> {
+  async load(page = this.page()): Promise<void> {
     this.loading.set(true);
     try {
-      const result = await this.notificationsService.list({ pageSize: 50 });
+      const result = await this.notificationsService.list({
+        page,
+        pageSize: PAGE_SIZE,
+      });
       this.items.set(result.items);
+      this.page.set(result.page);
+      this.totalPages.set(Math.max(result.totalPages, 1));
+      this.total.set(result.total);
       this.hasUnread.set(result.items.some((n) => !n.is_read));
     } catch {
       this.items.set([]);
+      this.totalPages.set(1);
+      this.total.set(0);
       this.hasUnread.set(false);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  async prev(): Promise<void> {
+    if (this.page() <= 1) return;
+    await this.load(this.page() - 1);
+  }
+
+  async next(): Promise<void> {
+    if (this.page() >= this.totalPages()) return;
+    await this.load(this.page() + 1);
   }
 
   async markAllRead(): Promise<void> {

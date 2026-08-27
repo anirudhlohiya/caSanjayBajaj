@@ -34,12 +34,18 @@
   --font-headline: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
 
+  /* Typography system — unified per prompt spec */
+  /* Screen Titles: 24px / bold */
+  /* Subheadings / Descriptions: 14px / text-muted */
+  /* Section Headers: 12px / uppercase / semibold / tracking-wider */
+  /* Body & Card Text: 14px / 15px / regular */
+  /* Badge / Tag Text: 11px / font-medium */
   --text-display-lg: 32px;
   --text-display-lg--line-height: 40px;
   --text-display-lg--font-weight: 700;
   --text-headline-md: 24px;
   --text-headline-md--line-height: 32px;
-  --text-headline-md--font-weight: 600;
+  --text-headline-md--font-weight: 700;
   --text-headline-sm: 20px;
   --text-headline-sm--line-height: 28px;
   --text-headline-sm--font-weight: 600;

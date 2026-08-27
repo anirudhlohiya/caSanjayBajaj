@@ -19,14 +19,6 @@
   >Open</button>
   <button
     class="px-3 py-1.5 rounded-full text-sm transition-colors cursor-pointer"
-    [class.bg-blue-100]="statusFilter() === 'replied'"
-    [class.text-blue-800]="statusFilter() === 'replied'"
-    [class.bg-neutral-100]="statusFilter() !== 'replied'"
-    [class.text-neutral-600]="statusFilter() !== 'replied'"
-    (click)="filterByStatus('replied')"
-  >Replied</button>
-  <button
-    class="px-3 py-1.5 rounded-full text-sm transition-colors cursor-pointer"
     [class.bg-neutral-200]="statusFilter() === 'closed'"
     [class.text-neutral-700]="statusFilter() === 'closed'"
     [class.bg-neutral-100]="statusFilter() !== 'closed'"

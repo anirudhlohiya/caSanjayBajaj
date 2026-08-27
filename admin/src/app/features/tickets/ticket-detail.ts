@@ -1,17 +1,16 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TicketsService } from '../../core/services/feature.services';
 import { ToastService } from '../../core/services/toast.service';
-import { Ticket, TicketMessage } from '../../core/models';
+import { Ticket, TicketAttachment } from '../../core/models';
 import { PageHeader } from '../../shared/components/page-header';
 import { Spinner } from '../../shared/components/spinner';
 
 @Component({
   selector: 'app-ticket-detail',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeader, Spinner],
+  imports: [PageHeader, Spinner],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ticket-detail.html',
 })
@@ -20,16 +19,11 @@ export class TicketDetailPage implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly ticket = signal<Ticket | null>(null);
-  readonly sending = signal(false);
-
-  readonly replyForm = this.fb.nonNullable.group({
-    message: ['', [Validators.required]],
-  });
+  readonly downloading = signal(false);
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
@@ -47,25 +41,36 @@ export class TicketDetailPage implements OnInit {
     }
   }
 
-  async sendReply(): Promise<void> {
-    if (this.replyForm.invalid || !this.ticket()) return;
-    this.sending.set(true);
+  async changeStatus(status: string): Promise<void> {
+    const t = this.ticket();
+    if (!t) return;
+    await this.ticketsService.updateStatus(t.id, status);
+    this.toast.success(`Ticket marked as ${status}`);
+    await this.load(t.id);
+  }
+
+  async download(att: TicketAttachment): Promise<void> {
+    if (this.downloading()) return;
+    this.downloading.set(true);
     try {
-      const msg = this.replyForm.controls.message.value;
-      await this.ticketsService.reply(this.ticket()!.id, msg);
-      this.replyForm.reset();
-      this.toast.success('Reply sent');
-      await this.load(this.ticket()!.id);
+      const { download_url } = await this.ticketsService.attachmentDownloadUrl(att.id);
+      const a = document.createElement('a');
+      a.href = download_url;
+      a.download = att.original_filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch {
+      this.toast.error('Could not download the file. Please try again.');
     } finally {
-      this.sending.set(false);
+      this.downloading.set(false);
     }
   }
 
-  async changeStatus(status: string): Promise<void> {
-    if (!this.ticket()) return;
-    await this.ticketsService.updateStatus(this.ticket()!.id, status);
-    this.toast.success(`Ticket marked as ${status}`);
-    await this.load(this.ticket()!.id);
+  hasAttachments(t: Ticket): boolean {
+    return (t.messages ?? []).some(
+      (m) => m.attachments && m.attachments.length > 0,
+    );
   }
 
   goBack(): void {
@@ -82,7 +87,10 @@ export class TicketDetailPage implements OnInit {
     });
   }
 
-  isOwnMessage(msg: TicketMessage): boolean {
-    return msg.sender_type === 'admin';
+  formatSize(bytes: string): string {
+    const n = Number(bytes) || 0;
+    if (n < 1024) return `${n} B`;
+    if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+    return `${(n / (1024 * 1024)).toFixed(1)} MB`;
   }
 }

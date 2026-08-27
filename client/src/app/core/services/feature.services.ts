@@ -228,10 +228,32 @@ export class TicketsService {
     );
   }
 
-  close(id: string): Promise<Ticket> {
-    return firstValueFrom(this.api.post<Ticket>(`/me/tickets/${id}/close`));
+    close(id: string): Promise<Ticket> {
+      return firstValueFrom(this.api.post<Ticket>(`/me/tickets/${id}/close`));
+    }
+
+    attachmentUploadUrl(body: {
+      message_id: string;
+      filename: string;
+      content_type: string;
+      file_size_bytes: number;
+    }): Promise<{ attachment_id: string; upload_url: string; s3_key: string }> {
+      return firstValueFrom(
+        this.api.post<{ attachment_id: string; upload_url: string; s3_key: string }>(
+          '/me/tickets/attachment-upload-url',
+          body,
+        ),
+      );
+    }
+
+    attachmentDownloadUrl(attachmentId: string): Promise<{ download_url: string }> {
+      return firstValueFrom(
+        this.api.post<{ download_url: string }>(
+          `/me/tickets/attachments/${attachmentId}/download-url`,
+        ),
+      );
+    }
   }
-}
 
 @Injectable({ providedIn: 'root' })
 export class ServicesOfferedService {

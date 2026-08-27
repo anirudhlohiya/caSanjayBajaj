@@ -4,6 +4,8 @@ import { Ticket } from '../entities/ticket.entity';
 import { TicketMessage } from '../entities/ticket-message.entity';
 import { TicketAttachment } from '../entities/ticket-attachment.entity';
 import { StorageModule } from '../storage/storage.module';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { UsersModule } from '../users/users.module';
 import {
   ClientTicketsController,
   AdminTicketsController,
@@ -14,6 +16,8 @@ import { TicketsService } from './tickets.service';
   imports: [
     TypeOrmModule.forFeature([Ticket, TicketMessage, TicketAttachment]),
     StorageModule,
+    NotificationsModule,
+    UsersModule,
   ],
   controllers: [ClientTicketsController, AdminTicketsController],
   providers: [TicketsService],

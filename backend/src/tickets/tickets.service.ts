@@ -12,6 +12,9 @@ import {
   PaginationQueryDto,
 } from '../common/dto/pagination';
 import { StorageService } from '../storage/storage.service';
+import { NotificationsService, isPushSubscription } from '../notifications/notifications.service';
+import { ReportNotificationsService } from '../notifications/report-notifications.service';
+import { UsersService } from '../users/users.service';
 import {
   Ticket,
   TicketStatus,
@@ -34,6 +37,9 @@ export class TicketsService {
     @InjectRepository(TicketAttachment)
     private readonly attachments: Repository<TicketAttachment>,
     private readonly storage: StorageService,
+    private readonly notifications: NotificationsService,
+    private readonly reportNotifications: ReportNotificationsService,
+    private readonly usersService: UsersService,
   ) {}
 
   // --- Client methods ---
@@ -61,7 +67,7 @@ export class TicketsService {
     });
     if (!ticket) throw new NotFoundException('Ticket not found');
     if (ticket.user_id !== userId) throw new ForbiddenException('Access denied');
-    return ticket;
+    return this.withOrderedMessages(ticket);
   }
 
   async createForUser(
@@ -117,7 +123,8 @@ export class TicketsService {
     const ticket = await this.findOneForUser(ticketId, userId);
     ticket.status = TicketStatus.CLOSED;
     ticket.closed_at = new Date();
-    return this.tickets.save(ticket);
+    const saved = await this.tickets.save(ticket);
+    return saved;
   }
 
   // --- Admin methods ---
@@ -145,7 +152,7 @@ export class TicketsService {
       relations: { user: true, messages: { attachments: true } },
     });
     if (!ticket) throw new NotFoundException('Ticket not found');
-    return ticket;
+    return this.withOrderedMessages(ticket);
   }
 
   async addMessageForAdmin(
@@ -171,16 +178,35 @@ export class TicketsService {
       await this.tickets.save(ticket);
     }
 
+    await this.notifyClient(
+      ticket.user_id,
+      'New response on your ticket',
+      `There is an update on your ticket "${ticket.subject}".`,
+      `/support/${ticketId}`,
+    );
+
     return saved;
   }
 
   async updateStatus(id: string, status: string): Promise<Ticket> {
     const ticket = await this.findOneAdmin(id);
+    const wasOpen = ticket.status !== TicketStatus.CLOSED;
     ticket.status = status as TicketStatus;
     if (status === TicketStatus.CLOSED) {
       ticket.closed_at = new Date();
     }
-    return this.tickets.save(ticket);
+    const saved = await this.tickets.save(ticket);
+
+    if (status === TicketStatus.CLOSED && wasOpen) {
+      await this.notifyClient(
+        ticket.user_id,
+        'Your ticket has been resolved',
+        `Your ticket "${ticket.subject}" has been closed. If you need anything else, feel free to create a new ticket.`,
+        '/support',
+      );
+    }
+
+    return saved;
   }
 
   // --- Attachments ---
@@ -217,9 +243,102 @@ export class TicketsService {
     return { attachment_id: att.id, upload_url: uploadUrl, s3_key: s3Key };
   }
 
-  async getAttachmentDownloadUrl(attachmentId: string): Promise<string> {
+  async createAttachmentUrlForUser(
+    ticketMessageId: string,
+    userId: string,
+    dto: TicketAttachmentUploadDto,
+  ): Promise<{ attachment_id: string; upload_url: string; s3_key: string }> {
+    const msg = await this.messages.findOne({
+      where: { id: ticketMessageId },
+    });
+    if (!msg) throw new NotFoundException('Ticket message not found');
+    const ticket = await this.tickets.findOneBy({ id: msg.ticket_id });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+    if (ticket.user_id !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+    if (ticket.status === TicketStatus.CLOSED) {
+      throw new BadRequestException('Cannot add attachments to a closed ticket');
+    }
+    return this.createAttachmentUrl(ticketMessageId, dto);
+  }
+
+  async getAttachmentDownloadUrlForUser(
+    attachmentId: string,
+    userId: string,
+  ): Promise<{ download_url: string }> {
     const att = await this.attachments.findOneBy({ id: attachmentId });
     if (!att) throw new NotFoundException('Attachment not found');
-    return this.storage.createDownloadUrl(att.s3_key);
+    const msg = await this.messages.findOneBy({ id: att.ticket_message_id });
+    if (!msg) throw new NotFoundException('Attachment not found');
+    const ticket = await this.tickets.findOneBy({ id: msg.ticket_id });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+    if (ticket.user_id !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+    return { download_url: await this.storage.createDownloadUrl(att.s3_key) };
+  }
+
+  async getAttachmentDownloadUrl(
+    attachmentId: string,
+  ): Promise<{ download_url: string }> {
+    const att = await this.attachments.findOneBy({ id: attachmentId });
+    if (!att) throw new NotFoundException('Attachment not found');
+    return { download_url: await this.storage.createDownloadUrl(att.s3_key) };
+  }
+
+  // --- Helpers ---
+
+  private withOrderedMessages(ticket: Ticket): Ticket {
+    if (ticket.messages) {
+      ticket.messages = [...ticket.messages].sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
+    }
+    return ticket;
+  }
+
+  private async notifyClient(
+    userId: string,
+    title: string,
+    body: string,
+    deepLink: string,
+  ): Promise<void> {
+    try {
+      const user = await this.usersService.findOne(userId);
+      if (!user) return;
+
+      await this.reportNotifications.record(userId, title, body, deepLink);
+
+      const pushTargets = await this.usersService.getTokensForPush(userId);
+      for (const token of pushTargets) {
+        let subscription: unknown;
+        try {
+          subscription = JSON.parse(token.push_token);
+        } catch {
+          subscription = null;
+        }
+        if (isPushSubscription(subscription)) {
+          await this.notifications.sendPush(subscription, {
+            title,
+            body,
+            url: deepLink,
+          });
+        }
+      }
+
+      const url = `${process.env.API_BASE_URL ?? ''}${deepLink}`;
+      await this.notifications.sendEmail(
+        { email: user.email, name: user.name },
+        title,
+        `<p>Dear ${user.name},</p><p>${body}</p><p><a href="${url}">View in the app</a></p>`,
+      );
+    } catch (error) {
+      // Notification errors must never break the core ticket flow.
+      this.notifications['logger']?.warn(
+        `Ticket notification failed for user ${userId}: ${(error as Error).message}`,
+      );
+    }
   }
 }

@@ -44,6 +44,11 @@ export class UpdateTicketStatusDto {
 }
 
 export class TicketAttachmentUploadDto {
+  @ApiProperty({ description: 'ID of the ticket message the file belongs to' })
+  @IsNotEmpty()
+  @IsString()
+  message_id: string;
+
   @ApiProperty()
   @IsNotEmpty()
   @IsString()

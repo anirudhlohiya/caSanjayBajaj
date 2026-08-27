@@ -341,9 +341,17 @@ export class TicketsService {
     );
   }
 
-  updateStatus(id: string, status: string) {
-    return firstValueFrom(
-      this.api.patch<Ticket>(`/admin/tickets/${id}/status`, { status }),
-    );
+    updateStatus(id: string, status: string) {
+      return firstValueFrom(
+        this.api.patch<Ticket>(`/admin/tickets/${id}/status`, { status }),
+      );
+    }
+
+    attachmentDownloadUrl(attachmentId: string) {
+      return firstValueFrom(
+        this.api.post<{ download_url: string }>(
+          `/admin/tickets/attachments/${attachmentId}/download-url`,
+        ),
+      );
+    }
   }
-}
