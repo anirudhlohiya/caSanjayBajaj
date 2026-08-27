@@ -11,10 +11,10 @@
   >
     <div class="flex items-center gap-3 px-5 py-6 overflow-hidden shrink-0">
       <div
-        class="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center shrink-0 shadow-sm overflow-hidden border border-neutral-200"
+        class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm overflow-hidden"
       >
-        <img src="/logo-icon.png" alt="Logo" class="w-full h-full object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'" />
-        <span class="material-symbols-outlined text-white text-[18px] hidden">account_balance</span>
+        <img src="/logo-icon.png" alt="Logo" class="w-full h-full object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <span class="material-symbols-outlined text-neutral-900 text-[18px] items-center justify-center" style="display:none">account_balance</span>
       </div>
       @if (!collapsed()) {
         <div class="whitespace-nowrap">
