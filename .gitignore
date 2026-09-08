@@ -52,3 +52,6 @@ android-wrapper/app/build/
 # scratch logs from support sessions
 log.txt
 error.txt
+
+# AWS support-case correspondence (temp session notes)
+aws_*.txt

@@ -1,10 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 @import 'tailwindcss';
 @source './app';
 @source './index.html';
+@custom-variant dark (&:is(.dark, .dark *));
 
 @theme {
+  /* Stitch Auth UI Colors */
+  --color-canvas-soft: #fafafa;
+  --color-canvas-inset: #f5f5f5;
+  --color-hairline: #ebebeb;
+  --color-hairline-strong: #a1a1a1;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f7f3f2;
+  --color-surface-container: #f1edec;
+  --color-surface-container-high: #ebe7e6;
+  --color-surface-container-highest: #e5e2e1;
+  --color-tertiary-container: #1c1b1a;
+  --color-on-tertiary-container: #868382;
+  --color-link: #0070f3;
+
+  /* Fonts */
+  --font-geist: 'Geist', sans-serif;
+  --font-geist-mono: 'Geist Mono', monospace;
+
+  /* Font Sizes */
+  --text-display-md: 24px;
+  --text-display-md--line-height: 32px;
+  --text-display-md--letter-spacing: -0.96px;
+  --text-display-md--font-weight: 600;
+  --text-label-mono: 12px;
+  --text-label-mono--line-height: 16px;
+  --text-label-mono--letter-spacing: 0.05em;
+
   /* SN Bajaj And Co - client portal Vercel token set */
   --color-primary: #171717;
   --color-primary-container: #f5f5f5;
@@ -122,10 +151,20 @@
 /* Dark mode overrides */
 @layer base {
   .dark {
+    /* Stitch Auth UI Dark Mode Overrides */
+    --color-canvas-soft: #111111;
+    --color-canvas-inset: #0a0a0a;
+    --color-hairline: #2a2a2a;
+    --color-hairline-strong: #404040;
+    --color-surface-container-lowest: #0a0a0a;
+    --color-surface-container-low: #111111;
+    --color-surface-container: #171717;
+    --color-surface-container-high: #262626;
+    --color-surface-container-highest: #2a2a2a;
+    --color-tertiary-container: #f5f5f5;
+    --color-on-tertiary-container: #a3a3a3;
+
     --color-surface: #0a0a0a;
-    --color-surface-container-lowest: #171717;
-    --color-surface-container: #262626;
-    --color-surface-variant: #2a2a2a;
     --color-on-surface: #f5f5f5;
     --color-on-surface-variant: #a3a3a3;
     --color-outline: #525252;
@@ -133,11 +172,6 @@
     --color-card-border: #2a2a2a;
     background-color: #0a0a0a;
     color: #f5f5f5;
-  }
-
-  .dark .card {
-    background-color: #171717;
-    border-color: #2a2a2a;
   }
 }
 
@@ -147,6 +181,11 @@
     border: 1px solid #ebebeb;
     border-radius: 0.75rem;
     box-shadow: 0 1px 2px rgba(0,0,0,0.02), 0 4px 16px rgba(0,0,0,0.01);
+  }
+
+  .dark .card {
+    background-color: #171717;
+    border-color: #2a2a2a;
   }
 
   .btn-primary {
@@ -171,5 +210,118 @@
   .size-18 {
     width: 4.5rem;
     height: 4.5rem;
+  }
+}
+
+/* ============================================================
+   Device-wide responsive enhancements
+   App is device-friendly on ANY screen size (phone, tablet, desktop)
+   while maintaining a mobile-app-like feel. Portrait-locked.
+   ============================================================ */
+
+/* Ensure body never overflows horizontally */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* App shell scales fluidly on larger screens — up to 5xl (1024px) */
+@media (min-width: 640px) {
+  .app-shell-container {
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.03);
+  }
+}
+
+/* Bottom nav and FAB align to the centered app container on larger screens */
+@media (min-width: 1024px) {
+  .app-bottom-nav {
+    padding-inline: max(1rem, calc((100vw - 64rem) / 2));
+  }
+}
+
+/* Compact spacing on very small screens */
+@media (max-width: 380px) {
+  .app-shell-container {
+    --app-gutter: 16px;
+  }
+}
+
+/* Ensure content area scrolls properly with fixed nav */
+.app-content-area {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+
+/* Styles for responsive multi-column layouts on wider screens */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* List cards become 2-column on wider screens */
+.responsive-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .responsive-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+/* Filter/sort row wraps properly on wide screens */
+.responsive-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-toolbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* Form controls: allow more space on larger screens */
+@media (min-width: 640px) {
+  .responsive-form {
+    max-width: 640px;
+  }
+}
+
+/* Bottom sheet / modal adapts to a centered dialog on larger screens */
+@media (min-width: 640px) {
+  .responsive-sheet {
+    left: 50%;
+    right: auto;
+    bottom: 50%;
+    transform: translate(-50%, 50%);
+    border-radius: 1rem !important;
+    max-height: 80dvh;
+    overflow-y: auto;
+  }
+}
+
+/* Smooth horizontal scroll strips for chips/filters */
+@media (hover: none) {
+  .scroll-x-fade {
+    -webkit-overflow-scrolling: touch;
   }
 }

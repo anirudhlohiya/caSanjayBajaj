@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6 pb-10">
+<div class="mx-auto w-full max-w-2xl flex flex-col gap-6 pb-10">
   <app-page-header title="Upload Documents" subtitle="Share your GST documents securely" [back]="true" />
 
   @if (error()) {
@@ -34,7 +34,7 @@
     <select
       [ngModel]="selectedPeriodId()"
       (ngModelChange)="selectedPeriodId.set($event)"
-      class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
+      class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
     >
       @for (period of periods(); track period.id) {
         <option [value]="period.id">
@@ -56,10 +56,10 @@
   <button
     type="button"
     (click)="dropZoneClick()"
-    class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-250 bg-white px-6 py-10 text-center hover:bg-neutral-50/50 transition-colors cursor-pointer"
+    class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-250 bg-white px-6 py-10 text-center hover:bg-neutral-50/50 transition-colors cursor-pointer dark:bg-neutral-900"
   >
     <span class="material-symbols-outlined text-[36px] text-neutral-400">upload_file</span>
-    <span class="text-sm font-semibold text-neutral-900">Choose files</span>
+    <span class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Choose files</span>
     <span class="text-xs text-neutral-400">
       PDF, image or Excel · up to 50 MB each
     </span>
@@ -68,20 +68,20 @@
   @if (items().length > 0) {
     <div class="flex flex-col gap-2">
       @for (item of items(); track item.id) {
-        <div class="flex items-center gap-3 rounded-xl border border-neutral-100 bg-white p-3 shadow-sm">
-          <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
-            <span class="material-symbols-outlined text-[20px] text-neutral-500">
+        <div class="flex items-center gap-3 rounded-xl border border-neutral-100 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
+            <span class="material-symbols-outlined text-[20px] text-neutral-500 dark:text-neutral-400">
               {{ item.file.type.includes('image/') ? 'image' : item.file.name.endsWith('.pdf') ? 'picture_as_pdf' : 'table_chart' }}
             </span>
           </span>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium text-neutral-800">{{ item.file.name }}</p>
+            <p class="truncate text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ item.file.name }}</p>
             <p class="text-xs text-neutral-400 mt-0.5">{{ formatSize(item.file.size) }}</p>
  
             @if (item.status === 'uploading') {
-              <div class="mt-2 h-1 overflow-hidden rounded-full bg-neutral-100">
+              <div class="mt-2 h-1 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
                 <div
-                  class="h-full rounded-full bg-neutral-900 transition-all"
+                  class="h-full rounded-full bg-neutral-900 transition-all dark:bg-neutral-100 dark:text-neutral-900"
                   [style.width.%]="item.progress"
                 ></div>
               </div>
@@ -101,13 +101,13 @@
           @if (item.status === 'pending' || item.status === 'failed') {
             <button
               (click)="removeItem(item.id)"
-              class="flex size-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 cursor-pointer"
+              class="flex size-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 cursor-pointer dark:hover:bg-neutral-800 dark:hover:bg-neutral-800"
               aria-label="Remove file"
             >
               <span class="material-symbols-outlined text-[18px]">close</span>
             </button>
           } @else if (item.status === 'uploading') {
-            <span class="text-xs font-semibold text-neutral-500">{{ item.progress }}%</span>
+            <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">{{ item.progress }}%</span>
           } @else {
             <span class="material-symbols-outlined text-[20px] text-emerald-600">
               {{ item.status === 'success' ? 'check_circle' : 'schedule' }}
@@ -122,7 +122,7 @@
     <button
       (click)="uploadAll()"
       [disabled]="busy()"
-      class="flex h-11 items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-semibold text-white hover:bg-neutral-800 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+      class="flex h-11 items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-semibold text-white hover:bg-neutral-800 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
     >
       @if (busy()) {
         <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
@@ -134,7 +134,7 @@
   @if (allDone()) {
     <button
       (click)="goToDocuments()"
-      class="flex h-11 items-center justify-center gap-2 rounded-lg bg-neutral-100 text-sm font-semibold text-neutral-800 hover:bg-neutral-200 transition-all cursor-pointer"
+      class="flex h-11 items-center justify-center gap-2 rounded-lg bg-neutral-100 text-sm font-semibold text-neutral-800 hover:bg-neutral-200 transition-all cursor-pointer dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
     >
       View my documents
       <span class="material-symbols-outlined text-[18px]">arrow_forward</span>

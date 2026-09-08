@@ -37,10 +37,13 @@ export class ThemeService {
 
   private applyToDom(dark: boolean): void {
     const root = document.documentElement;
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (dark) {
       root.classList.add('dark');
+      metaThemeColor?.setAttribute('content', '#0a0a0a');
     } else {
       root.classList.remove('dark');
+      metaThemeColor?.setAttribute('content', '#fafafa');
     }
   }
 

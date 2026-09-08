@@ -21,11 +21,11 @@
       />
     </div>
   } @else {
-    <div class="flex flex-col gap-2">
+    <div class="responsive-list">
       @for (item of items(); track item.id) {
         <button
           (click)="open(item)"
-          class="flex items-start gap-3 rounded-xl border border-card-border bg-surface-container-lowest p-3 text-left shadow-card"
+          class="flex items-start gap-3 rounded-xl border border-card-border bg-surface-container-lowest p-3 text-left shadow-card h-full"
         >
           <span class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full"
             [class]="item.is_read ? 'bg-surface-variant text-on-surface-variant' : 'bg-report-ready-bg text-report-ready'">

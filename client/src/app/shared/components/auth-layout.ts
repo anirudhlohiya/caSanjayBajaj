@@ -5,39 +5,33 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex min-h-dvh flex-col bg-neutral-50">
-      <!-- Hero header — unified branding across all auth screens -->
-      <div class="relative overflow-hidden bg-neutral-950 px-6 pb-16 pt-10 text-white">
-        <div class="flex flex-col items-center gap-3">
-          <div class="flex size-20 items-center justify-center rounded-full overflow-hidden shrink-0 shadow-lg ring-2 ring-white/20">
-            <img
-              src="/logo-login.png"
-              alt="S N Bajaj And Co Logo"
-              class="h-full w-full object-cover"
-              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
-            />
-            <span class="material-symbols-outlined text-white text-[26px] items-center justify-center" style="display:none">account_balance</span>
-          </div>
-          <div class="text-center">
-            <h1 class="text-lg font-bold tracking-tight">S N Bajaj And Co</h1>
-            <p class="text-xs text-white/60 mt-0.5">Chartered Accountants</p>
-          </div>
+    <div class="bg-surface-container-lowest text-on-surface font-geist min-h-dvh flex flex-col items-center justify-center antialiased w-full">
+      <div class="w-full max-w-md px-4 sm:px-0">
+        <!-- Logo -->
+        <div class="flex justify-center mb-8">
+          <img alt="S N Bajaj And Co Logo" class="h-24 sm:h-32 w-auto object-contain" src="/logo.jfif" onerror="this.src='/logo-login.png'">
         </div>
-        <p class="mt-6 text-center text-2xl font-bold tracking-tight">{{ heroTitle() }}</p>
-        <p class="mt-1 text-center text-sm text-white/70">{{ heroSubtitle() }}</p>
-      </div>
-
-      <div class="-mt-8 flex-1 rounded-t-3xl bg-white px-6 pt-8 shadow-xl">
-        <ng-content></ng-content>
-        <p class="mt-6 pb-6 text-center text-xs text-neutral-400">
-          Provided to you by
-          <span class="font-semibold text-neutral-600">S N Bajaj And Co</span>
-        </p>
+        
+        <!-- Auth Container -->
+        <div class="bg-canvas-soft border border-hairline rounded-lg p-6 sm:p-8 shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] dark:shadow-none w-full">
+          @if (heroTitle()) {
+            <h1 class="font-geist font-semibold text-2xl tracking-[-0.96px] text-center mb-2">{{ heroTitle() }}</h1>
+          }
+          @if (heroSubtitle()) {
+            <p class="font-geist text-sm text-on-surface-variant text-center mb-6">{{ heroSubtitle() }}</p>
+          }
+          
+          <ng-content></ng-content>
+        </div>
+        
+        <footer class="mt-8 text-center">
+          <p class="font-geist-mono text-xs tracking-wider text-secondary">Provided to you by S N Bajaj And Co</p>
+        </footer>
       </div>
     </div>
   `,
 })
 export class AuthLayout {
-  readonly heroTitle = input.required<string>();
-  readonly heroSubtitle = input.required<string>();
+  readonly heroTitle = input<string>();
+  readonly heroSubtitle = input<string>();
 }

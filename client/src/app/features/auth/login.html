@@ -1,54 +1,64 @@
-<app-auth-layout heroTitle="Welcome back" heroSubtitle="Sign in to your GST client portal">
+<app-auth-layout heroTitle="Sign in to your account." heroSubtitle="Enter your email and password below to log in.">
   <app-toast-container />
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
     @if (error()) {
-      <div class="flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2.5 text-xs text-red-700">
+      <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">
         <span class="material-symbols-outlined text-[16px]">error</span>
         <span>{{ error() }}</span>
       </div>
     }
 
-    <label class="flex flex-col gap-1.5">
-      <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Email</span>
+    <!-- Email Input -->
+    <div class="flex flex-col gap-1">
+      <label class="font-geist-mono text-xs tracking-wider text-secondary" for="email">Email address</label>
       <input
         formControlName="email"
+        id="email"
         type="email"
         autocomplete="email"
-        placeholder="you@example.com"
-        class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
+        placeholder="john@example.com"
+        class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
       />
-    </label>
+    </div>
 
-    <label class="flex flex-col gap-1.5">
-      <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Password</span>
+    <!-- Password Input -->
+    <div class="flex flex-col gap-1">
+      <div class="flex justify-between items-center">
+        <label class="font-geist-mono text-xs tracking-wider text-secondary" for="password">Password</label>
+        <a routerLink="/forgot-password" class="font-geist text-sm text-link hover:underline dark:text-blue-400">Forgot password?</a>
+      </div>
       <input
         formControlName="password"
+        id="password"
         type="password"
         autocomplete="current-password"
-        placeholder="Your password"
-        class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
+        placeholder="••••••••"
+        class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
       />
-    </label>
+    </div>
 
     @if (form.controls.email.touched && form.controls.email.invalid) {
-      <p class="text-xs text-red-600">Enter a valid email address.</p>
+      <p class="font-geist text-xs text-error">Enter a valid email address.</p>
     }
 
+    <!-- Sign In Button -->
     <button
       type="submit"
       [disabled]="form.invalid || loading()"
-      class="mt-2 flex h-11 items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
+      class="flex justify-center items-center gap-2 w-full bg-primary text-on-primary font-geist text-sm font-medium rounded-full py-[10px] mt-2 hover:bg-tertiary-container transition-colors active:scale-[0.98] disabled:opacity-50 cursor-pointer dark:bg-white dark:text-black dark:hover:bg-neutral-200"
     >
       @if (loading()) {
-        <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+        <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white dark:border-black/40 dark:border-t-black"></span>
       }
-      Sign in
+      Sign In
     </button>
-
-    <div class="mt-2 flex items-center justify-between text-xs">
-      <a routerLink="/forgot-password" class="font-medium text-neutral-500 hover:text-neutral-900 hover:underline">Forgot password?</a>
-      <a routerLink="/signup" class="font-semibold text-neutral-900 hover:underline">Create account →</a>
-    </div>
   </form>
+
+  <div class="mt-6 pt-4 border-t border-hairline text-center dark:border-hairline-strong">
+    <p class="font-geist text-sm text-on-surface-variant">
+      Don't have an account? 
+      <a routerLink="/signup" class="text-primary font-medium hover:underline dark:text-white">Sign up</a>.
+    </p>
+  </div>
 </app-auth-layout>

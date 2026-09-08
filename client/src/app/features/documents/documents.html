@@ -1,12 +1,12 @@
 <div class="flex flex-col gap-5 pb-10">
   <div>
-    <h1 class="text-xl font-bold tracking-tight text-neutral-950">Documents</h1>
-    <p class="text-sm text-neutral-500 mt-1">
+    <h1 class="text-xl font-bold tracking-tight text-neutral-950 dark:text-white">Documents</h1>
+    <p class="text-sm text-neutral-500 mt-1 dark:text-neutral-400">
       {{ total() }} document{{ total() === 1 ? '' : 's' }} · {{ filteredLabel() }}
     </p>
   </div>
 
-  <div class="flex flex-col gap-3">
+  <div class="responsive-toolbar">
     <div class="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none">
       @for (chip of filterChips; track chip.key) {
         <button
@@ -26,7 +26,7 @@
     <select
       [ngModel]="periodId()"
       (ngModelChange)="setPeriod($event)"
-      class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
+      class="h-11 min-w-0 flex-1 sm:max-w-56 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
     >
       <option value="">All filing periods</option>
       @for (period of periods(); track period.id) {
@@ -45,17 +45,17 @@
       />
     </div>
   } @else {
-    <div class="flex flex-col gap-2">
+    <div class="responsive-list">
       @for (doc of docs(); track doc.id) {
         <button
           (click)="selectDoc(doc)"
-          class="card p-4 flex items-center gap-3 text-left w-full cursor-pointer"
+          class="card p-4 flex items-center gap-3 text-left w-full cursor-pointer h-full"
         >
-          <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
-            <span class="material-symbols-outlined text-[20px] text-neutral-500">{{ fileIcon(doc) }}</span>
+          <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
+            <span class="material-symbols-outlined text-[20px] text-neutral-500 dark:text-neutral-400">{{ fileIcon(doc) }}</span>
           </span>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-semibold text-neutral-900">{{ doc.original_filename }}</p>
+            <p class="truncate text-sm font-semibold text-neutral-900 dark:text-neutral-100">{{ doc.original_filename }}</p>
             <p class="text-xs text-neutral-400 mt-0.5">
               {{ periodLabel(doc.filing_period) }} · {{ fileSize(doc.file_size_bytes) }}
             </p>
@@ -73,7 +73,7 @@
         <button
           (click)="prevPage()"
           [disabled]="page() <= 1"
-          class="rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-100 disabled:opacity-40 cursor-pointer"
+          class="rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-100 disabled:opacity-40 cursor-pointer dark:text-neutral-100 dark:hover:bg-neutral-800 dark:hover:bg-neutral-800"
         >
           Previous
         </button>
@@ -83,7 +83,7 @@
         <button
           (click)="nextPage()"
           [disabled]="page() * pageSize >= total()"
-          class="rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-100 disabled:opacity-40 cursor-pointer"
+          class="rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-100 disabled:opacity-40 cursor-pointer dark:text-neutral-100 dark:hover:bg-neutral-800 dark:hover:bg-neutral-800"
         >
           Next
         </button>
@@ -94,40 +94,40 @@
 
 @if (selectedDoc(); as doc) {
   <div class="fixed inset-0 z-40 bg-neutral-950/40 backdrop-blur-sm" (click)="closeDoc()"></div>
-  <div class="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md rounded-t-2xl bg-white border-t border-neutral-100 shadow-xl">
+  <div class="responsive-sheet fixed inset-x-0 bottom-0 z-50 w-full max-w-md mx-auto rounded-t-2xl bg-white border-t border-neutral-100 shadow-xl dark:bg-neutral-900 dark:border-neutral-800">
     <div class="mx-auto mt-2.5 h-1.5 w-12 rounded-full bg-neutral-200"></div>
     <div class="p-5">
       <div class="flex items-start gap-3">
-        <span class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
-          <span class="material-symbols-outlined text-[24px] text-neutral-500">{{ fileIcon(doc) }}</span>
+        <span class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
+          <span class="material-symbols-outlined text-[24px] text-neutral-500 dark:text-neutral-400">{{ fileIcon(doc) }}</span>
         </span>
         <div class="min-w-0 flex-1">
-          <p class="break-words text-sm font-semibold text-neutral-950 mt-0.5">{{ doc.original_filename }}</p>
+          <p class="break-words text-sm font-semibold text-neutral-950 mt-0.5 dark:text-white">{{ doc.original_filename }}</p>
           <div class="mt-2">
             <app-status-chip [status]="doc.status" />
           </div>
         </div>
-        <button (click)="closeDoc()" class="flex size-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 cursor-pointer">
+        <button (click)="closeDoc()" class="flex size-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 cursor-pointer dark:hover:bg-neutral-800 dark:hover:bg-neutral-800">
           <span class="material-symbols-outlined text-[20px]">close</span>
         </button>
       </div>
 
-      <dl class="mt-5 grid grid-cols-2 gap-4 text-sm border-t border-neutral-100 pt-4">
+      <dl class="mt-5 grid grid-cols-2 gap-4 text-sm border-t border-neutral-100 pt-4 dark:border-neutral-800">
         <div>
           <dt class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Filing period</dt>
-          <dd class="mt-1 font-medium text-neutral-800">{{ periodLabel(doc.filing_period) }}</dd>
+          <dd class="mt-1 font-medium text-neutral-800 dark:text-neutral-200">{{ periodLabel(doc.filing_period) }}</dd>
         </div>
         <div>
           <dt class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Size</dt>
-          <dd class="mt-1 font-medium text-neutral-800">{{ fileSize(doc.file_size_bytes) }}</dd>
+          <dd class="mt-1 font-medium text-neutral-800 dark:text-neutral-200">{{ fileSize(doc.file_size_bytes) }}</dd>
         </div>
         <div>
           <dt class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Uploaded</dt>
-          <dd class="mt-1 font-medium text-neutral-800">{{ doc.uploaded_at | date: 'd MMM yyyy, h:mm a' }}</dd>
+          <dd class="mt-1 font-medium text-neutral-800 dark:text-neutral-200">{{ doc.uploaded_at | date: 'd MMM yyyy, h:mm a' }}</dd>
         </div>
         <div>
           <dt class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Processed</dt>
-          <dd class="mt-1 font-medium text-neutral-800">
+          <dd class="mt-1 font-medium text-neutral-800 dark:text-neutral-200">
             {{ doc.processed_at ? (doc.processed_at | date: 'd MMM yyyy') : '—' }}
           </dd>
         </div>

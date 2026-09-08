@@ -1,7 +1,7 @@
 <div class="flex min-h-dvh flex-col bg-surface">
   <app-page-header title="New Support Ticket" subtitle="Describe your request and we'll respond promptly" [back]="true" />
 
-  <div class="flex-1 px-6 pb-8">
+  <div class="mx-auto w-full max-w-2xl flex-1 px-6 pb-8">
     @if (error()) {
       <div class="mb-4 flex items-center gap-2 rounded-lg border border-error/20 bg-error-container px-3 py-2.5 text-body-md text-on-error-container">
         <span class="material-symbols-outlined text-[18px]">error</span>

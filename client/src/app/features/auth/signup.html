@@ -2,7 +2,7 @@
   <app-toast-container />
 
   @if (error()) {
-    <div class="mb-4 flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2.5 text-xs text-red-700">
+    <div class="mb-6 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">
       <span class="material-symbols-outlined text-[18px]">error</span>
       <span>{{ error() }}</span>
     </div>
@@ -10,37 +10,38 @@
 
   <!-- STEP 1: Email Form -->
   @if (step() === 'email') {
-    <form [formGroup]="emailForm" (ngSubmit)="requestOtp()" class="flex flex-col gap-4">
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Email</span>
+    <form [formGroup]="emailForm" (ngSubmit)="requestOtp()" class="flex flex-col gap-6">
+      <div class="flex flex-col gap-1">
+        <label class="font-geist-mono text-xs tracking-wider text-secondary" for="email">Email address</label>
         <input
           formControlName="email"
+          id="email"
           type="email"
           autocomplete="email"
           placeholder="you@example.com"
-          class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
+          class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
         />
-      </label>
+      </div>
 
       @if (emailForm.controls.email.touched && emailForm.controls.email.invalid) {
-        <p class="text-xs text-red-600">Enter a valid email address.</p>
+        <p class="font-geist text-xs text-error -mt-4">Enter a valid email address.</p>
       }
 
       <button
         type="submit"
         [disabled]="emailForm.invalid || loading()"
-        class="mt-2 flex h-11 items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
+        class="flex justify-center items-center gap-2 w-full bg-primary text-on-primary font-geist text-sm font-medium rounded-full py-[10px] hover:bg-tertiary-container transition-colors active:scale-[0.98] disabled:opacity-50 cursor-pointer dark:bg-white dark:text-black dark:hover:bg-neutral-200"
       >
         @if (loading()) {
-          <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+          <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white dark:border-black/40 dark:border-t-black"></span>
         }
         Send Verification OTP
       </button>
 
-      <div class="mt-4 text-center">
-        <p class="text-xs text-neutral-500">
+      <div class="text-center pt-2">
+        <p class="font-geist text-sm text-on-surface-variant">
           Already have an account?
-          <a routerLink="/login" class="font-semibold text-neutral-900 hover:underline">Sign in</a>
+          <a routerLink="/login" class="text-primary font-medium hover:underline dark:text-white">Sign in</a>
         </p>
       </div>
     </form>
@@ -49,87 +50,103 @@
   <!-- STEP 2: Verification and Signup Form -->
   @if (step() === 'verify') {
     <form [formGroup]="signupForm" (ngSubmit)="verifyAndSignup()" class="flex flex-col gap-4">
-      <div class="flex items-center justify-between">
-        <span class="text-xs text-neutral-500">Verifying: <strong class="text-neutral-900">{{ emailForm.controls.email.value }}</strong></span>
-        <button type="button" (click)="backToEmail()" class="text-xs font-semibold text-neutral-900 hover:underline flex items-center gap-1 cursor-pointer">
-          <span class="material-symbols-outlined text-[16px]">edit</span> Edit
-        </button>
+      
+      <!-- OTP Section -->
+      <div class="p-4 bg-canvas-inset border border-hairline rounded-lg mb-2 dark:bg-surface-container dark:border-hairline-strong">
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-geist-mono text-xs tracking-wider text-secondary uppercase">Email Verification</span>
+          <button type="button" (click)="backToEmail()" class="font-geist-mono text-xs font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer dark:text-white">
+            <span class="material-symbols-outlined text-[16px]">edit</span> Edit
+          </button>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="font-geist text-sm text-on-surface-variant">Verifying: <strong class="text-on-surface">{{ emailForm.controls.email.value }}</strong></span>
+          <input
+            formControlName="otp_code"
+            type="text"
+            pattern="[0-9]*"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="000000"
+            class="w-full h-12 mt-2 text-center text-xl tracking-[8px] bg-surface-container-lowest border border-hairline rounded px-3 font-geist text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
+          />
+        </div>
       </div>
 
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">6-Digit OTP Code</span>
-        <input
-          formControlName="otp_code"
-          type="text"
-          pattern="[0-9]*"
-          inputmode="numeric"
-          maxlength="6"
-          placeholder="000000"
-          class="h-11 text-center text-lg tracking-[6px] rounded-md border border-neutral-200 bg-neutral-50 px-3 text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
-        />
-      </label>
-
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Full Name</span>
+      <div class="flex flex-col gap-1">
+        <label class="font-geist-mono text-xs tracking-wider text-secondary" for="name">Full Name</label>
         <input
           formControlName="name"
+          id="name"
           type="text"
-          placeholder="John Doe"
-          class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
+          placeholder="Jane Doe"
+          class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
         />
-      </label>
+      </div>
 
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Phone Number (Optional)</span>
-        <input
-          formControlName="phone"
-          type="tel"
-          placeholder="+91 98765 43210"
-          class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
-        />
-      </label>
+      <div class="flex flex-col gap-1">
+        <label class="font-geist-mono text-xs tracking-wider text-secondary" for="phone">Phone Number (Optional)</label>
+        <div class="flex bg-surface-container-lowest border border-hairline rounded overflow-hidden dark:bg-surface-container dark:border-hairline-strong focus-within:ring-1 focus-within:ring-primary focus-within:border-primary dark:focus-within:ring-white dark:focus-within:border-white transition-shadow">
+          <div class="flex items-center justify-center px-3 border-r border-hairline bg-canvas-inset font-geist text-sm text-secondary dark:bg-surface-container dark:border-hairline-strong">
+            +91
+          </div>
+          <input
+            formControlName="phone"
+            id="phone"
+            type="tel"
+            placeholder="98765 43210"
+            class="w-full px-3 py-[10px] bg-transparent border-none text-on-surface focus:ring-0 font-geist text-sm placeholder:text-outline-variant outline-none dark:text-on-surface"
+          />
+        </div>
+      </div>
 
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">GSTIN (Optional)</span>
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between items-center">
+          <label class="font-geist-mono text-xs tracking-wider text-secondary" for="gstin">GSTIN</label>
+          <span class="font-geist-mono text-[10px] text-outline px-2 py-1 bg-surface-container rounded-sm uppercase dark:bg-surface-container-highest">Optional</span>
+        </div>
         <input
           formControlName="gstin"
+          id="gstin"
           type="text"
           maxlength="15"
           placeholder="29ABCDE1234F1Z5"
-          class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm font-mono text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
+          class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant uppercase dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
         />
-        <span class="text-xs text-neutral-400">Enter your 15-character GSTIN if you are a GST-registered business</span>
-      </label>
+      </div>
 
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Password</span>
-        <input
-          formControlName="password"
-          type="password"
-          placeholder="At least 8 characters"
-          class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
-        />
-      </label>
-
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Confirm Password</span>
-        <input
-          formControlName="confirm_password"
-          type="password"
-          placeholder="Repeat password"
-          class="h-11 rounded-md border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-800 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50"
-        />
-      </label>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+        <div class="flex flex-col gap-1">
+          <label class="font-geist-mono text-xs tracking-wider text-secondary" for="password">Password</label>
+          <input
+            formControlName="password"
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
+          />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-geist-mono text-xs tracking-wider text-secondary" for="confirm_password">Confirm</label>
+          <input
+            formControlName="confirm_password"
+            id="confirm_password"
+            type="password"
+            placeholder="••••••••"
+            class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
+          />
+        </div>
+      </div>
 
       <button
         type="submit"
         [disabled]="signupForm.invalid || loading()"
-        class="mt-2 flex h-11 items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
+        class="flex justify-center items-center gap-2 w-full bg-primary text-on-primary font-geist text-sm font-medium rounded-full py-[10px] mt-4 hover:bg-tertiary-container transition-colors active:scale-[0.98] disabled:opacity-50 cursor-pointer dark:bg-white dark:text-black dark:hover:bg-neutral-200"
       >
         @if (loading()) {
-          <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+          <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white dark:border-black/40 dark:border-t-black"></span>
         }
-        Verify &amp; Register
+        Verify & Register
       </button>
     </form>
   }

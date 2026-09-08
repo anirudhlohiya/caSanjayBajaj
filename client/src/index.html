@@ -4,16 +4,23 @@
   <meta charset="utf-8">
   <title>S N BAJAJ AND CO</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#001433">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="S N BAJAJ AND CO">
+  <meta name="mobile-web-app-capable" content="yes">
 </head>
 <body>
   <app-root></app-root>
   <noscript>Please enable JavaScript to continue using this application.</noscript>
+  <script>
+    // Lock to portrait orientation if Screen Orientation API is available
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('portrait').catch(function() {});
+    }
+  </script>
 </body>
 </html>
