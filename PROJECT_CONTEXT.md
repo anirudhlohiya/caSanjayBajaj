@@ -182,10 +182,11 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   Admin replies trigger in-app notification + email (when SES production access granted).
   File attachments uploaded via pre-signed S3 URLs.
 - Seed (`npm run seed`): super admin from env + test client
-  `client.test@snbajaj.com` (password `12345678`, set by user) + current+next-2
-  filing periods (due 11th of following month). Test client is a REAL test account the
-  user uses; do not delete. (Renamed from a personal gmail address Aug 25 2026; prod DB
-  row updated to match.)
+  `client.test@snbajaj.com` (password `Client@2026`, defined in
+  `backend/src/database/seed.ts` — NOT `12345678` as earlier docs said; the seed source
+  is authoritative) + current+next-2 filing periods (due 11th of following month).
+  Test client is a REAL test account the user uses; do not delete. (Renamed from a
+  personal gmail address Aug 25 2026; prod DB row updated to match.)
 - Pagination everywhere: `{items,total,page,pageSize,totalPages}`; snake_case filters.
 
 ## 7. Security posture (as of Phase 5 hardening)
@@ -399,6 +400,27 @@ uses live in `website/public/images`; content fully migrated). SEO done: meta/OG
   - Fixed top app bar logo cropping: `shell.html:22` added `p-1` + `h-full w-full object-contain` + `shrink-0` so `logo-icon.png` auto-fits container (no square clipping). Same pattern in `auth-layout.ts:7`.
   - Fixed truncated subtitle on Support (`Get help with your doc…`): `client/src/app/shared/components/page-header.ts:8` removed `truncate` on subtitle, changed to `text-wrap` / `leading-snug` (`text-sm text-neutral-500`), title to `text-xl font-bold tracking-tight`, and wrapped `ng-content` in `shrink-0` div with parent `gap-3` + `min-w-0 flex-1` for proper flex constraints.
   - Normalized `client/src/styles.css:7` typography tokens per prompt spec: Screen Titles `24px bold` (`--text-headline-md 24px 700`), Subheadings `14px muted`, Section Headers `12px uppercase semibold tracking-wider` (`--text-label-lg 12px 600 0.05em`), Body `14px regular`, Badge `11px medium` (`--text-label-md`). `headline-md` weight `600→700`. Build verified: `client` `ng build` + `patch-sw.js` green (16.1s).
+
+- **Client PWA Dark Mode Fix (Sep 8 2026)**:
+  - Fixed a CSS specificity bug where light mode `.card` in `@layer components` aggressively overrode the dark mode `.dark .card` in `@layer base`. Moved `.dark .card` to `@layer components` to restore dark background and borders.
+  - Added `@custom-variant dark (&:is(.dark, .dark *));` to `styles.css` to enable Tailwind v4 class strategy toggle (since the app relies on dynamic `.dark` class rather than OS `prefers-color-scheme`).
+  - Automated injection of `dark:` utility classes (e.g., `dark:bg-neutral-900`, `dark:text-white`) across ALL 14 HTML screens in the client portal via `scripts/fix-dark-mode.js`. **Crucial Rule**: Tailwind v4 class-based dark mode requires explicitly defining both states if variables are not used. Always use `dark:` variants when hardcoding Tailwind colors to ensure dark mode works.
+  - Synced `<meta name="theme-color">` dynamically in `theme.service.ts` so the Android WebView status bar adapts cleanly to dark/light mode toggles.
+
+- **Device-Responsive PWA + Portrait Lock (Sep 8 2026)**:
+  - Made the Client PWA fully device-friendly — responsive on ANY screen size (phone, tablet, desktop, web browser, Android WebView). Removed the old `max-w-md` (448px) narrow-column constraint that kept the app in a phone-width column on larger screens.
+  - Shell (`client/src/app/features/shell/shell.html`) now uses `max-w-5xl` (1024px) for the content container; header, main content, and bottom nav all align within it. Content area and nav adapt fluidly.
+  - Feature pages use responsive grid classes (`responsive-list`, `responsive-toolbar`) for multi-column layouts on ≥768px/≥1024px viewports — documents, reports, support tickets, notifications render in 2-column grids on tablets/desktops.
+  - Profile, Settings, Upload, New Ticket, Ticket Detail pages constrain to `max-w-2xl` (672px) for comfortable reading/writing on wide screens.
+  - CSS utilities added in `client/src/styles.css`: `.app-shell-container`, `.app-bottom-nav`, `.responsive-grid`, `.responsive-list`, `.responsive-toolbar`, `.responsive-sheet` (bottom-sheet modals become centered dialogs on ≥640px).
+  - **Portrait lock**:
+    - Android: `android:screenOrientation="portrait"` added to `MainActivity` in `android-wrapper/app/src/main/AndroidManifest.xml`.
+    - PWA: `"orientation": "portrait"` added to `client/public/manifest.webmanifest`; `screen.orientation.lock('portrait')` called in `client/src/index.html` (fallback silently on unsupported).
+- **Local phone testing on same Wi-Fi (Sep 8 2026)**:
+  - Dev client PWA base URL is overridable ONLY via `client/src/environments/environment.ts` (built in at compile time — dev server auto-reloads on save). It was changed from `http://localhost:3000/api/v1` to `http://192.168.31.26:3000/api/v1` (the dev machine's LAN IP at the time) so a phone on the same Wi-Fi can reach the local API. If the machine's LAN IP changes (`Get-NetIPConfiguration`), update this file again and save.
+  - To expose the Angular dev server to the LAN it MUST be started with `--host 0.0.0.0` (default binds loopback only). Example: `cd client; npx ng serve --host 0.0.0.0 --port 56191`. Backend (NestJS `app.listen()`) already binds 0.0.0.0 by default — reachable at `http://<PC-LAN-IP>:3000`.
+  - Windows Firewall: if Wi-Fi profile is **Public** (Windows default for new networks), inbound to Node is usually blocked. Needs an ADMIN PowerShell: `New-NetFirewallRule -DisplayName "SN Bajaj Node Dev" -Direction Inbound -Action Allow -Protocol TCP -Program "C:\Program Files\nodejs\node.exe" -Profile Any`. (Non-admin attempts fail with "Access is denied".)
+  - Phone then loads the app at `http://<PC-LAN-IP>:56191`. NOTE: `http://192.168.x.x` is NOT a secure context → web push/notifications will not work there (see docs/09 §10); document upload/download (S3 via signed URLs) still works. OTP signup/forgot-password emails won't arrive (SES sandbox) — use the seeded password login instead.
 
 ## 10. Open items
 

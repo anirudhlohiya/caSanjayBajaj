@@ -443,6 +443,36 @@ npx http-server dist/client/browser -p 8080
 
 ---
 
+## 9.5 Phone testing on the same Wi-Fi
+
+To exercise the client PWA (and the responsive/mobile-first UI) on a real phone rather
+than desktop devtools:
+
+1. Find your PC's LAN IP (PowerShell): `Get-NetIPConfiguration | ? {$_.IPv4DefaultGateway} | % {$_.IPv4Address.IPAddress}` (e.g. `192.168.31.26`).
+2. Point the client at that IP instead of `localhost`: edit
+   `client/src/environments/environment.ts` → `apiBaseUrl: 'http://<LAN-IP>:3000/api/v1'`
+   (saved change auto-reloads the dev server). The backend already listens on `0.0.0.0`.
+3. Start the Angular dev server bound to all interfaces:
+   `cd client ; npx ng serve --host 0.0.0.0 --port 56191`
+   (default `ng serve` binds loopback only — the phone can't reach it otherwise).
+4. On the phone, open `http://<LAN-IP>:56191` (same Wi-Fi). Login with the seeded client:
+   `client.test@snbajaj.com` / `Client@2026`.
+5. If the phone cannot connect at all, the Wi-Fi profile is likely **Public** and the
+   Windows Firewall is blocking inbound Node. From an **Administrator** PowerShell:
+   `New-NetFirewallRule -DisplayName "SN Bajaj Node Dev" -Direction Inbound -Action Allow
+   -Protocol TCP -Program "C:\Program Files\nodejs\node.exe" -Profile Any`.
+
+Limitations of LAN-IP testing:
+- `http://192.168.x.x` is not a secure context → browser **push notifications won't work**
+  there. Everything else (login, documents, reports, tickets, S3 uploads/downloads) works.
+- OTP signup / forgot-password emails still won't arrive while SES is sandboxed — use the
+  seeded password login above.
+- `screen.orientation.lock()` in `index.html` only applies in PWA standalone mode; in a
+  plain mobile browser tab it's ignored (the manifest `orientation:"portrait"` applies
+  once installed).
+
+---
+
 ## 10. Troubleshooting
 
 | Symptom | Cause / fix |
