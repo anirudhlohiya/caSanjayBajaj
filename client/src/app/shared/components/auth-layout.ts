@@ -9,7 +9,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       <div class="w-full max-w-md px-4 sm:px-0">
         <!-- Logo -->
         <div class="flex justify-center mb-8">
-          <img alt="S N Bajaj And Co Logo" class="h-24 sm:h-32 w-auto object-contain" src="/logo.jfif" onerror="this.src='/logo-login.png'">
+          <img alt="S N Bajaj And Co Logo" class="h-24 sm:h-32 w-auto object-contain" src="/logo-transparent.png" onerror="this.src='/logo-login.png'">
         </div>
         
         <!-- Auth Container -->

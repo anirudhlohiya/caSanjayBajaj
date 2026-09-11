@@ -17,6 +17,7 @@ import { Ticket } from './ticket.entity';
 import { TicketMessage } from './ticket-message.entity';
 import { TicketAttachment } from './ticket-attachment.entity';
 import { User } from './user.entity';
+import { RentAgreement } from './rent-agreement.entity';
 
 export const entities = [
   User,
@@ -38,6 +39,7 @@ export const entities = [
   Ticket,
   TicketMessage,
   TicketAttachment,
+  RentAgreement,
 ];
 
 export {
@@ -59,5 +61,6 @@ export {
   Ticket,
   TicketMessage,
   TicketAttachment,
+  RentAgreement,
   User,
 };

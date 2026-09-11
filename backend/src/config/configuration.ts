@@ -70,4 +70,11 @@ export default () => ({
     leadNotifyEmail:
       process.env.WEBSITE_LEAD_NOTIFY_EMAIL ?? 'casnbajaj2015@gmail.com',
   },
+
+  onlyOffice: {
+    enabled: process.env.ONLYOFFICE_ENABLED === 'true',
+    serverUrl: process.env.ONLYOFFICE_SERVER_URL ?? '',
+    jwtSecret: process.env.ONLYOFFICE_JWT_SECRET ?? '',
+    apiBaseUrl: process.env.API_BASE_URL ?? 'http://localhost:3000',
+  },
 });

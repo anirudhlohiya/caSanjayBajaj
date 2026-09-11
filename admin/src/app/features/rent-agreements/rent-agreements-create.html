@@ -1,0 +1,190 @@
+<app-page-header [title]="agreementId() ? 'Edit Rent Agreement' : 'Create Rent Agreement'" subtitle="Fill in the dynamic fields to generate the document">
+  <button class="btn-outline mr-2" routerLink="/rent-agreements">
+    Cancel
+  </button>
+  <button class="btn-outline mr-2" [disabled]="saving()" (click)="save('draft')">
+    <span class="material-symbols-outlined mr-1" style="font-size: 18px">save</span>
+    Save Draft
+  </button>
+  <button class="btn-outline mr-2" [disabled]="saving()" (click)="preview()">
+    <span class="material-symbols-outlined mr-1" style="font-size: 18px">visibility</span>
+    Preview
+  </button>
+  <button class="btn-outline mr-2" [disabled]="saving()" (click)="openOffice()">
+    <span class="material-symbols-outlined mr-1" style="font-size: 18px">edit_note</span>
+    Edit in Word
+  </button>
+  <button class="btn-primary" [disabled]="saving()" (click)="save('generated')">
+    <span class="material-symbols-outlined mr-1" style="font-size: 18px">download</span>
+    Generate & Download DOCX
+  </button>
+</app-page-header>
+
+<div class="card overflow-hidden">
+  @if (loading()) {
+    <app-spinner />
+  } @else {
+    <div class="p-4 md:p-6">
+      <form [formGroup]="form" class="mb-8 border-b border-outline-variant pb-6">
+        <label class="font-label-md text-label-md text-on-surface block mb-2" for="template_id">Select Agreement Template</label>
+        <select id="template_id" formControlName="template_id"
+          class="w-full md:w-1/2 px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+          @for (t of templates(); track t.id) {
+            <option [value]="t.id">{{ t.name }} ({{ t.language }})</option>
+          }
+        </select>
+        @if (selectedTemplate()) {
+          <p class="text-xs text-on-surface-variant mt-2">{{ selectedTemplate()?.description }}</p>
+        }
+      </form>
+
+      @if (selectedTemplate()) {
+        <form [formGroup]="dynamicForm" class="flex flex-col gap-8">
+          @for (section of sections(); track section.name) {
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+              <div class="bg-surface-container-low px-4 py-3 border-b border-outline-variant">
+                <h3 class="font-title-md text-title-md text-on-surface">{{ section.name }}</h3>
+              </div>
+              <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                @for (field of section.fields; track field.key) {
+                  @if (field.type !== 'array') {
+                    <div class="flex flex-col gap-1" [class.md:col-span-2]="field.type === 'multiline'">
+                      <label class="font-label-md text-label-md text-on-surface" [for]="field.key">
+                        {{ field.label }}
+                        @if (field.required) { <span class="text-error">*</span> }
+                      </label>
+                    
+                    @if (field.type === 'text' || field.type === 'number' || field.type === 'date' || field.type === 'currency') {
+                      <input [id]="field.key" [formControlName]="field.key" [type]="field.type === 'number' || field.type === 'currency' ? 'number' : field.type === 'date' ? 'date' : 'text'"
+                        class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+                        [class.border-error]="dynamicForm.get(field.key)?.touched && dynamicForm.get(field.key)?.invalid"
+                      />
+                    }
+                    
+                    @if (field.type === 'multiline') {
+                      <textarea [id]="field.key" [formControlName]="field.key" rows="3"
+                        class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+                        [class.border-error]="dynamicForm.get(field.key)?.touched && dynamicForm.get(field.key)?.invalid"
+                      ></textarea>
+                    }
+
+                    @if (field.type === 'select' && field.options) {
+                      <select [id]="field.key" [formControlName]="field.key"
+                        class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim">
+                        @for (opt of field.options; track opt.value) {
+                          <option [value]="opt.value">{{ opt.label }}</option>
+                        }
+                      </select>
+                    }
+
+                    @if (dynamicForm.get(field.key)?.touched && dynamicForm.get(field.key)?.invalid) {
+                      <span class="text-error text-body-sm">{{ field.label }} is required</span>
+                    }
+                  </div>
+                  }
+
+                  @if (field.type === 'array' && field.arrayFields) {
+                    <div class="col-span-1 md:col-span-2 mt-2" [formArrayName]="field.key">
+                      @for (ctrl of getArrayControls(field.key); track $index) {
+                      <div class="border border-outline-variant rounded-md p-4 mb-4 relative bg-surface-container-lowest" [formGroupName]="$index">
+                        <div class="flex justify-between items-center mb-3">
+                          <h4 class="font-medium text-sm text-on-surface-variant">{{ field.label }} {{ $index + 1 }}</h4>
+                          @if (getArrayControls(field.key).length > 1) {
+                            <button type="button" class="text-error hover:bg-error-container p-1 rounded transition-colors" (click)="removeArrayItem(field.key, $index)">
+                              <span class="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                          }
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          @for (subField of field.arrayFields; track subField.key) {
+                            <div class="flex flex-col gap-1">
+                              <label class="font-label-md text-label-md text-on-surface" [for]="field.key + '_' + $index + '_' + subField.key">
+                                {{ subField.label }} @if (subField.required) { <span class="text-error">*</span> }
+                              </label>
+                              
+                              @if (subField.type === 'text' || subField.type === 'date') {
+                                <input [id]="field.key + '_' + $index + '_' + subField.key" [formControlName]="subField.key" [type]="subField.type === 'date' ? 'date' : 'text'"
+                                  class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+                              }
+                              @if (subField.type === 'select' && subField.options) {
+                                <select [id]="field.key + '_' + $index + '_' + subField.key" [formControlName]="subField.key"
+                                  class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim">
+                                  @for (opt of subField.options; track opt.value) {
+                                    <option [value]="opt.value">{{ opt.label }}</option>
+                                  }
+                                </select>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                    <button type="button" class="btn-outline text-sm" (click)="addArrayItem(field.key, field.arrayFields)">
+                      <span class="material-symbols-outlined text-[16px] mr-1">add</span>
+                      Add {{ field.label }}
+                    </button>
+                  </div>
+                }
+              }
+              </div>
+            </div>
+          }
+        </form>
+      }
+    </div>
+  }
+</div>
+
+@if (showPreviewModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-surface rounded-lg shadow-lg w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container">
+        <div>
+          <h2 class="text-xl font-title-lg text-on-surface">Document Preview</h2>
+          <p class="text-xs text-on-surface-variant mt-0.5">Editable — click into the page and make changes, then download the edited copy</p>
+        </div>
+        <button class="text-on-surface-variant hover:text-on-surface transition-colors" (click)="closePreview()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="px-4 py-3 border-b border-outline-variant bg-surface-container flex flex-wrap items-center gap-1">
+        <button type="button" class="edit-toolbar-btn" (click)="execCommand('bold')" title="Bold"><b>B</b></button>
+        <button type="button" class="edit-toolbar-btn" (click)="execCommand('italic')" title="Italic"><i>I</i></button>
+        <button type="button" class="edit-toolbar-btn" (click)="execCommand('underline')" title="Underline"><u>U</u></button>
+        <span class="mx-1 w-px h-5 bg-outline-variant"></span>
+        <button type="button" class="edit-toolbar-btn" (click)="execCommand('insertUnorderedList')" title="Bullet list">&#8226; List</button>
+        <button type="button" class="edit-toolbar-btn" (click)="execCommand('insertOrderedList')" title="Numbered list">1. List</button>
+        <span class="mx-1 w-px h-5 bg-outline-variant"></span>
+        <button type="button" class="edit-toolbar-btn" (click)="execCommand('justifyLeft')" title="Align left">&#8680;</button>
+        <button type="button" class="edit-toolbar-btn" (click)="execCommand('justifyCenter')" title="Align center">&#8596;</button>
+        <button type="button" class="edit-toolbar-btn" (click)="execCommand('justifyRight')" title="Align right">&#8678;</button>
+        <span class="mx-1 w-px h-5 bg-outline-variant"></span>
+        <button type="button" class="edit-toolbar-btn" (click)="execCommand('undo')" title="Undo">&#8630;</button>
+        <button type="button" class="edit-toolbar-btn" (click)="execCommand('redo')" title="Redo">&#8631;</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1 editor-scroll">
+        <div #editableDoc contenteditable="true" spellcheck="false"
+             class="editable-docx mx-auto"
+             [innerHTML]="previewHtml() ?? ''">
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-outline-variant flex justify-between items-center gap-2 bg-surface-container">
+        <span class="text-xs text-on-surface-variant">Changes apply to the downloaded .docx copy only; the saved form data is unchanged.</span>
+        <div class="flex gap-2">
+          <button class="btn-outline" (click)="closePreview()" [disabled]="converting()">Close</button>
+          <button class="btn-primary" [disabled]="converting()" (click)="downloadEditedDocx()">
+            <span class="material-symbols-outlined mr-1" style="font-size: 18px">{{ converting() ? 'progress_activity' : 'download' }}</span>
+            {{ converting() ? 'Converting…' : 'Download Edited DOCX' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (officeOpen()) {
+  <app-office-editor [agreementId]="agreementId() ?? ''" (closeEvent)="officeOpen.set(false)" />
+}

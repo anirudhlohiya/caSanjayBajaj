@@ -18,6 +18,7 @@ import { AppVersionModule } from './app-version/app-version.module';
 import { WebsiteModule } from './website/website.module';
 import { ServicesOfferedModule } from './services-offered/services-offered.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { RentAgreementsModule } from './rent-agreements/rent-agreements.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -42,6 +43,7 @@ import { HealthController } from './health.controller';
     WebsiteModule,
     ServicesOfferedModule,
     TicketsModule,
+    RentAgreementsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

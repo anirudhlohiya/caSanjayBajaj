@@ -156,8 +156,38 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - Test artifacts cleaned: QA/test-local users deleted from prod DB (only real accounts
     remain); filing periods re-opened after automated sweeps accidentally closed them
     (sweep clicks the lock buttons — reopen via Settings if ever needed).
+- **Auth UI Redesign (Sep 2026) — DONE**:
+  - Completely overhauled the auth screens (Login, Signup, Forgot Password) using a dedicated 
+    Tailwind-based design (Stitch). 
+  - Centralized global brand colors/typography inside `styles.css` using Tailwind v4 `@theme`.
+  - Fully transparent logo loaded cleanly on auth UI. Form validation logic intact.
+- **Phase 9 (Sep 2026) — Automated Rent Agreements (Admin Only) — DONE**:
+  - New table `rent_agreements` (`id, title, description, client_name, client_phone, client_email, start_date, end_date, template_id, status, s3_key, docx_s3_key, created_by`).
+  - Implemented dynamic DOCX template engine using `docxtemplater` and `pizzip`. Templates are defined in `backend/src/rent-agreements/templates/config.ts` with expected fields (text, date, select, multiline, and arrays for loop tags like licensors/licensees).
+  - **Backend**: endpoints `POST /admin/rent-agreements` (generates the filled DOCX from the template, uploads to S3, saves to DB), `GET /admin/rent-agreements` (paginated list), `GET /admin/rent-agreements/:id/download/docx`, `POST /admin/rent-agreements/preview` (HTML preview), and `POST /admin/rent-agreements/convert-to-docx` (edited HTML → DOCX round-trip).
+  - **Admin UI**: new `/rent-agreements` list page and a dynamic creation form at `/rent-agreements/new` that auto-renders inputs (including dynamic FormArrays for licensors/licensees) based on the chosen template's config.
+- **Rent-Agreement fixes (Sep 2026) — DONE (local, NOT yet committed/deployed)**:
+  - **Template repair (`docs/templates/repair-template.js`)**: original `TOWER-1-804.docx` used double braces `{{...}}` but docxtemplater@3.69.3 defaults to single braces — rendered so badly it looked "corrupted". Repaired to `TOWER-1-804-fixed.docx` (single-brace, section tags converted to `{#tags}`/`{/tags}`), now the config target; rendered output verified against real data.
+  - **Corruption bug #2 (frontend download URL)**: `RentAgreementsService.getDownloadUrl()` returned a RELATIVE `/api/v1/...` URL while the admin SPA runs on a different origin than the API in dev (no proxy). The relative path resolved to the admin origin → returned `index.html` → Word reported the file corrupted. FIXED: URL now built from `ApiClient.baseUrl` → `` `${this.api.baseUrl}/admin/rent-agreements/${id}/download/docx` `` (same fix used on both create + list pages; preview already used `baseUrl`).
+  - **Cover/first page missing from preview**: the cover (title, `{PROPERTY_ADDRESS}`, LICENSOR names, LICENSEE names) lives in floating **textboxes** (`wp:wgp > wp:grpSp > wp:wsp > wp:txbx > wne:txbxContent`) which `mammoth` deliberately skips. Replaced mammoth with a custom converter `backend/src/rent-agreements/docx-to-html.ts` (uses `@xmldom/xmldom`): renders paragraphs, runs (b/i/u/strike/size/fonts), tables, `w:br w:type="page"` → `<div class="page-break">`, and textbox content via `appendTextboxBlocks`. Converter bug note: `renderParagraph` must call `renderRun()` directly for `w:r` children (feeding a run to `renderInlineRuns` drops its `w:t` text).
+  - **Cover names were blank**: cover textbox still used the original uppercase `{NAME}` tag while the body uses `{name}` → nullGetter emptied it. FIXED service-side: licensors/licensees map now adds a `NAME` alias (`...person, NAME: person.name`) alongside `abbreviation`/`age`.
+  - **Editable WYSIWYG-ish preview (Sep 2026)**: added `html-to-docx@^1.8.0` (backend). The preview modal became a contenteditable `#editableDoc` A4-style page with a formatting toolbar (execCommand: bold/italic/underline/strike/lists/align/undo/redo) so admins can edit the rendered document on the spot and click **Download Edited DOCX** → `svc.docxFromHtml(html)` (Times New Roman, fontSize 22) → `convert-to-docx` buffer (Word content-type, attachment disposition). Full pipeline E2E-verified on the compiled service: cover + body + page break + names present in preview HTML; edited-docx round-trip is a valid zip preserving the content.
+  - *Known Gotcha*: the base template's floating-textbox layout (page-positioning) is flattened by the HTML converter (cover text renders as flow paragraphs) — acceptable for the editable-preview approach. html-to-docx has NO page-break option, so the exported edited DOCX may compact page structure vs. the original template.
+  - **OnlyOffice self-hosted Word editor (Sep 2026) — IN PROGRESS (backend + admin UI done, NOT yet committed/deployed, needs OnlyOffice Document Server on EC2 + env)**:
+    - Gives a TRUE WYSIWYG Word editor (real page layout incl. textboxes) so admins see exactly what the final DOCX looks like and can edit it directly. This is the recommended integration chosen by the user; the contenteditable preview from the previous fix remains as a lightweight fallback.
+    - **Backend env/config**: `onlyOffice` block in `configuration.ts` + `.env.example` vars — `ONLYOFFICE_ENABLED=false` (gate), `ONLYOFFICE_SERVER_URL=https://office.snbajaj.com` (the Document Server origin the frontend iframe/API script loads from), `ONLYOFFICE_JWT_SECRET=` (leave blank to disable JWT signing of the editor config; if set, the full editor config is JWT-signed and passed as `config.token`), `API_BASE_URL` reused for `onlyOffice.apiBaseUrl` (publicly reachable API origin the Document Server calls back to).
+    - **Entity/migration**: `rent_agreements.edited_docx_s3_key` (varchar 500, nullable) added via `backend/src/database/migrations/1790000000001-AddRentAgreementEditedDocx.ts`; stores the S3 key of the file saved back from the Word editor.
+    - **Endpoints**:
+      - `GET /admin/rent-agreements/:id/office/config` (guarded) → `{ serverUrl, config }` where `config` is the full OnlyOffice `DocsAPI.DocEditor` config (documentType `word`, `document.url` = server-side source URL, `editorConfig.callbackUrl`, JWT token if secret configured). Generates the docx buffer on demand and caches it in an in-memory `officeSessions` Map (key = uuid, 2h TTL).
+      - `GET /admin/rent-agreements/office/source/:key` (unguarded, key = secret uuid) → streams the cached docx buffer to the Document Server.
+      - `POST /admin/rent-agreements/office/callback/:key` (unguarded) → handles OnlyOffice save callbacks (status 2 "ready to save" / 6 "force save"): fetches the edited file from `body.url`, uploads to S3 as `rent-agreements/{id}/edited.docx`, updates `edited_docx_s3_key`, replies `{ error: 0 }`; other statuses reply `{ error: 0 }` (no-op); download failures reply `{ error: 1 }`. New controller `RentAgreementsOfficeController` (separate from the guarded controller so the Document Server can call back without an admin Bearer token).
+      - `GET /admin/rent-agreements/:id/download/docx` now serves the S3-saved edited file first (when `edited_docx_s3_key` is set), falling back to regenerating from `form_data`.
+    - **Admin UI**: new `OfficeEditor` component (`admin/src/app/features/rent-agreements/office-editor.ts`) — modal that loads `{serverUrl}/web-apps/apps/api/documents/api.js`, constructs `new DocsAPI.DocEditor(host, config)`, destroys on close. "Edit in Word" buttons added to both the list page and the create page (create auto-saves a draft if no id yet). Service method `RentAgreementsService.getOfficeConfig(id)`.
+    - **Verification**: compiled-service unit test (`C:\Users\Admin\AppData\Local\Temp\opencode\office-test.js`) passes — config shape, JWT token presence, source buffer/TTL, callback save→S3→DB update, no-op on closed, error on failed download, edited-docx-first download. Deployed-only test still needed with a real Document Server + S3 + env.
+    - *Ops caveats*: OnlyOffice Document Server Community Edition is free with a fair-use limit (~20 concurrent connections); README recommends ~2GB RAM (t3.micro has 1GB — may need t3.small). Runs as a Docker container `onlyoffice/documentserver`; nginx vhost (e.g. `office.snbajaj.com`) reverse-proxying to it, plus certbot TLS, with `ONLYOFFICE_ENABLED=true`, `ONLYOFFICE_SERVER_URL=https://office.snbajaj.com`, `ONLYOFFICE_JWT_SECRET` set on the API env. Run the new migration first.`
 
 ## 6. Functional notes (implemented)
+
 
 - Auth: argon2 passwords; JWT access 15m + rotating refresh 30d (refresh tokens hashed in
   DB); OTP-based signup/forgot-password for clients (`otp_verifications` table).
@@ -241,13 +271,14 @@ android-wrapper/    Android WebView app (com.snbajaj.portal) + store assets + de
 logo.jfif           source brand logo (1280x960) — regenerate icons from this
 ```
 
-### Key new backend modules (Phase 6–8)
+### Key new backend modules (Phase 6–9)
 
 | Module | Path | Purpose |
 |---|---|---|
 | `ServicesOfferedModule` | `backend/src/services-offered/` | Admin CRUD + public GET for services offered |
 | `TicketsModule` | `backend/src/tickets/` | Client + admin ticket management with threaded messages + attachments |
 | `WebsiteModule` | `backend/src/website/` | Blog posts + enquiry leads (Phase 1–2) |
+| `RentAgreementsModule` | `backend/src/rent-agreements/` | Admin DOCX template generation, HTML preview, and OnlyOffice Word-editor (config/source/callback) endpoints |
 
 ### Key new entities
 
@@ -258,6 +289,7 @@ logo.jfif           source brand logo (1280x960) — regenerate icons from this
 | `Ticket` | `tickets` | Support tickets with subject, category, status, priority |
 | `TicketMessage` | `ticket_messages` | Threaded messages within tickets (user + admin) |
 | `TicketAttachment` | `ticket_attachments` | File attachments on ticket messages (S3 pre-signed URLs) |
+| `RentAgreement` | `rent_agreements` | Stores generated DOCX agreements and input fields |
 
 ### Key new migrations
 
@@ -266,6 +298,7 @@ logo.jfif           source brand logo (1280x960) — regenerate icons from this
 | `1787700000000` | Creates `client_pre_registrations` table |
 | `1787700000001` | Creates `services` table |
 | `1787700000002` | Creates `tickets`, `ticket_messages`, `ticket_attachments` tables |
+| `1789000000000` | Creates `rent_agreements` table |
 
 Git: origin https://github.com/anirudhlohiya/caSanjayBajaj.git, branch `main`.
 

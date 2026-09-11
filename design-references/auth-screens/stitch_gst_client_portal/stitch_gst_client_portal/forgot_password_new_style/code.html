@@ -1,0 +1,220 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GST.Manager - Forgot Password</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Geist+Mono:wght@100..900&amp;display=swap" rel="stylesheet">
+<style>
+        @font-face {
+            font-family: 'Geist';
+            src: url('https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@latest/latin-400-normal.woff2') format('woff2');
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: 'Geist';
+            src: url('https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@latest/latin-500-normal.woff2') format('woff2');
+            font-weight: 500;
+        }
+        @font-face {
+            font-family: 'Geist';
+            src: url('https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@latest/latin-600-normal.woff2') format('woff2');
+            font-weight: 600;
+        }
+        @font-face {
+            font-family: 'Geist Mono';
+            src: url('https://cdn.jsdelivr.net/fontsource/fonts/geist-mono@latest/latin-400-normal.woff2') format('woff2');
+            font-weight: 400;
+        }
+        body {
+            font-family: 'Geist', sans-serif;
+            background-color: #fdf8f8; /* background */
+            color: #1c1b1b; /* on-background */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-background": "#1c1b1b",
+                      "on-primary-fixed-variant": "#474746",
+                      "on-surface-variant": "#444748",
+                      "cyan-accent": "#50e3c2",
+                      "tertiary-fixed-dim": "#cac6c4",
+                      "hairline-strong": "#a1a1a1",
+                      "on-primary-container": "#858383",
+                      "on-surface": "#1c1b1b",
+                      "inverse-on-surface": "#f4f0ef",
+                      "pink-accent": "#ff0080",
+                      "secondary": "#5d5f5f",
+                      "surface-container-highest": "#e5e2e1",
+                      "on-primary": "#ffffff",
+                      "hairline": "#ebebeb",
+                      "surface-container-high": "#ebe7e6",
+                      "outline-variant": "#c4c7c7",
+                      "surface-container": "#f1edec",
+                      "surface-bright": "#fdf8f8",
+                      "surface-variant": "#e5e2e1",
+                      "link": "#0070f3",
+                      "inverse-primary": "#c8c6c5",
+                      "on-error-container": "#93000a",
+                      "canvas-soft": "#fafafa",
+                      "preview-purple": "#7928ca",
+                      "surface-tint": "#5f5e5e",
+                      "error": "#ba1a1a",
+                      "inverse-surface": "#313030",
+                      "on-error": "#ffffff",
+                      "ship-coral": "#ff4d4d",
+                      "surface-container-low": "#f7f3f2",
+                      "on-secondary-container": "#616363",
+                      "on-tertiary-fixed-variant": "#484645",
+                      "dev-teal": "#00dfd8",
+                      "tertiary": "#000000",
+                      "primary-container": "#1c1b1b",
+                      "primary-fixed-dim": "#c8c6c5",
+                      "on-secondary-fixed-variant": "#454747",
+                      "secondary-fixed-dim": "#c6c6c7",
+                      "ship-amber": "#f9cb28",
+                      "error-container": "#ffdad6",
+                      "surface-dim": "#ddd9d8",
+                      "tertiary-container": "#1c1b1a",
+                      "secondary-fixed": "#e2e2e2",
+                      "surface-container-lowest": "#ffffff",
+                      "outline": "#747878",
+                      "on-primary-fixed": "#1c1b1b",
+                      "surface": "#fdf8f8",
+                      "on-tertiary": "#ffffff",
+                      "background": "#fdf8f8",
+                      "on-secondary-fixed": "#1a1c1c",
+                      "canvas-inset": "#f5f5f5",
+                      "tertiary-fixed": "#e6e2df",
+                      "on-tertiary-container": "#868382",
+                      "dev-blue": "#007cf0",
+                      "primary-fixed": "#e5e2e1",
+                      "secondary-container": "#dfe0e0",
+                      "on-secondary": "#ffffff",
+                      "primary": "#000000",
+                      "on-tertiary-fixed": "#1c1b1a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "xs": "8px",
+                      "sm": "12px",
+                      "section-v": "128px",
+                      "lg": "24px",
+                      "md": "16px",
+                      "container-max": "1200px",
+                      "base": "4px",
+                      "xl": "32px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Geist"],
+                      "label-mono": ["Geist Mono"],
+                      "display-lg": ["Geist"],
+                      "code-block": ["Geist Mono"],
+                      "display-xl": ["Geist"],
+                      "body-md": ["Geist"],
+                      "body-sm": ["Geist"],
+                      "display-md": ["Geist"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "400"}],
+                      "label-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                      "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-1.28px", "fontWeight": "600"}],
+                      "code-block": ["13px", {"lineHeight": "20px", "letterSpacing": "0px", "fontWeight": "400"}],
+                      "display-xl": ["48px", {"lineHeight": "48px", "letterSpacing": "-2.4px", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0px", "fontWeight": "400"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "-0.28px", "fontWeight": "400"}],
+                      "display-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.96px", "fontWeight": "600"}]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen flex flex-col items-center justify-center p-md selection:bg-on-background selection:text-background relative overflow-hidden">
+<!-- Atmospheric background gradient -->
+<div class="absolute inset-0 pointer-events-none opacity-[0.03]" style="background-image: radial-gradient(circle at 50% 50%, #000 1px, transparent 1px); background-size: 32px 32px;"></div>
+<!-- TopAppBar equivalent structural replacement for login screen (suppressing full shell) -->
+<div class="absolute top-0 left-0 w-full p-lg flex justify-center md:justify-start pointer-events-none">
+<div class="font-display-md text-display-md font-bold tracking-tight text-primary">GST.Manager</div>
+</div>
+<!-- Main Container -->
+<main class="w-full max-w-[400px] z-10 relative">
+<!-- Interactive Form Wrapper -->
+<div class="bg-canvas-soft border border-hairline rounded-lg p-xl shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] flex flex-col gap-xl">
+<!-- Header -->
+<header class="flex flex-col gap-xs">
+<h1 class="font-display-lg text-display-lg text-on-background">Reset Password.</h1>
+<p class="font-body-sm text-body-sm text-secondary">Follow the steps to regain access to your account.</p>
+</header>
+<!-- Step Indicators -->
+<div aria-label="Progress" class="flex gap-xs">
+<div class="h-1 flex-1 bg-primary rounded-full"></div>
+<div class="h-1 flex-1 bg-hairline rounded-full"></div>
+<div class="h-1 flex-1 bg-hairline rounded-full"></div>
+</div>
+<!-- Form Flow (Currently showing Step 1 conceptually, but structuring for single view as requested) -->
+<form class="flex flex-col gap-lg" onsubmit="event.preventDefault();">
+<!-- Step 1: Email -->
+<div class="flex flex-col gap-xs group">
+<label class="font-label-mono text-label-mono text-secondary uppercase" for="email">Step 1. Email Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-secondary pointer-events-none" style="font-variation-settings: 'FILL' 0;">mail</span>
+<input class="w-full bg-background border border-hairline rounded-DEFAULT pl-10 pr-sm py-sm font-body-md text-body-md text-on-background focus:outline-none focus:border-hairline focus:ring-1 focus:ring-primary placeholder:text-outline-variant transition-shadow" id="email" name="email" placeholder="administrator@gst.manager" type="email">
+</div>
+<button class="mt-sm bg-primary text-on-primary font-body-sm text-body-sm py-sm px-md rounded-full hover:bg-tertiary transition-colors w-max" type="button">Send OTP</button>
+</div>
+<!-- Divider -->
+<hr class="border-t border-hairline my-xs">
+<!-- Step 2: OTP -->
+<div class="flex flex-col gap-xs opacity-50 pointer-events-none" style="transition: opacity 0.3s ease;">
+<label class="font-label-mono text-label-mono text-secondary uppercase" for="otp">Step 2. Enter OTP</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-secondary pointer-events-none" style="font-variation-settings: 'FILL' 0;">password</span>
+<input class="w-full bg-background border border-hairline rounded-DEFAULT pl-10 pr-sm py-sm font-body-md text-body-md text-on-background focus:outline-none focus:border-hairline focus:ring-1 focus:ring-primary placeholder:text-outline-variant transition-shadow" disabled="" id="otp" name="otp" placeholder="Enter 6-digit code" type="text">
+</div>
+</div>
+<!-- Divider -->
+<hr class="border-t border-hairline my-xs">
+<!-- Step 3: New Password -->
+<div class="flex flex-col gap-xs opacity-50 pointer-events-none" style="transition: opacity 0.3s ease;">
+<label class="font-label-mono text-label-mono text-secondary uppercase">Step 3. New Credentials</label>
+<div class="flex flex-col gap-sm mt-xs">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-secondary pointer-events-none" style="font-variation-settings: 'FILL' 0;">lock</span>
+<input class="w-full bg-background border border-hairline rounded-DEFAULT pl-10 pr-sm py-sm font-body-md text-body-md text-on-background focus:outline-none focus:border-hairline focus:ring-1 focus:ring-primary placeholder:text-outline-variant transition-shadow" disabled="" id="new_password" name="new_password" placeholder="New Password" type="password">
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-secondary pointer-events-none" style="font-variation-settings: 'FILL' 0;">lock_reset</span>
+<input class="w-full bg-background border border-hairline rounded-DEFAULT pl-10 pr-sm py-sm font-body-md text-body-md text-on-background focus:outline-none focus:border-hairline focus:ring-1 focus:ring-primary placeholder:text-outline-variant transition-shadow" disabled="" id="confirm_password" name="confirm_password" placeholder="Confirm Password" type="password">
+</div>
+</div>
+</div>
+<!-- Primary Action -->
+<div class="mt-md">
+<button class="w-full bg-background border border-hairline text-on-background font-body-md text-body-md py-sm px-md rounded-full hover:bg-canvas-inset transition-colors opacity-50 cursor-not-allowed" disabled="" type="submit">Reset Password</button>
+</div>
+</form>
+<div class="text-center mt-xs">
+<a class="font-label-mono text-label-mono text-secondary hover:text-primary transition-colors uppercase" href="#">Return to Login</a>
+</div>
+</div>
+</main>
+</body></html>

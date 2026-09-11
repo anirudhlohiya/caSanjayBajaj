@@ -81,6 +81,29 @@ export class StorageService {
     return getSignedUrl(this.client, command, { expiresIn: 300 });
   }
 
+  async uploadBuffer(
+    s3Key: string,
+    body: Buffer,
+    contentType: string,
+  ): Promise<void> {
+    const command = new PutObjectCommand({
+      Bucket: this.docsBucket,
+      Key: s3Key,
+      Body: body,
+      ContentType: contentType,
+    });
+    await this.client.send(command);
+  }
+
+  async downloadBuffer(s3Key: string): Promise<Buffer> {
+    const command = new GetObjectCommand({
+      Bucket: this.docsBucket,
+      Key: s3Key,
+    });
+    const res = await this.client.send(command);
+    return Buffer.from(await (res.Body as any).transformToByteArray());
+  }
+
   async health(): Promise<boolean> {
     try {
       const command = new PutObjectCommand({

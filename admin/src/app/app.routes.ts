@@ -70,6 +70,16 @@ export const routes: Routes = [
         loadComponent: () => import('./features/audit/audit').then((m) => m.Audit),
       },
       {
+        path: 'rent-agreements',
+        canActivate: [permissionGuard('view_clients')],
+        loadComponent: () => import('./features/rent-agreements/rent-agreements-list').then((m) => m.RentAgreementsList),
+      },
+      {
+        path: 'rent-agreements/create',
+        canActivate: [permissionGuard('view_clients')],
+        loadComponent: () => import('./features/rent-agreements/rent-agreements-create').then((m) => m.RentAgreementsCreate),
+      },
+      {
         path: 'settings',
         canActivate: [permissionGuard('manage_settings')],
         loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),

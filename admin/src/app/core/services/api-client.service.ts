@@ -43,6 +43,10 @@ export class ApiClient {
     return this.http.get(`${this.baseUrl}${path}`, { responseType: 'blob' });
   }
 
+  postBlob(path: string, body?: unknown) {
+    return this.http.post(`${this.baseUrl}${path}`, body ?? {}, { responseType: 'blob' });
+  }
+
   private buildParams(query?: Query): HttpParams {
     let params = new HttpParams();
     if (!query) return params;

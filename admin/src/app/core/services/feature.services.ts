@@ -354,4 +354,50 @@ export class TicketsService {
         ),
       );
     }
+}
+
+@Injectable({ providedIn: 'root' })
+export class RentAgreementsService {
+  private readonly api = inject(ApiClient);
+
+  getTemplates() {
+    return firstValueFrom(this.api.get<{ data: any[] }>('/admin/rent-agreements/templates'));
   }
+
+  list(params: { page?: number; limit?: number; template_id?: string } = {}) {
+    return firstValueFrom(
+      this.api.get<PaginatedResult<any>>('/admin/rent-agreements', params),
+    );
+  }
+
+  get(id: string) {
+    return firstValueFrom(this.api.get<{ data: any }>(`/admin/rent-agreements/${id}`));
+  }
+
+  create(body: { template_id: string; form_data: any; status?: string }) {
+    return firstValueFrom(this.api.post<{ data: any }>('/admin/rent-agreements', body));
+  }
+
+  update(id: string, body: { form_data?: any; status?: string }) {
+    return firstValueFrom(this.api.put<{ data: any }>(`/admin/rent-agreements/${id}`, body));
+  }
+
+  preview(body: { template_id: string; form_data: any; status?: string }) {
+    return firstValueFrom(this.api.post<{ data: string }>('/admin/rent-agreements/preview', body));
+  }
+
+  convertEditedHtml(html: string) {
+    return firstValueFrom(this.api.postBlob('/admin/rent-agreements/convert-to-docx', { html }));
+  }
+
+  getOfficeConfig(id: string) {
+    return firstValueFrom(
+      this.api.get<{ data: { serverUrl: string; config: any } }>(`/admin/rent-agreements/${id}/office/config`),
+    );
+  }
+
+  // Uses browser native navigation for download
+  getDownloadUrl(id: string): string {
+    return `${this.api.baseUrl}/admin/rent-agreements/${id}/download/docx`;
+  }
+}
