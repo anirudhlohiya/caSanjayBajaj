@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../entities/user.entity';
 import webpush from 'web-push';
 
 export interface PushSubscription {
@@ -39,7 +42,10 @@ export class NotificationsService {
   private readonly sourceEmail: string;
   private readonly vapidConfigured: boolean;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    @InjectRepository(User) private readonly users: Repository<User>,
+  ) {
     this.sourceEmail = this.config.get<string>('ses.sourceEmail') ?? '';
     this.sourceName = this.config.get<string>('ses.sourceName') ?? '';
 
@@ -73,6 +79,22 @@ export class NotificationsService {
         `SES source email not configured; skipping email to ${to.email}`,
       );
       return false;
+    }
+    const emailLower = to.email.toLowerCase();
+    try {
+      const existing = await this.users.findOne({
+        where: { email: emailLower },
+      });
+      if (existing?.email_suppressed_at) {
+        this.logger.warn(
+          `Skipping email to suppressed recipient ${emailLower}`,
+        );
+        return false;
+      }
+    } catch (error) {
+      this.logger.error(
+        `Suppression check failed for ${emailLower}: ${(error as Error).message}`,
+      );
     }
     try {
       const command = new SendEmailCommand({
