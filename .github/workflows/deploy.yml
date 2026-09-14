@@ -80,4 +80,4 @@ jobs:
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
-          curl -fsS -m 20 "http://$DEPLOY_HOST/api/v1/health" && echo " -> health ok"
+          curl -fsSk -m 20 "https://$DEPLOY_HOST/api/v1/health" && echo " -> health ok"
