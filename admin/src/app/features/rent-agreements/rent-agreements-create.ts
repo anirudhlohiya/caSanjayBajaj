@@ -5,6 +5,7 @@ import { AbstractControl, FormBuilder, ReactiveFormsModule, FormGroup, FormContr
 import { RentAgreementsService } from '../../core/services/feature.services';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
+import { DomSanitizer } from '@angular/platform-browser';
 import { PageHeader } from '../../shared/components/page-header';
 import { Spinner } from '../../shared/components/spinner';
 import { OfficeEditor } from './office-editor';
@@ -69,7 +70,7 @@ export interface TemplateConfig {
       color: var(--color-on-secondary-container);
     }
     .ra-modal-panes { display: flex; flex-direction: column; }
-    .ra-edit-pane, .ra-pdf-pane { min-width: 0; }
+    .ra-edit-pane, .ra-pdf-pane { min-width: 0; min-height: 0; }
     @media (min-width: 1024px) {
       .ra-modal-panes {
         display: grid !important;
@@ -87,6 +88,7 @@ export class RentAgreementsCreate implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sanitizer = inject(DomSanitizer);
 
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -99,6 +101,10 @@ export class RentAgreementsCreate implements OnInit {
   readonly officeOpen = signal(false);
   readonly previewTab = signal<'edit' | 'pdf'>('edit');
   readonly previewPdfUrl = signal<string | null>(null);
+  readonly previewPdfSafeUrl = computed(() => {
+    const url = this.previewPdfUrl();
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
   readonly pdfLoading = signal(false);
   
   @ViewChild('editableDoc') editableDoc?: ElementRef<HTMLDivElement>;

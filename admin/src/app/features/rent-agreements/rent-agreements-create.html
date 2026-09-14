@@ -194,14 +194,14 @@
               <span class="material-symbols-outlined" style="font-size: 16px">{{ pdfLoading() ? 'progress_activity' : 'refresh' }}</span>
             </button>
           </div>
-          <div class="relative flex-1 bg-neutral-100">
+          <div class="relative flex-1 overflow-y-auto bg-neutral-100">
             @if (pdfLoading()) {
               <div class="absolute inset-0 z-10 bg-white/70 flex flex-col items-center justify-center gap-2">
                 <span class="material-symbols-outlined animate-spin text-secondary" style="font-size: 32px">progress_activity</span>
                 <span class="text-sm text-on-surface-variant">Generating PDF&#8230;</span>
               </div>
             }
-            @if (previewPdfUrl(); as url) {
+            @if (previewPdfSafeUrl(); as url) {
               <iframe [src]="url" class="w-full h-full min-h-[60vh] lg:min-h-[70vh] bg-white" title="Rent agreement PDF preview"></iframe>
             } @else {
               <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-center">
