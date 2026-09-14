@@ -1,0 +1,83 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'admin/**'
+      - 'client/**'
+      - 'backend/**'
+      - 'docs/templates/**'
+      - 'deploy/**'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  deploy:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    concurrency: production-deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            admin/package-lock.json
+            client/package-lock.json
+
+      - name: Install + build admin (base-href /admin/)
+        run: |
+          cd admin
+          npm ci
+          npx ng build --configuration production --base-href=/admin/
+
+      - name: Install + build client PWA
+        run: |
+          cd client
+          npm ci
+          npm run build
+
+      - name: Package frontend bundle
+        run: |
+          mkdir -p dist/out/site dist/out/admin
+          cp -a client/dist/client/browser/. dist/out/site/
+          cp -a admin/dist/admin/browser/. dist/out/admin/
+          tar -czf frontend.tar.gz -C dist/out .
+
+      - name: Upload bundle to server
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          umask 077
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            -i ~/.ssh/deploy_key \
+            frontend.tar.gz "$DEPLOY_USER@$DEPLOY_HOST:/tmp/frontend.tar.gz"
+
+      - name: Release on server
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            -i ~/.ssh/deploy_key \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            'cd /opt/ca-app/repo && git fetch origin && git reset --hard origin/main && SKIP_BACKEND=0 bash deploy/release-on-server.sh'
+
+      - name: Smoke test via nginx
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          curl -fsS -m 20 "http://$DEPLOY_HOST/api/v1/health" && echo " -> health ok"
