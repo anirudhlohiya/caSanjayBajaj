@@ -11,6 +11,10 @@ async function bootstrap() {
   const app = await NestFactory.create<
     INestApplication & NestExpressApplication
   >(AppModule, { rawBody: true });
+  // AWS SNS delivers SubscriptionConfirmation/Notification messages with
+  // Content-Type: text/plain; Nest's default parsers only accept JSON, which
+  // would 415 and make SNS mark the callback unreachable.
+  app.useBodyParser('text');
   const config = app.get(ConfigService);
 
   if (config.get('nodeEnv') === 'production') {
