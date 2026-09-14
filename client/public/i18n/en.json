@@ -1,0 +1,32 @@
+{
+  "SETTINGS": {
+    "TITLE": "Settings",
+    "APPEARANCE": "Appearance",
+    "APPEARANCE_DESC": "Choose how the app looks on your device",
+    "LANGUAGE": "Language",
+    "LANGUAGE_DESC": "Select your preferred language",
+    "NOTIFICATIONS": "Notifications",
+    "NOTIF_PUSH": "Push notifications",
+    "NOTIF_PUSH_DESC": "Alerts when a report is ready or a reminder is due",
+    "NOTIF_EMAIL": "Email notifications",
+    "NOTIF_EMAIL_DESC": "Receive updates via email",
+    "PAYMENT": "Payment Options",
+    "PAYMENT_DESC": "View our payment details and QR code",
+    "SECURITY": "Security",
+    "SECURITY_DESC": "Change your account password",
+    "CUR_PASSWORD": "Current password",
+    "NEW_PASSWORD": "New password",
+    "CONFIRM_PASSWORD": "Confirm new password",
+    "UPDATE_PASSWORD": "Update password"
+  },
+  "PAYMENT": {
+    "MODAL_TITLE": "Payment Details",
+    "COMPANY": "S N BAJAJ AND CO.",
+    "BANK": "IDBI BANK",
+    "ACCOUNT": "A/C - 0146102000129329",
+    "IFSC": "IFSC - IBKL0000146",
+    "UPI": "UPI ID: sanju.bajaj1994@oksbi",
+    "DOWNLOAD_QR": "Download QR Code",
+    "CLOSE": "Close"
+  }
+}

@@ -39,9 +39,9 @@ export class Shell implements OnInit {
 
   readonly navItems = [
     { label: 'Home', icon: 'home', route: '/dashboard' },
-    { label: 'Documents', icon: 'folder_copy', route: '/documents' },
-    { label: 'Reports', icon: 'description', route: '/reports' },
-    { label: 'Support', icon: 'support_agent', route: '/support' },
+    { label: 'Services', icon: 'grid_view', route: '/services' },
+    { label: 'Documents', icon: 'description', route: '/documents' },
+    { label: 'Reminders', icon: 'calendar_month', route: '/reminders' },
     { label: 'Profile', icon: 'person', route: '/profile' },
   ];
 

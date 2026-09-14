@@ -10,11 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermissionsGuard, RolesGuard } from '../common/guards/roles.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
@@ -37,7 +33,10 @@ export class ClientTicketsController {
 
   @Get()
   @ApiOperation({ summary: 'List my tickets' })
-  list(@CurrentUser() user: any, @Query() query: PaginationQueryDto & { status?: string }) {
+  list(
+    @CurrentUser() user: any,
+    @Query() query: PaginationQueryDto & { status?: string },
+  ) {
     return this.ticketsService.listForUser(user.sub, query);
   }
 
@@ -105,7 +104,9 @@ export class AdminTicketsController {
   @Get()
   @Permissions('view_clients')
   @ApiOperation({ summary: 'List all tickets' })
-  list(@Query() query: PaginationQueryDto & { status?: string; user_id?: string }) {
+  list(
+    @Query() query: PaginationQueryDto & { status?: string; user_id?: string },
+  ) {
     return this.ticketsService.listAll(query);
   }
 

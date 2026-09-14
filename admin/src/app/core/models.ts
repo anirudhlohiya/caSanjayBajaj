@@ -102,6 +102,9 @@ export interface Report {
   report_type: ReportType;
   s3_key: string;
   original_filename: string;
+  total_liability: string | null;
+  itc_claimed: string | null;
+  net_payable: string | null;
   sent_by_admin_id: string | null;
   sent_at: string;
   user?: Client;

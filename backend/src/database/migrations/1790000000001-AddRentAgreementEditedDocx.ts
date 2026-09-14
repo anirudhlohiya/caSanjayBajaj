@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddRentAgreementEditedDocx1790000000001
-  implements MigrationInterface
-{
+export class AddRentAgreementEditedDocx1790000000001 implements MigrationInterface {
   name = 'AddRentAgreementEditedDocx1790000000001';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

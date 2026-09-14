@@ -48,6 +48,9 @@ export class Reports implements OnInit {
     filing_period_id: ['', Validators.required],
     report_type: ['gstr_1'],
     file: [null as File | null, Validators.required],
+    total_liability: [''],
+    itc_claimed: [''],
+    net_payable: [''],
   });
 
   ngOnInit(): void {

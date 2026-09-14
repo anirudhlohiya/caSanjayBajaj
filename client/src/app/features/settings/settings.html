@@ -1,17 +1,65 @@
 <div class="mx-auto w-full max-w-2xl flex flex-col gap-6 pb-10">
-  <app-page-header title="Settings" [back]="true" />
+  <app-page-header [title]="'SETTINGS.TITLE' | translate" [back]="true" />
+
+  <!-- Language -->
+  <section class="card overflow-hidden">
+    <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
+      <h2 class="text-sm font-semibold text-neutral-950 dark:text-white">{{ 'SETTINGS.LANGUAGE' | translate }}</h2>
+      <p class="text-xs text-neutral-400 mt-0.5">{{ 'SETTINGS.LANGUAGE_DESC' | translate }}</p>
+    </div>
+    <div class="divide-y divide-neutral-100 dark:divide-neutral-800">
+      @for (opt of langOptions; track opt.value) {
+        <button
+          (click)="setLanguage(opt.value)"
+          class="flex w-full items-center gap-4 px-4 py-3.5 text-left cursor-pointer hover:bg-neutral-50 transition-colors dark:hover:bg-neutral-800/50"
+        >
+          <span class="flex size-9 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+            <span class="material-symbols-outlined text-[20px]">translate</span>
+          </span>
+          <span class="flex-1">
+            <span class="block text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ opt.label }}</span>
+          </span>
+          @if (currentLanguage() === opt.value) {
+            <span class="material-symbols-outlined text-[20px] text-neutral-900 dark:text-neutral-100">check_circle</span>
+          } @else {
+            <span class="size-5 rounded-full border-2 border-neutral-200 dark:border-neutral-700"></span>
+          }
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- Payment Options -->
+  <section class="card overflow-hidden">
+    <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
+      <h2 class="text-sm font-semibold text-neutral-950 dark:text-white">{{ 'SETTINGS.PAYMENT' | translate }}</h2>
+      <p class="text-xs text-neutral-400 mt-0.5">{{ 'SETTINGS.PAYMENT_DESC' | translate }}</p>
+    </div>
+    <button
+      (click)="showPaymentModal.set(true)"
+      class="flex w-full items-center gap-4 px-4 py-3.5 text-left cursor-pointer hover:bg-neutral-50 transition-colors dark:hover:bg-neutral-800/50"
+    >
+      <span class="flex size-9 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+        <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+      </span>
+      <span class="flex-1">
+        <span class="block text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ 'SETTINGS.PAYMENT' | translate }}</span>
+      </span>
+      <span class="material-symbols-outlined text-[20px] text-neutral-400">chevron_right</span>
+    </button>
+  </section>
 
   <!-- Theme -->
   <section class="card overflow-hidden">
     <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-sm font-semibold text-neutral-950 dark:text-white">Appearance</h2>
-      <p class="text-xs text-neutral-400 mt-0.5">Choose how the app looks on your device</p>
+      <h2 class="text-sm font-semibold text-neutral-950 dark:text-white">{{ 'SETTINGS.APPEARANCE' | translate }}</h2>
+      <p class="text-xs text-neutral-400 mt-0.5">{{ 'SETTINGS.APPEARANCE_DESC' | translate }}</p>
     </div>
     <div class="divide-y divide-neutral-100 dark:divide-neutral-800">
       @for (opt of themeOptions; track opt.value) {
         <button
           (click)="setTheme(opt.value)"
-          class="flex w-full items-center gap-4 px-4 py-3.5 text-left cursor-pointer hover:bg-neutral-50 transition-colors dark:hover:bg-neutral-800/50 dark:hover:bg-neutral-800/50"
+          class="flex w-full items-center gap-4 px-4 py-3.5 text-left cursor-pointer hover:bg-neutral-50 transition-colors dark:hover:bg-neutral-800/50"
         >
           <span class="flex size-9 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
             <span class="material-symbols-outlined text-[20px]">{{ opt.icon }}</span>
@@ -32,13 +80,13 @@
   <!-- Notifications -->
   <section class="card overflow-hidden">
     <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-sm font-semibold text-neutral-950 dark:text-white">Notifications</h2>
+      <h2 class="text-sm font-semibold text-neutral-950 dark:text-white">{{ 'SETTINGS.NOTIFICATIONS' | translate }}</h2>
     </div>
     <div class="divide-y divide-neutral-100 dark:divide-neutral-800">
       <div class="flex items-center justify-between gap-3 px-4 py-3.5">
         <div>
-          <p class="text-sm font-medium text-neutral-800 dark:text-neutral-200">Push notifications</p>
-          <p class="text-xs text-neutral-400 mt-0.5">Alerts when a report is ready or a reminder is due</p>
+          <p class="text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ 'SETTINGS.NOTIF_PUSH' | translate }}</p>
+          <p class="text-xs text-neutral-400 mt-0.5">{{ 'SETTINGS.NOTIF_PUSH_DESC' | translate }}</p>
         </div>
         @if (pushSupported()) {
           <button
@@ -62,8 +110,8 @@
       </div>
       <div class="flex items-center justify-between gap-3 px-4 py-3.5">
         <div>
-          <p class="text-sm font-medium text-neutral-800 dark:text-neutral-200">Email notifications</p>
-          <p class="text-xs text-neutral-400 mt-0.5">Receive updates via email</p>
+          <p class="text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ 'SETTINGS.NOTIF_EMAIL' | translate }}</p>
+          <p class="text-xs text-neutral-400 mt-0.5">{{ 'SETTINGS.NOTIF_EMAIL_DESC' | translate }}</p>
         </div>
         <button
           (click)="toggleEmail(!emailEnabled())"
@@ -85,37 +133,37 @@
   <!-- Change Password -->
   <section class="card overflow-hidden">
     <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-sm font-semibold text-neutral-950 dark:text-white">Security</h2>
-      <p class="text-xs text-neutral-400 mt-0.5">Change your account password</p>
+      <h2 class="text-sm font-semibold text-neutral-950 dark:text-white">{{ 'SETTINGS.SECURITY' | translate }}</h2>
+      <p class="text-xs text-neutral-400 mt-0.5">{{ 'SETTINGS.SECURITY_DESC' | translate }}</p>
     </div>
     <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="flex flex-col gap-4 p-4">
       <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Current password</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">{{ 'SETTINGS.CUR_PASSWORD' | translate }}</span>
         <input
           formControlName="current_password"
           type="password"
           autocomplete="current-password"
-          placeholder="Enter current password"
+          placeholder="********"
           class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-100"
         />
       </label>
       <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">New password</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">{{ 'SETTINGS.NEW_PASSWORD' | translate }}</span>
         <input
           formControlName="new_password"
           type="password"
           autocomplete="new-password"
-          placeholder="At least 8 characters"
+          placeholder="********"
           class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-100"
         />
       </label>
       <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Confirm new password</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">{{ 'SETTINGS.CONFIRM_PASSWORD' | translate }}</span>
         <input
           formControlName="confirm"
           type="password"
           autocomplete="new-password"
-          placeholder="Repeat new password"
+          placeholder="********"
           class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-100"
         />
       </label>
@@ -127,8 +175,39 @@
         @if (passwordBusy()) {
           <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
         }
-        Update password
+        {{ 'SETTINGS.UPDATE_PASSWORD' | translate }}
       </button>
     </form>
   </section>
 </div>
+
+<!-- Payment Modal -->
+@if (showPaymentModal()) {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+    <div class="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 shadow-2xl p-6 relative flex flex-col items-center">
+      <button (click)="showPaymentModal.set(false)" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      
+      <h2 class="text-lg font-bold text-neutral-900 dark:text-white mb-6">{{ 'PAYMENT.MODAL_TITLE' | translate }}</h2>
+      
+      <div class="w-48 h-48 bg-white border border-neutral-200 rounded-xl mb-4 overflow-hidden shadow-sm flex items-center justify-center p-2">
+        <img src="/payment-qr.jpeg" alt="Payment QR Code" class="w-full h-full object-contain" />
+      </div>
+      
+      <button (click)="downloadQR()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors mb-6 cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">download</span>
+        {{ 'PAYMENT.DOWNLOAD_QR' | translate }}
+      </button>
+      
+      <div class="w-full bg-neutral-50 dark:bg-neutral-800 rounded-xl p-4 flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-300">
+        <p class="font-bold text-neutral-900 dark:text-white">{{ 'PAYMENT.COMPANY' | translate }}</p>
+        <p>{{ 'PAYMENT.BANK' | translate }}</p>
+        <p>{{ 'PAYMENT.ACCOUNT' | translate }}</p>
+        <p>{{ 'PAYMENT.IFSC' | translate }}</p>
+        <div class="h-px w-full bg-neutral-200 dark:bg-neutral-700 my-1"></div>
+        <p class="font-mono text-xs font-semibold">{{ 'PAYMENT.UPI' | translate }}</p>
+      </div>
+    </div>
+  </div>
+}

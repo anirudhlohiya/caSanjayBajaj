@@ -14,7 +14,9 @@ export class CreateTicketDto {
   @Length(1, 255)
   subject: string;
 
-  @ApiPropertyOptional({ enum: ['document_request', 'general', 'complaint', 'other'] })
+  @ApiPropertyOptional({
+    enum: ['document_request', 'general', 'complaint', 'other'],
+  })
   @IsOptional()
   @IsEnum(['document_request', 'general', 'complaint', 'other'])
   category?: string;

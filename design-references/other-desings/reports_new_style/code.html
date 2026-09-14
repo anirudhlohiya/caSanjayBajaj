@@ -1,0 +1,337 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Reports | GST.Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        @font-face {
+            font-family: 'Geist';
+            src: url('https://cdn.jsdelivr.net/gh/fontsource/geist-sans@5.0.1/files/geist-sans-latin-400-normal.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Geist';
+            src: url('https://cdn.jsdelivr.net/gh/fontsource/geist-sans@5.0.1/files/geist-sans-latin-500-normal.woff2') format('woff2');
+            font-weight: 500;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Geist';
+            src: url('https://cdn.jsdelivr.net/gh/fontsource/geist-sans@5.0.1/files/geist-sans-latin-600-normal.woff2') format('woff2');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Geist Mono';
+            src: url('https://cdn.jsdelivr.net/gh/fontsource/geist-mono@5.0.1/files/geist-mono-latin-400-normal.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "cyan-accent": "#50e3c2",
+                    "surface-bright": "#fdf8f8",
+                    "secondary": "#5d5f5f",
+                    "tertiary": "#000000",
+                    "surface-tint": "#5f5e5e",
+                    "on-tertiary-container": "#868382",
+                    "secondary-fixed": "#e2e2e2",
+                    "surface-dim": "#ddd9d8",
+                    "outline": "#747878",
+                    "surface-container-low": "#f7f3f2",
+                    "hairline": "#ebebeb",
+                    "outline-variant": "#c4c7c7",
+                    "inverse-primary": "#c8c6c5",
+                    "inverse-surface": "#313030",
+                    "on-surface-variant": "#444748",
+                    "on-primary-container": "#858383",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#000000",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "on-primary-fixed": "#1c1b1b",
+                    "link": "#0070f3",
+                    "on-tertiary-fixed-variant": "#484645",
+                    "background": "#fdf8f8",
+                    "dev-teal": "#00dfd8",
+                    "hairline-strong": "#a1a1a1",
+                    "ship-amber": "#f9cb28",
+                    "on-background": "#1c1b1b",
+                    "primary-fixed": "#e5e2e1",
+                    "on-secondary-fixed-variant": "#454747",
+                    "tertiary-fixed": "#e6e2df",
+                    "on-error-container": "#93000a",
+                    "dev-blue": "#007cf0",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-surface": "#1c1b1b",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "preview-purple": "#7928ca",
+                    "pink-accent": "#ff0080",
+                    "primary-container": "#1c1b1b",
+                    "surface-container-high": "#ebe7e6",
+                    "inverse-on-surface": "#f4f0ef",
+                    "tertiary-container": "#1c1b1a",
+                    "on-secondary-container": "#616363",
+                    "on-primary-fixed-variant": "#474746",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "surface-container": "#f1edec",
+                    "canvas-inset": "#f5f5f5",
+                    "ship-coral": "#ff4d4d",
+                    "tertiary-fixed-dim": "#cac6c4",
+                    "secondary-container": "#dfe0e0",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#1c1b1a",
+                    "surface": "#fdf8f8",
+                    "surface-variant": "#e5e2e1",
+                    "primary-fixed-dim": "#c8c6c5",
+                    "canvas-soft": "#fafafa"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "section-v": "128px",
+                    "container-max": "1200px",
+                    "base": "4px",
+                    "xs": "8px",
+                    "sm": "12px",
+                    "md": "16px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "body-lg": [
+                            "Geist"
+                    ],
+                    "code-block": [
+                            "Geist Mono"
+                    ],
+                    "display-xl": [
+                            "Geist"
+                    ],
+                    "body-md": [
+                            "Geist"
+                    ],
+                    "label-mono": [
+                            "Geist Mono"
+                    ],
+                    "display-md": [
+                            "Geist"
+                    ],
+                    "display-lg": [
+                            "Geist"
+                    ],
+                    "body-sm": [
+                            "Geist"
+                    ]
+            },
+            "fontSize": {
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "letterSpacing": "0px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "code-block": [
+                            "13px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "display-xl": [
+                            "48px",
+                            {
+                                    "lineHeight": "48px",
+                                    "letterSpacing": "-2.4px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "letterSpacing": "0px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-mono": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "display-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.96px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "display-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-1.28px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-sm": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "-0.28px",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-primary antialiased min-h-screen pb-24 md:pb-0">
+<!-- TopAppBar (Web) -->
+<header class="w-full sticky top-0 z-50 bg-surface/80 dark:bg-tertiary/80 backdrop-blur-md border-b border-hairline dark:border-on-tertiary-container shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] hidden md:block">
+<div class="flex justify-between items-center px-lg py-md max-w-container-max mx-auto">
+<div class="flex items-center gap-xs text-primary dark:text-surface-bright font-display-md text-display-md font-bold tracking-tight">
+<span class="material-symbols-outlined">account_balance</span>
+                GST.Manager
+            </div>
+<nav class="flex items-center gap-lg font-body-md text-body-md">
+<a class="text-secondary dark:text-on-tertiary-container hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors px-xs py-base rounded-md" href="#">Home</a>
+<a class="text-secondary dark:text-on-tertiary-container hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors px-xs py-base rounded-md" href="#">Documents</a>
+<a class="text-primary dark:text-surface-bright font-medium active:scale-[0.98] transition-transform duration-150 px-xs py-base rounded-md" href="#">Reports</a>
+<a class="text-secondary dark:text-on-tertiary-container hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors px-xs py-base rounded-md" href="#">Profile</a>
+</nav>
+<button class="text-primary dark:text-surface-bright hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors p-xs rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="max-w-container-max mx-auto px-md md:px-lg py-xl md:py-section-v">
+<header class="mb-xl">
+<h1 class="font-display-xl text-display-xl text-primary tracking-tight">Your Reports.</h1>
+<p class="font-body-lg text-body-lg text-secondary mt-sm">View and download your generated GST reports.</p>
+</header>
+<div class="space-y-xl">
+<!-- 2024 Group -->
+<section>
+<h2 class="font-display-md text-display-md text-primary mb-md pb-xs border-b border-hairline">2024.</h2>
+<div class="flex flex-col border border-hairline rounded-lg overflow-hidden bg-surface-container-lowest">
+<!-- Item -->
+<div class="flex items-center justify-between p-md border-b border-hairline last:border-0 hover:bg-canvas-soft transition-colors group cursor-pointer">
+<div class="flex items-center gap-md">
+<span class="font-label-mono text-label-mono text-on-surface-variant bg-surface-container px-xs py-base rounded">GSTR-3B</span>
+<span class="font-body-md text-body-md text-primary font-medium">March 2024 Return</span>
+</div>
+<div class="flex items-center gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="font-body-sm text-body-sm text-secondary">View</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">arrow_forward</span>
+</div>
+</div>
+<!-- Item -->
+<div class="flex items-center justify-between p-md border-b border-hairline last:border-0 hover:bg-canvas-soft transition-colors group cursor-pointer">
+<div class="flex items-center gap-md">
+<span class="font-label-mono text-label-mono text-on-surface-variant bg-surface-container px-xs py-base rounded">GSTR-1</span>
+<span class="font-body-md text-body-md text-primary font-medium">February 2024 Sales</span>
+</div>
+<div class="flex items-center gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="font-body-sm text-body-sm text-secondary">View</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">arrow_forward</span>
+</div>
+</div>
+<!-- Item -->
+<div class="flex items-center justify-between p-md border-b border-hairline last:border-0 hover:bg-canvas-soft transition-colors group cursor-pointer">
+<div class="flex items-center gap-md">
+<span class="font-label-mono text-label-mono text-on-surface-variant bg-surface-container px-xs py-base rounded">GSTR-3B</span>
+<span class="font-body-md text-body-md text-primary font-medium">January 2024 Return</span>
+</div>
+<div class="flex items-center gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="font-body-sm text-body-sm text-secondary">View</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">arrow_forward</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 2023 Group -->
+<section>
+<h2 class="font-display-md text-display-md text-primary mb-md pb-xs border-b border-hairline">2023.</h2>
+<div class="flex flex-col border border-hairline rounded-lg overflow-hidden bg-surface-container-lowest">
+<!-- Item -->
+<div class="flex items-center justify-between p-md border-b border-hairline last:border-0 hover:bg-canvas-soft transition-colors group cursor-pointer">
+<div class="flex items-center gap-md">
+<span class="font-label-mono text-label-mono text-on-surface-variant bg-surface-container px-xs py-base rounded">GSTR-9</span>
+<span class="font-body-md text-body-md text-primary font-medium">Annual Return 2022-23</span>
+</div>
+<div class="flex items-center gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="font-body-sm text-body-sm text-secondary">View</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">arrow_forward</span>
+</div>
+</div>
+<!-- Item -->
+<div class="flex items-center justify-between p-md border-b border-hairline last:border-0 hover:bg-canvas-soft transition-colors group cursor-pointer">
+<div class="flex items-center gap-md">
+<span class="font-label-mono text-label-mono text-on-surface-variant bg-surface-container px-xs py-base rounded">GSTR-3B</span>
+<span class="font-body-md text-body-md text-primary font-medium">December 2023 Return</span>
+</div>
+<div class="flex items-center gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="font-body-sm text-body-sm text-secondary">View</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">arrow_forward</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 border-t border-hairline dark:border-on-tertiary-container shadow-[0_-1px_2px_0_rgba(0,0,0,0.03)] bg-surface/90 dark:bg-tertiary/90 backdrop-blur-lg md:hidden">
+<div class="flex justify-around items-center h-[72px] px-md"><a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#">
+  <span class="material-symbols-outlined">home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#">
+  <span class="material-symbols-outlined">apps</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#">
+  <span class="material-symbols-outlined">description</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#">
+  <span class="material-symbols-outlined">notifications</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#">
+  <span class="material-symbols-outlined">person</span>
+</a></div>
+</nav>
+
+
+</body></html>

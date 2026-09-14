@@ -25,7 +25,7 @@ const MAX_SIZE = 25 * 1024 * 1024;
 @Component({
   selector: 'app-new-ticket',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PageHeader],
+  imports: [ReactiveFormsModule, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './new-ticket.html',
 })

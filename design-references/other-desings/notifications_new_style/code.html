@@ -1,0 +1,271 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GST.Manager - Notifications</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: 300;
+            font-style: normal;
+            font-size: 24px;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "cyan-accent": "#50e3c2",
+                        "surface-bright": "#fdf8f8",
+                        "secondary": "#5d5f5f",
+                        "tertiary": "#000000",
+                        "surface-tint": "#5f5e5e",
+                        "on-tertiary-container": "#868382",
+                        "secondary-fixed": "#e2e2e2",
+                        "surface-dim": "#ddd9d8",
+                        "outline": "#747878",
+                        "surface-container-low": "#f7f3f2",
+                        "hairline": "#ebebeb",
+                        "outline-variant": "#c4c7c7",
+                        "inverse-primary": "#c8c6c5",
+                        "inverse-surface": "#313030",
+                        "on-surface-variant": "#444748",
+                        "on-primary-container": "#858383",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#000000",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "on-primary-fixed": "#1c1b1b",
+                        "link": "#0070f3",
+                        "on-tertiary-fixed-variant": "#484645",
+                        "background": "#fdf8f8",
+                        "dev-teal": "#00dfd8",
+                        "hairline-strong": "#a1a1a1",
+                        "ship-amber": "#f9cb28",
+                        "on-background": "#1c1b1b",
+                        "primary-fixed": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#454747",
+                        "tertiary-fixed": "#e6e2df",
+                        "on-error-container": "#93000a",
+                        "dev-blue": "#007cf0",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-surface": "#1c1b1b",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "preview-purple": "#7928ca",
+                        "pink-accent": "#ff0080",
+                        "primary-container": "#1c1b1b",
+                        "surface-container-high": "#ebe7e6",
+                        "inverse-on-surface": "#f4f0ef",
+                        "tertiary-container": "#1c1b1a",
+                        "on-secondary-container": "#616363",
+                        "on-primary-fixed-variant": "#474746",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "surface-container": "#f1edec",
+                        "canvas-inset": "#f5f5f5",
+                        "ship-coral": "#ff4d4d",
+                        "tertiary-fixed-dim": "#cac6c4",
+                        "secondary-container": "#dfe0e0",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#1c1b1a",
+                        "surface": "#fdf8f8",
+                        "surface-variant": "#e5e2e1",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "canvas-soft": "#fafafa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "section-v": "128px",
+                        "container-max": "1200px",
+                        "base": "4px",
+                        "xs": "8px",
+                        "sm": "12px",
+                        "md": "16px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Geist", "sans-serif"],
+                        "code-block": ["Geist Mono", "monospace"],
+                        "display-xl": ["Geist", "sans-serif"],
+                        "body-md": ["Geist", "sans-serif"],
+                        "label-mono": ["Geist Mono", "monospace"],
+                        "display-md": ["Geist", "sans-serif"],
+                        "display-lg": ["Geist", "sans-serif"],
+                        "body-sm": ["Geist", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "code-block": ["13px", { "lineHeight": "20px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "display-xl": ["48px", { "lineHeight": "48px", "letterSpacing": "-2.4px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "label-mono": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400" }],
+                        "display-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.96px", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-1.28px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md text-body-md antialiased min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-surface/80 dark:bg-tertiary/80 backdrop-blur-md border-b border-hairline dark:border-on-tertiary-container shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)]">
+<div class="flex justify-between items-center px-lg py-md max-w-container-max mx-auto">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary dark:text-surface-bright" data-icon="account_balance">account_balance</span>
+<span class="font-display-md text-display-md font-bold tracking-tight text-primary dark:text-surface-bright">GST.Manager</span>
+</div>
+<div class="hidden md:flex gap-lg">
+<!-- Nav items for desktop could go here, but this is a specific view -->
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary dark:text-surface-bright font-medium" data-icon="notifications">notifications</span>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow flex flex-col items-center px-md py-xl md:px-lg w-full max-w-container-max mx-auto">
+<div class="w-full max-w-3xl">
+<div class="mb-lg flex justify-between items-end">
+<div>
+<h1 class="font-display-lg text-display-lg text-primary tracking-tight">Notifications</h1>
+<p class="font-body-md text-body-md text-secondary mt-base">System alerts and activity logs.</p>
+</div>
+<div class="hidden sm:block">
+<button class="bg-canvas-soft border border-hairline rounded-lg px-md py-xs font-body-sm text-body-sm text-primary hover:bg-surface-dim transition-colors">Mark all as read</button>
+</div>
+</div>
+<!-- Notifications List -->
+<div class="flex flex-col gap-sm">
+<!-- Notification Item 1: Error -->
+<div class="bg-surface-container-lowest border border-hairline rounded-xl p-md shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] hover:border-outline-variant transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-ship-coral opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-start gap-md">
+<div class="mt-base flex-shrink-0">
+<span class="material-symbols-outlined text-ship-coral" data-icon="error">error</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-baseline mb-base">
+<h3 class="font-body-md text-body-md text-primary font-medium">Reconciliation mismatch detected</h3>
+<span class="font-code-block text-code-block text-secondary">10:42 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary">A discrepancy of $4,250.00 was found during the automated reconciliation process for Q3. Manual review required.</p>
+<div class="mt-sm flex gap-sm">
+<span class="bg-error-container text-on-error-container px-xs py-base rounded font-label-mono text-label-mono uppercase">Critical</span>
+<span class="bg-surface-container text-secondary px-xs py-base rounded font-label-mono text-label-mono">GST-REQ-892</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Notification Item 2: Success/Info -->
+<div class="bg-surface-container-lowest border border-hairline rounded-xl p-md shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] hover:border-outline-variant transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-dev-teal opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-start gap-md">
+<div class="mt-base flex-shrink-0">
+<span class="material-symbols-outlined text-dev-teal" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-baseline mb-base">
+<h3 class="font-body-md text-body-md text-primary font-medium">Monthly report generated</h3>
+<span class="font-code-block text-code-block text-secondary">Yesterday</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary">The automated GST report for August 2023 has been successfully compiled and is ready for export.</p>
+<div class="mt-sm flex gap-sm">
+<button class="text-link font-body-sm text-body-sm font-medium hover:underline">View Report</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Notification Item 3: Warning -->
+<div class="bg-surface-container-lowest border border-hairline rounded-xl p-md shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] hover:border-outline-variant transition-colors group cursor-pointer relative overflow-hidden opacity-75">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-ship-amber opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-start gap-md">
+<div class="mt-base flex-shrink-0">
+<span class="material-symbols-outlined text-ship-amber" data-icon="warning">warning</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-baseline mb-base">
+<h3 class="font-body-md text-body-md text-primary font-medium">Approaching submission deadline</h3>
+<span class="font-code-block text-code-block text-secondary">Oct 12</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary">The quarterly BAS submission is due in 3 days. Please ensure all outstanding invoices are categorized.</p>
+</div>
+</div>
+</div>
+<!-- Notification Item 4: System -->
+<div class="bg-surface-container-lowest border border-hairline rounded-xl p-md shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] hover:border-outline-variant transition-colors group cursor-pointer relative overflow-hidden opacity-75">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-secondary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-start gap-md">
+<div class="mt-base flex-shrink-0">
+<span class="material-symbols-outlined text-secondary" data-icon="settings">settings</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-baseline mb-base">
+<h3 class="font-body-md text-body-md text-primary font-medium">System maintenance scheduled</h3>
+<span class="font-code-block text-code-block text-secondary">Oct 10</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary">Scheduled downtime for platform upgrades will occur on Sunday between 02:00 and 04:00 UTC.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-lg flex justify-center">
+<button class="bg-transparent border border-hairline-strong rounded-lg px-lg py-sm font-body-sm text-body-sm text-primary hover:bg-canvas-soft transition-colors flex items-center gap-sm">
+<span class="material-symbols-outlined" data-icon="refresh" style="font-size: 16px;">refresh</span>
+                    Load more activity
+                </button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface dark:bg-tertiary border-t border-hairline dark:border-on-tertiary-container shadow-[0_-1px_2px_0_rgba(0,0,0,0.03)] pb-safe">
+<div class="flex justify-around items-center h-xl px-md bg-surface/90 dark:bg-tertiary/90 backdrop-blur-lg"><div class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all cursor-pointer"><span class="material-symbols-outlined" data-icon="home">home</span></div><div class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all cursor-pointer"><span class="material-symbols-outlined" data-icon="apps">apps</span></div><div class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all cursor-pointer"><span class="material-symbols-outlined" data-icon="description">description</span></div><div class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all cursor-pointer"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></div><div class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all cursor-pointer"><span class="material-symbols-outlined" data-icon="person">person</span></div></div>
+</nav>
+<script>
+        // Simple script to handle 'mark all as read' visual update
+        document.addEventListener('DOMContentLoaded', () => {
+            const markReadBtn = document.querySelector('button.bg-canvas-soft');
+            if(markReadBtn) {
+                markReadBtn.addEventListener('click', (e) => {
+                    const unreadItems = document.querySelectorAll('.opacity-100:not(.opacity-75)');
+                    unreadItems.forEach(item => {
+                        item.classList.add('opacity-75');
+                    });
+                    e.target.textContent = 'All read';
+                    e.target.disabled = true;
+                    e.target.classList.add('opacity-50', 'cursor-not-allowed');
+                });
+            }
+        });
+    </script>
+
+
+</body></html>

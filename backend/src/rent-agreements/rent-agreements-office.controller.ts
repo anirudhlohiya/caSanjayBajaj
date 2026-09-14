@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { RentAgreementsService } from './rent-agreements.service';
 
@@ -17,7 +10,9 @@ export class RentAgreementsOfficeController {
   async officeSource(@Param('key') key: string, @Res() res: Response) {
     const source = await this.rentAgreementsService.getOfficeSourceBuf(key);
     if (!source) {
-      res.status(404).json({ error: 1, message: 'Source not found or expired' });
+      res
+        .status(404)
+        .json({ error: 1, message: 'Source not found or expired' });
       return;
     }
     res.setHeader(

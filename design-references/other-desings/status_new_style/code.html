@@ -1,0 +1,252 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GST.Manager - Documents &amp; Status</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Geist+Mono:wght@100..900&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "cyan-accent": "#50e3c2",
+                        "surface-bright": "#fdf8f8",
+                        "secondary": "#5d5f5f",
+                        "tertiary": "#000000",
+                        "surface-tint": "#5f5e5e",
+                        "on-tertiary-container": "#868382",
+                        "secondary-fixed": "#e2e2e2",
+                        "surface-dim": "#ddd9d8",
+                        "outline": "#747878",
+                        "surface-container-low": "#f7f3f2",
+                        "hairline": "#ebebeb",
+                        "outline-variant": "#c4c7c7",
+                        "inverse-primary": "#c8c6c5",
+                        "inverse-surface": "#313030",
+                        "on-surface-variant": "#444748",
+                        "on-primary-container": "#858383",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#000000",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "on-primary-fixed": "#1c1b1b",
+                        "link": "#0070f3",
+                        "on-tertiary-fixed-variant": "#484645",
+                        "background": "#fdf8f8",
+                        "dev-teal": "#00dfd8",
+                        "hairline-strong": "#a1a1a1",
+                        "ship-amber": "#f9cb28",
+                        "on-background": "#1c1b1b",
+                        "primary-fixed": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#454747",
+                        "tertiary-fixed": "#e6e2df",
+                        "on-error-container": "#93000a",
+                        "dev-blue": "#007cf0",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-surface": "#1c1b1b",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "preview-purple": "#7928ca",
+                        "pink-accent": "#ff0080",
+                        "primary-container": "#1c1b1b",
+                        "surface-container-high": "#ebe7e6",
+                        "inverse-on-surface": "#f4f0ef",
+                        "tertiary-container": "#1c1b1a",
+                        "on-secondary-container": "#616363",
+                        "on-primary-fixed-variant": "#474746",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "surface-container": "#f1edec",
+                        "canvas-inset": "#f5f5f5",
+                        "ship-coral": "#ff4d4d",
+                        "tertiary-fixed-dim": "#cac6c4",
+                        "secondary-container": "#dfe0e0",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#1c1b1a",
+                        "surface": "#fdf8f8",
+                        "surface-variant": "#e5e2e1",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "canvas-soft": "#fafafa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "section-v": "128px",
+                        "container-max": "1200px",
+                        "base": "4px",
+                        "xs": "8px",
+                        "sm": "12px",
+                        "md": "16px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Geist"],
+                        "code-block": ["Geist Mono"],
+                        "display-xl": ["Geist"],
+                        "body-md": ["Geist"],
+                        "label-mono": ["Geist Mono"],
+                        "display-md": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "body-sm": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "code-block": ["13px", { "lineHeight": "20px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "display-xl": ["48px", { "lineHeight": "48px", "letterSpacing": "-2.4px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "label-mono": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400" }],
+                        "display-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.96px", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-1.28px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.28px", "fontWeight": "400" }]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .accordion-content {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .accordion-item.active .accordion-content {
+            max-height: 500px;
+            opacity: 1;
+        }
+        .accordion-icon {
+            transition: transform 0.3s ease-in-out;
+        }
+        .accordion-item.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md min-h-screen pb-section-v md:pb-0">
+<!-- TopAppBar (Hidden on Mobile, Visible on Desktop) -->
+<header class="hidden md:flex w-full sticky top-0 z-50 border-b border-hairline dark:border-on-tertiary-container shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] bg-surface/80 dark:bg-tertiary/80 backdrop-blur-md flex justify-between items-center px-lg py-md max-w-container-max mx-auto">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary dark:text-surface-bright" data-icon="account_balance">account_balance</span>
+<span class="font-display-md text-display-md font-bold tracking-tight text-primary dark:text-surface-bright">GST.Manager</span>
+</div>
+<nav class="flex items-center gap-md">
+<a class="text-secondary dark:text-on-tertiary-container hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors active:scale-[0.98] px-sm py-xs rounded-lg font-body-md text-body-md" href="#">Home</a>
+<a class="text-primary dark:text-surface-bright font-medium hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors active:scale-[0.98] px-sm py-xs rounded-lg font-body-md text-body-md" href="#">Documents</a>
+<a class="text-secondary dark:text-on-tertiary-container hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors active:scale-[0.98] px-sm py-xs rounded-lg font-body-md text-body-md" href="#">Reports</a>
+<a class="text-secondary dark:text-on-tertiary-container hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors active:scale-[0.98] px-sm py-xs rounded-lg font-body-md text-body-md" href="#">Profile</a>
+</nav>
+<div class="flex items-center gap-sm">
+<button class="p-xs hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary dark:text-surface-bright" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="max-w-container-max mx-auto px-md md:px-lg py-xl">
+<div class="mb-xl">
+<h1 class="font-display-xl text-display-xl text-primary mb-sm">Track Status</h1>
+<p class="font-body-lg text-body-lg text-secondary">Review and manage your filing periods and document statuses.</p>
+</div>
+<div class="space-y-md">
+<!-- Accordion Item 1 -->
+<div class="accordion-item active bg-canvas-soft rounded-xl border border-hairline overflow-hidden shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)]">
+<button class="w-full flex items-center justify-between p-lg hover:bg-surface-container-low transition-colors" onclick="this.parentElement.classList.toggle('active')">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="folder_open">folder_open</span>
+</div>
+<div class="text-left">
+<h3 class="font-display-md text-display-md text-primary">Q3 2023 Filing</h3>
+<p class="font-body-sm text-body-sm text-secondary">Jul 1 - Sep 30, 2023</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary accordion-icon" data-icon="expand_more">expand_more</span>
+</button>
+<div class="accordion-content border-t border-hairline bg-surface-container-lowest">
+<div class="p-lg space-y-sm">
+<!-- Document Row -->
+<div class="flex items-center justify-between p-md border border-hairline rounded-lg hover:border-outline-variant transition-colors group">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors" data-icon="receipt_long">receipt_long</span>
+<span class="font-body-md text-body-md text-primary">Sales_Invoices_Q3.csv</span>
+</div>
+<span class="font-label-mono text-label-mono bg-canvas-inset px-xs py-base rounded-DEFAULT border border-hairline text-on-surface-variant flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-dev-teal inline-block"></span>
+                                PROCESSED
+                            </span>
+</div>
+<!-- Document Row -->
+<div class="flex items-center justify-between p-md border border-hairline rounded-lg hover:border-outline-variant transition-colors group">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors" data-icon="description">description</span>
+<span class="font-body-md text-body-md text-primary">Expense_Reports_Q3.pdf</span>
+</div>
+<span class="font-label-mono text-label-mono bg-canvas-inset px-xs py-base rounded-DEFAULT border border-hairline text-on-surface-variant flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-dev-teal inline-block"></span>
+                                PROCESSED
+                            </span>
+</div>
+<!-- Document Row -->
+<div class="flex items-center justify-between p-md border border-hairline rounded-lg hover:border-outline-variant transition-colors group">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors" data-icon="analytics">analytics</span>
+<span class="font-body-md text-body-md text-primary">GST_Summary_Q3.pdf</span>
+</div>
+<span class="font-label-mono text-label-mono bg-canvas-inset px-xs py-base rounded-DEFAULT border border-hairline text-on-surface-variant flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-ship-amber inline-block"></span>
+                                PENDING
+                            </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Accordion Item 2 -->
+<div class="accordion-item bg-canvas-soft rounded-xl border border-hairline overflow-hidden shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)]">
+<button class="w-full flex items-center justify-between p-lg hover:bg-surface-container-low transition-colors" onclick="this.parentElement.classList.toggle('active')">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="folder">folder</span>
+</div>
+<div class="text-left">
+<h3 class="font-display-md text-display-md text-primary">Q2 2023 Filing</h3>
+<p class="font-body-sm text-body-sm text-secondary">Apr 1 - Jun 30, 2023</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary accordion-icon" data-icon="expand_more">expand_more</span>
+</button>
+<div class="accordion-content border-t border-hairline bg-surface-container-lowest">
+<div class="p-lg space-y-sm">
+<!-- Document Row -->
+<div class="flex items-center justify-between p-md border border-hairline rounded-lg hover:border-outline-variant transition-colors group">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors" data-icon="archive">archive</span>
+<span class="font-body-md text-body-md text-primary">Q2_Complete_Archive.zip</span>
+</div>
+<span class="font-label-mono text-label-mono bg-canvas-inset px-xs py-base rounded-DEFAULT border border-hairline text-on-surface-variant flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-dev-teal inline-block"></span>
+                                PROCESSED
+                            </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Visible on Mobile, Hidden on Desktop) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 border-t border-hairline dark:border-on-tertiary-container shadow-[0_-1px_2px_0_rgba(0,0,0,0.03)] bg-surface/90 dark:bg-tertiary/90 backdrop-blur-lg flex justify-around items-center h-xl px-md"><a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#"><span class="material-symbols-outlined" data-icon="home">home</span></a><a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#"><span class="material-symbols-outlined" data-icon="apps">apps</span></a><a class="flex flex-col items-center justify-center text-primary dark:text-surface-bright bg-secondary-fixed dark:bg-on-tertiary-fixed-variant rounded-full px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#"><span class="material-symbols-outlined" data-icon="description">description</span></a><a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></a><a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#"><span class="material-symbols-outlined" data-icon="person">person</span></a></nav>
+
+
+</body></html>

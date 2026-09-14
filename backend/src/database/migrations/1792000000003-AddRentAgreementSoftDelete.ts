@@ -5,7 +5,7 @@ export class AddRentAgreementSoftDelete1792000000003 implements MigrationInterfa
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "rent_agreements" ADD "deleted_at" TIMESTAMP WITH TIME ZONE`,
+      `ALTER TABLE "rent_agreements" ADD COLUMN IF NOT EXISTS "deleted_at" TIMESTAMP WITH TIME ZONE`,
     );
   }
 

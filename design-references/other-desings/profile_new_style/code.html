@@ -1,0 +1,225 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Profile Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Geist+Mono:wght@100..900&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "cyan-accent": "#50e3c2",
+                        "surface-bright": "#fdf8f8",
+                        "secondary": "#5d5f5f",
+                        "tertiary": "#000000",
+                        "surface-tint": "#5f5e5e",
+                        "on-tertiary-container": "#868382",
+                        "secondary-fixed": "#e2e2e2",
+                        "surface-dim": "#ddd9d8",
+                        "outline": "#747878",
+                        "surface-container-low": "#f7f3f2",
+                        "hairline": "#ebebeb",
+                        "outline-variant": "#c4c7c7",
+                        "inverse-primary": "#c8c6c5",
+                        "inverse-surface": "#313030",
+                        "on-surface-variant": "#444748",
+                        "on-primary-container": "#858383",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#000000",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "on-primary-fixed": "#1c1b1b",
+                        "link": "#0070f3",
+                        "on-tertiary-fixed-variant": "#484645",
+                        "background": "#fdf8f8",
+                        "dev-teal": "#00dfd8",
+                        "hairline-strong": "#a1a1a1",
+                        "ship-amber": "#f9cb28",
+                        "on-background": "#1c1b1b",
+                        "primary-fixed": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#454747",
+                        "tertiary-fixed": "#e6e2df",
+                        "on-error-container": "#93000a",
+                        "dev-blue": "#007cf0",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-surface": "#1c1b1b",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "preview-purple": "#7928ca",
+                        "pink-accent": "#ff0080",
+                        "primary-container": "#1c1b1b",
+                        "surface-container-high": "#ebe7e6",
+                        "inverse-on-surface": "#f4f0ef",
+                        "tertiary-container": "#1c1b1a",
+                        "on-secondary-container": "#616363",
+                        "on-primary-fixed-variant": "#474746",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "surface-container": "#f1edec",
+                        "canvas-inset": "#f5f5f5",
+                        "ship-coral": "#ff4d4d",
+                        "tertiary-fixed-dim": "#cac6c4",
+                        "secondary-container": "#dfe0e0",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#1c1b1a",
+                        "surface": "#fdf8f8",
+                        "surface-variant": "#e5e2e1",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "canvas-soft": "#fafafa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "section-v": "128px",
+                        "container-max": "1200px",
+                        "base": "4px",
+                        "xs": "8px",
+                        "sm": "12px",
+                        "md": "16px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Geist"],
+                        "code-block": ["Geist Mono"],
+                        "display-xl": ["Geist"],
+                        "body-md": ["Geist"],
+                        "label-mono": ["Geist Mono"],
+                        "display-md": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "body-sm": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "code-block": ["13px", { "lineHeight": "20px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "display-xl": ["48px", { "lineHeight": "48px", "letterSpacing": "-2.4px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "label-mono": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400" }],
+                        "display-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.96px", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-1.28px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Geist', sans-serif; }
+        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
+        
+        /* Custom minimalist toggle switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #000000;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #000000;
+        }
+        .toggle-checkbox:focus + .toggle-label {
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-primary antialiased min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-surface/80 dark:bg-tertiary/80 backdrop-blur-md border-b border-hairline dark:border-on-tertiary-container shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] hidden md:block">
+<div class="flex justify-between items-center px-lg py-md max-w-container-max mx-auto">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary dark:text-surface-bright" data-icon="account_balance">account_balance</span>
+<span class="font-display-md text-display-md font-bold tracking-tight text-primary dark:text-surface-bright">GST.Manager</span>
+</div>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="font-body-md text-body-md text-secondary dark:text-on-tertiary-container hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors px-sm py-xs rounded-lg active:scale-[0.98] transition-transform duration-150" href="#">Home</a>
+<a class="font-body-md text-body-md text-secondary dark:text-on-tertiary-container hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors px-sm py-xs rounded-lg active:scale-[0.98] transition-transform duration-150" href="#">Documents</a>
+<a class="font-body-md text-body-md text-secondary dark:text-on-tertiary-container hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors px-sm py-xs rounded-lg active:scale-[0.98] transition-transform duration-150" href="#">Reports</a>
+<a class="font-body-md text-body-md text-primary dark:text-surface-bright font-medium hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors px-sm py-xs rounded-lg active:scale-[0.98] transition-transform duration-150" href="#">Profile</a>
+</nav>
+<button class="active:scale-[0.98] transition-transform duration-150 p-xs rounded-full hover:bg-canvas-soft">
+<span class="material-symbols-outlined text-primary dark:text-surface-bright" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-md md:px-lg py-xl md:py-section-v pb-32 md:pb-xl flex flex-col gap-xl">
+<!-- Profile Header -->
+<section class="flex flex-col md:flex-row items-start md:items-center gap-lg border border-hairline rounded-xl p-lg bg-surface-container-lowest shadow-[0_1px_2px_0_rgba(0,0,0,0.02)]">
+<div class="relative w-24 h-24 rounded-full overflow-hidden border border-hairline flex-shrink-0 bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="A minimalist, monochromatic studio portrait photograph of a professional in a stark white environment with sharp directional lighting, evoking a high-tech corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxcVgf09c0APUJ47pbE5Mu-fNVvNuIEaBTvZQW399gaMAHeexN5wZjE6QHEDQrQ7MIXn7GTMiVm3TVXu6KnaGhGyrQRoZrmTD1X2EcIlrg3dAODCJK7k47dC7_O7PTXSDOMrwg188bjXFFQs-ecrejjj03UBnan9bMfhGU54LKx9cMT_05kyRvyHbVK_s6IAVIbRBKhWHBoaIXApmOkJpnokpelxPs7fBZXFp0LaWvFlelql22D4QQrQ">
+</div>
+<div class="flex flex-col gap-base">
+<h1 class="font-display-lg text-display-lg text-primary m-0">Jane Doe</h1>
+<p class="font-body-md text-body-md text-secondary">jane.doe@gstmanager.corp</p>
+<div class="flex items-center gap-sm mt-xs">
+<span class="inline-block bg-canvas-inset border border-hairline px-sm py-base rounded-full font-label-mono text-label-mono text-on-surface-variant">Admin Level 4</span>
+<span class="inline-block bg-canvas-inset border border-hairline px-sm py-base rounded-full font-label-mono text-label-mono text-on-surface-variant">Finance Ops</span>
+</div>
+</div>
+<div class="mt-md md:mt-0 md:ml-auto">
+<button class="bg-primary text-on-primary font-body-sm text-body-sm px-md py-sm rounded-lg hover:bg-surface-tint transition-colors">Edit Profile</button>
+</div>
+</section>
+<!-- Settings List -->
+<section class="flex flex-col gap-md">
+<h2 class="font-display-md text-display-md text-primary pb-sm border-b border-hairline">Account Settings</h2>
+<div class="border border-hairline rounded-xl bg-surface-container-lowest overflow-hidden shadow-[0_1px_2px_0_rgba(0,0,0,0.02)] flex flex-col">
+<!-- Password Item -->
+<div class="flex items-center justify-between p-lg border-b border-hairline hover:bg-canvas-soft transition-colors group">
+<div class="flex flex-col gap-base">
+<span class="font-body-md text-body-md text-primary font-medium">Change Password</span>
+<span class="font-body-sm text-body-sm text-secondary">Update your credentials to maintain security.</span>
+</div>
+<button class="border border-hairline bg-surface-container-lowest text-primary font-body-sm text-body-sm px-sm py-xs rounded-lg group-hover:border-outline-variant transition-colors">Update</button>
+</div>
+<!-- Two-Factor Item -->
+<div class="flex items-center justify-between p-lg border-b border-hairline hover:bg-canvas-soft transition-colors">
+<div class="flex flex-col gap-base">
+<span class="font-body-md text-body-md text-primary font-medium">Two-Factor Authentication</span>
+<span class="font-body-sm text-body-sm text-secondary">Require a security key or app code upon login.</span>
+</div>
+<!-- Minimalist Toggle -->
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-surface-container-lowest border-2 border-hairline-strong appearance-none cursor-pointer transition-all duration-300 ease-in-out z-10 checked:border-primary checked:translate-x-6" id="toggle" name="toggle" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-container-highest cursor-pointer transition-colors duration-300 ease-in-out" for="toggle"></label>
+</div>
+</div>
+<!-- Session Item -->
+<div class="flex items-center justify-between p-lg border-b border-hairline hover:bg-canvas-soft transition-colors group">
+<div class="flex flex-col gap-base">
+<span class="font-body-md text-body-md text-primary font-medium">Active Sessions</span>
+<span class="font-body-sm text-body-sm text-secondary">Manage and revoke access from other devices.</span>
+</div>
+<button class="border border-hairline bg-surface-container-lowest text-primary font-body-sm text-body-sm px-sm py-xs rounded-lg group-hover:border-outline-variant transition-colors flex items-center gap-xs">
+<span class="">View</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<!-- Logout Item -->
+<div class="flex items-center justify-between p-lg hover:bg-error-container/10 transition-colors group">
+<div class="flex flex-col gap-base">
+<span class="font-body-md text-body-md text-error font-medium">Logout</span>
+<span class="font-body-sm text-body-sm text-secondary">End your current session on this device.</span>
+</div>
+<button class="text-error font-body-sm text-body-sm px-sm py-xs rounded-lg hover:bg-error-container/50 transition-colors border border-transparent hover:border-error/20">Sign Out</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 border-t border-hairline dark:border-on-tertiary-container shadow-[0_-1px_2px_0_rgba(0,0,0,0.03)] flex justify-around items-center h-xl px-md bg-surface/90 dark:bg-tertiary/90 backdrop-blur-lg md:hidden"><a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all w-12 group" href="#"><span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="home">home</span></a><a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all w-12 group" href="#"><span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="apps">apps</span></a><a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all w-12 group" href="#"><span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="description">description</span></a><a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all w-12 group" href="#"><span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="notifications">notifications</span></a><a class="flex flex-col items-center justify-center text-primary dark:text-surface-bright bg-secondary-fixed dark:bg-on-tertiary-fixed-variant rounded-full px-xs py-base active:scale-95 transition-all w-12" href="#"><span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span></a></nav>
+
+
+</body></html>

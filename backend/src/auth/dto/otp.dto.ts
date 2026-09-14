@@ -54,7 +54,9 @@ export class SignupDto {
   @IsString()
   phone?: string;
 
-  @ApiPropertyOptional({ description: 'GSTIN (15 chars) — required for GST clients' })
+  @ApiPropertyOptional({
+    description: 'GSTIN (15 chars) — required for GST clients',
+  })
   @IsOptional()
   @IsString()
   @Length(15, 15, { message: 'GSTIN must be exactly 15 characters' })

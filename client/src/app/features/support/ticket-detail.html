@@ -1,7 +1,7 @@
 @if (loading()) {
   <app-spinner />
 } @else if (ticket(); as t) {
-  <app-page-header [title]="t.subject" [subtitle]="(categoryLabels[t.category] ?? t.category) + ' · ' + t.status.toUpperCase()" [back]="true">
+  <app-page-header [title]="t.subject" [subtitle]="(categoryLabels[t.category] || t.category) + ' · ' + t.status.toUpperCase()" [back]="true">
     @if (t.status !== 'closed') {
       <button class="px-3 py-1.5 text-xs rounded-lg border border-on-primary/30 text-on-primary hover:bg-on-primary/10" (click)="closeTicket()">
         Close Ticket

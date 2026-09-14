@@ -11,6 +11,9 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { importProvidersFrom } from '@angular/core';
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,6 +21,8 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
+    provideTranslateService(),
+    provideTranslateHttpLoader({ prefix: './i18n/', suffix: '.json' }),
     // '?v=2' busts any poisoned service-worker install from earlier builds:
     // a new script URL forces a fresh worker that claims the page immediately.
     provideServiceWorker('ngsw-worker.js?v=2', {

@@ -1,0 +1,32 @@
+{
+  "SETTINGS": {
+    "TITLE": "सेटिंग्स",
+    "APPEARANCE": "दिखावट",
+    "APPEARANCE_DESC": "चुनें कि ऐप आपके डिवाइस पर कैसा दिखता है",
+    "LANGUAGE": "भाषा",
+    "LANGUAGE_DESC": "अपनी पसंदीदा भाषा चुनें",
+    "NOTIFICATIONS": "सूचनाएं",
+    "NOTIF_PUSH": "पुश सूचनाएं",
+    "NOTIF_PUSH_DESC": "रिपोर्ट तैयार होने या अनुस्मारक देय होने पर अलर्ट",
+    "NOTIF_EMAIL": "ईमेल सूचनाएं",
+    "NOTIF_EMAIL_DESC": "ईमेल के माध्यम से अपडेट प्राप्त करें",
+    "PAYMENT": "भुगतान विकल्प",
+    "PAYMENT_DESC": "हमारा भुगतान विवरण और क्यूआर कोड देखें",
+    "SECURITY": "सुरक्षा",
+    "SECURITY_DESC": "अपना खाता पासवर्ड बदलें",
+    "CUR_PASSWORD": "वर्तमान पासवर्ड",
+    "NEW_PASSWORD": "नया पासवर्ड",
+    "CONFIRM_PASSWORD": "नये पासवर्ड की पुष्टि करें",
+    "UPDATE_PASSWORD": "पासवर्ड अपडेट करें"
+  },
+  "PAYMENT": {
+    "MODAL_TITLE": "भुगतान विवरण",
+    "COMPANY": "एस एन बजाज एंड कंपनी",
+    "BANK": "आईडीबीआई बैंक",
+    "ACCOUNT": "खाता - 0146102000129329",
+    "IFSC": "IFSC - IBKL0000146",
+    "UPI": "UPI ID: sanju.bajaj1994@oksbi",
+    "DOWNLOAD_QR": "QR कोड डाउनलोड करें",
+    "CLOSE": "बंद करें"
+  }
+}

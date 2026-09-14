@@ -1,4 +1,10 @@
-import { IsEnum, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { RentAgreementStatus } from '../../entities/rent-agreement.entity';
 
 export class CreateRentAgreementDto {

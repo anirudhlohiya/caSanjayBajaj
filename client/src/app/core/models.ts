@@ -82,6 +82,9 @@ export interface Report {
   filing_period_id: string;
   report_type: ReportType;
   original_filename: string;
+  total_liability: string | null;
+  itc_claimed: string | null;
+  net_payable: string | null;
   sent_by_admin_id: string | null;
   sent_at: string;
   filing_period?: GstFilingPeriod;

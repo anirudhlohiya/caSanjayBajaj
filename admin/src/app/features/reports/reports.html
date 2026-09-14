@@ -156,6 +156,21 @@
         </select>
       </div>
       <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="s-liability">Total Liability (Optional)</label>
+        <input id="s-liability" type="number" formControlName="total_liability" placeholder="e.g. 45230"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="s-itc">ITC Claimed (Optional)</label>
+        <input id="s-itc" type="number" formControlName="itc_claimed" placeholder="e.g. 12050"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="s-payable">Net Payable (Optional)</label>
+        <input id="s-payable" type="number" formControlName="net_payable" placeholder="e.g. 33180"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary" />
+      </div>
+      <div class="flex flex-col gap-1">
         <label class="font-label-md text-label-md text-on-surface" for="s-file">Report File (PDF)</label>
         <input id="s-file" type="file" accept=".pdf,.xls,.xlsx,image/*" (change)="onFileSelected($event)"
           class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface" />

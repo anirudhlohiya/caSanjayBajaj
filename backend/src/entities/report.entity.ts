@@ -34,6 +34,15 @@ export class Report {
   @Column({ type: 'varchar', length: 255 })
   original_filename: string;
 
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  total_liability: string | null;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  itc_claimed: string | null;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  net_payable: string | null;
+
   @Column({ type: 'uuid', nullable: true })
   sent_by_admin_id: string | null;
 

@@ -12,13 +12,13 @@ import {
   PaginationQueryDto,
 } from '../common/dto/pagination';
 import { StorageService } from '../storage/storage.service';
-import { NotificationsService, isPushSubscription } from '../notifications/notifications.service';
+import {
+  NotificationsService,
+  isPushSubscription,
+} from '../notifications/notifications.service';
 import { ReportNotificationsService } from '../notifications/report-notifications.service';
 import { UsersService } from '../users/users.service';
-import {
-  Ticket,
-  TicketStatus,
-} from '../entities/ticket.entity';
+import { Ticket, TicketStatus } from '../entities/ticket.entity';
 import { TicketMessage } from '../entities/ticket-message.entity';
 import { TicketAttachment } from '../entities/ticket-attachment.entity';
 import {
@@ -66,14 +66,12 @@ export class TicketsService {
       relations: { messages: { attachments: true } },
     });
     if (!ticket) throw new NotFoundException('Ticket not found');
-    if (ticket.user_id !== userId) throw new ForbiddenException('Access denied');
+    if (ticket.user_id !== userId)
+      throw new ForbiddenException('Access denied');
     return this.withOrderedMessages(ticket);
   }
 
-  async createForUser(
-    userId: string,
-    dto: CreateTicketDto,
-  ): Promise<Ticket> {
+  async createForUser(userId: string, dto: CreateTicketDto): Promise<Ticket> {
     const ticket = this.tickets.create({
       user_id: userId,
       subject: dto.subject,
@@ -258,7 +256,9 @@ export class TicketsService {
       throw new ForbiddenException('Access denied');
     }
     if (ticket.status === TicketStatus.CLOSED) {
-      throw new BadRequestException('Cannot add attachments to a closed ticket');
+      throw new BadRequestException(
+        'Cannot add attachments to a closed ticket',
+      );
     }
     return this.createAttachmentUrl(ticketMessageId, dto);
   }

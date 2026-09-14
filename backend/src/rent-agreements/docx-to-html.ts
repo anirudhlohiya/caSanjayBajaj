@@ -10,7 +10,12 @@ interface RunStyle {
 }
 
 function readRunStyle(rPr: Element | null): RunStyle {
-  const s: RunStyle = { bold: false, italic: false, underline: false, strike: false };
+  const s: RunStyle = {
+    bold: false,
+    italic: false,
+    underline: false,
+    strike: false,
+  };
   if (!rPr) return s;
   s.bold = !!rPr.getElementsByTagName('w:b').length;
   if (!s.bold) s.bold = !!rPr.getElementsByTagName('w:bCs').length;
@@ -52,7 +57,8 @@ function renderRun(run: Element): string {
     } else if (local === 'tab') {
       inner += '    ';
     } else if (local === 'br') {
-      if (el.getAttribute('w:type') === 'page') inner += '<div class="page-break"></div>';
+      if (el.getAttribute('w:type') === 'page')
+        inner += '<div class="page-break"></div>';
       else inner += '<br />';
     } else if (local === 'noBreakHyphen') {
       inner += '-';
@@ -85,7 +91,10 @@ function renderInlineRuns(parent: Element): string {
   return out;
 }
 
-function renderTextboxContent(w: Element, wrap: (inner: string) => string): string {
+function renderTextboxContent(
+  w: Element,
+  wrap: (inner: string) => string,
+): string {
   const out: string[] = [];
   for (const p of Array.from(w.getElementsByTagName('w:p'))) {
     out.push(renderParagraph(p));
@@ -130,8 +139,10 @@ function renderParagraph(p: Element): string {
 
 function appendTextboxBlocks(p: Element, blocks: string[]): void {
   const txbxes: Element[] = [];
-  for (const t of Array.from(p.getElementsByTagName('w:txbxContent'))) txbxes.push(t);
-  for (const t of Array.from(p.getElementsByTagName('wne:txbxContent'))) txbxes.push(t);
+  for (const t of Array.from(p.getElementsByTagName('w:txbxContent')))
+    txbxes.push(t);
+  for (const t of Array.from(p.getElementsByTagName('wne:txbxContent')))
+    txbxes.push(t);
   for (const txbx of txbxes) {
     for (const child of Array.from(txbx.getElementsByTagName('w:p'))) {
       blocks.push(renderParagraph(child));
@@ -166,7 +177,9 @@ function renderTable(tbl: Element): string {
 
 export function docxToHtml(docxXml: string): string {
   const doc = new DOMParser().parseFromString(docxXml, 'text/xml');
-  const body = doc.getElementsByTagName('w:body')[0] ?? doc.getElementsByTagName('body')[0];
+  const body =
+    doc.getElementsByTagName('w:body')[0] ??
+    doc.getElementsByTagName('body')[0];
   if (!body) return '';
 
   const out: string[] = [];

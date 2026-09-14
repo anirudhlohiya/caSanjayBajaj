@@ -1,7 +1,8 @@
 export interface TemplateField {
   key: string;
   label: string;
-  type: 'text' | 'number' | 'date' | 'select' | 'currency' | 'multiline' | 'array';
+  type:
+    'text' | 'number' | 'date' | 'select' | 'currency' | 'multiline' | 'array';
   required: boolean;
   section: string;
   options?: { label: string; value: string }[];
@@ -24,14 +25,45 @@ export const TEMPLATES: TemplateConfig[] = [
     name: 'Unified Rent Agreement',
     language: 'English',
     category: 'Residential & Commercial',
-    description: 'Dynamic agreement template supporting multiple licensors, licensees, and auto-calculations.',
+    description:
+      'Dynamic agreement template supporting multiple licensors, licensees, and auto-calculations.',
     templateFileName: 'TOWER-1-804-fixed.docx',
     fields: [
-      { key: 'PROPERTY_ADDRESS', label: 'Property Address', type: 'multiline', required: true, section: 'Property Details' },
-      { key: 'starting date', label: 'Agreement Start Date', type: 'date', required: true, section: 'Agreement Details' },
-      { key: 'ending date', label: 'Agreement End Date', type: 'date', required: true, section: 'Agreement Details' },
-      { key: 'rent in numbers', label: 'Monthly Rent', type: 'currency', required: true, section: 'Payment Details' },
-      { key: 'deposit in numbers', label: 'Deposit Amount', type: 'currency', required: true, section: 'Payment Details' },
+      {
+        key: 'PROPERTY_ADDRESS',
+        label: 'Property Address',
+        type: 'multiline',
+        required: true,
+        section: 'Property Details',
+      },
+      {
+        key: 'starting date',
+        label: 'Agreement Start Date',
+        type: 'date',
+        required: true,
+        section: 'Agreement Details',
+      },
+      {
+        key: 'ending date',
+        label: 'Agreement End Date',
+        type: 'date',
+        required: true,
+        section: 'Agreement Details',
+      },
+      {
+        key: 'rent in numbers',
+        label: 'Monthly Rent',
+        type: 'currency',
+        required: true,
+        section: 'Payment Details',
+      },
+      {
+        key: 'deposit in numbers',
+        label: 'Deposit Amount',
+        type: 'currency',
+        required: true,
+        section: 'Payment Details',
+      },
       {
         key: 'property_tax_payer',
         label: 'Property Tax Paid By',
@@ -63,9 +95,23 @@ export const TEMPLATES: TemplateConfig[] = [
         section: 'Owner Details',
         arrayFields: [
           { key: 'name', label: 'Full Name', type: 'text', required: true },
-          { key: 'gender', label: 'Gender', type: 'select', required: true, options: [{label: 'Male', value: 'Male'}, {label: 'Female', value: 'Female'}] },
+          {
+            key: 'gender',
+            label: 'Gender',
+            type: 'select',
+            required: true,
+            options: [
+              { label: 'Male', value: 'Male' },
+              { label: 'Female', value: 'Female' },
+            ],
+          },
           { key: 'dob', label: 'Date of Birth', type: 'date', required: true },
-          { key: 'occupation', label: 'Occupation', type: 'text', required: true },
+          {
+            key: 'occupation',
+            label: 'Occupation',
+            type: 'text',
+            required: true,
+          },
         ],
       },
       {
@@ -76,9 +122,23 @@ export const TEMPLATES: TemplateConfig[] = [
         section: 'Tenant Details',
         arrayFields: [
           { key: 'name', label: 'Full Name', type: 'text', required: true },
-          { key: 'gender', label: 'Gender', type: 'select', required: true, options: [{label: 'Male', value: 'Male'}, {label: 'Female', value: 'Female'}] },
+          {
+            key: 'gender',
+            label: 'Gender',
+            type: 'select',
+            required: true,
+            options: [
+              { label: 'Male', value: 'Male' },
+              { label: 'Female', value: 'Female' },
+            ],
+          },
           { key: 'dob', label: 'Date of Birth', type: 'date', required: true },
-          { key: 'occupation', label: 'Occupation', type: 'text', required: true },
+          {
+            key: 'occupation',
+            label: 'Occupation',
+            type: 'text',
+            required: true,
+          },
         ],
       },
     ],

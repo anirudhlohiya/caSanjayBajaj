@@ -33,7 +33,11 @@ export function sanitizeDocumentXml(input: string): SanitizeResult {
   }).parseFromString(input, 'application/xml');
 
   if (parseFailed) {
-    return { xml: null, error: comments.join('; ') || 'XML parse failure', changed: comments };
+    return {
+      xml: null,
+      error: comments.join('; ') || 'XML parse failure',
+      changed: comments,
+    };
   }
 
   const fixed = moveSectPrToBodyEnd(input, comments);
@@ -73,7 +77,8 @@ function moveSectPrToBodyEnd(xml: string, comments: string[]): string {
   const bodyCloseIdx = mid.lastIndexOf('</w:body>');
   if (bodyCloseIdx < 0) return xml;
 
-  const result = mid.slice(0, bodyCloseIdx) + sectPrBlock + mid.slice(bodyCloseIdx);
+  const result =
+    mid.slice(0, bodyCloseIdx) + sectPrBlock + mid.slice(bodyCloseIdx);
   comments.push('moved w:sectPr from first body child to last');
   return result;
 }

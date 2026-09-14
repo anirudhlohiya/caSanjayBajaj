@@ -43,11 +43,11 @@
           <div class="min-w-0 flex-1">
             <h3 class="text-sm font-semibold text-on-surface truncate">{{ t.subject }}</h3>
             <p class="text-xs text-on-surface-variant mt-1">
-              {{ categoryLabels[t.category] ?? t.category }} · {{ fmtDate(t.created_at) }}
+              {{ categoryLabels[t.category] || t.category }} · {{ fmtDate(t.created_at) }}
             </p>
           </div>
           <span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase"
-                [class]="statusColors[t.status] ?? ''">
+                [class]="statusColors[t.status] || ''">
             {{ t.status }}
           </span>
         </div>

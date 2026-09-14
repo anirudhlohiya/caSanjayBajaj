@@ -1,0 +1,290 @@
+<!DOCTYPE html><html class="light" lang="en" style="width: 390px; height: 1139px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Upload Documents - GST.Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "cyan-accent": "#50e3c2",
+                        "surface-bright": "#fdf8f8",
+                        "secondary": "#5d5f5f",
+                        "tertiary": "#000000",
+                        "surface-tint": "#5f5e5e",
+                        "on-tertiary-container": "#868382",
+                        "secondary-fixed": "#e2e2e2",
+                        "surface-dim": "#ddd9d8",
+                        "outline": "#747878",
+                        "surface-container-low": "#f7f3f2",
+                        "hairline": "#ebebeb",
+                        "outline-variant": "#c4c7c7",
+                        "inverse-primary": "#c8c6c5",
+                        "inverse-surface": "#313030",
+                        "on-surface-variant": "#444748",
+                        "on-primary-container": "#858383",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#000000",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "on-primary-fixed": "#1c1b1b",
+                        "link": "#0070f3",
+                        "on-tertiary-fixed-variant": "#484645",
+                        "background": "#fdf8f8",
+                        "dev-teal": "#00dfd8",
+                        "hairline-strong": "#a1a1a1",
+                        "ship-amber": "#f9cb28",
+                        "on-background": "#1c1b1b",
+                        "primary-fixed": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#454747",
+                        "tertiary-fixed": "#e6e2df",
+                        "on-error-container": "#93000a",
+                        "dev-blue": "#007cf0",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-surface": "#1c1b1b",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "preview-purple": "#7928ca",
+                        "pink-accent": "#ff0080",
+                        "primary-container": "#1c1b1b",
+                        "surface-container-high": "#ebe7e6",
+                        "inverse-on-surface": "#f4f0ef",
+                        "tertiary-container": "#1c1b1a",
+                        "on-secondary-container": "#616363",
+                        "on-primary-fixed-variant": "#474746",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "surface-container": "#f1edec",
+                        "canvas-inset": "#f5f5f5",
+                        "ship-coral": "#ff4d4d",
+                        "tertiary-fixed-dim": "#cac6c4",
+                        "secondary-container": "#dfe0e0",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#1c1b1a",
+                        "surface": "#fdf8f8",
+                        "surface-variant": "#e5e2e1",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "canvas-soft": "#fafafa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "section-v": "128px",
+                        "container-max": "1200px",
+                        "base": "4px",
+                        "xs": "8px",
+                        "sm": "12px",
+                        "md": "16px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Geist", "sans-serif"],
+                        "code-block": ["Geist Mono", "monospace"],
+                        "display-xl": ["Geist", "sans-serif"],
+                        "body-md": ["Geist", "sans-serif"],
+                        "label-mono": ["Geist Mono", "monospace"],
+                        "display-md": ["Geist", "sans-serif"],
+                        "display-lg": ["Geist", "sans-serif"],
+                        "body-sm": ["Geist", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "code-block": ["13px", { "lineHeight": "20px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "display-xl": ["48px", { "lineHeight": "48px", "letterSpacing": "-2.4px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "label-mono": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "400" }],
+                        "display-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.96px", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-1.28px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        
+        /* Drag and drop animation */
+        .drag-active {
+            border-color: theme('colors.primary');
+            background-color: theme('colors.surface-container-low');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col font-body-md text-body-md">
+<!-- TopAppBar -->
+<header class="bg-surface/80 dark:bg-tertiary/80 backdrop-blur-md w-full sticky top-0 z-50 border-b border-hairline dark:border-on-tertiary-container shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)]">
+<div class="flex justify-between items-center px-lg py-md max-w-container-max mx-auto">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary dark:text-surface-bright active:scale-[0.98] transition-transform duration-150 cursor-pointer hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors p-xs rounded-full">account_balance</span>
+<span class="font-display-md text-display-md font-bold tracking-tight text-primary dark:text-surface-bright">GST.Manager</span>
+</div>
+<nav class="hidden md:flex gap-lg">
+<a class="text-secondary dark:text-on-tertiary-container hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors px-xs py-base rounded-md" href="#">Home</a>
+<a class="text-primary dark:text-surface-bright font-medium hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors px-xs py-base rounded-md" href="#">Documents</a>
+<a class="text-secondary dark:text-on-tertiary-container hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors px-xs py-base rounded-md" href="#">Reports</a>
+</nav>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary dark:text-surface-bright active:scale-[0.98] transition-transform duration-150 cursor-pointer hover:bg-canvas-soft dark:hover:bg-on-tertiary-fixed-variant transition-colors p-xs rounded-full">notifications</span>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-md md:px-lg py-xl pb-section-v">
+<div class="max-w-2xl mx-auto space-y-lg">
+<!-- Header Section -->
+<div class="space-y-xs">
+<h1 class="font-display-xl text-display-xl text-primary">Upload Documents.</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Securely upload your invoices, receipts, and bank statements for the selected filing period.</p>
+</div>
+<!-- Filing Period Selector -->
+<div class="space-y-base">
+<label class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-wider block" for="filing-period">Filing Period</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-lowest border border-hairline rounded-lg py-sm pl-md pr-xl font-code-block text-code-block text-primary focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow cursor-pointer" id="filing-period">
+<option>Q3 2023 (Jul - Sep)</option>
+<option selected="">Q4 2023 (Oct - Dec)</option>
+<option>Q1 2024 (Jan - Mar)</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-sm text-secondary">
+<span class="material-symbols-outlined">arrow_drop_down</span>
+</div>
+</div>
+</div>
+<!-- Drag & Drop Area -->
+<div class="border-2 border-dashed border-hairline-strong rounded-xl bg-canvas-soft p-xl flex flex-col items-center justify-center text-center transition-colors duration-200 hover:bg-surface-container-low cursor-pointer min-h-[240px]" id="drop-zone">
+<span class="material-symbols-outlined text-4xl text-secondary mb-md" style="font-variation-settings: 'FILL' 0; font-size: 48px;">cloud_upload</span>
+<p class="font-body-lg text-body-lg text-primary mb-base">Drag &amp; drop files here</p>
+<p class="font-body-sm text-body-sm text-secondary mb-md">or click to browse from your computer</p>
+<p class="font-label-mono text-label-mono text-outline-variant mt-sm">Supports PDF, XLSX, CSV (Max 50MB)</p>
+<input accept=".pdf,.xlsx,.csv" class="hidden" id="file-input" multiple="" type="file">
+</div>
+<!-- Upload Progress / File List -->
+<div class="space-y-sm mt-lg">
+<h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-wider mb-sm">Selected Files</h3>
+<!-- File Item 1 (Uploading) -->
+<div class="bg-surface-container-lowest border border-hairline rounded-lg p-sm flex items-center justify-between group">
+<div class="flex items-center gap-sm flex-1 min-w-0">
+<div class="bg-surface-container-high p-xs rounded-md text-ship-coral flex-shrink-0">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0 pr-md">
+<span class="font-body-sm text-body-sm text-primary truncate">Oct_Invoices_Batch_1.pdf</span>
+<div class="flex items-center gap-sm mt-1">
+<div class="h-1 bg-hairline rounded-full flex-1 overflow-hidden">
+<div class="h-full bg-primary w-3/4 rounded-full"></div>
+</div>
+<span class="font-label-mono text-label-mono text-secondary text-[10px]">75%</span>
+</div>
+</div>
+</div>
+<button class="text-outline hover:text-error transition-colors p-xs rounded-full hover:bg-error-container/20">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+<!-- File Item 2 (Completed) -->
+<div class="bg-surface-container-lowest border border-hairline rounded-lg p-sm flex items-center justify-between">
+<div class="flex items-center gap-sm flex-1 min-w-0">
+<div class="bg-surface-container-high p-xs rounded-md text-link flex-shrink-0">
+<span class="material-symbols-outlined">table_chart</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<span class="font-body-sm text-body-sm text-primary truncate">Q4_Bank_Statements.xlsx</span>
+<span class="font-label-mono text-label-mono text-secondary">2.4 MB</span>
+</div>
+</div>
+<button class="text-outline hover:text-error transition-colors p-xs rounded-full hover:bg-error-container/20">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+<!-- File Item 3 (Completed) -->
+<div class="bg-surface-container-lowest border border-hairline rounded-lg p-sm flex items-center justify-between">
+<div class="flex items-center gap-sm flex-1 min-w-0">
+<div class="bg-surface-container-high p-xs rounded-md text-ship-coral flex-shrink-0">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<span class="font-body-sm text-body-sm text-primary truncate">Expense_Receipts_Nov.pdf</span>
+<span class="font-label-mono text-label-mono text-secondary">1.1 MB</span>
+</div>
+</div>
+<button class="text-outline hover:text-error transition-colors p-xs rounded-full hover:bg-error-container/20">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+</div>
+<!-- Submit Action -->
+<div class="pt-lg border-t border-hairline mt-xl">
+<button class="w-full bg-primary text-on-primary font-body-md text-body-md font-medium py-md rounded-full hover:bg-inverse-surface transition-transform active:scale-[0.98] shadow-[0_1px_2px_rgba(0,0,0,0.1)] flex justify-center items-center gap-sm">
+                    Submit Documents
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden bg-surface dark:bg-tertiary fixed bottom-0 left-0 w-full z-50 border-t border-hairline dark:border-on-tertiary-container shadow-[0_-1px_2px_0_rgba(0,0,0,0.03)] flex justify-around items-center h-xl px-md bg-surface/90 dark:bg-tertiary/90 backdrop-blur-lg"><a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined">home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined">apps</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-surface-bright bg-secondary-fixed dark:bg-on-tertiary-fixed-variant rounded-full px-xs py-base active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined">notifications</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-on-tertiary-container px-xs py-base hover:text-primary dark:hover:text-surface-bright active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined">person</span>
+</a></nav>
+<script>
+        // Simple drag and drop visual feedback
+        const dropZone = document.getElementById('drop-zone');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('drag-active');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('drag-active');
+        }
+    </script>
+
+
+</body></html>

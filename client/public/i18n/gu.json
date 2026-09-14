@@ -1,0 +1,32 @@
+{
+  "SETTINGS": {
+    "TITLE": "સેટિંગ્સ",
+    "APPEARANCE": "દેખાવ",
+    "APPEARANCE_DESC": "તમારા ઉપકરણ પર એપ્લિકેશન કેવી દેખાય છે તે પસંદ કરો",
+    "LANGUAGE": "ભાષા",
+    "LANGUAGE_DESC": "તમારી પસંદગીની ભાષા પસંદ કરો",
+    "NOTIFICATIONS": "સૂચનાઓ",
+    "NOTIF_PUSH": "પુશ સૂચનાઓ",
+    "NOTIF_PUSH_DESC": "જ્યારે રિપોર્ટ તૈયાર થાય અથવા રિમાઇન્ડર બાકી હોય ત્યારે ચેતવણીઓ",
+    "NOTIF_EMAIL": "ઇમેઇલ સૂચનાઓ",
+    "NOTIF_EMAIL_DESC": "ઇમેઇલ દ્વારા અપડેટ્સ પ્રાપ્ત કરો",
+    "PAYMENT": "ચુકવણી વિકલ્પો",
+    "PAYMENT_DESC": "અમારી ચુકવણી વિગતો અને QR કોડ જુઓ",
+    "SECURITY": "સુરક્ષા",
+    "SECURITY_DESC": "તમારો એકાઉન્ટ પાસવર્ડ બદલો",
+    "CUR_PASSWORD": "વર્તમાન પાસવર્ડ",
+    "NEW_PASSWORD": "નવો પાસવર્ડ",
+    "CONFIRM_PASSWORD": "નવા પાસવર્ડની પુષ્ટિ કરો",
+    "UPDATE_PASSWORD": "પાસવર્ડ અપડેટ કરો"
+  },
+  "PAYMENT": {
+    "MODAL_TITLE": "ચુકવણી વિગતો",
+    "COMPANY": "એસ એન બજાજ એન્ડ કંપની",
+    "BANK": "IDBI બેંક",
+    "ACCOUNT": "ખાતું - 0146102000129329",
+    "IFSC": "IFSC - IBKL0000146",
+    "UPI": "UPI ID: sanju.bajaj1994@oksbi",
+    "DOWNLOAD_QR": "QR કોડ ડાઉનલોડ કરો",
+    "CLOSE": "બંધ કરો"
+  }
+}

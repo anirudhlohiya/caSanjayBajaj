@@ -36,6 +36,21 @@ export class CreateReportDto {
   @Min(1)
   @Max(50 * 1024 * 1024)
   file_size_bytes: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  total_liability?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  itc_claimed?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  net_payable?: string;
 }
 
 export class ReportFilterQueryDto {

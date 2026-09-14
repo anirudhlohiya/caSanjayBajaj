@@ -52,6 +52,9 @@ export class ReportsService {
         report_type: dto.report_type,
         s3_key: s3Key,
         original_filename: dto.filename,
+        total_liability: dto.total_liability,
+        itc_claimed: dto.itc_claimed,
+        net_payable: dto.net_payable,
         sent_by_admin_id: auth.type === 'admin' ? auth.sub : null,
       }),
     );
