@@ -7,7 +7,8 @@
 > order): `docs/08-project-handbook.md` (deep context + gotchas),
 > `docs/09-run-and-test-guide.md` (run/test locally), `docs/10-phase5-deploy-runbook.md`
 > (deploy + security checklist), `docs/11-lightsail-migration-runbook.md` (migration to
-> Lightsail + CI/CD).
+> Lightsail + CI/CD), `docs/12-interview-explanation.md` (interview-style walkthrough of the
+> architecture and migration).
 
 ## 1. What this project is
 
@@ -610,6 +611,14 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
   2026. CloudWatch billing alarm at $2/mo threshold; SNS topic `aws-billing-alerts` →
   anirudhlohiya999@gmail.com. (Worth double-checking support to Amazon that no EC2/EIP
   line items remain after the termination.)
+- **Rent-agreement PDF preview fixed (Sep 14 2026, commit f51a623)**: PDF tab was blank
+  in production. Cause: Angular sanitizer throws NG0904 for a raw `blob:` URL bound to
+  `<iframe [src]>` (resource-URL context); wrap object URLs in
+  `DomSanitizer.bypassSecurityTrustResourceUrl()` (see `previewPdfSafeUrl` computed in
+  `rent-agreements-create.ts`). Also fixed preview-modal wheel scrolling: panes now have
+  `min-height: 0` and the PDF pane is `overflow-y-auto`, so flex children stay bounded
+  and scroll instead of the modal clipping (workaround was keyboard-only scrolling).
+  Backend preview-pdf endpoint already verified working (HTTP 201, valid PDF).
 - **Backend `npm audit` (seen in every CI deploy)**: 13 vulnerabilities reported
   (1 moderate, 12 high) in backend deps — review `npm audit` in `backend/` and bump
   vulnerable transitive deps when convenient. Frontend (admin/client) builds green.
