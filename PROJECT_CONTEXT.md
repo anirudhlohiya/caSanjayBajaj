@@ -474,6 +474,12 @@ uses live in `website/public/images`; content fully migrated). SEO done: meta/OG
   - Windows Firewall: if Wi-Fi profile is **Public** (Windows default for new networks), inbound to Node is usually blocked. Needs an ADMIN PowerShell: `New-NetFirewallRule -DisplayName "SN Bajaj Node Dev" -Direction Inbound -Action Allow -Protocol TCP -Program "C:\Program Files\nodejs\node.exe" -Profile Any`. (Non-admin attempts fail with "Access is denied".)
   - Phone then loads the app at `http://<PC-LAN-IP>:56191`. NOTE: `http://192.168.x.x` is NOT a secure context → web push/notifications will not work there (see docs/09 §10); document upload/download (S3 via signed URLs) still works. OTP signup/forgot-password emails won't arrive (SES sandbox) — use the seeded password login instead.
 
+- **Client PWA Feature Overhaul (Sep 2026)**:
+  - **Complete UI Refresh**: Redesigned Home Dashboard, Services page, Notifications, and Profile screens incorporating dynamic dark mode styling. New designs reflect an upgraded premium aesthetic with a unified 5-tab navigation.
+  - **Multi-language Support**: Integrated `@ngx-translate/core@18.0.0` (with `provideTranslateService` and `TranslatePipe`) to allow users to seamlessly switch between English, Hindi, and Gujarati. Settings page now manages `fp_language` stored in localStorage.
+  - **Payment Options**: Integrated payment details into the Settings page, allowing users to view bank details (IDBI Bank) and a downloadable QR code modal (`payment-qr.jpeg`).
+  - **Dependencies updated**: Removed deprecated `TranslateModule` pattern in favor of Angular 18+ compliant provider API for `ngx-translate`.
+
 ## 9c. Lightsail migration + CI/CD deploy (Sep 14 2026)
 
 Moved the whole stack OFF the billable EC2 t3.micro (was ~$9–13/mo incl. public-IPv4
