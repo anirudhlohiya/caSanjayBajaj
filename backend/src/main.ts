@@ -10,7 +10,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create<
     INestApplication & NestExpressApplication
-  >(AppModule);
+  >(AppModule, { rawBody: true });
   const config = app.get(ConfigService);
 
   if (config.get('nodeEnv') === 'production') {
