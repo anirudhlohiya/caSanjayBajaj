@@ -6,7 +6,8 @@
 > fixed requirements unless explicitly told otherwise. Companion docs (read in this
 > order): `docs/08-project-handbook.md` (deep context + gotchas),
 > `docs/09-run-and-test-guide.md` (run/test locally), `docs/10-phase5-deploy-runbook.md`
-> (deploy + security checklist).
+> (deploy + security checklist), `docs/11-lightsail-migration-runbook.md` (migration to
+> Lightsail + CI/CD).
 
 ## 1. What this project is
 
@@ -42,9 +43,11 @@ Four components:
 ## 2. Hard constraint: cost
 
 The client is budget-sensitive and new to cloud software. Every architecture decision must
-minimize AWS running cost (target ≈ ₹0–100/month):
-- Single EC2 t3.micro/t2.micro runs EVERYTHING: API (PM2), PostgreSQL 16 (self-hosted,
-  localhost-only), Nginx, both static SPAs. No RDS, no ALB, no ECS.
+minimize AWS running cost (target ≈ ₹100–800/month):
+- Single Lightsail `micro_3_1` (1 vCPU/2GB, ~$7/mo with free static IP, ~1 TB egress) runs
+  EVERYTHING: API (PM2), PostgreSQL 16 (self-hosted, localhost-only), Nginx, both static
+  SPAs. No RDS, no ALB, no ECS. (Migrated Sep 14 2026 from a billable EC2 t3.micro —
+  see §9c.)
 - Free-tier services only: S3 (private buckets, pre-signed URLs), SES email, self-hosted
   VAPID web push (NO Firebase/FCM account), Let's Encrypt SSL.
 - No paid third-party services. Scale ceiling ~1000 users total — fine on one micro box.
@@ -54,7 +57,7 @@ minimize AWS running cost (target ≈ ₹0–100/month):
 1. **Android app first** (client-facing) — wrapper code complete; needs live URL to load.
 2. **Admin panel second** — must be reachable from any device after deploy.
 3. **Client PWA last** (it's what the Android app wraps).
-Domain `snbajaj.com` is the primary domain. EC2 serves app/admin/api subdomains; the
+Domain `snbajaj.com` is the primary domain. Lightsail serves app/admin/api subdomains; the
 marketing website is hosted on Cloudflare Pages.
 
 ## 3. User roles
@@ -458,6 +461,121 @@ uses live in `website/public/images`; content fully migrated). SEO done: meta/OG
   - Windows Firewall: if Wi-Fi profile is **Public** (Windows default for new networks), inbound to Node is usually blocked. Needs an ADMIN PowerShell: `New-NetFirewallRule -DisplayName "SN Bajaj Node Dev" -Direction Inbound -Action Allow -Protocol TCP -Program "C:\Program Files\nodejs\node.exe" -Profile Any`. (Non-admin attempts fail with "Access is denied".)
   - Phone then loads the app at `http://<PC-LAN-IP>:56191`. NOTE: `http://192.168.x.x` is NOT a secure context → web push/notifications will not work there (see docs/09 §10); document upload/download (S3 via signed URLs) still works. OTP signup/forgot-password emails won't arrive (SES sandbox) — use the seeded password login instead.
 
+## 9c. Lightsail migration + CI/CD deploy (Sep 14 2026)
+
+Moved the whole stack OFF the billable EC2 t3.micro (was ~$9–13/mo incl. public-IPv4
+charge) onto a single Lightsail bundle (~$7/mo, all-in), and made GitHub Actions the
+automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runbook.md`.**
+
+### Infra (current production)
+- Lightsail instance **`ca-platform-app`** — region `ap-south-1` (Mumbai), AZ
+  `ap-south-1a`, bundle `micro_3_1` (1 vCPU / 2 GB / ~$7/mo), Amazon Linux 2023.
+  (Instance name is `ca-platform-app` because `ca-platform` was already taken by the
+  Lightsail key pair — resource names are unique per region by type.)
+- Static IP **`ca-platform-ip` → `3.111.8.176`** (FOREVER static, free while attached —
+  if the instance is ever deleted, detach OR delete it so it doesn't bill).
+- SSH key: `F:\Anirudh\lightsail-key.pem` (also = GitHub secret `DEPLOY_SSH_KEY`);
+  ACL-locked on Windows via .NET (icacls tool bug). Old EC2 key `ca-platform-key.pem` is DEAD.
+- Instance firewall (Lightsail "networking") must be kept open: `22`, `80`, `443`.
+  **Gotcha:** CLI-created instances default to only 22+80 — 443 was missing and had to
+  be added (`aws lightsail open-instance-public-ports`, `--port-info` JSON via a file).
+
+### Server layout (all inside the one box)
+- `/opt/ca-app/repo` — git clone of `anirudhlohiya/caSanjayBajaj` (updated by CI via
+  `git fetch origin && git reset --hard origin/main`).
+- `/opt/ca-app/backend` — release backend = repo's `backend/` (npm ci → `migration:run`
+  → `nest build` happen there during each deploy). `.env` lives NEXT to it:
+  `/opt/ca-app/backend/.env`, chmod 600, **not in the repo**.
+- `/opt/ca-app/frontend/site` — client PWA web root; `site/admin/` = admin SPA.
+- PM2 app **`ca-api`** (id 0, ec2-user) via `deploy/ecosystem.config.js`,
+  boot-persisted (`pm2 startup`). Release = `pm2 startOrReload`.
+- nginx: AL2023 style → `/etc/nginx/conf.d/ca-platform.conf` (multi-block: app/admin/api,
+  TLS + http→https 301). NOT auto-synced by CI — it must be re-deployed with
+  `deploy/configure-nginx.sh` / scp when changed.
+- Node 22 (nodesource `setup_22`), global PM2; PostgreSQL 16 (server packages),
+  database `ca_sanjay_gst` (fresh), DB superuser password in server `.env`.
+
+### LibreOffice (rent-agreement PDF preview)
+- AL2023 has NO `libreoffice` rpm — installed the official RHEL bundle
+  `LibreOffice_26.2.6.3_Linux_x86-64_rpm` to `/opt/libreoffice26.2` plus X11 runtime libs
+  (libXinerama/libXrandr/libX11-xcb/cairo/liberation-fonts …). Headless conversion
+  VERIFIED working as ec2-user (`soffice --headless --convert-to pdf`).
+- `/tmp` is **tmpfs (RAM)** on AL2023 — always use `/var/tmp` for downloads/extract.
+- Driven by env in server `.env`: `LIBREOFFICE_ENABLED=true`,
+  `LIBREOFFICE_BINARY=/opt/libreoffice26.2/program/soffice`,
+  `LIBREOFFICE_TIMEOUT_MS=60000`.
+
+### DNS / TLS
+- `snbajaj.com` lives in Cloudflare (zone id `03969891186fb0b2408edb5e696165ba`; token
+  saved locally in `cloudfare.txt` — gitignored — and server-side at
+  `/etc/letsencrypt/cloudflare.ini`, root 0600).
+- A records `app.` / `admin.` / `api.snbajaj.com` → **`3.111.8.176`**, DNS-only (grey
+  cloud, not proxied) so Let's Encrypt validates directly. `snbajaj.com`/`www` → Cloudflare
+  Pages (proxied).
+- TLS: ONE Let's Encrypt cert `ca-platform` (SAN app+admin+api), issued via **manual
+  dns-01** using hook scripts `deploy/cf-dns-auth.sh` / `cf-dns-clean.sh` (create/delete
+  `_acme-challenge` TXT through the Cloudflare API). Cert valid until 2026-12-13, auto-renew
+  scheduled. Keep token current in `/etc/letsencrypt/cloudflare.ini` or renewal breaks.
+- **`lohiyaanirudh.tech` FULLY DECOMMISSIONED (Sep 14 2026)** — registrar-managed (Namecheap,
+  NOT in Cloudflare), previously only 301-redirected. Zero redirects remain; removed from
+  server `.env` (`API_BASE_URL`, `FIREBASE_VAPID_SUBJECT`, `CORS_ORIGIN`) and never added to
+  nginx. Leave its DNS dead.
+
+### Database (fresh + seeded)
+- Wiped/replaced with a brand-new `ca_sanjay_gst`: 21 tables, all migrations applied
+  including `AddRentAgreementSoftDelete1792000000003` (rent-agreements features live:
+  LibreOffice PDF preview, soft delete, summary stats for admin cards).
+- Seeds: super admin `sanjay@gmail.com` (password in server `.env`/CREDENTIALS.txt),
+  test client `client.test@snbajaj.com`, filing periods Sep/Oct/Nov 2026.
+
+### CI/CD — THE release path (push to main = release)
+- Workflow `.github/workflows/deploy.yml`, repo is PUBLIC (`anirudhlohiya/caSanjayBajaj`),
+  triggers on push to `main` (paths: `admin/**`, `client/**`, `backend/**`,
+  `docs/templates/**`, `deploy/**`, the workflow itself) + `workflow_dispatch`.
+- Steps: checkout → setup Node 22 (npm cache) → build admin
+  (`ng build --configuration production --base-href=/admin/`) → build client PWA → package
+  tar → `scp` to server → ssh `SKIP_BACKEND=0 bash deploy/release-on-server.sh` →
+  HTTPS smoke test.
+- Secrets (repo → Settings → Secrets): `DEPLOY_HOST=3.111.8.176`, `DEPLOY_USER=ec2-user`,
+  `DEPLOY_SSH_KEY` = **full contents** of `F:\Anirudh\lightsail-key.pem`.
+- `deploy/release-on-server.sh` (shared with local PowerShell deploy):
+  `git fetch origin && git reset --hard origin/main` → backend npm ci + `migration:run` +
+  `nest build` → rsync frontend bundle into `/opt/ca-app/frontend/site` (+ atomic admin
+  swap, extract OUTSIDE web root!) → `nginx -t` + reload → `pm2 startOrReload ca-api` →
+  health check.
+- **CI failure fixed (Sep 14)**: the final `curl -fsS http://127.0.0.1:3000/api/v1/health`
+  was a one-shot check that fired ~3s after `pm2 reload`, while NestJS was still booting →
+  `curl: (7) ... Could not connect` → run FAILED. FIX: retry loop (20×3s) in
+  `deploy/release-on-server.sh`. All runs green since (`34822197224` success).
+- Smoke test uses `curl -fsSk "https://$DEPLOY_HOST/api/v1/health"` (IP has no SNI → `-k`).
+
+### Backups
+- Nightly **02:30** cron (ec2-user): `/opt/ca-app/bin/backup.sh` → `pg_dump ca_sanjay_gst`
+  | gzip → `s3://ca-sanjay-backups/postgres/` (+ keep 3 local copies). Cron verified
+  installed (Sep 14 — it had been skipped when bootstrap aborted); manual run OK.
+
+### Old EC2
+- `65.0.45.190` (`i-09f7e0f0d3fc6414b`) — **TERMINATED Sep 14 2026** after cutover was
+  fully verified. No EC2 cost remains (billing is effectively just Lightsail ~$7/mo).
+
+### Verification (all done, all passing)
+- `https://app.snbajaj.com|admin.snbajaj.com/admin/|api.snbajaj.com/api/v1/health` → 200;
+  certs verify as browser-trusted (`ssl_verify_result=0`); HTTP→HTTPS 301 works.
+- Admin login end-to-end → real `access_token`/`refresh_token`.
+- `/api/v1/admin/rent-agreements/summary` → 401 (guarded → route live).
+- LibreOffice headless txt→pdf works as ec2-user; `soffice --headless --version` OK.
+- Manual backup uploaded to S3; nightly cron present.
+- `git push origin main` → Actions run `conclusion=success`.
+
+### Windows dev-box gotchas (hit constantly, do not repeat)
+- PowerShell `curl` is ALIASED to `Invoke-WebRequest` — use **`curl.exe`**.
+- `aws`/`ssh` recipes: PowerShell strips inner double-quotes from args; for raw JSON pass a
+  file (`file://...json`). Parentheses, `$()`, backticks, `\n` inside one-line ssh commands
+  get mangled → **write a `.sh` locally, LF-normalize, `scp`, then `bash` it**.
+- `git credential fill` can surface the stored GitHub PAT (use via `gh`-less API reads).
+- LF/CRLF: git on Windows writes CRLF in working copies — always LF-normalize `.sh`/conf
+  before sending to the server.
+
 ## 10. Open items
 
 - **SES production access — ACTIVE BLOCKER for public signups (Aug 25 2026 runbook)**:
@@ -486,13 +604,15 @@ uses live in `website/public/images`; content fully migrated). SEO done: meta/OG
   provisioned (S3+SES suffice for runtime).
 - **Security audit DONE (Aug 25 2026, §7b)** — trust proxy / CORS / OTP hashing /
   upload allowlist fixes deployed; secrets scan clean; S3 MPU lifecycle rules added.
-- **Cost check Aug 25 2026**: 1× t3.micro + single 20 GB gp3 volume, NO EIP, no
-  snapshots, S3 ≈14 KB total. Well inside Free Tier while eligible (~$9/mo after).
-  Orphaned eu-north-1 instance + 8GB volume terminated Aug 25 2026 (was costing
-  ~$0.35/mo). Only remaining charge: public IPv4 ($0.005/hr = ~$0.36/mo). CloudWatch
-  billing alarm set at $2/mo threshold; SNS topic `aws-billing-alerts` sends email to
-  anirudhlohiya999@gmail.com (confirmation pending). AWS Budgets (weekly reports) requires
-  root account to create — user instructions provided.
+- **Cost now (post-migration, Sep 14 2026)**: single Lightsail `micro_3_1` ≈ **$7/mo
+  all-in** (compute + free static IP + ~1 TB egress). EC2 t3.micro terminated; no public-
+  IPv4 charge; S3 ≈ pennies. Old orphaned eu-north-1 instance + volume terminated Aug 25
+  2026. CloudWatch billing alarm at $2/mo threshold; SNS topic `aws-billing-alerts` →
+  anirudhlohiya999@gmail.com. (Worth double-checking support to Amazon that no EC2/EIP
+  line items remain after the termination.)
+- **Backend `npm audit` (seen in every CI deploy)**: 13 vulnerabilities reported
+  (1 moderate, 12 high) in backend deps — review `npm audit` in `backend/` and bump
+  vulnerable transitive deps when convenient. Frontend (admin/client) builds green.
 - **Logo fix Aug 25 2026**: other AI tool placed 1280×960 logo.jpg into tiny sidebar
   containers (32×32) — unreadable. Created `logo-icon.png` (128×128 center-crop) for
   sidebar/header icons and `logo-login.png` (256×256) for login pages. Deployed to both
