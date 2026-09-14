@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfirmSubscriptionCommand, SNSClient } from '@aws-sdk/client-sns';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -90,58 +90,79 @@ export class SnsService {
     const envelope = raw as SnsEnvelope;
     const type = envelope.Type ?? '';
     if (!MESSAGE_TYPES.includes(type as (typeof MESSAGE_TYPES)[number])) {
-      throw new UnauthorizedException('Unknown SNS message type');
+      throw new Error('Unknown SNS message type');
     }
     if (typeof envelope.MessageId !== 'string') {
-      throw new UnauthorizedException('Missing SNS MessageId');
+      throw new Error('Missing SNS MessageId');
     }
     if (
       this.allowedTopicArn &&
       envelope.TopicArn &&
       envelope.TopicArn !== this.allowedTopicArn
     ) {
-      throw new UnauthorizedException('Unexpected SNS topic');
+      throw new Error('Unexpected SNS topic');
     }
 
-    await this.verifySignature(envelope);
+    const verified = await this.verifySignature(envelope);
+    if (!verified) {
+      this.logger.warn(`SNS signature verification failed for ${type}`);
+    }
 
     if (type === 'SubscriptionConfirmation') {
-      await this.confirmSubscription(envelope);
+      if (verified) {
+        try {
+          await this.confirmSubscription(envelope);
+        } catch (error) {
+          this.logger.error(
+            `Failed to confirm subscription: ${(error as Error).message}`,
+          );
+        }
+      }
       return;
     }
     if (type === 'UnsubscribeConfirmation') {
       return;
     }
 
-    if (typeof envelope.Message === 'string') {
+    if (
+      type === 'Notification' &&
+      verified &&
+      typeof envelope.Message === 'string'
+    ) {
       await this.processSesEvent(envelope.Message);
     }
   }
 
-  private async verifySignature(envelope: SnsEnvelope): Promise<void> {
+  private async verifySignature(envelope: SnsEnvelope): Promise<boolean> {
     const signature = envelope.Signature;
     const certUrl = envelope.SigningCertURL;
     const version = envelope.SignatureVersion ?? '1';
     if (typeof signature !== 'string' || typeof certUrl !== 'string') {
-      throw new UnauthorizedException('Missing SNS signature material');
+      return false;
     }
     const algorithm = version === '2' ? 'RSA-SHA256' : 'RSA-SHA1';
-    const key = await this.getSigningCert(certUrl);
+    let key: KeyObject;
+    try {
+      key = await this.getSigningCert(certUrl);
+    } catch {
+      return false;
+    }
     const stringToSign = this.buildStringToSign(envelope);
-    const valid = verify(
-      algorithm,
-      Buffer.from(stringToSign, 'utf8'),
-      key,
-      Buffer.from(signature, 'base64'),
-    );
-    if (!valid) {
-      throw new UnauthorizedException('SNS signature verification failed');
+    try {
+      return verify(
+        algorithm,
+        Buffer.from(stringToSign, 'utf8'),
+        key,
+        Buffer.from(signature, 'base64'),
+      );
+    } catch {
+      return false;
     }
   }
 
   private buildStringToSign(envelope: SnsEnvelope): string {
     const fields = STRING_TO_SIGN_FIELDS[envelope.Type ?? ''];
-    if (!fields) throw new UnauthorizedException('Unknown SNS message type');
+    if (!fields) throw new Error('Unknown SNS message type');
     let out = '';
     for (const field of fields) {
       const value = envelope[field as keyof SnsEnvelope];
@@ -158,10 +179,10 @@ export class SnsService {
       url.protocol !== 'https:' ||
       url.hostname !== `sns.${this.region}.amazonaws.com`
     ) {
-      throw new UnauthorizedException('Invalid SNS signing cert URL');
+      throw new Error('Invalid SNS signing cert URL');
     }
     if (!url.pathname.startsWith('/SimpleNotificationService-')) {
-      throw new UnauthorizedException('Invalid SNS signing cert path');
+      throw new Error('Invalid SNS signing cert path');
     }
     const cached = this.certCache.get(urlStr);
     if (cached && cached.expires > Date.now()) {
@@ -169,7 +190,7 @@ export class SnsService {
     }
     const res = await fetch(urlStr);
     if (!res.ok) {
-      throw new UnauthorizedException('SNS signing cert fetch failed');
+      throw new Error('SNS signing cert fetch failed');
     }
     const key = createPublicKey(await res.text());
     this.certCache.set(urlStr, {
@@ -183,13 +204,14 @@ export class SnsService {
     const token = envelope.Token;
     const topicArn = envelope.TopicArn;
     if (typeof token !== 'string' || typeof topicArn !== 'string') {
-      throw new UnauthorizedException('Incomplete subscription confirmation');
+      throw new Error('Incomplete subscription confirmation');
     }
     await this.sns.send(
       new ConfirmSubscriptionCommand({ Token: token, TopicArn: topicArn }),
     );
     this.logger.log(`Confirmed SNS subscription for ${topicArn}`);
   }
+
   private async processSesEvent(message: string): Promise<void> {
     let session: unknown;
     try {

@@ -1,17 +1,12 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Post,
-  Req,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, Logger, Post, Req } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { SnsService } from './sns.service';
 
 @Controller('sns')
 export class SnsController {
+  private readonly logger = new Logger(SnsController.name);
+
   constructor(private readonly snsService: SnsService) {}
 
   @Post('notifications')
@@ -20,8 +15,12 @@ export class SnsController {
     @Req() req: RawBodyRequest<Request>,
     @Body() body: unknown,
   ): Promise<{ status: 'ok' }> {
-    const payload = this.parsePayload(req.rawBody, body);
-    await this.snsService.handle(payload);
+    try {
+      const payload = this.parsePayload(req.rawBody, body);
+      await this.snsService.handle(payload);
+    } catch (error) {
+      this.logger.warn(`SNS endpoint discarded: ${(error as Error).message}`);
+    }
     return { status: 'ok' };
   }
 
@@ -33,19 +32,19 @@ export class SnsController {
       try {
         return JSON.parse(raw.toString('utf8')) as Record<string, unknown>;
       } catch {
-        throw new UnauthorizedException('Malformed SNS payload');
+        throw new Error('Malformed SNS payload');
       }
     }
     if (typeof body === 'string') {
       try {
         return JSON.parse(body) as Record<string, unknown>;
       } catch {
-        throw new UnauthorizedException('Malformed SNS payload');
+        throw new Error('Malformed SNS payload');
       }
     }
     if (typeof body === 'object' && body !== null) {
       return body as Record<string, unknown>;
     }
-    throw new UnauthorizedException('Malformed SNS payload');
+    throw new Error('Malformed SNS payload');
   }
 }
