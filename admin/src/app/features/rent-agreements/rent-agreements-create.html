@@ -137,37 +137,79 @@
 
 @if (showPreviewModal()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-    <div class="bg-surface rounded-lg shadow-lg w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden">
+    <div class="bg-surface rounded-lg shadow-lg w-full max-w-7xl max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container">
         <div>
           <h2 class="text-xl font-title-lg text-on-surface">Document Preview</h2>
-          <p class="text-xs text-on-surface-variant mt-0.5">Editable — click into the page and make changes, then download the edited copy</p>
+          <p class="text-xs text-on-surface-variant mt-0.5">Edit the document on the left, faithful PDF preview on the right — changes apply to the downloaded .docx</p>
         </div>
         <button class="text-on-surface-variant hover:text-on-surface transition-colors" (click)="closePreview()">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
 
-      <div class="px-4 py-3 border-b border-outline-variant bg-surface-container flex flex-wrap items-center gap-1">
-        <button type="button" class="edit-toolbar-btn" (click)="execCommand('bold')" title="Bold"><b>B</b></button>
-        <button type="button" class="edit-toolbar-btn" (click)="execCommand('italic')" title="Italic"><i>I</i></button>
-        <button type="button" class="edit-toolbar-btn" (click)="execCommand('underline')" title="Underline"><u>U</u></button>
-        <span class="mx-1 w-px h-5 bg-outline-variant"></span>
-        <button type="button" class="edit-toolbar-btn" (click)="execCommand('insertUnorderedList')" title="Bullet list">&#8226; List</button>
-        <button type="button" class="edit-toolbar-btn" (click)="execCommand('insertOrderedList')" title="Numbered list">1. List</button>
-        <span class="mx-1 w-px h-5 bg-outline-variant"></span>
-        <button type="button" class="edit-toolbar-btn" (click)="execCommand('justifyLeft')" title="Align left">&#8680;</button>
-        <button type="button" class="edit-toolbar-btn" (click)="execCommand('justifyCenter')" title="Align center">&#8596;</button>
-        <button type="button" class="edit-toolbar-btn" (click)="execCommand('justifyRight')" title="Align right">&#8678;</button>
-        <span class="mx-1 w-px h-5 bg-outline-variant"></span>
-        <button type="button" class="edit-toolbar-btn" (click)="execCommand('undo')" title="Undo">&#8630;</button>
-        <button type="button" class="edit-toolbar-btn" (click)="execCommand('redo')" title="Redo">&#8631;</button>
+      <div class="lg:hidden flex border-b border-outline-variant bg-surface-container">
+        <button type="button" class="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors"
+          [class.ra-tab-active]="previewTab() === 'edit'" (click)="previewTab.set('edit')">
+          <span class="material-symbols-outlined" style="font-size: 18px">edit</span>
+          Edit
+        </button>
+        <button type="button" class="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors"
+          [class.ra-tab-active]="previewTab() === 'pdf'" (click)="previewTab.set('pdf')">
+          <span class="material-symbols-outlined" style="font-size: 18px">picture_as_pdf</span>
+          PDF
+        </button>
       </div>
 
-      <div class="p-6 overflow-y-auto flex-1 editor-scroll">
-        <div #editableDoc contenteditable="true" spellcheck="false"
-             class="editable-docx mx-auto"
-             [innerHTML]="previewHtml() ?? ''">
+      <div class="ra-modal-panes flex-1 overflow-hidden">
+        <div class="ra-edit-pane flex flex-col" [style.display]="previewTab() === 'edit' ? 'flex' : 'none'">
+          <div class="px-4 py-3 border-b border-outline-variant bg-surface-container flex flex-wrap items-center gap-1">
+            <button type="button" class="edit-toolbar-btn" (click)="execCommand('bold')" title="Bold"><b>B</b></button>
+            <button type="button" class="edit-toolbar-btn" (click)="execCommand('italic')" title="Italic"><i>I</i></button>
+            <button type="button" class="edit-toolbar-btn" (click)="execCommand('underline')" title="Underline"><u>U</u></button>
+            <span class="mx-1 w-px h-5 bg-outline-variant"></span>
+            <button type="button" class="edit-toolbar-btn" (click)="execCommand('insertUnorderedList')" title="Bullet list">&#8226; List</button>
+            <button type="button" class="edit-toolbar-btn" (click)="execCommand('insertOrderedList')" title="Numbered list">1. List</button>
+            <span class="mx-1 w-px h-5 bg-outline-variant"></span>
+            <button type="button" class="edit-toolbar-btn" (click)="execCommand('justifyLeft')" title="Align left">&#8680;</button>
+            <button type="button" class="edit-toolbar-btn" (click)="execCommand('justifyCenter')" title="Align center">&#8596;</button>
+            <button type="button" class="edit-toolbar-btn" (click)="execCommand('justifyRight')" title="Align right">&#8678;</button>
+            <span class="mx-1 w-px h-5 bg-outline-variant"></span>
+            <button type="button" class="edit-toolbar-btn" (click)="execCommand('undo')" title="Undo">&#8630;</button>
+            <button type="button" class="edit-toolbar-btn" (click)="execCommand('redo')" title="Redo">&#8631;</button>
+          </div>
+
+          <div class="p-6 overflow-y-auto flex-1 editor-scroll">
+            <div #editableDoc contenteditable="true" spellcheck="false"
+                 class="editable-docx mx-auto"
+                 [innerHTML]="previewHtml() ?? ''">
+            </div>
+          </div>
+        </div>
+
+        <div class="ra-pdf-pane flex flex-col border-t lg:border-t-0 lg:border-l border-outline-variant" [style.display]="previewTab() === 'pdf' ? 'flex' : 'none'">
+          <div class="px-4 py-2.5 border-b border-outline-variant bg-surface-container flex items-center justify-between gap-2">
+            <span class="text-sm font-medium text-on-surface">Faithful PDF preview</span>
+            <button type="button" class="edit-toolbar-btn" [disabled]="pdfLoading()" (click)="refreshPdf()" title="Re-generate PDF from current fields">
+              <span class="material-symbols-outlined" style="font-size: 16px">{{ pdfLoading() ? 'progress_activity' : 'refresh' }}</span>
+            </button>
+          </div>
+          <div class="relative flex-1 bg-neutral-100">
+            @if (pdfLoading()) {
+              <div class="absolute inset-0 z-10 bg-white/70 flex flex-col items-center justify-center gap-2">
+                <span class="material-symbols-outlined animate-spin text-secondary" style="font-size: 32px">progress_activity</span>
+                <span class="text-sm text-on-surface-variant">Generating PDF&#8230;</span>
+              </div>
+            }
+            @if (previewPdfUrl(); as url) {
+              <iframe [src]="url" class="w-full h-full min-h-[60vh] lg:min-h-[70vh] bg-white" title="Rent agreement PDF preview"></iframe>
+            } @else {
+              <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-center">
+                <span class="material-symbols-outlined text-on-surface-variant" style="font-size: 36px">picture_as_pdf</span>
+                <p class="text-sm text-on-surface-variant">PDF preview is not available right now.<br />Switch to the Edit tab to continue.</p>
+              </div>
+            }
+          </div>
         </div>
       </div>
 

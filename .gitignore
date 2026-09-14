@@ -55,3 +55,7 @@ error.txt
 
 # AWS support-case correspondence (temp session notes)
 aws_*.txt
+
+# Cloudflare API token dropped in repo root
+cloudfare.txt
+

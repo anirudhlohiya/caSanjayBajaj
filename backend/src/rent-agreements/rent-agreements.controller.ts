@@ -1,7 +1,21 @@
-import { Body, Controller, Get, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { RentAgreementsService } from './rent-agreements.service';
-import { CreateRentAgreementDto, UpdateRentAgreementDto } from './dto/rent-agreement.dto';
+import {
+  CreateRentAgreementDto,
+  UpdateRentAgreementDto,
+} from './dto/rent-agreement.dto';
 import { TEMPLATES } from './templates/config';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
@@ -21,8 +35,17 @@ export class RentAgreementsController {
   }
 
   @Get()
-  async findAll(@Query('page') page = 1, @Query('limit') limit = 10, @Query('template_id') template_id?: string) {
+  async findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('template_id') template_id?: string,
+  ) {
     return this.rentAgreementsService.findAll(+page, +limit, template_id);
+  }
+
+  @Get('summary')
+  async summary() {
+    return { data: await this.rentAgreementsService.summary() };
   }
 
   @Get(':id')
@@ -31,8 +54,16 @@ export class RentAgreementsController {
   }
 
   @Post()
-  async create(@Body() createDto: CreateRentAgreementDto, @CurrentUser() auth: AuthUser) {
-    return { data: await this.rentAgreementsService.create(createDto, auth?.sub ?? null) };
+  async create(
+    @Body() createDto: CreateRentAgreementDto,
+    @CurrentUser() auth: AuthUser,
+  ) {
+    return {
+      data: await this.rentAgreementsService.create(
+        createDto,
+        auth?.sub ?? null,
+      ),
+    };
   }
 
   @Post('preview')
@@ -40,20 +71,58 @@ export class RentAgreementsController {
     return { data: await this.rentAgreementsService.previewDocx(createDto) };
   }
 
+  @Post('preview-pdf')
+  async previewPdf(
+    @Body() createDto: CreateRentAgreementDto,
+    @Res() res: Response,
+  ) {
+    try {
+      if (!this.rentAgreementsService.libreOfficeEnabled) {
+        res
+          .status(503)
+          .json({ message: 'PDF preview requires LibreOffice on the server' });
+        return;
+      }
+      const buffer = await this.rentAgreementsService.previewPdf(createDto);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        'inline; filename=Agreement_Preview.pdf',
+      );
+      res.send(buffer);
+    } catch (error) {
+      res.status(500).json({
+        message: 'Failed to generate PDF preview',
+        error: error.message,
+      });
+    }
+  }
+
   @Post('convert-to-docx')
   async convertToDocx(@Body('html') html: string, @Res() res: Response) {
     try {
       const buffer = await this.rentAgreementsService.docxFromHtml(html || '');
-      res.setHeader('Content-Disposition', `attachment; filename=Edited_Agreement.docx`);
-      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=Edited_Agreement.docx`,
+      );
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      );
       res.send(buffer);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to convert document', error: error.message });
+      res
+        .status(500)
+        .json({ message: 'Failed to convert document', error: error.message });
     }
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateDto: UpdateRentAgreementDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateRentAgreementDto,
+  ) {
     return { data: await this.rentAgreementsService.update(id, updateDto) };
   }
 
@@ -64,21 +133,36 @@ export class RentAgreementsController {
       const filename = edited ? 'Agreement_Edited.docx' : 'Agreement.docx';
 
       if (edited) {
-        res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename=${filename}`,
+        );
+        res.setHeader(
+          'Content-Type',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        );
         res.send(edited);
         return;
       }
 
       const buffer = await this.rentAgreementsService.generateDocx(id);
       const agreement = await this.rentAgreementsService.findOne(id);
-      const filename2 = `Rent_Agreement_${agreement.tenant_name || 'Document'}.docx`.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-      
+      const filename2 =
+        `Rent_Agreement_${agreement.tenant_name || 'Document'}.docx`.replace(
+          /[^a-zA-Z0-9_\-\.]/g,
+          '_',
+        );
+
       res.setHeader('Content-Disposition', `attachment; filename=${filename2}`);
-      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      );
       res.send(buffer);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to generate document', error: error.message });
+      res
+        .status(500)
+        .json({ message: 'Failed to generate document', error: error.message });
     }
   }
 
@@ -86,5 +170,37 @@ export class RentAgreementsController {
   async officeConfig(@Param('id') id: string) {
     const result = await this.rentAgreementsService.getOfficeEditorConfig(id);
     return { data: result };
+  }
+
+  @Get(':id/preview/pdf')
+  async previewAgreementPdf(@Param('id') id: string, @Res() res: Response) {
+    try {
+      if (!this.rentAgreementsService.libreOfficeEnabled) {
+        res
+          .status(503)
+          .json({ message: 'PDF preview requires LibreOffice on the server' });
+        return;
+      }
+      const buffer =
+        await this.rentAgreementsService.previewPdfForAgreement(id);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        'inline; filename=Agreement_Preview.pdf',
+      );
+      res.send(buffer);
+    } catch (error) {
+      res.status(500).json({
+        message: 'Failed to generate PDF preview',
+        error: error.message,
+      });
+    }
+  }
+
+  @Delete(':id')
+  async softDelete(@Param('id') id: string) {
+    return {
+      data: { deleted: await this.rentAgreementsService.softDelete(id) },
+    };
   }
 }

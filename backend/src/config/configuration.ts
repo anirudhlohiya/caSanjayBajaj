@@ -71,6 +71,12 @@ export default () => ({
       process.env.WEBSITE_LEAD_NOTIFY_EMAIL ?? 'casnbajaj2015@gmail.com',
   },
 
+  libreOffice: {
+    enabled: process.env.LIBREOFFICE_ENABLED === 'true',
+    binary: process.env.LIBREOFFICE_BINARY ?? 'soffice',
+    timeoutMs: process.env.LIBREOFFICE_TIMEOUT_MS ?? '60000',
+  },
+
   onlyOffice: {
     enabled: process.env.ONLYOFFICE_ENABLED === 'true',
     serverUrl: process.env.ONLYOFFICE_SERVER_URL ?? '',

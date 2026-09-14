@@ -64,6 +64,19 @@ export interface TemplateConfig {
     .editable-docx td, .editable-docx th { border: 1px solid #000; padding: 4px 8px; }
     .editable-docx strong { font-weight: bold; }
     .editable-docx em { font-style: italic; }
+    .ra-tab-active {
+      background: var(--color-secondary-container);
+      color: var(--color-on-secondary-container);
+    }
+    .ra-modal-panes { display: flex; flex-direction: column; }
+    .ra-edit-pane, .ra-pdf-pane { min-width: 0; }
+    @media (min-width: 1024px) {
+      .ra-modal-panes {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+      }
+      .ra-edit-pane, .ra-pdf-pane { display: flex !important; }
+    }
   `],
 })
 export class RentAgreementsCreate implements OnInit {
@@ -84,6 +97,9 @@ export class RentAgreementsCreate implements OnInit {
   readonly showPreviewModal = signal(false);
   readonly converting = signal(false);
   readonly officeOpen = signal(false);
+  readonly previewTab = signal<'edit' | 'pdf'>('edit');
+  readonly previewPdfUrl = signal<string | null>(null);
+  readonly pdfLoading = signal(false);
   
   @ViewChild('editableDoc') editableDoc?: ElementRef<HTMLDivElement>;
   
@@ -112,6 +128,12 @@ export class RentAgreementsCreate implements OnInit {
     
     this.form.get('template_id')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => {
       this.onTemplateChange(id || '');
+    });
+
+    this.destroyRef.onDestroy(() => {
+      if (this.previewPdfUrl()) {
+        window.URL.revokeObjectURL(this.previewPdfUrl()!);
+      }
     });
   }
 
@@ -245,7 +267,9 @@ export class RentAgreementsCreate implements OnInit {
       
       const res = await this.rentAgreementsService.preview(payload);
       this.previewHtml.set(res.data);
+      this.previewTab.set('edit');
       this.showPreviewModal.set(true);
+      void this.loadPdfPreview(payload);
     } catch (err) {
       console.error(err);
       this.toast.error('Failed to generate preview');
@@ -254,7 +278,38 @@ export class RentAgreementsCreate implements OnInit {
     }
   }
 
+  private async loadPdfPreview(payload: { template_id: string; form_data: any; status?: string }): Promise<void> {
+    this.pdfLoading.set(true);
+    try {
+      const blob = await this.rentAgreementsService.previewPdf(payload);
+      if (this.previewPdfUrl()) {
+        window.URL.revokeObjectURL(this.previewPdfUrl()!);
+      }
+      this.previewPdfUrl.set(window.URL.createObjectURL(blob));
+    } catch (err) {
+      console.error(err);
+      this.toast.error('PDF preview unavailable (requires LibreOffice on the server)');
+      this.previewPdfUrl.set(null);
+    } finally {
+      this.pdfLoading.set(false);
+    }
+  }
+
+  refreshPdf(): void {
+    if (this.form.invalid || this.dynamicForm.invalid) {
+      this.toast.error('Please fill all required fields');
+      return;
+    }
+    const template_id = this.form.value.template_id;
+    const form_data = this.dynamicForm.value;
+    void this.loadPdfPreview({ template_id: template_id!, form_data });
+  }
+
   closePreview(): void {
+    if (this.previewPdfUrl()) {
+      window.URL.revokeObjectURL(this.previewPdfUrl()!);
+      this.previewPdfUrl.set(null);
+    }
     this.showPreviewModal.set(false);
   }
 

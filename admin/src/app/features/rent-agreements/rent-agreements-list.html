@@ -8,6 +8,36 @@
   </button>
 </app-page-header>
 
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+  <div class="card p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-secondary" style="font-size: 22px">description</span>
+    </div>
+    <div class="min-w-0">
+      <p class="text-xs text-on-surface-variant">Total Agreements</p>
+      <p class="text-2xl font-semibold text-on-surface tabular-nums">{{ summary().total }}</p>
+    </div>
+  </div>
+  <div class="card p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-on-surface-variant" style="font-size: 22px">drafts</span>
+    </div>
+    <div class="min-w-0">
+      <p class="text-xs text-on-surface-variant">Draft</p>
+      <p class="text-2xl font-semibold text-on-surface tabular-nums">{{ summary().draft }}</p>
+    </div>
+  </div>
+  <div class="card p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-tertiary-container flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-tertiary" style="font-size: 22px">task_alt</span>
+    </div>
+    <div class="min-w-0">
+      <p class="text-xs text-on-surface-variant">Generated</p>
+      <p class="text-2xl font-semibold text-on-surface tabular-nums">{{ summary().generated }}</p>
+    </div>
+  </div>
+</div>
+
 <div class="card overflow-hidden">
   @if (loading()) {
     <app-spinner />
@@ -40,6 +70,11 @@
             <button class="btn-outline flex-1" (click)="downloadDocx(a.id); $event.stopPropagation()">
               <span class="material-symbols-outlined" style="font-size: 18px">download</span>
               Download
+            </button>
+            <button class="btn-outline flex-1 text-error" [disabled]="deletingId() === a.id"
+              (click)="deleteAgreement(a.id); $event.stopPropagation()">
+              <span class="material-symbols-outlined" style="font-size: 18px">{{ deletingId() === a.id ? 'progress_activity' : 'delete' }}</span>
+              {{ deletingId() === a.id ? 'Deleting' : 'Delete' }}
             </button>
           </div>
         </div>
@@ -91,6 +126,14 @@
                   (click)="downloadDocx(a.id)"
                 >
                   <span class="material-symbols-outlined" style="font-size: 20px">download</span>
+                </button>
+                <button
+                  class="p-1.5 rounded-md text-error/70 hover:text-error hover:bg-error-container transition-colors ml-1"
+                  title="Delete agreement"
+                  [disabled]="deletingId() === a.id"
+                  (click)="deleteAgreement(a.id)"
+                >
+                  <span class="material-symbols-outlined" style="font-size: 20px">{{ deletingId() === a.id ? 'progress_activity' : 'delete' }}</span>
                 </button>
               </td>
             </tr>

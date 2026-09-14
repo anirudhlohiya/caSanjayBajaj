@@ -4,9 +4,16 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
-import { RentAgreement, RentAgreementStatus } from '../entities/rent-agreement.entity';
-import { CreateRentAgreementDto, UpdateRentAgreementDto } from './dto/rent-agreement.dto';
+import {
+  RentAgreement,
+  RentAgreementStatus,
+} from '../entities/rent-agreement.entity';
+import {
+  CreateRentAgreementDto,
+  UpdateRentAgreementDto,
+} from './dto/rent-agreement.dto';
 import { StorageService } from '../storage/storage.service';
+import { LibreOfficeService } from './libreoffice.service';
 import { TEMPLATES } from './templates/config';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -14,24 +21,57 @@ import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import HTMLtoDOCX from 'html-to-docx';
 import { docxToHtml } from './docx-to-html';
+import { sanitizeDocumentXml } from './docx-repair';
 
 function calculateAge(dobStr: string): string {
   if (!dobStr) return '';
   const dob = new Date(dobStr);
   if (isNaN(dob.getTime())) return '';
   const diffMs = Date.now() - dob.getTime();
-  const ageDt = new Date(diffMs); 
+  const ageDt = new Date(diffMs);
   return Math.abs(ageDt.getUTCFullYear() - 1970).toString();
 }
 
 function numberToWordsIndian(num: number | string): string {
-  const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
-  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-  
+  const a = [
+    '',
+    'One ',
+    'Two ',
+    'Three ',
+    'Four ',
+    'Five ',
+    'Six ',
+    'Seven ',
+    'Eight ',
+    'Nine ',
+    'Ten ',
+    'Eleven ',
+    'Twelve ',
+    'Thirteen ',
+    'Fourteen ',
+    'Fifteen ',
+    'Sixteen ',
+    'Seventeen ',
+    'Eighteen ',
+    'Nineteen ',
+  ];
+  const b = [
+    '',
+    '',
+    'Twenty',
+    'Thirty',
+    'Forty',
+    'Fifty',
+    'Sixty',
+    'Seventy',
+    'Eighty',
+    'Ninety',
+  ];
+
   if (!num) return '';
-  let n = parseInt(String(num), 10);
+  const n = parseInt(String(num), 10);
   if (n === 0) return 'Zero';
-  
+
   const numToWords = (n: number, suffix: string): string => {
     let str = '';
     if (n > 19) {
@@ -41,18 +81,18 @@ function numberToWordsIndian(num: number | string): string {
     }
     return str ? str + suffix : '';
   };
-  
+
   let res = '';
   res += numToWords(Math.floor(n / 10000000), 'Crore ');
   res += numToWords(Math.floor((n / 100000) % 100), 'Lakh ');
   res += numToWords(Math.floor((n / 1000) % 100), 'Thousand ');
   res += numToWords(Math.floor((n / 100) % 10), 'Hundred ');
-  
+
   if (n > 100 && n % 100 > 0) {
     res += 'and ';
   }
   res += numToWords(n % 100, '');
-  
+
   return 'Rupees ' + res.trim() + ' Only';
 }
 
@@ -61,14 +101,21 @@ function extractSummary(formData: Record<string, any>) {
     owner_name:
       formData?.owner_name ||
       formData?.licensor_name ||
-      (Array.isArray(formData?.licensors) ? formData.licensors[0]?.name ?? null : null),
+      (Array.isArray(formData?.licensors)
+        ? (formData.licensors[0]?.name ?? null)
+        : null),
     tenant_name:
       formData?.tenant_name ||
       formData?.licensee_name ||
-      (Array.isArray(formData?.licensees) ? formData.licensees[0]?.name ?? null : null),
-    property_address: formData?.property_address ?? formData?.PROPERTY_ADDRESS ?? null,
-    agreement_start_date: formData?.agreement_start_date ?? formData?.['starting date'] ?? null,
-    agreement_end_date: formData?.agreement_end_date ?? formData?.['ending date'] ?? null,
+      (Array.isArray(formData?.licensees)
+        ? (formData.licensees[0]?.name ?? null)
+        : null),
+    property_address:
+      formData?.property_address ?? formData?.PROPERTY_ADDRESS ?? null,
+    agreement_start_date:
+      formData?.agreement_start_date ?? formData?.['starting date'] ?? null,
+    agreement_end_date:
+      formData?.agreement_end_date ?? formData?.['ending date'] ?? null,
   };
 }
 
@@ -85,11 +132,18 @@ export class RentAgreementsService {
     private readonly rentAgreementRepository: Repository<RentAgreement>,
     private readonly config: ConfigService,
     private readonly storage: StorageService,
+    private readonly libreOffice: LibreOfficeService,
   ) {}
 
+  get libreOfficeEnabled(): boolean {
+    return this.libreOffice.enabled;
+  }
+
   async findAll(page: number, limit: number, template_id?: string) {
-    const query = this.rentAgreementRepository.createQueryBuilder('agreement')
+    const query = this.rentAgreementRepository
+      .createQueryBuilder('agreement')
       .leftJoinAndSelect('agreement.created_by_admin', 'admin')
+      .where('agreement.deleted_at IS NULL')
       .orderBy('agreement.created_at', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);
@@ -109,13 +163,50 @@ export class RentAgreementsService {
   }
 
   async findOne(id: string) {
-    const agreement = await this.rentAgreementRepository.findOne({ where: { id }, relations: { created_by_admin: true } });
+    const agreement = await this.rentAgreementRepository.findOne({
+      where: { id },
+      relations: { created_by_admin: true },
+    });
     if (!agreement) throw new NotFoundException('Agreement not found');
     return agreement;
   }
 
+  async summary(): Promise<{
+    total: number;
+    draft: number;
+    generated: number;
+  }> {
+    const rows = await this.rentAgreementRepository
+      .createQueryBuilder('agreement')
+      .where('agreement.deleted_at IS NULL')
+      .select('agreement.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('agreement.status')
+      .getRawMany<{ status: string; count: string }>();
+
+    let draft = 0;
+    let generated = 0;
+    for (const row of rows) {
+      const count = parseInt(row.count, 10) || 0;
+      if (row.status === RentAgreementStatus.GENERATED) {
+        generated = count;
+      } else {
+        draft = count;
+      }
+    }
+    return { total: draft + generated, draft, generated };
+  }
+
+  async softDelete(id: string): Promise<boolean> {
+    await this.findOne(id);
+    await this.rentAgreementRepository.softDelete(id);
+    return true;
+  }
+
   async create(createDto: CreateRentAgreementDto, adminId: string) {
-    const templateConfig = TEMPLATES.find(t => t.id === createDto.template_id);
+    const templateConfig = TEMPLATES.find(
+      (t) => t.id === createDto.template_id,
+    );
     if (!templateConfig) throw new NotFoundException('Template not found');
 
     const summary = extractSummary(createDto.form_data || {});
@@ -146,7 +237,7 @@ export class RentAgreementsService {
       agreement.agreement_start_date = summary.agreement_start_date;
       agreement.agreement_end_date = summary.agreement_end_date;
     }
-    
+
     if (updateDto.status) {
       agreement.status = updateDto.status;
     }
@@ -160,10 +251,42 @@ export class RentAgreementsService {
   }
 
   async previewDocx(createDto: CreateRentAgreementDto): Promise<string> {
-    const buffer = await this.generateDocxBuffer(createDto.template_id, createDto.form_data);
+    const buffer = await this.generateDocxBuffer(
+      createDto.template_id,
+      createDto.form_data,
+    );
     const zip = new PizZip(buffer);
     const xml = zip.files['word/document.xml'].asText();
     return docxToHtml(xml);
+  }
+
+  async previewPdf(createDto: CreateRentAgreementDto): Promise<Buffer> {
+    const docx = await this.generateDocxBuffer(
+      createDto.template_id,
+      createDto.form_data,
+    );
+    return this.libreOffice.convertDocxToPdf(docx);
+  }
+
+  async previewPdfForAgreement(id: string): Promise<Buffer> {
+    const agreement = await this.findOne(id);
+    let source: Buffer | null = null;
+    if (agreement.edited_docx_s3_key) {
+      try {
+        source = await this.storage.downloadBuffer(
+          agreement.edited_docx_s3_key,
+        );
+      } catch (error) {
+        this.logger.warn(
+          `Edited DOCX missing from S3 (${agreement.edited_docx_s3_key}); falling back to generated docx for ${id}`,
+        );
+      }
+    }
+    source ??= await this.generateDocxBuffer(
+      agreement.template_id,
+      agreement.form_data,
+    );
+    return this.libreOffice.convertDocxToPdf(source);
   }
 
   async docxFromHtml(html: string): Promise<Buffer> {
@@ -172,7 +295,33 @@ export class RentAgreementsService {
       fontSize: '22',
       margin: { top: 720, right: 720, bottom: 720, left: 720 },
     });
-    return Buffer.from(buffer);
+    return this.sanitizeDocxBuffer(Buffer.from(buffer));
+  }
+
+  private sanitizeDocxBuffer(buffer: Buffer): Buffer {
+    try {
+      const zip = new PizZip(buffer);
+      const file = zip.files['word/document.xml'];
+      if (!file) return buffer;
+
+      const result = sanitizeDocumentXml(file.asText());
+      if (result.error) {
+        throw new Error(
+          `Generated DOCX failed XML validation: ${result.error}`,
+        );
+      }
+      if (result.changed.length) {
+        this.logger.warn(`docx repair applied: ${result.changed.join('; ')}`);
+      }
+      const repaired = result.xml;
+      if (repaired !== null) {
+        zip.file('word/document.xml', repaired);
+      }
+      return zip.generate({ type: 'nodebuffer' });
+    } catch (e: any) {
+      this.logger.error(`docx sanitize failed: ${e?.message}`);
+      return buffer;
+    }
   }
 
   get officeEnabled(): boolean {
@@ -188,7 +337,10 @@ export class RentAgreementsService {
       throw new NotFoundException('OnlyOffice integration is not enabled');
     }
     const agreement = await this.findOne(id);
-    const buffer = await this.generateDocxBuffer(agreement.template_id, agreement.form_data);
+    const buffer = await this.generateDocxBuffer(
+      agreement.template_id,
+      agreement.form_data,
+    );
 
     const key = randomUUID();
     this.officeSessions.set(key, {
@@ -197,13 +349,17 @@ export class RentAgreementsService {
       expiresAt: Date.now() + 2 * 60 * 60 * 1000,
     });
 
-    let apiBase = String(this.config.get<string>('onlyOffice.apiBaseUrl') ?? '').replace(/\/+$/, '');
+    let apiBase = String(
+      this.config.get<string>('onlyOffice.apiBaseUrl') ?? '',
+    ).replace(/\/+$/, '');
     if (apiBase.endsWith('/api/v1') || apiBase.endsWith('/api/v1/')) {
       apiBase = apiBase.replace(/\/api\/v1\/?$/, '');
     }
     const sourceUrl = `${apiBase}/api/v1/admin/rent-agreements/office/source/${key}`;
     const callbackUrl = `${apiBase}/api/v1/admin/rent-agreements/office/callback/${key}`;
-    const title = agreement.tenant_name ? `Rent_Agreement_${agreement.tenant_name}.docx` : 'Rent_Agreement.docx';
+    const title = agreement.tenant_name
+      ? `Rent_Agreement_${agreement.tenant_name}.docx`
+      : 'Rent_Agreement.docx';
 
     const config: any = {
       documentType: 'word',
@@ -236,7 +392,9 @@ export class RentAgreementsService {
     return { serverUrl: this.officeServerUrl, config };
   }
 
-  async getOfficeSourceBuf(key: string): Promise<{ buffer: Buffer; title: string } | null> {
+  async getOfficeSourceBuf(
+    key: string,
+  ): Promise<{ buffer: Buffer; title: string } | null> {
     const session = this.officeSessions.get(key);
     if (!session || Date.now() > session.expiresAt) {
       this.officeSessions.delete(key);
@@ -245,7 +403,9 @@ export class RentAgreementsService {
     const agreement = await this.findOne(session.agreementId).catch(() => null);
     return {
       buffer: session.buffer,
-      title: agreement?.tenant_name ? `Rent_Agreement_${agreement.tenant_name}.docx` : 'Rent_Agreement.docx',
+      title: agreement?.tenant_name
+        ? `Rent_Agreement_${agreement.tenant_name}.docx`
+        : 'Rent_Agreement.docx',
     };
   }
 
@@ -258,7 +418,8 @@ export class RentAgreementsService {
     if ((status === 2 || status === 6) && body?.url) {
       try {
         const res = await fetch(body.url);
-        if (!res.ok) throw new Error(`OnlyOffice file download failed: ${res.status}`);
+        if (!res.ok)
+          throw new Error(`OnlyOffice file download failed: ${res.status}`);
         const arrayBuffer = await res.arrayBuffer();
         const s3Key = `rent-agreements/${session.agreementId}/edited.docx`;
         await this.storage.uploadBuffer(
@@ -271,7 +432,9 @@ export class RentAgreementsService {
         });
         this.logger.log(`Edited agreement saved for ${session.agreementId}`);
       } catch (error) {
-        this.logger.error(`OnlyOffice callback save failed: ${(error as Error).message}`);
+        this.logger.error(
+          `OnlyOffice callback save failed: ${(error as Error).message}`,
+        );
         return { error: 1 };
       }
     }
@@ -284,19 +447,29 @@ export class RentAgreementsService {
     return this.storage.downloadBuffer(agreement.edited_docx_s3_key);
   }
 
-  private async generateDocxBuffer(template_id: string, form_data: any): Promise<Buffer> {
-    const templateConfig = TEMPLATES.find(t => t.id === template_id);
-    if (!templateConfig) throw new NotFoundException('Template configuration not found');
+  private async generateDocxBuffer(
+    template_id: string,
+    form_data: any,
+  ): Promise<Buffer> {
+    const templateConfig = TEMPLATES.find((t) => t.id === template_id);
+    if (!templateConfig)
+      throw new NotFoundException('Template configuration not found');
 
-    const templatePath = path.resolve(process.cwd(), '..', 'docs', 'templates', templateConfig.templateFileName);
-    
+    const templatePath = path.resolve(
+      process.cwd(),
+      '..',
+      'docs',
+      'templates',
+      templateConfig.templateFileName,
+    );
+
     if (!fs.existsSync(templatePath)) {
       throw new NotFoundException(`Template file not found at ${templatePath}`);
     }
 
     const content = fs.readFileSync(templatePath, 'binary');
     const zip = new PizZip(content);
-    
+
     const doc = new Docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
@@ -304,7 +477,7 @@ export class RentAgreementsService {
     });
 
     const data = { ...form_data };
-    
+
     // Process licensors array
     if (Array.isArray(data.licensors)) {
       data.licensors = data.licensors.map((person: any) => ({
@@ -329,12 +502,15 @@ export class RentAgreementsService {
     if (data['rent in numbers']) {
       data['rent in words'] = numberToWordsIndian(data['rent in numbers']);
     }
-    
+
     if (data['deposit in numbers']) {
-      data['deposit in words'] = numberToWordsIndian(data['deposit in numbers']);
+      data['deposit in words'] = numberToWordsIndian(
+        data['deposit in numbers'],
+      );
     }
 
     doc.render(data);
-    return doc.getZip().generate({ type: 'nodebuffer' });
+    const rendered = doc.getZip().generate({ type: 'nodebuffer' });
+    return this.sanitizeDocxBuffer(rendered);
   }
 }

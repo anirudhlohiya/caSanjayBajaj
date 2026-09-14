@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   JoinColumn,
@@ -70,4 +71,7 @@ export class RentAgreement {
   @ManyToOne(() => Admin, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by_admin_id' })
   created_by_admin: Admin | null;
+
+  @DeleteDateColumn({ type: 'timestamptz', nullable: true })
+  deleted_at: Date | null;
 }

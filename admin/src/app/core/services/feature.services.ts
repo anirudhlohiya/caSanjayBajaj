@@ -370,6 +370,18 @@ export class RentAgreementsService {
     );
   }
 
+  summary() {
+    return firstValueFrom(
+      this.api.get<{ total: number; draft: number; generated: number }>('/admin/rent-agreements/summary'),
+    );
+  }
+
+  remove(id: string) {
+    return firstValueFrom(
+      this.api.delete<{ data: { deleted: boolean } }>(`/admin/rent-agreements/${id}`),
+    );
+  }
+
   get(id: string) {
     return firstValueFrom(this.api.get<{ data: any }>(`/admin/rent-agreements/${id}`));
   }
@@ -384,6 +396,14 @@ export class RentAgreementsService {
 
   preview(body: { template_id: string; form_data: any; status?: string }) {
     return firstValueFrom(this.api.post<{ data: string }>('/admin/rent-agreements/preview', body));
+  }
+
+  previewPdf(body: { template_id: string; form_data: any; status?: string }) {
+    return firstValueFrom(this.api.postBlob('/admin/rent-agreements/preview-pdf', body));
+  }
+
+  previewPdfForAgreement(id: string) {
+    return firstValueFrom(this.api.getBlob(`/admin/rent-agreements/${id}/preview/pdf`));
   }
 
   convertEditedHtml(html: string) {

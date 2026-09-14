@@ -32,6 +32,12 @@ export class RentAgreementsList implements OnInit {
   readonly total = signal(0);
   readonly totalPages = signal(0);
   readonly officeOpenId = signal<string | null>(null);
+  readonly deletingId = signal<string | null>(null);
+  readonly summary = signal<{ total: number; draft: number; generated: number }>({
+    total: 0,
+    draft: 0,
+    generated: 0,
+  });
 
   ngOnInit(): void {
     void this.load();
@@ -48,11 +54,41 @@ export class RentAgreementsList implements OnInit {
       this.agreements.set(res.items || []);
       this.total.set(res.total || 0);
       this.totalPages.set(res.totalPages || 0);
+
+      if (res.items && res.items.length === 0 && this.page() > 1) {
+        this.page.set(this.page() - 1);
+        void this.load();
+        return;
+      }
     } catch (err) {
       this.toast.error('Failed to load agreements');
       console.error(err);
     } finally {
       this.loading.set(false);
+    }
+
+    try {
+      const s = await this.rentAgreementsService.summary();
+      this.summary.set(s);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async deleteAgreement(id: string): Promise<void> {
+    if (!window.confirm('Delete this rent agreement?\n\nIt will be hidden from the list. The record is kept for audit and can be reviewed later.')) {
+      return;
+    }
+    this.deletingId.set(id);
+    try {
+      await this.rentAgreementsService.remove(id);
+      this.toast.success('Agreement deleted');
+      await this.load();
+    } catch (err) {
+      console.error(err);
+      this.toast.error('Failed to delete agreement');
+    } finally {
+      this.deletingId.set(null);
     }
   }
 

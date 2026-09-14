@@ -5,10 +5,11 @@ import { StorageModule } from '../storage/storage.module';
 import { RentAgreementsController } from './rent-agreements.controller';
 import { RentAgreementsOfficeController } from './rent-agreements-office.controller';
 import { RentAgreementsService } from './rent-agreements.service';
+import { LibreOfficeService } from './libreoffice.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([RentAgreement]), StorageModule],
   controllers: [RentAgreementsController, RentAgreementsOfficeController],
-  providers: [RentAgreementsService],
+  providers: [RentAgreementsService, LibreOfficeService],
 })
 export class RentAgreementsModule {}
