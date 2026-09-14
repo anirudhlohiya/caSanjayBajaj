@@ -140,9 +140,21 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - Full prod API E2E verified over HTTPS: auth+guards+429 throttle, users CRUD,
     periods, documents, reports presign→S3 PUT→confirm→download round-trip, reminders
     send+log, staff permissions grant/revoke, audit logs, Swagger off, redirects.
-- **KNOWN OPEN ITEM — SES SANDBOX**: AWS SES still in sandbox → emails to unverified
-  recipients are rejected ("Email address is not verified"). REAL fix = user requests SES
-  production access in AWS console. Push reminders show failed until a device subscribes.
+- **SES production access — IN PROGRESS (Sep 14 2026)**: SES was in sandbox
+  (emails to unverified recipients rejected). IMPLEMENTED & DEPLOYED: a self-contained
+  `SnsModule` (`backend/src/sns/*`) receives SES event notifications at
+  `POST /api/v1/sns/notifications`, verifies the AWS SNS signing certificate
+  (host-pinned to `sns.<region>.amazonaws.com`), auto-confirms topic subscriptions,
+  and processes Bounce/Complaint events. Permanent bounces and complaints set a new
+  `users.email_suppressed_at` timestamp; the send pipeline checks it in `NotificationsService.sendEmail`
+  before every SES call, blocking further sends to suppressed addresses and logging
+  to `audit_logs`. **Remaining user steps**: (1) create SES Configuration Set +
+  Event Destination (Bounce/Complaint → SNS topic); (2) subscribe
+  `https://api.snbajaj.com/api/v1/sns/notifications` as an HTTPS endpoint
+  (handler auto-confirms); (3) enable the SES account-level suppression list;
+  (4) set `SNS_TOPIC_ARN` in `/opt/ca-app/backend/.env` + `pm2 restart ca-api`;
+  (5) submit the appeal letter (`aws_response_resubmit.txt`, placeholders
+  `[YOUR_CONFIG_SET]` / `[YOUR_SNS_TOPIC_ARN]`) to AWS support.
 - **PROD BUG-HUNT PASS (Aug 23, commit after `6bb0e49`) — all fixed & verified**:
   - **Service worker was breaking ALL client API GETs** (`net::ERR_FAILED` on every
     `/api/**` request through ngsw dataGroups cache) → root cause of "can't login /
@@ -579,24 +591,22 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
 
 ## 10. Open items
 
-- **SES production access — ACTIVE BLOCKER for public signups (Aug 25 2026 runbook)**:
-  OTP/reminder emails cannot reach arbitrary clients while SES is sandboxed. State:
-  `ProductionAccessEnabled=false`, a PRIOR request was **DENIED** (case
-  178759654800949, ~Aug 21 — likely because no sending identity was verified then).
-  Progress made via CLI: `snbajaj.com` Easy-DKIM identity CREATED (tokens issued),
-  account details set (TRANSACTIONAL / https://snbajaj.com / EN). Remaining USER steps:
-  (1) paste 3 DKIM CNAME records `<token>._domainkey.snbajaj.com → <token>.dkim.amazonses.com`
-  grey-cloud in Cloudflare (tokens in session log / re-fetchable via
-  `aws sesv2 get-email-identity --email-identity snbajaj.com --region ap-south-1`);
-  (2) after DKIM shows Verified, re-submit production access in SES console → Account
-  dashboard → Request production access (transactional, use-case: OTP + reminders for
-  registered clients of the CA practice, <200/day, suppression+VDM already enabled,
-  contact casnbajaj2015@gmail.com). THEN server-side: pm2 restart and live OTP test
-  through real signup — DONE AHEAD OF TIME: prod+local `SES_SOURCE_EMAIL` already set to
-  `alerts@snbajaj.com` (Aug 25 2026; no mailbox behind it, one-way OTP sender). Sending
-  stays broken until DKIM Verified + production access granted. NOTE: pre-existing email
-  identity (casnbajaj2015@) shows UNVERIFIED — clicking its confirmation
-  mail enables sandbox-mode testing to that address meanwhile.
+- **SES production access — appeal letter pending**: backend pipeline is
+  implemented, deployed and live (verified: `POST /api/v1/sns/notifications`
+  returns 200 for any parseable SNS message, including unsigned validation
+  probes, which previously caused "Unreachable Endpoint"). The suppression
+  list (`users.email_suppressed_at` + `NotificationsService.sendEmail` gate
+  + audit_logs) is active. **To complete**: (a) create a Configuration Set
+  (e.g. `gst-alerts`) + SES Event Destination (Bounce + Complaint → SNS
+  topic) in the SES console; (b) create/confirm an SNS subscription to
+  `https://api.snbajaj.com/api/v1/sns/notifications` (HTTPS, auto-confirmed
+  by the handler); (c) enable the SES account-level suppression list;
+  (d) set `SNS_TOPIC_ARN=<topic-arn>` in `/opt/ca-app/backend/.env` and
+  `pm2 restart ca-api`; (e) fill `[YOUR_CONFIG_SET]` + `[YOUR_SNS_TOPIC_ARN]`
+  in `aws_response_resubmit.txt` and submit it from the original support
+  case. End-to-end verification: after a real permanent bounce/complaint,
+  check `pm2 logs ca-api` for `Suppressed <email> after bounce: Permanent`
+  and `email.suppressed` in `audit_logs`.
 - Browser-push live delivery test once a real device subscribes (Profile page).
 - Android: sideload v1.0.1 debug APK (built, android-wrapper/app/build/outputs/apk/debug/)
   to verify shell against app.snbajaj.com; later Play release ($25 dev account) with
