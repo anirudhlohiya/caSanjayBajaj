@@ -52,4 +52,15 @@ sudo systemctl reload nginx
 pm2 startOrReload "$REPO/deploy/ecosystem.config.js"
 pm2 save
 sleep 3
-curl -fsS http://127.0.0.1:3000/api/v1/health > /dev/null && echo "DEPLOY OK: health check passed"
+# The API just reloaded — wait for it to come up instead of failing on a
+# one-shot check (NestJS boot takes a few seconds).
+for i in $(seq 1 20); do
+    if curl -fsS http://127.0.0.1:3000/api/v1/health > /dev/null; then
+        echo "DEPLOY OK: health check passed"
+        exit 0
+    fi
+    echo "health check $i/20: API not ready yet, retrying in 3s"
+    sleep 3
+done
+echo "DEPLOY FAILED: API not healthy after ~60s" >&2
+exit 1

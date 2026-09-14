@@ -118,8 +118,11 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - Admin UI: tickets list with status filters (`/tickets`), ticket detail with message thread and reply (`/tickets/:id`).
   - Client PWA: support tab in bottom nav (5-tab layout), ticket list (`/support`), new ticket form (`/support/new`), ticket detail with chat bubbles (`/support/:id`).
   - Services/Tickets nav items added to admin shell sidebar.
-- **DEPLOYED & LIVE (Aug 23 2026)**: https://lohiyaanirudh.tech on EC2 t3.micro
-  `i-09f7e0f0d3fc6414b` (IP 65.0.45.190, ap-south-1, AMI al2023 ami-06a83a7a581c729a9).
+- **DEPLOYED & LIVE (Sep 14 2026)**: https://app.snbajaj.com + https://admin.snbajaj.com on
+  Lightsail `ca-platform-app` (Mumbai, static IP 3.111.8.176, $7/mo LOS bundle) — EC2
+  t3.micro `i-09f7e0f0d3fc6414b` (IP 65.0.45.190, ap-south-1, ami al2023 ami-06a83a7a581c729a9)
+  TERMINATED; legacy domain lohiyaanirudh.tech decommissioned (no redirects). See
+  `docs/11-lightsail-migration-runbook.md`.
   - SSH: `ssh ca-ec2` (alias in `%USERPROFILE%\.ssh\config` → key `F:\Anirudh\ca-platform-key.pem`).
     Server layout: `/opt/ca-app/repo` = git clone; `/opt/ca-app/backend` = symlink →
     `repo/backend` (the NestJS app + `.env`, chmod 600); `/opt/ca-app/frontend/site` =
@@ -145,7 +148,7 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
     Verified with SW ACTIVE: login→dashboard works.
   - **S3 bucket had NO CORS config** → every browser upload/download failed with CORS
     errors while server-side PUTs worked. FIX: applied CORS rules to `ca-sanjay-gst-docs`
-    (allowed origins lohiyaanirudh.tech/www/localhost:4200-1; GET/PUT/HEAD; headers *).
+    (allowed origins app./admin./api./snbajaj.com/www/localhost:4200-1; GET/PUT/HEAD; headers *).
     NOTE: any new bucket needs the same config (aws s3api put-bucket-cors).
   - Client full E2E now passes 10/10 WITH service worker active: wrong-password error,
     login, dashboard, **document upload to S3 from browser**, reports, notifications,
@@ -355,14 +358,14 @@ uses live in `website/public/images`; content fully migrated). SEO done: meta/OG
   - EC2: three new nginx confs in `/etc/nginx/conf.d/{app,admin,api}.snbajaj.conf`
     (portal + admin serve SPAs and proxy relative `/api/` to :3000 — CORS-free; api.
     proxies everything). Certbot issued one SAN cert for all three names with
-    http→https redirects (`--redirect`). lohiyaanirudh.tech conf replaced with 301
-    map: `/api/* → api.` (path kept), `/admin* → admin.` (path kept), `/ → snbajaj.com`,
-    everything else → `app.` (PWA deep links). Old APK v1.0.0 users keep working via
-    these redirects. Backups of prior conf in `/opt/ca-app/backups/`.
+    http→https redirects (`--redirect`). A temporary 301 map for the legacy
+    lohiyaanirudh.tech (kept old APK v1.0.0 deep links working) was in effect until the
+    Lightsail migration (Sep 14 2026), when the domain was fully decommissioned — no
+    redirects remain.
   - Prod deploy: repo pulled to fdd596a; rsync repo/backend → /opt/ca-app/backend
     (excl node_modules/dist/.env); npm ci; migration AddWebsiteTables RUN on prod;
-    nest build; pm2 restart. `.env`: CORS_ORIGIN now lists all five origins
-    (lohiyaanirudh.tech, app., admin., snbajaj.com, www). CLOUDFLARE_DEPLOY_HOOK_URL
+    nest build; pm2 restart. `.env`: CORS_ORIGIN lists (app., admin., snbajaj.com, www;
+    lohiyaanirudh.tech removed Sep 14 2026). CLOUDFLARE_DEPLOY_HOOK_URL
     still unset (hook pending).
   - Admin SPA rebuilt locally & swapped into `/opt/ca-app/frontend/site/admin`
     (bundle main-VIXEWUYW.js); client PWA unchanged (no rebuild needed).
