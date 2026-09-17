@@ -2,6 +2,7 @@ import { Admin } from './admin.entity';
 import { AuditLog } from './audit-log.entity';
 import { BlogPost } from './blog-post.entity';
 import { ClientPreRegistration } from './client-pre-registration.entity';
+import { ComplianceTask } from './compliance-task.entity';
 import { DeviceToken } from './device-token.entity';
 import { Document } from './document.entity';
 import { GstFilingPeriod } from './gst-filing-period.entity';
@@ -40,6 +41,7 @@ export const entities = [
   TicketMessage,
   TicketAttachment,
   RentAgreement,
+  ComplianceTask,
 ];
 
 export {
@@ -47,6 +49,7 @@ export {
   AuditLog,
   BlogPost,
   ClientPreRegistration,
+  ComplianceTask,
   DeviceToken,
   Document,
   GstFilingPeriod,

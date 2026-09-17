@@ -62,6 +62,11 @@ export const routes: Routes = [
           import('./features/profile/profile').then((m) => m.Profile),
       },
       {
+        path: 'reminders',
+        loadComponent: () =>
+          import('./features/reminders/reminders').then((m) => m.Reminders),
+      },
+      {
         path: 'services',
         loadComponent: () =>
           import('./features/services/services').then((m) => m.Services),

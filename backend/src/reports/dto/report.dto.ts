@@ -40,6 +40,16 @@ export class CreateReportDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  sales?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  purchases?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   total_liability?: string;
 
   @ApiPropertyOptional()

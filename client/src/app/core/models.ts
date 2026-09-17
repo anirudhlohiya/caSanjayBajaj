@@ -82,6 +82,8 @@ export interface Report {
   filing_period_id: string;
   report_type: ReportType;
   original_filename: string;
+  sales: string | null;
+  purchases: string | null;
   total_liability: string | null;
   itc_claimed: string | null;
   net_payable: string | null;

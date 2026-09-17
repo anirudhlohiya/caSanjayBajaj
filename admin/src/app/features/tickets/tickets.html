@@ -41,7 +41,7 @@
                 <app-status-chip [status]="t.status" />
               </div>
               <p class="text-xs text-neutral-500 mt-1">
-                {{ t.user?.name ?? 'Unknown' }} &middot; {{ t.category?.replace('_', ' ') }} &middot; {{ fmtDate(t.created_at) }}
+                {{ t.user?.name ?? 'Unknown' }} &middot; {{ t.category.replace('_', ' ') }} &middot; {{ fmtDate(t.created_at) }}
               </p>
             </div>
             <span class="material-symbols-outlined text-neutral-300" style="font-size: 20px">chevron_right</span>

@@ -46,6 +46,72 @@
     </div>
 
     <div class="lg:col-span-3 space-y-6">
+      
+      <!-- Compliance Checklist -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+        <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface">Compliance Checklist</h3>
+          <div class="flex items-center gap-2">
+            <select
+              [value]="selectedPeriod()"
+              (change)="onPeriodChange($event)"
+              class="px-2 py-1 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary"
+            >
+              @for (p of periods(); track p.id) {
+                <option [value]="p.id">{{ p.period_label }}</option>
+              }
+            </select>
+            @if (tasks().length === 0 && selectedPeriod()) {
+              <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary" (click)="generateTasks()">
+                Generate
+              </button>
+            }
+          </div>
+        </div>
+        <div class="p-4">
+          @if (tasks().length > 0) {
+            <ul class="space-y-3">
+              @for (t of tasks(); track t.id) {
+                <li class="flex items-center justify-between p-3 border border-outline-variant rounded bg-surface-bright">
+                  <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-{{ t.status === 'completed' ? 'primary' : 'outline-variant' }}">
+                      {{ t.status === 'completed' ? 'check_circle' : 'radio_button_unchecked' }}
+                    </span>
+                    <div>
+                      <div class="font-medium text-on-surface uppercase">{{ t.category.replace('_', ' ') }}</div>
+                      <div class="text-body-sm text-on-surface-variant">
+                        Status: {{ t.status }}
+                        @if (t.category === 'gst_payment' && t.amount) {
+                          · Amount: ₹{{ t.amount }}
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    @if (t.category === 'gst_payment') {
+                      @if (!t.paid_at) {
+                        <button class="px-3 py-1 bg-surface-container-high text-on-surface rounded text-label-sm hover:bg-surface-container-highest" 
+                          (click)="updatePayment(t, '5000')"> <!-- Hardcoded for test, should be a prompt -->
+                          Set ₹5000
+                        </button>
+                        <button class="px-3 py-1 bg-primary-container text-on-primary-container rounded text-label-sm hover:bg-primary hover:text-on-primary"
+                          (click)="markTaskPaid(t)">
+                          Mark Paid
+                        </button>
+                      } @else {
+                        <span class="text-label-sm text-primary">Paid</span>
+                      }
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else {
+            <app-empty-state icon="fact_check" message="No checklist tasks for this period" />
+          }
+        </div>
+      </div>
+
       <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
         <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
           <h3 class="font-headline-sm text-headline-sm text-on-surface">Documents</h3>

@@ -163,6 +163,11 @@ export class ReportsService {
     filename: string;
     contentType: string;
     file_size_bytes: number;
+    sales?: string;
+    purchases?: string;
+    total_liability?: string;
+    itc_claimed?: string;
+    net_payable?: string;
   }) {
     return firstValueFrom(this.api.post<ReportUploadUrl>('/admin/reports', body));
   }
@@ -419,5 +424,55 @@ export class RentAgreementsService {
   // Uses browser native navigation for download
   getDownloadUrl(id: string): string {
     return `${this.api.baseUrl}/admin/rent-agreements/${id}/download/docx`;
+  }
+}
+
+export interface ComplianceTask {
+  id: string;
+  user_id: string;
+  filing_period_id: string;
+  category: string;
+  status: string;
+  due_date: string | null;
+  amount: string | null;
+  paid_at: string | null;
+}
+
+@Injectable({ providedIn: 'root' })
+export class ComplianceTasksService {
+  private readonly api = inject(ApiClient);
+  
+  listForClient(clientId: string, periodId: string): Promise<ComplianceTask[]> {
+    return firstValueFrom(
+      this.api.get<ComplianceTask[]>(`/compliance-tasks/admin/client/${clientId}`, {
+        periodId
+      })
+    );
+  }
+
+  autoGenerateTasks(clientId: string, periodId: string, isQuarterly: boolean): Promise<ComplianceTask[]> {
+    return firstValueFrom(
+      this.api.post<ComplianceTask[]>(`/compliance-tasks/admin/client/${clientId}/auto-generate`, {
+        periodId,
+        isQuarterly
+      })
+    );
+  }
+
+  updatePayment(id: string, amount: string, paidAt: string): Promise<ComplianceTask> {
+    return firstValueFrom(
+      this.api.patch<ComplianceTask>(`/compliance-tasks/admin/${id}/payment`, {
+        amount,
+        paidAt
+      })
+    );
+  }
+
+  updateStatus(id: string, status: string): Promise<ComplianceTask> {
+    return firstValueFrom(
+      this.api.patch<ComplianceTask>(`/compliance-tasks/admin/${id}/status`, {
+        status
+      })
+    );
   }
 }

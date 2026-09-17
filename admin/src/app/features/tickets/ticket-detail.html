@@ -1,7 +1,7 @@
 @if (loading()) {
   <app-spinner />
 } @else if (ticket(); as t) {
-  <app-page-header [title]="t.subject" [subtitle]="'Ticket from ' + (t.user?.name ?? 'Unknown') + ' · ' + t.category?.replace('_', ' ')">
+  <app-page-header [title]="t.subject" [subtitle]="'Ticket from ' + (t.user?.name ?? 'Unknown') + ' · ' + t.category.replace('_', ' ')">
     <button class="btn-outline" (click)="goBack()">
       <span class="material-symbols-outlined mr-1" style="font-size: 18px">arrow_back</span>
       Back
@@ -74,7 +74,7 @@
           </div>
           <div class="flex justify-between">
             <dt class="text-neutral-400">Category</dt>
-            <dd class="font-medium text-neutral-800">{{ t.category?.replace('_', ' ') }}</dd>
+            <dd class="font-medium text-neutral-800">{{ t.category.replace('_', ' ') }}</dd>
           </div>
           <div class="flex justify-between">
             <dt class="text-neutral-400">Client</dt>

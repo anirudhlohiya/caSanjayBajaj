@@ -263,3 +263,35 @@ export class ServicesOfferedService {
     return firstValueFrom(this.api.get<Service[]>('/services'));
   }
 }
+
+export interface ComplianceTask {
+  id: string;
+  user_id: string;
+  filing_period_id: string;
+  category: string;
+  status: string;
+  due_date: string | null;
+  amount: string | null;
+  paid_at: string | null;
+  filing_period?: GstFilingPeriod;
+}
+
+@Injectable({ providedIn: 'root' })
+export class ComplianceTasksService {
+  constructor(private readonly api: ApiClient) {}
+
+  list(periodId?: string): Promise<ComplianceTask[]> {
+    const params = new URLSearchParams();
+    if (periodId) params.set('periodId', periodId);
+    return firstValueFrom(
+      this.api.get<ComplianceTask[]>(`/compliance-tasks?${params}`)
+    );
+  }
+
+  autoGenerate(periodId: string, isQuarterly: boolean): Promise<ComplianceTask[]> {
+    return firstValueFrom(
+      this.api.post<ComplianceTask[]>('/compliance-tasks/auto-generate', { periodId, isQuarterly })
+    );
+  }
+}
+

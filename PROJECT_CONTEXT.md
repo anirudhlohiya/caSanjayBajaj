@@ -205,6 +205,12 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
     - **Verification**: compiled-service unit test (`C:\Users\Admin\AppData\Local\Temp\opencode\office-test.js`) passes — config shape, JWT token presence, source buffer/TTL, callback save→S3→DB update, no-op on closed, error on failed download, edited-docx-first download. Deployed-only test still needed with a real Document Server + S3 + env.
     - *Ops caveats*: OnlyOffice Document Server Community Edition is free with a fair-use limit (~20 concurrent connections); README recommends ~2GB RAM (t3.micro has 1GB — may need t3.small). Runs as a Docker container `onlyoffice/documentserver`; nginx vhost (e.g. `office.snbajaj.com`) reverse-proxying to it, plus certbot TLS, with `ONLYOFFICE_ENABLED=true`, `ONLYOFFICE_SERVER_URL=https://office.snbajaj.com`, `ONLYOFFICE_JWT_SECRET` set on the API env. Run the new migration first.`
 
+- **Phase 10 (Sep 2026) — Compliance Task Checklist — DONE**:
+  - **Backend**: Created a new `ComplianceTask` entity and migration script for `compliance_tasks`. Added `ComplianceCategory` enum (GSTR-1, GSTR-3B, Sales Bills, Purchase Bills, IFF, GST Payment). Endpoints allow for generation based on monthly vs quarterly intervals and manually marking task statuses (completed, updating payment amounts).
+  - **Admin UI**: Added a Compliance Checklist dynamically linked to a specific client period on the `client-detail.html` screen, allowing Admins to see progress and manually update GST payments.
+  - **Client UI (Documents)**: Revamped `Documents` list to pull dynamically from actual generated `ComplianceTask` data (differentiated by status, indicating if upload is required or completed).
+  - **Client UI (Reminders)**: Created a new detailed Reminders screen showing "Needs Attention", "Upcoming", and "Completed" categories (matching the required Figma design).
+
 ## 6. Functional notes (implemented)
 
 

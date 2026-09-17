@@ -69,6 +69,21 @@ export enum LeadStatus {
   CLOSED = 'closed',
 }
 
+export enum ComplianceCategory {
+  GSTR_1 = 'gstr_1',
+  SALES_BILLS = 'sales_bills',
+  PURCHASE_BILLS = 'purchase_bills',
+  IFF = 'iff',
+  GSTR_3B = 'gstr_3b',
+  GST_PAYMENT = 'gst_payment',
+}
+
+export enum TaskStatus {
+  PENDING = 'pending',
+  UPLOADED = 'uploaded',
+  COMPLETED = 'completed',
+}
+
 export const PERMISSIONS = [
   'view_clients',
   'view_documents',

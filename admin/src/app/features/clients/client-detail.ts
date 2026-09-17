@@ -6,6 +6,8 @@ import {
   DocumentsService,
   PeriodsService,
   ReportsService,
+  ComplianceTasksService,
+  ComplianceTask
 } from '../../core/services/feature.services';
 import { UploadService } from '../../core/services/upload.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -31,6 +33,7 @@ export class ClientDetail implements OnInit {
   private readonly documentsService = inject(DocumentsService);
   private readonly reportsService = inject(ReportsService);
   private readonly periodsService = inject(PeriodsService);
+  private readonly tasksService = inject(ComplianceTasksService);
   private readonly upload = inject(UploadService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
@@ -49,6 +52,9 @@ export class ClientDetail implements OnInit {
   readonly reportPages = signal(0);
 
   readonly periods = signal<FilingPeriod[]>([]);
+  readonly tasks = signal<ComplianceTask[]>([]);
+  readonly selectedPeriod = signal<string>('');
+
   readonly showReport = signal(false);
   readonly sending = signal(false);
   readonly processing = signal<string[]>([]);
@@ -87,10 +93,66 @@ export class ClientDetail implements OnInit {
       this.reportTotal.set(reportsRes.total);
       this.reportPages.set(reportsRes.totalPages);
       this.periods.set(periods);
-      this.reportForm.controls.filing_period_id.setValue(periods[0]?.id ?? '');
+      const defaultPeriod = periods[0]?.id ?? '';
+      this.selectedPeriod.set(defaultPeriod);
+      this.reportForm.controls.filing_period_id.setValue(defaultPeriod);
+
+      if (defaultPeriod) {
+        await this.loadTasks(defaultPeriod);
+      }
     } finally {
       this.loading.set(false);
     }
+  }
+
+  async loadTasks(periodId: string): Promise<void> {
+    try {
+      const tasks = await this.tasksService.listForClient(this.id(), periodId);
+      this.tasks.set(tasks);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async generateTasks(): Promise<void> {
+    try {
+      const p = this.selectedPeriod();
+      if (!p) return;
+      const tasks = await this.tasksService.autoGenerateTasks(this.id(), p, false);
+      this.tasks.set(tasks);
+      this.toast.success('Checklist generated successfully');
+    } catch (e) {
+      console.error(e);
+      this.toast.error('Failed to generate checklist');
+    }
+  }
+
+  async updatePayment(task: ComplianceTask, amount: string): Promise<void> {
+    try {
+      await this.tasksService.updatePayment(task.id, amount, '');
+      this.toast.success('Payment updated');
+      await this.loadTasks(this.selectedPeriod());
+    } catch (e) {
+      console.error(e);
+      this.toast.error('Failed to update payment');
+    }
+  }
+
+  async markTaskPaid(task: ComplianceTask): Promise<void> {
+    try {
+      await this.tasksService.updatePayment(task.id, task.amount ?? '', new Date().toISOString());
+      this.toast.success('Marked as paid. It will be updated shortly.');
+      await this.loadTasks(this.selectedPeriod());
+    } catch (e) {
+      console.error(e);
+      this.toast.error('Failed to mark as paid');
+    }
+  }
+
+  onPeriodChange(event: Event): void {
+    const sel = event.target as HTMLSelectElement;
+    this.selectedPeriod.set(sel.value);
+    void this.loadTasks(sel.value);
   }
 
   docPageChanged(p: number): void {

@@ -9,7 +9,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
-import { DocumentsService, PeriodsService } from '../../core/services/feature.services';
+import { DocumentsService, PeriodsService, ComplianceTasksService, ComplianceTask } from '../../core/services/feature.services';
 import { Document, GstFilingPeriod } from '../../core/models';
 import { StatusChip } from '../../shared/components/status-chip';
 import { Spinner } from '../../shared/components/spinner';
@@ -32,6 +32,7 @@ const FILTERS: { key: string; label: string }[] = [
 export class Documents {
   private readonly documentsService = inject(DocumentsService);
   private readonly periodsService = inject(PeriodsService);
+  private readonly tasksService = inject(ComplianceTasksService);
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
 
@@ -41,10 +42,24 @@ export class Documents {
   readonly filter = signal('');
   readonly periods = signal<GstFilingPeriod[]>([]);
   readonly periodId = signal('');
+  readonly tasks = signal<ComplianceTask[]>([]);
   readonly selectedDoc = signal<Document | null>(null);
   readonly downloading = signal(false);
   readonly page = signal(1);
   readonly pageSize = 20;
+
+  // Added for new UI mockup
+  readonly financialYears = ['FY 2026-27', 'FY 2025-26'];
+  readonly financialYear = signal('FY 2026-27');
+  readonly month = signal('September 2026');
+
+  uploadFiles(): void {
+    this.toast.info('Upload files flow coming soon');
+  }
+
+  requestReport(): void {
+    this.toast.info('Request Report flow coming soon');
+  }
 
   readonly filteredLabel = computed(() => {
     const f = this.filter();
@@ -74,17 +89,15 @@ export class Documents {
   async load(): Promise<void> {
     this.loading.set(true);
     try {
-      const result = await this.documentsService.list({
-        status: this.filter() || undefined,
-        filingPeriodId: this.periodId() || undefined,
-        page: this.page(),
-        pageSize: this.pageSize,
-      });
-      this.docs.set(result.items);
-      this.total.set(result.total);
+      const pid = this.periodId();
+      if (pid) {
+        const result = await this.tasksService.list(pid);
+        this.tasks.set(result);
+      } else {
+        this.tasks.set([]);
+      }
     } catch {
-      this.docs.set([]);
-      this.total.set(0);
+      this.tasks.set([]);
     } finally {
       this.loading.set(false);
     }

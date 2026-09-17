@@ -48,6 +48,8 @@ export class Reports implements OnInit {
     filing_period_id: ['', Validators.required],
     report_type: ['gstr_1'],
     file: [null as File | null, Validators.required],
+    sales: [''],
+    purchases: [''],
     total_liability: [''],
     itc_claimed: [''],
     net_payable: [''],
@@ -128,6 +130,11 @@ export class Reports implements OnInit {
         filename: file.name,
         contentType: file.type || 'application/pdf',
         file_size_bytes: file.size,
+        sales: form.controls.sales.value ? String(form.controls.sales.value) : '',
+        purchases: form.controls.purchases.value ? String(form.controls.purchases.value) : '',
+        total_liability: form.controls.total_liability.value ? String(form.controls.total_liability.value) : '',
+        itc_claimed: form.controls.itc_claimed.value ? String(form.controls.itc_claimed.value) : '',
+        net_payable: form.controls.net_payable.value ? String(form.controls.net_payable.value) : '',
       });
       await this.upload.upload(upload_url, file, file.type || 'application/pdf');
       await this.reportsService.confirm(report_id);

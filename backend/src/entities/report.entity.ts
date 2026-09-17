@@ -35,6 +35,12 @@ export class Report {
   original_filename: string;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  sales: string | null;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  purchases: string | null;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
   total_liability: string | null;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
