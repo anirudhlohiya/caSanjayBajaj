@@ -1,151 +1,3 @@
-@if (false) {
-<div class="flex flex-col gap-5 pb-10">
-  <div>
-    <h1 class="text-xl font-bold tracking-tight text-neutral-950 dark:text-white">Documents</h1>
-    <p class="text-sm text-neutral-500 mt-1 dark:text-neutral-400">
-      {{ total() }} document{{ total() === 1 ? '' : 's' }} · {{ filteredLabel() }}
-    </p>
-  </div>
-
-  <div class="responsive-toolbar">
-    <div class="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none">
-      @for (chip of filterChips; track chip.key) {
-        <button
-          (click)="setFilter(chip.key)"
-          [class]="
-            'shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ' +
-            (filter() === chip.key
-              ? 'bg-neutral-900 text-white'
-              : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-900')
-          "
-        >
-          {{ chip.label }}
-        </button>
-      }
-    </div>
-
-    <select
-      [ngModel]="periodId()"
-      (ngModelChange)="setPeriod($event)"
-      class="h-11 min-w-0 flex-1 sm:max-w-56 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
-    >
-      <option value="">All filing periods</option>
-      @for (period of periods(); track period.id) {
-        <option [value]="period.id">{{ period.period_label }}</option>
-      }
-    </select>
-  </div>
-
-  @if (loading()) {
-    <app-spinner />
-  } @else if (docs().length === 0) {
-    <div class="card border-dashed p-6 text-center">
-      <app-empty-state
-        icon="folder_off"
-        message="Nothing matches this filter yet. Try a different period or status."
-      />
-    </div>
-  } @else {
-    <div class="responsive-list">
-      @for (doc of docs(); track doc.id) {
-        <button
-          (click)="selectDoc(doc)"
-          class="card p-4 flex items-center gap-3 text-left w-full cursor-pointer h-full"
-        >
-          <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
-            <span class="material-symbols-outlined text-[20px] text-neutral-500 dark:text-neutral-400">{{ fileIcon(doc) }}</span>
-          </span>
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-semibold text-neutral-900 dark:text-neutral-100">{{ doc.original_filename }}</p>
-            <p class="text-xs text-neutral-400 mt-0.5">
-              {{ periodLabel(doc.filing_period) }} · {{ fileSize(doc.file_size_bytes) }}
-            </p>
-            <p class="text-xs text-neutral-400 mt-0.5">
-              Uploaded {{ doc.uploaded_at | date: 'd MMM, h:mm a' }}
-            </p>
-          </div>
-          <app-status-chip [status]="doc.status" />
-        </button>
-      }
-    </div>
-
-    @if (total() > pageSize) {
-      <div class="flex items-center justify-between mt-2">
-        <button
-          (click)="prevPage()"
-          [disabled]="page() <= 1"
-          class="rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-100 disabled:opacity-40 cursor-pointer dark:text-neutral-100 dark:hover:bg-neutral-800 dark:hover:bg-neutral-800"
-        >
-          Previous
-        </button>
-        <span class="text-xs text-neutral-400 font-mono">
-          Page {{ page() }} of {{ totalPages() }}
-        </span>
-        <button
-          (click)="nextPage()"
-          [disabled]="page() * pageSize >= total()"
-          class="rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-100 disabled:opacity-40 cursor-pointer dark:text-neutral-100 dark:hover:bg-neutral-800 dark:hover:bg-neutral-800"
-        >
-          Next
-        </button>
-      </div>
-    }
-  }
-</div>
-
-@if (selectedDoc(); as doc) {
-  <div class="fixed inset-0 z-40 bg-neutral-950/40 backdrop-blur-sm" (click)="closeDoc()"></div>
-  <div class="responsive-sheet fixed inset-x-0 bottom-0 z-50 w-full max-w-md mx-auto rounded-t-2xl bg-white border-t border-neutral-100 shadow-xl dark:bg-neutral-900 dark:border-neutral-800">
-    <div class="mx-auto mt-2.5 h-1.5 w-12 rounded-full bg-neutral-200"></div>
-    <div class="p-5">
-      <div class="flex items-start gap-3">
-        <span class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
-          <span class="material-symbols-outlined text-[24px] text-neutral-500 dark:text-neutral-400">{{ fileIcon(doc!) }}</span>
-        </span>
-        <div class="min-w-0 flex-1">
-          <p class="break-words text-sm font-semibold text-neutral-950 mt-0.5 dark:text-white">{{ doc!.original_filename }}</p>
-          <div class="mt-2">
-            <app-status-chip [status]="doc!.status" />
-          </div>
-        </div>
-        <button (click)="closeDoc()" class="flex size-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 cursor-pointer dark:hover:bg-neutral-800 dark:hover:bg-neutral-800">
-          <span class="material-symbols-outlined text-[20px]">close</span>
-        </button>
-      </div>
-
-      <dl class="mt-5 grid grid-cols-2 gap-4 text-sm border-t border-neutral-100 pt-4 dark:border-neutral-800">
-        <div>
-          <dt class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Filing period</dt>
-          <dd class="mt-1 font-medium text-neutral-800 dark:text-neutral-200">{{ periodLabel(doc!.filing_period) }}</dd>
-        </div>
-        <div>
-          <dt class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Size</dt>
-          <dd class="mt-1 font-medium text-neutral-800 dark:text-neutral-200">{{ fileSize(doc!.file_size_bytes) }}</dd>
-        </div>
-        <div>
-          <dt class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Uploaded</dt>
-          <dd class="mt-1 font-medium text-neutral-800 dark:text-neutral-200">{{ doc!.uploaded_at | date: 'd MMM yyyy, h:mm a' }}</dd>
-        </div>
-        <div>
-          <dt class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Processed</dt>
-          <dd class="mt-1 font-medium text-neutral-800 dark:text-neutral-200">
-            {{ doc!.processed_at ? (doc!.processed_at | date: 'd MMM yyyy') : '—' }}
-          </dd>
-        </div>
-      </dl>
-
-      <button
-        (click)="download(doc!)"
-        [disabled]="downloading()"
-        class="btn-primary mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-lg"
-      >
-        <span class="material-symbols-outlined text-[20px]">download</span>
-        View / download
-      </button>
-    </div>
-  </div>
-}
-}
 
 <div class="max-w-container-max mx-auto px-4 pt-4 pb-24 flex flex-col gap-5">
   <div>
@@ -157,12 +9,19 @@
 
   <div class="card p-4 flex flex-col gap-2">
     <label class="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Select Period</label>
-    <div class="flex items-center justify-between border border-neutral-200 rounded-lg p-3 cursor-pointer">
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-neutral-500 text-[20px]">calendar_month</span>
-        <span class="font-semibold text-neutral-900 text-sm">September 2026</span>
-      </div>
-      <span class="material-symbols-outlined text-neutral-400 text-[20px]">expand_more</span>
+    <div class="relative">
+      <select
+        [ngModel]="periodId()"
+        (ngModelChange)="setPeriod($event)"
+        class="w-full appearance-none bg-white border border-neutral-200 rounded-lg p-3 pl-10 text-sm font-semibold text-neutral-900 cursor-pointer outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+      >
+        <option value="">All filing periods</option>
+        @for (period of periods(); track period.id) {
+          <option [value]="period.id">{{ period.period_label }}</option>
+        }
+      </select>
+      <span class="material-symbols-outlined text-neutral-500 text-[20px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">calendar_month</span>
+      <span class="material-symbols-outlined text-neutral-400 text-[20px] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
     </div>
   </div>
 
@@ -255,23 +114,33 @@
     <div class="card p-4 flex flex-col gap-3 bg-white">
       <div>
         <label class="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5 block">Select Financial Year</label>
-        <div class="flex items-center justify-between border border-neutral-200 rounded-lg p-3 cursor-pointer">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-neutral-400 text-[20px]">calendar_month</span>
-            <span class="font-semibold text-neutral-900 text-sm">FY 2026-27</span>
-          </div>
-          <span class="material-symbols-outlined text-neutral-400 text-[20px]">expand_more</span>
+        <div class="relative">
+          <select
+            [(ngModel)]="financialYear"
+            class="w-full appearance-none bg-white border border-neutral-200 rounded-lg p-3 pl-10 text-sm font-semibold text-neutral-900 cursor-pointer outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+          >
+            @for (year of financialYears; track year) {
+              <option [value]="year">{{ year }}</option>
+            }
+          </select>
+          <span class="material-symbols-outlined text-neutral-400 text-[20px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">calendar_month</span>
+          <span class="material-symbols-outlined text-neutral-400 text-[20px] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
         </div>
       </div>
       
       <div>
         <label class="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5 block">Select Month</label>
-        <div class="flex items-center justify-between border border-neutral-200 rounded-lg p-3 cursor-pointer">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-neutral-400 text-[20px]">calendar_month</span>
-            <span class="font-semibold text-neutral-900 text-sm">September 2026</span>
-          </div>
-          <span class="material-symbols-outlined text-neutral-400 text-[20px]">expand_more</span>
+        <div class="relative">
+          <select
+            [(ngModel)]="month"
+            class="w-full appearance-none bg-white border border-neutral-200 rounded-lg p-3 pl-10 text-sm font-semibold text-neutral-900 cursor-pointer outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+          >
+            @for (m of months; track m) {
+              <option [value]="m">{{ m }}</option>
+            }
+          </select>
+          <span class="material-symbols-outlined text-neutral-400 text-[20px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">calendar_month</span>
+          <span class="material-symbols-outlined text-neutral-400 text-[20px] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
         </div>
       </div>
 

@@ -11,9 +11,6 @@ import { ActivatedRoute } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { DocumentsService, PeriodsService, ComplianceTasksService, ComplianceTask } from '../../core/services/feature.services';
 import { Document, GstFilingPeriod } from '../../core/models';
-import { StatusChip } from '../../shared/components/status-chip';
-import { Spinner } from '../../shared/components/spinner';
-import { EmptyState } from '../../shared/components/empty-state';
 
 const FILTERS: { key: string; label: string }[] = [
   { key: '', label: 'All' },
@@ -25,7 +22,7 @@ const FILTERS: { key: string; label: string }[] = [
 @Component({
   selector: 'app-documents',
   standalone: true,
-  imports: [StatusChip, Spinner, EmptyState, DatePipe, FormsModule],
+  imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './documents.html',
 })
@@ -49,16 +46,21 @@ export class Documents {
   readonly pageSize = 20;
 
   // Added for new UI mockup
-  readonly financialYears = ['FY 2026-27', 'FY 2025-26'];
-  readonly financialYear = signal('FY 2026-27');
-  readonly month = signal('September 2026');
+  readonly financialYears = ['FY 2026-27', 'FY 2025-26', 'FY 2024-25', 'FY 2023-24'];
+  readonly months = [
+    'April', 'May', 'June', 'July', 'August', 'September', 
+    'October', 'November', 'December', 'January', 'February', 'March'
+  ];
+  
+  financialYear = 'FY 2026-27';
+  month = 'September';
 
   uploadFiles(): void {
     this.toast.info('Upload files flow coming soon');
   }
 
   requestReport(): void {
-    this.toast.info('Request Report flow coming soon');
+    this.toast.info(`Requesting report for ${this.month} ${this.financialYear}...`);
   }
 
   readonly filteredLabel = computed(() => {
