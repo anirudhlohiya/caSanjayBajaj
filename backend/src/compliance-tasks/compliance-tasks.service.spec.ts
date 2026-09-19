@@ -239,7 +239,7 @@ describe('ComplianceTasksService', () => {
       (periodsRepo.findOneBy as jest.Mock).mockResolvedValue(period('2026-10'));
 
       // The old flag is ignored — cadence comes from the user record.
-      await tasksService.autoGenerateTasks('u2', 'p1', false);
+      await tasksService.autoGenerateTasks('u2', 'p1');
 
       expect(saved.map((t) => t.category).sort()).toEqual([
         ComplianceCategory.GST_PAYMENT,

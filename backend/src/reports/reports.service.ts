@@ -16,6 +16,7 @@ import {
 } from '../notifications/notifications.service';
 import { ReportNotificationsService } from '../notifications/report-notifications.service';
 import { StorageService } from '../storage/storage.service';
+import { ShareLinksService } from '../share-links/share-links.service';
 import { UsersService } from '../users/users.service';
 import { CreateReportDto, ReportFilterQueryDto } from './dto/report.dto';
 
@@ -26,9 +27,10 @@ export class ReportsService {
     @InjectRepository(Report) private readonly reports: Repository<Report>,
     @InjectRepository(GstFilingPeriod)
     private readonly periods: Repository<GstFilingPeriod>,
-    private readonly storage: StorageService,
     private readonly notifications: NotificationsService,
     private readonly reportNotifications: ReportNotificationsService,
+    private readonly storage: StorageService,
+    private readonly shareLinks: ShareLinksService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -78,16 +80,30 @@ export class ReportsService {
     });
 
     const reportUrl = `${process.env.API_BASE_URL ?? ''}/reports/${report.id}`;
+    let shareUrl: string | undefined;
+    try {
+      const { token } = await this.shareLinks.createLink(reportId);
+      shareUrl = `${process.env.API_BASE_URL ?? ''}/api/v1/public/report/download/${token}`;
+    } catch (error) {
+      this.logger.warn(
+        `Could not create share link for report ${reportId}: ${(error as Error).message}`,
+      );
+    }
+
     const title = 'Your GST report is ready';
     const body = `${period?.period_label ?? 'Your'} ${report.report_type.replace('_', ' ').toUpperCase()} report is ready to view in the app.`;
     const deepLink = '/reports';
 
-    // Persist the in-app notification immediately so it is never lost.
     await this.reportNotifications.record(user.id, title, body, deepLink);
 
-    // Deliver push + email in the background so the confirm request returns
-    // immediately (avoids nginx read timeout 504 when the network is slow).
-    void this.deliverReportNotifications(report, user, reportUrl, title, body);
+    void this.deliverReportNotifications(
+      report,
+      user,
+      reportUrl,
+      shareUrl,
+      title,
+      body,
+    );
 
     return report;
   }
@@ -96,6 +112,7 @@ export class ReportsService {
     report: { id: string; user_id: string; report_type: string },
     user: { id: string; email: string; name: string },
     reportUrl: string,
+    shareUrl: string | undefined,
     title: string,
     body: string,
   ): Promise<void> {
@@ -123,10 +140,14 @@ export class ReportsService {
         }
       }
 
+      const cta = shareUrl
+        ? `<p><a href="${shareUrl}">Download your report (secure link, valid 30 days)</a></p>`
+        : '';
+      const appLink = `<p><a href="${reportUrl}">Open report in the app</a></p>`;
       await this.notifications.sendEmail(
         { email: user.email, name: user.name },
         title,
-        `<p>Dear ${user.name},</p><p>${body}</p><p><a href="${reportUrl}">Open report in the app</a></p>`,
+        `<p>Dear ${user.name},</p><p>${body}</p>${cta}${appLink}`,
       );
     } catch (error) {
       this.logger.warn(

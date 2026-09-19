@@ -14,6 +14,8 @@ import { RefreshToken } from './refresh-token.entity';
 import { Reminder } from './reminder.entity';
 import { Report } from './report.entity';
 import { ReportNotification } from './report-notification.entity';
+import { ReportRequest } from './report-request.entity';
+import { ReportShareLink } from './report-share-link.entity';
 import { Service } from './service.entity';
 import { Ticket } from './ticket.entity';
 import { TicketMessage } from './ticket-message.entity';
@@ -33,6 +35,8 @@ export const entities = [
   RefreshToken,
   DeviceToken,
   ReportNotification,
+  ReportRequest,
+  ReportShareLink,
   OtpVerification,
   BlogPost,
   Lead,
@@ -63,6 +67,8 @@ export {
   Reminder,
   Report,
   ReportNotification,
+  ReportRequest,
+  ReportShareLink,
   Service,
   Ticket,
   TicketMessage,

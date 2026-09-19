@@ -94,6 +94,24 @@ export class StorageService {
     return getSignedUrl(this.client, command, { expiresIn });
   }
 
+  /**
+   * Signed URL that forces the browser to download rather than preview
+   * (used by the public 30-day share links, docs/13 §3.8).
+   */
+  async createAttachmentDownloadUrl(
+    s3Key: string,
+    filename: string,
+    expiresIn = 300,
+  ): Promise<string> {
+    const safe = filename.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-80);
+    const command = new GetObjectCommand({
+      Bucket: this.docsBucket,
+      Key: s3Key,
+      ResponseContentDisposition: `attachment; filename="${safe}"`,
+    });
+    return getSignedUrl(this.client, command, { expiresIn });
+  }
+
   async createTicketUploadUrl(
     s3Key: string,
     contentType: string,

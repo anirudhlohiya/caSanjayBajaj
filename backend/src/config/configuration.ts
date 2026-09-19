@@ -48,6 +48,11 @@ export default () => ({
     cron: process.env.REMINDER_CRON ?? '0 8 * * *',
   },
 
+  shareLinks: {
+    // Lifetime of the emailed 30-day report download tokens (docs/13 §3.8).
+    ttlDays: parseInt(process.env.SHARE_LINK_TTL_DAYS ?? '30', 10),
+  },
+
   autoCreatePeriods: {
     // How many future months beyond the current one to auto-ensure on the
     // monthly rollover cron (docs/13 §10).

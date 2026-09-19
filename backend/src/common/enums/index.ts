@@ -99,6 +99,12 @@ export enum GstFilingFrequency {
   QUARTERLY = 'quarterly',
 }
 
+export enum ReportRequestStatus {
+  PENDING = 'pending',
+  FULFILLED = 'fulfilled',
+  REJECTED = 'rejected',
+}
+
 export const PERMISSIONS = [
   'view_clients',
   'view_documents',

@@ -24,6 +24,8 @@ import { ComplianceTasksModule } from './compliance-tasks/compliance-tasks.modul
 import { SchedulingModule } from './schedule/scheduling.module';
 import { CertificatesModule } from './certificates/certificates.module';
 import { HealthController } from './health.controller';
+import { ReportRequestsModule } from './report-requests/report-requests.module';
+import { ShareLinksModule } from './share-links/share-links.module';
 
 @Module({
   imports: [
@@ -52,6 +54,8 @@ import { HealthController } from './health.controller';
     ComplianceTasksModule,
     SchedulingModule,
     CertificatesModule,
+    ShareLinksModule,
+    ReportRequestsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
