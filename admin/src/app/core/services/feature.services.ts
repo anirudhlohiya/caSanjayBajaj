@@ -22,6 +22,7 @@ import type {
   TicketMessage,
   UploadUrl,
   Admin,
+  ReportRequest,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -59,6 +60,7 @@ export class ClientsService {
     gstin?: string;
     user_type?: string;
     status?: string;
+    gst_filing_frequency?: 'monthly' | 'quarterly';
   }) {
     return firstValueFrom(this.api.post<Client>('/admin/users', body));
   }
@@ -87,11 +89,11 @@ export class PeriodsService {
     return firstValueFrom(this.api.get<FilingPeriod[]>('/periods/open'));
   }
 
-  create(body: { period_label: string; period_code: string; due_date: string; is_open?: boolean }) {
+  create(body: { period_label: string; period_code: string; due_date: string; is_open?: boolean; schedule?: any }) {
     return firstValueFrom(this.api.post<FilingPeriod>('/periods', body));
   }
 
-  update(id: string, body: { period_label?: string; due_date?: string; is_open?: boolean }) {
+  update(id: string, body: { period_label?: string; due_date?: string; is_open?: boolean; schedule?: any }) {
     return firstValueFrom(this.api.patch<FilingPeriod>(`/periods/${id}`, body));
   }
 }
@@ -181,6 +183,23 @@ export class ReportsService {
   downloadUrl(id: string) {
     return firstValueFrom(
       this.api.get<{ download_url: string }>(`/admin/reports/${id}/download-url`),
+    );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class ReportRequestsService {
+  private readonly api = inject(ApiClient);
+
+  adminList(params: { page?: number; pageSize?: number; status?: string } = {}) {
+    return firstValueFrom(
+      this.api.get<PaginatedResult<ReportRequest>>('/admin/report-requests', params),
+    );
+  }
+
+  fulfill(id: string, body: any) {
+    return firstValueFrom(
+      this.api.post<{ report_id: string; upload_url: string; expires_in: number }>(`/admin/report-requests/${id}/fulfill`, body),
     );
   }
 }
@@ -476,6 +495,8 @@ export interface ComplianceTask {
   due_date: string | null;
   amount: string | null;
   paid_at: string | null;
+  nil_declared_at?: string | null;
+  message_day?: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -513,6 +534,18 @@ export class ComplianceTasksService {
       this.api.patch<ComplianceTask>(`/compliance-tasks/admin/${id}/status`, {
         status
       })
+    );
+  }
+
+  pendingNilFilings(): Promise<ComplianceTask[]> {
+    return firstValueFrom(
+      this.api.get<ComplianceTask[]>('/compliance-tasks/admin/nil-pending')
+    );
+  }
+
+  confirmNil(id: string): Promise<ComplianceTask> {
+    return firstValueFrom(
+      this.api.patch<ComplianceTask>(`/compliance-tasks/admin/${id}/nil-confirm`)
     );
   }
 }

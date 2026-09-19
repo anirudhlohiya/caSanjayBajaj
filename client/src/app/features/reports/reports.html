@@ -17,6 +17,26 @@
     }
   </select>
 
+  @if (requests().length > 0) {
+    <div class="rounded-xl border border-card-border bg-surface-container-lowest p-4 mb-4">
+      <h3 class="text-title-lg font-semibold text-on-surface mb-3">Pending Report Requests</h3>
+      <div class="space-y-3">
+        @for (req of requests(); track req.id) {
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-secondary">pending_actions</span>
+            <div class="min-w-0 flex-1">
+              <p class="text-body-md font-medium text-on-surface">Report Request</p>
+              <p class="text-label-md text-on-surface-variant">
+                {{ periodLabel(req.filing_period) }}
+              </p>
+            </div>
+            <span class="text-label-sm font-semibold text-secondary bg-secondary-container px-2 py-0.5 rounded">Pending</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
   @if (loading()) {
     <app-spinner />
   } @else if (reports().length === 0) {

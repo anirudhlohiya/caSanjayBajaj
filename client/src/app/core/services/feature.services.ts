@@ -13,6 +13,7 @@ import {
   Service,
   Ticket,
   TicketMessage,
+  ReportRequest,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -289,6 +290,8 @@ export interface ComplianceTask {
   due_date: string | null;
   amount: string | null;
   paid_at: string | null;
+  nil_declared_at?: string | null;
+  message_day?: number | null;
   filing_period?: GstFilingPeriod;
 }
 
@@ -307,6 +310,32 @@ export class ComplianceTasksService {
   autoGenerate(periodId: string, isQuarterly: boolean): Promise<ComplianceTask[]> {
     return firstValueFrom(
       this.api.post<ComplianceTask[]>('/compliance-tasks/auto-generate', { periodId, isQuarterly })
+    );
+  }
+
+  markNil(id: string): Promise<ComplianceTask> {
+    return firstValueFrom(
+      this.api.post<ComplianceTask>(`/compliance-tasks/${id}/nil`, {})
+    );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class ReportRequestsService {
+  constructor(private readonly api: ApiClient) {}
+
+  list(params: { page?: number; pageSize?: number } = {}) {
+    const urlParams = new URLSearchParams();
+    if (params.page) urlParams.set('page', params.page.toString());
+    if (params.pageSize) urlParams.set('pageSize', params.pageSize.toString());
+    return firstValueFrom(
+      this.api.get<PaginatedResult<ReportRequest>>(`/me/report-requests?${urlParams}`)
+    );
+  }
+
+  create(periodId: string) {
+    return firstValueFrom(
+      this.api.post<ReportRequest>('/me/report-requests', { filing_period_id: periodId })
     );
   }
 }

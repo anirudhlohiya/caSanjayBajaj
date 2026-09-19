@@ -35,6 +35,9 @@ export class ClientPreRegistration {
   @Column({ type: 'varchar', length: 36, nullable: true })
   linked_user_id: string | null;
 
+  @Column({ type: 'enum', enum: ['monthly', 'quarterly'], default: 'monthly' })
+  gst_filing_frequency: 'monthly' | 'quarterly';
+
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 }

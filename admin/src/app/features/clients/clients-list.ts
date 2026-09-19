@@ -65,6 +65,7 @@ export class ClientsList implements OnInit {
       gstin: ['', [Validators.pattern(/^[0-9A-Za-z]{15}$/)]],
       user_type: ['gst'],
       status: ['active'],
+      gst_filing_frequency: ['monthly'],
     },
     { validators: gstClientValidator },
   );
@@ -121,7 +122,7 @@ export class ClientsList implements OnInit {
   }
 
   openAdd(): void {
-    this.addForm.reset({ user_type: 'gst', status: 'active' });
+    this.addForm.reset({ user_type: 'gst', status: 'active', gst_filing_frequency: 'monthly' });
     this.dupEmail.set('');
     const phoneCtrl = this.addForm.get('phone');
     const gstinCtrl = this.addForm.get('gstin');
@@ -149,6 +150,7 @@ export class ClientsList implements OnInit {
         gstin: f.gstin ? f.gstin.toUpperCase() : undefined,
         user_type: f.user_type,
         status: f.status,
+        gst_filing_frequency: f.user_type === 'gst' ? (f.gst_filing_frequency as any) : undefined,
       });
       this.toast.success('Client added');
       this.showAdd.set(false);

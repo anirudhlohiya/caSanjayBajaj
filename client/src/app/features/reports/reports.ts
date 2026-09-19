@@ -8,8 +8,8 @@ import {
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../core/services/toast.service';
-import { PeriodsService, ReportsService } from '../../core/services/feature.services';
-import { GstFilingPeriod, Report, REPORT_TYPE_LABELS } from '../../core/models';
+import { PeriodsService, ReportsService, ReportRequestsService } from '../../core/services/feature.services';
+import { GstFilingPeriod, Report, ReportRequest, REPORT_TYPE_LABELS } from '../../core/models';
 import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
 
@@ -22,11 +22,13 @@ import { EmptyState } from '../../shared/components/empty-state';
 })
 export class Reports {
   private readonly reportsService = inject(ReportsService);
+  private readonly reportReqsService = inject(ReportRequestsService);
   private readonly periodsService = inject(PeriodsService);
   private readonly toast = inject(ToastService);
 
   readonly loading = signal(true);
   readonly reports = signal<Report[]>([]);
+  readonly requests = signal<ReportRequest[]>([]);
   readonly periods = signal<GstFilingPeriod[]>([]);
   readonly periodId = signal('');
   readonly downloading = signal<string | null>(null);
@@ -55,13 +57,18 @@ export class Reports {
   async load(): Promise<void> {
     this.loading.set(true);
     try {
-      const result = await this.reportsService.list({
-        filingPeriodId: this.periodId() || undefined,
-        pageSize: 100,
-      });
-      this.reports.set(result.items);
+      const [reportsRes, reqsRes] = await Promise.all([
+        this.reportsService.list({
+          filingPeriodId: this.periodId() || undefined,
+          pageSize: 100,
+        }),
+        this.reportReqsService.list({ pageSize: 100 }),
+      ]);
+      this.reports.set(reportsRes.items);
+      this.requests.set(reqsRes.items);
     } catch {
       this.reports.set([]);
+      this.requests.set([]);
     } finally {
       this.loading.set(false);
     }

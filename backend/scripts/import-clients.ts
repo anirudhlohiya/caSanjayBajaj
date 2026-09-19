@@ -11,6 +11,7 @@
  *   phone     (required) - 10-20 digits
  *   gstin     (required for GST) - Exactly 15 alphanumeric characters
  *   user_type (optional) - "GST" or "ITR", defaults to "GST"
+ *   frequency (optional) - "monthly" or "quarterly", defaults to "monthly"
  *
  * The script will:
  *   1. Parse the Excel file
@@ -37,6 +38,7 @@ interface ImportRow {
   phone: string;
   gstin: string;
   user_type: string;
+  frequency: string;
 }
 
 interface ImportError {
@@ -106,6 +108,7 @@ async function main() {
     const phone = (row.phone ?? '').toString().trim();
     const gstin = (row.gstin ?? '').trim().toUpperCase();
     const userType = (row.user_type ?? 'GST').trim().toUpperCase();
+    const frequency = (row.frequency ?? 'monthly').trim().toLowerCase();
 
     // Validation
     if (!name) {
@@ -125,6 +128,11 @@ async function main() {
     }
     if (userType === 'GST' && (!gstin || !/^[0-9A-Za-z]{15}$/.test(gstin))) {
       errors.push({ row: rowNum, email, reason: 'Invalid or missing GSTIN (15 characters required for GST)' });
+      skipped++;
+      continue;
+    }
+    if (frequency !== 'monthly' && frequency !== 'quarterly') {
+      errors.push({ row: rowNum, email, reason: 'Invalid frequency (must be monthly or quarterly)' });
       skipped++;
       continue;
     }
@@ -151,6 +159,7 @@ async function main() {
           gstin: gstin || null,
           user_type: userType === 'ITR' ? UserType.ITR : UserType.GST,
           status: 'active',
+          gst_filing_frequency: frequency === 'quarterly' ? 'quarterly' : 'monthly',
         }),
       );
       existingEmails.add(email);

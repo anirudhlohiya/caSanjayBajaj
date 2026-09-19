@@ -8,11 +8,12 @@ import {
   PeriodsService,
   ReportsService,
   ComplianceTasksService,
-  ComplianceTask
+  ComplianceTask,
+  ReportRequestsService
 } from '../../core/services/feature.services';
 import { UploadService } from '../../core/services/upload.service';
 import { ToastService } from '../../core/services/toast.service';
-import { CertType, Client, ClientCertificate, Document, FilingPeriod, Report } from '../../core/models';
+import { CertType, Client, ClientCertificate, Document, FilingPeriod, Report, ReportRequest } from '../../core/models';
 import { PageHeader } from '../../shared/components/page-header';
 import { StatusChip } from '../../shared/components/status-chip';
 import { Pagination } from '../../shared/components/pagination';
@@ -36,6 +37,7 @@ export class ClientDetail implements OnInit {
   private readonly reportsService = inject(ReportsService);
   private readonly periodsService = inject(PeriodsService);
   private readonly tasksService = inject(ComplianceTasksService);
+  private readonly reportReqsService = inject(ReportRequestsService);
   private readonly upload = inject(UploadService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
@@ -54,6 +56,7 @@ export class ClientDetail implements OnInit {
   readonly reportPages = signal(0);
 
   readonly certificates = signal<ClientCertificate[]>([]);
+  readonly reportRequests = signal<ReportRequest[]>([]);
 
   readonly periods = signal<FilingPeriod[]>([]);
   readonly tasks = signal<ComplianceTask[]>([]);
@@ -71,6 +74,7 @@ export class ClientDetail implements OnInit {
     filing_period_id: ['', Validators.required],
     report_type: ['gstr_1'],
     file: [null as File | null, Validators.required],
+    report_request_id: [''],
   });
 
   readonly certForm = this.fb.nonNullable.group({
@@ -89,13 +93,16 @@ export class ClientDetail implements OnInit {
   async load(): Promise<void> {
     this.loading.set(true);
     try {
-      const [client, docsRes, reportsRes, periods, certs] = await Promise.all([
+      const [client, docsRes, reportsRes, periods, certs, reqsRes] = await Promise.all([
         this.clientsService.get(this.id()),
         this.documentsService.listForUser(this.id(), { page: this.docPage(), pageSize: 10 }),
         this.reportsService.listForUser(this.id(), { page: this.reportPage(), pageSize: 10 }),
         this.periodsService.open(),
         this.certificatesService.listForClient(this.id()),
+        this.reportReqsService.adminList({ status: 'pending' }) // Fetching only pending for now, or all if we want. Wait, adminList doesn't take user_id yet.
       ]);
+      // Note: We'll filter the reqs on the frontend if the endpoint doesn't support user_id yet
+      this.reportRequests.set(reqsRes.items.filter((r) => r.user_id === this.id()));
       this.client.set(client);
       this.docs.set(docsRes.items);
       this.docTotal.set(docsRes.total);
@@ -139,6 +146,17 @@ export class ClientDetail implements OnInit {
     }
   }
 
+  async confirmNil(task: ComplianceTask): Promise<void> {
+    try {
+      await this.tasksService.confirmNil(task.id);
+      this.toast.success('Nil filing confirmed');
+      await this.loadTasks(this.selectedPeriod());
+    } catch (e) {
+      console.error(e);
+      this.toast.error('Failed to confirm Nil');
+    }
+  }
+
   async updatePayment(task: ComplianceTask, amount: string): Promise<void> {
     try {
       await this.tasksService.updatePayment(task.id, amount, '');
@@ -148,6 +166,15 @@ export class ClientDetail implements OnInit {
       console.error(e);
       this.toast.error('Failed to update payment');
     }
+  }
+
+  fulfillRequest(req: ReportRequest): void {
+    this.reportForm.patchValue({
+      filing_period_id: req.filing_period_id,
+      report_type: 'gstr_1',
+      report_request_id: req.id,
+    });
+    this.showReport.set(true);
   }
 
   async markTaskPaid(task: ComplianceTask): Promise<void> {
@@ -283,15 +310,34 @@ export class ClientDetail implements OnInit {
     if (!file) return;
     this.sending.set(true);
     try {
-      const { report_id, upload_url } = await this.reportsService.requestUploadUrl({
-        user_id: this.id(),
-        filing_period_id: form.controls.filing_period_id.value,
-        report_type: form.controls.report_type.value,
-        filename: file.name,
-        contentType: file.type || 'application/pdf',
-        file_size_bytes: file.size,
-      });
-      await this.upload.upload(upload_url, file, file.type || 'application/pdf');
+      const f = form.value;
+      let report_id: string;
+      let upload_url: string;
+
+      if (f.report_request_id) {
+        const res = await this.reportReqsService.fulfill(f.report_request_id, {
+          filename: f.file!.name,
+          contentType: f.file!.type,
+          file_size_bytes: f.file!.size,
+          report_type: f.report_type!,
+        });
+        report_id = res.report_id;
+        upload_url = res.upload_url;
+      } else {
+        const res = await this.reportsService.requestUploadUrl({
+          user_id: this.id(),
+          filing_period_id: f.filing_period_id!,
+          report_type: f.report_type!,
+          filename: f.file!.name,
+          contentType: f.file!.type,
+          file_size_bytes: f.file!.size,
+        });
+        report_id = res.report_id;
+        upload_url = res.upload_url;
+      }
+
+      await this.upload.upload(upload_url, f.file!, f.file!.type || 'application/pdf');
+      this.toast.success(f.report_request_id ? 'Report request fulfilled' : 'Report sent successfully');
       await this.reportsService.confirm(report_id);
       this.toast.success('Report uploaded and client notified');
       this.showReport.set(false);

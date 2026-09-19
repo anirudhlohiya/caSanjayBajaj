@@ -41,7 +41,14 @@
             </div>
             <div>
               <dt class="text-neutral-400">Type</dt>
-              <dd class="text-neutral-800 uppercase">{{ c.user_type }}</dd>
+              <dd class="text-neutral-800 uppercase flex items-center gap-2">
+                {{ c.user_type }}
+                @if (c.user_type === 'gst' && c.gst_filing_frequency) {
+                  <span class="px-1.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-medium tracking-wide">
+                    {{ c.gst_filing_frequency === 'monthly' ? 'M' : 'Q' }}
+                  </span>
+                }
+              </dd>
             </div>
             <div>
               <dt class="text-neutral-400">Joined</dt>
@@ -85,7 +92,14 @@
               <td class="p-4 font-medium text-neutral-900">{{ c.name }}</td>
               <td class="p-4 text-neutral-500">{{ c.email }}</td>
               <td class="p-4 font-mono text-xs text-neutral-500 tabular-nums">{{ c.gstin ?? '—' }}</td>
-              <td class="p-4 text-neutral-500">{{ c.user_type.toUpperCase() }}</td>
+              <td class="p-4 text-neutral-500 flex items-center gap-2">
+                {{ c.user_type.toUpperCase() }}
+                @if (c.user_type === 'gst' && c.gst_filing_frequency) {
+                  <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-medium">
+                    {{ c.gst_filing_frequency === 'monthly' ? 'Monthly' : 'Quarterly' }}
+                  </span>
+                }
+              </td>
               <td class="p-4"><app-status-chip [status]="c.status" /></td>
               <td class="p-4 text-neutral-500 tabular-nums">{{ fmtDate(c.created_at) }}</td>
               <td class="p-4 text-right whitespace-nowrap" (click)="$event.stopPropagation()">
@@ -219,6 +233,16 @@
             <option value="itr">ITR</option>
           </select>
         </div>
+        @if (addForm.get('user_type')?.value === 'gst') {
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-label-md text-on-surface" for="c-freq">Filing Frequency</label>
+            <select id="c-freq" formControlName="gst_filing_frequency"
+              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+            </select>
+          </div>
+        }
         <div class="flex flex-col gap-1">
           <label class="font-label-md text-label-md text-on-surface" for="c-status">Status</label>
           <select id="c-status" formControlName="status"

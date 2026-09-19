@@ -32,7 +32,14 @@
         </div>
         <div class="flex justify-between gap-2">
           <dt class="text-on-surface-variant">Type</dt>
-          <dd class="text-on-surface font-medium">{{ c.user_type.toUpperCase() }}</dd>
+          <dd class="text-on-surface font-medium flex items-center gap-2">
+            {{ c.user_type.toUpperCase() }}
+            @if (c.user_type === 'gst' && c.gst_filing_frequency) {
+              <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-medium tracking-wide">
+                {{ c.gst_filing_frequency === 'monthly' ? 'Monthly' : 'Quarterly' }}
+              </span>
+            }
+          </dd>
         </div>
         <div class="flex justify-between gap-2">
           <dt class="text-on-surface-variant">Status</dt>
@@ -88,6 +95,13 @@
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
+                    @if (t.nil_declared_at && t.status !== 'completed') {
+                      <span class="text-label-sm text-secondary bg-secondary-container px-2 py-1 rounded">Nil Pending</span>
+                      <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary"
+                        (click)="confirmNil(t)">
+                        Confirm Nil
+                      </button>
+                    }
                     @if (t.category === 'gst_payment') {
                       @if (!t.paid_at) {
                         <button class="px-3 py-1 bg-surface-container-high text-on-surface rounded text-label-sm hover:bg-surface-container-highest" 
@@ -199,7 +213,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="5"><app-empty-state icon="assessment" message="No reports sent yet" /></td>
+                  <td colspan="5"><app-empty-state icon="analytics" message="No reports sent yet" /></td>
                 </tr>
               }
             </tbody>
@@ -211,6 +225,41 @@
           </div>
         }
       </div>
+
+      <!-- Report Requests -->
+      @if (reportRequests().length > 0) {
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+          <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">Pending Report Requests</h3>
+            <span class="text-body-sm text-on-surface-variant">{{ reportRequests().length }} pending</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-surface-bright border-b border-outline-variant">
+                  <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Period</th>
+                  <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Requested On</th>
+                  <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="text-body-sm">
+                @for (req of reportRequests(); track req.id) {
+                  <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
+                    <td class="p-4 font-medium text-on-surface">{{ req.filing_period?.period_label ?? '—' }}</td>
+                    <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(req.created_at) }}</td>
+                    <td class="p-4 text-right whitespace-nowrap">
+                      <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary transition-colors"
+                        (click)="fulfillRequest(req)">
+                        Fulfill
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
 
       <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
         <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">

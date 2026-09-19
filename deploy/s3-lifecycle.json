@@ -1,0 +1,32 @@
+{
+  "Rules": [
+    {
+      "ID": "Expire Docs and Reports after 30 days",
+      "Filter": {
+        "And": {
+          "Prefixes": [
+            "docs/",
+            "reports/"
+          ]
+        }
+      },
+      "Status": "Enabled",
+      "Expiration": {
+        "Days": 30
+      }
+    },
+    {
+      "ID": "Abort Incomplete Multipart Uploads",
+      "Filter": {
+        "Prefix": ""
+      },
+      "Status": "Enabled",
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 7
+      }
+    }
+  ]
+}
+
+// To apply this policy:
+// aws s3api put-bucket-lifecycle-configuration --bucket ca-sanjay-gst-docs --lifecycle-configuration file://deploy/s3-lifecycle.json

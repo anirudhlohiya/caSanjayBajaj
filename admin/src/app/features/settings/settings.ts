@@ -31,7 +31,45 @@ export class Settings implements OnInit {
     period_code: ['', [Validators.required, Validators.maxLength(7)]],
     due_date: ['', Validators.required],
     is_open: [true],
+    schedule: this.buildScheduleGroup(),
   });
+
+  readonly showEdit = signal(false);
+  readonly editingId = signal<string | null>(null);
+  readonly editForm = this.fb.nonNullable.group({
+    period_label: ['', [Validators.required, Validators.maxLength(30)]],
+    due_date: ['', Validators.required],
+    is_open: [true],
+    schedule: this.buildScheduleGroup(),
+  });
+
+  private buildScheduleGroup() {
+    return this.fb.nonNullable.group({
+      gstr1: this.fb.nonNullable.group({
+        due: [''],
+        reminders: this.fb.nonNullable.array([this.fb.control(''), this.fb.control(''), this.fb.control('')]),
+      }),
+      gstr3b: this.fb.nonNullable.group({
+        due: [''],
+        reminders: this.fb.nonNullable.array([this.fb.control('')]),
+      }),
+      iff: this.fb.nonNullable.group({
+        due: [''],
+        reminders: this.fb.nonNullable.array([this.fb.control(''), this.fb.control(''), this.fb.control('')]),
+      }),
+      payment: this.fb.nonNullable.group({
+        due: [''],
+        reminders: this.fb.nonNullable.array([]),
+      }),
+      quarterly: this.fb.nonNullable.group({
+        gstr3b: this.fb.nonNullable.group({
+          quarter_label: [''],
+          due: [''],
+          reminders: this.fb.nonNullable.array([this.fb.control('')]),
+        }),
+      }),
+    });
+  }
 
   ngOnInit(): void {
     void this.load();
@@ -64,9 +102,45 @@ export class Settings implements OnInit {
         period_code: f.period_code ?? '',
         due_date: f.due_date ?? '',
         is_open: f.is_open,
+        schedule: f.schedule as any,
       });
       this.toast.success('Filing period created');
       this.showAdd.set(false);
+      await this.load();
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  openEdit(p: FilingPeriod): void {
+    this.editingId.set(p.id);
+    this.editForm.reset({
+      period_label: p.period_label,
+      due_date: p.due_date.split('T')[0], // if ISO date
+      is_open: p.is_open,
+    });
+    if (p.schedule) {
+      this.editForm.patchValue({ schedule: p.schedule });
+    }
+    this.showEdit.set(true);
+  }
+
+  async submitEdit(): Promise<void> {
+    if (this.editForm.invalid || !this.editingId()) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+    this.saving.set(true);
+    try {
+      const f = this.editForm.value;
+      await this.periodsService.update(this.editingId()!, {
+        period_label: f.period_label ?? '',
+        due_date: f.due_date ?? '',
+        is_open: f.is_open,
+        schedule: f.schedule as any,
+      });
+      this.toast.success('Filing period updated');
+      this.showEdit.set(false);
       await this.load();
     } finally {
       this.saving.set(false);

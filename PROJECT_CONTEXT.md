@@ -210,6 +210,10 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - **Admin UI**: Added a Compliance Checklist dynamically linked to a specific client period on the `client-detail.html` screen, allowing Admins to see progress and manually update GST payments.
   - **Client UI (Documents)**: Revamped `Documents` list to pull dynamically from actual generated `ComplianceTask` data (differentiated by status, indicating if upload is required or completed).
   - **Client UI (Reminders)**: Created a new detailed Reminders screen showing "Needs Attention", "Upcoming", and "Completed" categories (matching the required Figma design).
+- **Phase 11 (Sep 2026) — GST Automation M1-M7 — DONE**:
+  - Implemented automated period generation (monthly/quarterly based on user frequency), automated nil filing logic, auto-reminders, and compliance task integration. S3 lifecycle policy created for expiring old reports and docs. Import script handles bulk client frequency.
+  - Rewired the client portal's Home, Documents, and Reminders tabs to fetch real data from the backend `ComplianceTasks`.
+  - Replaced the raw JSON text area in `Settings -> Filing Periods` with a robust **Schedule Editor** interface that lets admins visually update the deadlines and reminder dates for GSTR-1, GSTR-3B, IFF, and Payments without writing JSON.
 
 ## 6. Functional notes (implemented)
 

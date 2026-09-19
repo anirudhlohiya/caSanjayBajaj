@@ -9,7 +9,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
-import { DocumentsService, PeriodsService, ComplianceTasksService, ComplianceTask } from '../../core/services/feature.services';
+import { DocumentsService, PeriodsService, ComplianceTasksService, ComplianceTask, ReportRequestsService } from '../../core/services/feature.services';
 import { Document, GstFilingPeriod } from '../../core/models';
 
 const FILTERS: { key: string; label: string }[] = [
@@ -30,6 +30,7 @@ export class Documents {
   private readonly documentsService = inject(DocumentsService);
   private readonly periodsService = inject(PeriodsService);
   private readonly tasksService = inject(ComplianceTasksService);
+  private readonly reportReqsService = inject(ReportRequestsService);
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
 
@@ -45,22 +46,33 @@ export class Documents {
   readonly page = signal(1);
   readonly pageSize = 20;
 
-  // Added for new UI mockup
-  readonly financialYears = ['FY 2026-27', 'FY 2025-26', 'FY 2024-25', 'FY 2023-24'];
-  readonly months = [
-    'April', 'May', 'June', 'July', 'August', 'September', 
-    'October', 'November', 'December', 'January', 'February', 'March'
-  ];
-  
-  financialYear = 'FY 2026-27';
-  month = 'September';
+  reportPeriodId = '';
 
   uploadFiles(): void {
     this.toast.info('Upload files flow coming soon');
   }
 
-  requestReport(): void {
-    this.toast.info(`Requesting report for ${this.month} ${this.financialYear}...`);
+  async requestReport(): Promise<void> {
+    if (!this.reportPeriodId) {
+      this.toast.error('Please select a period');
+      return;
+    }
+    try {
+      await this.reportReqsService.create(this.reportPeriodId);
+      this.toast.success('Report requested successfully');
+    } catch {
+      this.toast.error('Failed to request report');
+    }
+  }
+
+  async markNil(task: ComplianceTask): Promise<void> {
+    try {
+      await this.tasksService.markNil(task.id);
+      this.toast.success('Declared Nil. Pending CA confirmation.');
+      await this.load();
+    } catch {
+      this.toast.error('Failed to declare Nil');
+    }
   }
 
   readonly filteredLabel = computed(() => {
@@ -82,6 +94,9 @@ export class Documents {
     try {
       const periods = await this.periodsService.list();
       this.periods.set(periods);
+      if (periods.length > 0) {
+        this.reportPeriodId = periods[0].id;
+      }
     } catch {
       /* non-fatal */
     }

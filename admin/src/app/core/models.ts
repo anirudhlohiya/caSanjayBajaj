@@ -78,6 +78,7 @@ export interface Client {
   gstin: string | null;
   user_type: UserType;
   status: UserStatus;
+  gst_filing_frequency?: 'monthly' | 'quarterly';
   created_at: string;
   updated_at: string;
 }
@@ -88,7 +89,23 @@ export interface FilingPeriod {
   period_code: string;
   due_date: string;
   is_open: boolean;
+  schedule?: Record<string, any> | null;
   created_at: string;
+}
+
+export type ReportRequestStatus = 'pending' | 'fulfilled' | 'rejected';
+
+export interface ReportRequest {
+  id: string;
+  user_id: string;
+  filing_period_id: string;
+  status: ReportRequestStatus;
+  fulfilled_report_id: string | null;
+  created_at: string;
+  fulfilled_at: string | null;
+  user?: Client;
+  filing_period?: FilingPeriod;
+  fulfilled_report?: Report;
 }
 
 export interface Document {

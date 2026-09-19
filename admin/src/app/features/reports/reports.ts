@@ -4,10 +4,11 @@ import {
   ClientsService,
   PeriodsService,
   ReportsService,
+  ReportRequestsService,
 } from '../../core/services/feature.services';
 import { UploadService } from '../../core/services/upload.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Client, FilingPeriod, Report } from '../../core/models';
+import { Client, FilingPeriod, Report, ReportRequest } from '../../core/models';
 import { PageHeader } from '../../shared/components/page-header';
 import { Pagination } from '../../shared/components/pagination';
 import { Modal } from '../../shared/components/modal';
@@ -25,6 +26,7 @@ export class Reports implements OnInit {
   private readonly reportsService = inject(ReportsService);
   private readonly clientsService = inject(ClientsService);
   private readonly periodsService = inject(PeriodsService);
+  private readonly reportReqsService = inject(ReportRequestsService);
   private readonly upload = inject(UploadService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
@@ -35,6 +37,7 @@ export class Reports implements OnInit {
   readonly pageSize = signal(20);
   readonly total = signal(0);
   readonly totalPages = signal(0);
+  readonly reportRequests = signal<ReportRequest[]>([]);
   readonly periodFilter = signal('');
   readonly typeFilter = signal('');
   readonly periods = signal<FilingPeriod[]>([]);
@@ -53,6 +56,7 @@ export class Reports implements OnInit {
     total_liability: [''],
     itc_claimed: [''],
     net_payable: [''],
+    report_request_id: [''],
   });
 
   ngOnInit(): void {
@@ -84,6 +88,8 @@ export class Reports implements OnInit {
         filing_period_id: this.periodFilter() || undefined,
         report_type: this.typeFilter() || undefined,
       });
+      const reqs = await this.reportReqsService.adminList({ status: 'pending' });
+      this.reportRequests.set(reqs.items);
       this.reports.set(res.items);
       this.total.set(res.total);
       this.totalPages.set(res.totalPages);
@@ -108,6 +114,16 @@ export class Reports implements OnInit {
     this.showSend.set(true);
   }
 
+  fulfillRequest(req: ReportRequest): void {
+    this.sendForm.patchValue({
+      user_id: req.user_id,
+      filing_period_id: req.filing_period_id,
+      report_type: 'gstr_1',
+      report_request_id: req.id,
+    });
+    this.showSend.set(true);
+  }
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.sendForm.controls.file.setValue(input.files?.[0] ?? null);
@@ -123,22 +139,39 @@ export class Reports implements OnInit {
     if (!file) return;
     this.sending.set(true);
     try {
-      const { report_id, upload_url } = await this.reportsService.requestUploadUrl({
-        user_id: form.controls.user_id.value,
-        filing_period_id: form.controls.filing_period_id.value,
-        report_type: form.controls.report_type.value,
-        filename: file.name,
-        contentType: file.type || 'application/pdf',
-        file_size_bytes: file.size,
-        sales: form.controls.sales.value ? String(form.controls.sales.value) : '',
-        purchases: form.controls.purchases.value ? String(form.controls.purchases.value) : '',
-        total_liability: form.controls.total_liability.value ? String(form.controls.total_liability.value) : '',
-        itc_claimed: form.controls.itc_claimed.value ? String(form.controls.itc_claimed.value) : '',
-        net_payable: form.controls.net_payable.value ? String(form.controls.net_payable.value) : '',
-      });
+      let report_id: string;
+      let upload_url: string;
+
+      if (form.controls.report_request_id.value) {
+        const res = await this.reportReqsService.fulfill(form.controls.report_request_id.value, {
+          filename: file.name,
+          contentType: file.type || 'application/pdf',
+          file_size_bytes: file.size,
+          report_type: form.controls.report_type.value,
+        });
+        report_id = res.report_id;
+        upload_url = res.upload_url;
+      } else {
+        const res = await this.reportsService.requestUploadUrl({
+          user_id: form.controls.user_id.value,
+          filing_period_id: form.controls.filing_period_id.value,
+          report_type: form.controls.report_type.value,
+          filename: file.name,
+          contentType: file.type || 'application/pdf',
+          file_size_bytes: file.size,
+          sales: form.controls.sales.value ? String(form.controls.sales.value) : '',
+          purchases: form.controls.purchases.value ? String(form.controls.purchases.value) : '',
+          total_liability: form.controls.total_liability.value ? String(form.controls.total_liability.value) : '',
+          itc_claimed: form.controls.itc_claimed.value ? String(form.controls.itc_claimed.value) : '',
+          net_payable: form.controls.net_payable.value ? String(form.controls.net_payable.value) : '',
+        });
+        report_id = res.report_id;
+        upload_url = res.upload_url;
+      }
+
       await this.upload.upload(upload_url, file, file.type || 'application/pdf');
       await this.reportsService.confirm(report_id);
-      this.toast.success('Report uploaded and client notified');
+      this.toast.success(form.controls.report_request_id.value ? 'Request fulfilled and client notified' : 'Report uploaded and client notified');
       this.showSend.set(false);
       await this.load();
     } finally {
