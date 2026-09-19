@@ -54,6 +54,13 @@ export default () => ({
     prefetch: parseInt(process.env.AUTO_CREATE_PERIODS_PREFETCH ?? '2', 10),
   },
 
+  nilFiling: {
+    // Where client nil-declaration alerts go (docs/13 §10.3). Defaults to the
+    // firm's CA account address.
+    adminNotifyEmail:
+      process.env.NIL_PENDING_ADMIN_NOTIFY_EMAIL ?? 'casnbajaj2015@gmail.com',
+  },
+
   superAdmin: {
     email: process.env.SUPER_ADMIN_EMAIL ?? '',
     password: process.env.SUPER_ADMIN_PASSWORD ?? '',

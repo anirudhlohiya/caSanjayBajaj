@@ -39,6 +39,26 @@ export class ComplianceTasksController {
     return this.tasksService.ensureTasksForPeriod(user.sub, periodId);
   }
 
+  /** Client-initiated nil filing (docs/13 §3.5 / §6.5). */
+  @Post(':id/nil')
+  async declareNil(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.tasksService.markNil(id, user.sub);
+  }
+
+  /** Admin pending-nil queue (docs/13 §6.5). */
+  @Roles('super_admin', 'staff')
+  @Get('admin/nil-pending')
+  async nilPending() {
+    return this.tasksService.pendingNilFilings();
+  }
+
+  /** Admin confirms a nil filing → task completed (docs/13 §3.5). */
+  @Roles('super_admin', 'staff')
+  @Patch('admin/:id/nil-confirm')
+  async confirmNil(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.tasksService.confirmNil(id, user.sub);
+  }
+
   @Roles('super_admin', 'staff')
   @Get('admin/client/:clientId')
   async getAdminClientTasks(

@@ -1,5 +1,11 @@
 import { Repository } from 'typeorm';
-import { NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { AuditService } from '../audit/audit.service';
 import { ComplianceTask, GstFilingPeriod, User } from '../entities';
 import {
   ComplianceCategory,
@@ -8,6 +14,7 @@ import {
   UserStatus,
   UserType,
 } from '../common/enums';
+import { NotificationsService } from '../notifications/notifications.service';
 import { SchedulingService } from '../schedule/scheduling.service';
 import { ComplianceTasksService } from './compliance-tasks.service';
 
@@ -16,6 +23,17 @@ describe('ComplianceTasksService', () => {
   let saved: ComplianceTask[];
   let findMock: jest.Mock;
   let saveMock: jest.Mock;
+
+  const notifications = {
+    sendEmail: jest.fn().mockResolvedValue(true),
+    sendPush: jest.fn().mockResolvedValue(true),
+  };
+  const audit = {
+    log: jest.fn().mockResolvedValue({}),
+  };
+  const config = {
+    get: jest.fn().mockReturnValue('admin@snbajaj.com'),
+  } as unknown as ConfigService;
 
   const usersRepo = {
     findOneBy: jest.fn(),
@@ -67,10 +85,13 @@ describe('ComplianceTasksService', () => {
           return Promise.resolve(rows);
         },
       );
-    saveMock = jest.fn().mockImplementation((rows: ComplianceTask[]) => {
-      saved.push(...rows);
-      return Promise.resolve(rows);
-    });
+    saveMock = jest
+      .fn()
+      .mockImplementation((rows: ComplianceTask[] | ComplianceTask) => {
+        const list = Array.isArray(rows) ? rows : [rows];
+        saved.push(...list);
+        return Promise.resolve(rows);
+      });
     Object.assign(tasksRepo, {
       find: findMock,
       save: saveMock,
@@ -83,6 +104,9 @@ describe('ComplianceTasksService', () => {
       usersRepo,
       periodsRepo,
       new SchedulingService(),
+      notifications as unknown as NotificationsService,
+      audit as unknown as AuditService,
+      config,
     );
   });
 
@@ -249,6 +273,148 @@ describe('ComplianceTasksService', () => {
       await expect(
         tasksService.updateStatus('x', TaskStatus.COMPLETED),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('markNil', () => {
+    const periodRow = (overrides: Partial<GstFilingPeriod> = {}) =>
+      ({ id: 'p1', period_code: '2026-10', ...overrides }) as GstFilingPeriod;
+
+    const task = (overrides: Partial<ComplianceTask> = {}) =>
+      ({
+        id: 't1',
+        user_id: 'u1',
+        filing_period_id: 'p1',
+        category: ComplianceCategory.GSTR_1,
+        status: TaskStatus.PENDING,
+        user: { id: 'u1', name: 'Amit', email: 'amit@example.com' },
+        filing_period: periodRow(),
+        ...overrides,
+      }) as ComplianceTask;
+
+    beforeEach(() => {
+      audit.log.mockClear();
+      notifications.sendEmail.mockClear();
+    });
+
+    it('marks a nil-eligible task as nil_declared and emails the admin', async () => {
+      (tasksRepo.findOne as jest.Mock).mockResolvedValue(task());
+
+      const result = await tasksService.markNil('t1', 'u1');
+
+      expect(result.status).toBe(TaskStatus.NIL_DECLARED);
+      expect(result.nil_declared_at).toBeInstanceOf(Date);
+      expect(notifications.sendEmail).toHaveBeenCalledTimes(1);
+      expect(notifications.sendEmail).toHaveBeenCalledWith(
+        { email: 'admin@snbajaj.com', name: 'SN Bajaj And Co' },
+        expect.stringContaining('Nil filing pending'),
+        expect.stringContaining('amit@example.com'),
+      );
+    });
+
+    it('rejects a task owned by another user', async () => {
+      (tasksRepo.findOne as jest.Mock).mockResolvedValue(task());
+
+      await expect(tasksService.markNil('t1', 'u2')).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(notifications.sendEmail).not.toHaveBeenCalled();
+    });
+
+    it('rejects a nil that is not eligible', async () => {
+      (tasksRepo.findOne as jest.Mock).mockResolvedValue(
+        task({ category: ComplianceCategory.GST_PAYMENT }),
+      );
+
+      await expect(tasksService.markNil('t1', 'u1')).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(notifications.sendEmail).not.toHaveBeenCalled();
+    });
+
+    it('rejects an already completed or declared task', async () => {
+      (tasksRepo.findOne as jest.Mock).mockResolvedValue(
+        task({ status: TaskStatus.COMPLETED }),
+      );
+      await expect(tasksService.markNil('t1', 'u1')).rejects.toThrow(
+        BadRequestException,
+      );
+
+      (tasksRepo.findOne as jest.Mock).mockResolvedValue(
+        task({ status: TaskStatus.NIL_DECLARED }),
+      );
+      await expect(tasksService.markNil('t1', 'u1')).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(notifications.sendEmail).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('pendingNilFilings', () => {
+    it('returns only nil-declared tasks with relations', async () => {
+      findMock.mockResolvedValue([
+        {
+          id: 't1',
+          category: ComplianceCategory.IFF,
+          status: TaskStatus.NIL_DECLARED,
+        },
+      ]);
+
+      const rows = await tasksService.pendingNilFilings();
+
+      expect(findMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { status: TaskStatus.NIL_DECLARED },
+        }),
+      );
+      expect(rows).toHaveLength(1);
+    });
+  });
+
+  describe('confirmNil', () => {
+    it('confirms a nil-declared task, completes it, and audits', async () => {
+      const row = {
+        id: 't1',
+        user_id: 'u1',
+        filing_period_id: 'p1',
+        category: ComplianceCategory.GSTR_1,
+        status: TaskStatus.NIL_DECLARED,
+        filing_period: { id: 'p1', period_code: '2026-10' },
+      };
+      (tasksRepo.findOne as jest.Mock).mockResolvedValue(row);
+
+      const result = await tasksService.confirmNil('t1', 'admin1');
+
+      expect(result.status).toBe(TaskStatus.COMPLETED);
+      expect(audit.log).toHaveBeenCalledWith(
+        'admin1',
+        'nil.confirmed',
+        expect.any(Object),
+        { user_id: 'u1', period_id: 'p1' },
+      );
+    });
+
+    it('rejects a task not pending nil confirmation', async () => {
+      (tasksRepo.findOne as jest.Mock).mockResolvedValue({
+        id: 't1',
+        user_id: 'u1',
+        filing_period_id: 'p1',
+        category: ComplianceCategory.GSTR_1,
+        status: TaskStatus.PENDING,
+      });
+
+      await expect(tasksService.confirmNil('t1', 'admin1')).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(audit.log).not.toHaveBeenCalled();
+    });
+
+    it('rejects an unknown task', async () => {
+      (tasksRepo.findOne as jest.Mock).mockResolvedValue(null);
+
+      await expect(tasksService.confirmNil('nope', 'admin1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

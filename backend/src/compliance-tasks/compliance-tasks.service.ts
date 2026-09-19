@@ -1,6 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
+import { AuditService } from '../audit/audit.service';
 import { ComplianceTask, GstFilingPeriod, User } from '../entities';
 import {
   ComplianceCategory,
@@ -10,6 +18,7 @@ import {
   UserType,
 } from '../common/enums';
 import { PeriodSchedule, TaskSchedule } from '../common/types/gst-schedule';
+import { NotificationsService } from '../notifications/notifications.service';
 import { SchedulingService } from '../schedule/scheduling.service';
 
 interface DesiredTask {
@@ -19,6 +28,8 @@ interface DesiredTask {
 
 @Injectable()
 export class ComplianceTasksService {
+  private readonly logger = new Logger(ComplianceTasksService.name);
+
   constructor(
     @InjectRepository(ComplianceTask)
     private readonly tasksRepository: Repository<ComplianceTask>,
@@ -27,6 +38,9 @@ export class ComplianceTasksService {
     @InjectRepository(GstFilingPeriod)
     private readonly periodsRepository: Repository<GstFilingPeriod>,
     private readonly scheduling: SchedulingService,
+    private readonly notifications: NotificationsService,
+    private readonly audit: AuditService,
+    private readonly config: ConfigService,
   ) {}
 
   async listForClient(
@@ -192,5 +206,107 @@ export class ComplianceTasksService {
     if (!task) throw new NotFoundException('Task not found');
     task.status = status;
     return this.tasksRepository.save(task);
+  }
+
+  /** Categories the client may declare nil (docs/13 §3.2). Payments are excluded. */
+  private static nilEligible(category: ComplianceCategory): boolean {
+    return [
+      ComplianceCategory.GSTR_1,
+      ComplianceCategory.GSTR_3B,
+      ComplianceCategory.IFF,
+    ].includes(category);
+  }
+
+  /**
+   * Client-initiated nil declaration (docs/13 §3.5 / §6.3). Owner-guarded,
+   * only nil-eligible categories, only on a still-open task. Once declared
+   * the admin is emailed so they can confirm against the portal queue.
+   */
+  async markNil(id: string, userId: string): Promise<ComplianceTask> {
+    const task = await this.tasksRepository.findOne({
+      where: { id },
+      relations: { user: true, filing_period: true },
+    });
+    if (!task) throw new NotFoundException('Task not found');
+    if (task.user_id !== userId) {
+      throw new ForbiddenException('Not your compliance task');
+    }
+    if (!ComplianceTasksService.nilEligible(task.category)) {
+      throw new BadRequestException('This task cannot be filed as nil');
+    }
+    if (
+      task.status === TaskStatus.COMPLETED ||
+      task.status === TaskStatus.NIL_DECLARED
+    ) {
+      throw new BadRequestException(
+        `Task is already ${task.status}; cannot declare nil`,
+      );
+    }
+
+    task.status = TaskStatus.NIL_DECLARED;
+    task.nil_declared_at = new Date();
+    const saved = await this.tasksRepository.save(task);
+    void this.notifyNilPending(saved);
+    return saved;
+  }
+
+  /** Admin pending-nil queue (docs/13 §6.5): all nil-declared tasks, newest first. */
+  async pendingNilFilings(): Promise<ComplianceTask[]> {
+    return this.tasksRepository.find({
+      where: { status: TaskStatus.NIL_DECLARED },
+      relations: { user: true, filing_period: true },
+      order: { nil_declared_at: 'DESC' },
+    });
+  }
+
+  /**
+   * Admin confirms a nil filing → task completes (docs/13 §3.5). The action
+   * is recorded in the audit log.
+   */
+  async confirmNil(id: string, adminId: string): Promise<ComplianceTask> {
+    const task = await this.tasksRepository.findOne({
+      where: { id },
+      relations: { user: true, filing_period: true },
+    });
+    if (!task) throw new NotFoundException('Task not found');
+    if (task.status !== TaskStatus.NIL_DECLARED) {
+      throw new BadRequestException('Task is not pending nil confirmation');
+    }
+
+    task.status = TaskStatus.COMPLETED;
+    const saved = await this.tasksRepository.save(task);
+    await this.audit.log(
+      adminId,
+      'nil.confirmed',
+      {
+        task_id: task.id,
+        category: task.category,
+        period: task.filing_period?.period_code ?? null,
+      },
+      { user_id: task.user_id, period_id: task.filing_period_id },
+    );
+    return saved;
+  }
+
+  /** Best-effort admin email alert for a fresh nil declaration (docs/13 §10.3). */
+  private async notifyNilPending(task: ComplianceTask): Promise<void> {
+    try {
+      const to = this.config.get<string>('nilFiling.adminNotifyEmail');
+      const user = task.user;
+      if (!to || !user) return;
+      await this.notifications.sendEmail(
+        { email: to, name: 'SN Bajaj And Co' },
+        `Nil filing pending — ${task.filing_period?.period_label ?? ''}`,
+        `<p>${user.name} (${user.email}) has declared their ` +
+          `${
+            task.filing_period?.period_label ?? 'period'
+          } ${task.category} as <strong>nil</strong>.</p>` +
+          `<p>Please confirm it in the admin portal.</p>`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Nil pending admin email failed: ${(error as Error).message}`,
+      );
+    }
   }
 }
