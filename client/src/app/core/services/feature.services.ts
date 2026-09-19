@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiClient } from './api-client.service';
 import {
+  ClientCertificate,
   Document,
   DownloadUrlResponse,
   GstFilingPeriod,
@@ -196,6 +197,21 @@ export class ProfileService {
   unregisterDeviceToken(push_token: string) {
     return firstValueFrom(
       this.api.delete('/me/device-token', { push_token }),
+    );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class CertificatesService {
+  constructor(private readonly api: ApiClient) {}
+
+  list(): Promise<ClientCertificate[]> {
+    return firstValueFrom(this.api.get<ClientCertificate[]>('/me/certificates'));
+  }
+
+  downloadUrl(id: string): Promise<DownloadUrlResponse> {
+    return firstValueFrom(
+      this.api.get<DownloadUrlResponse>(`/me/certificates/${id}/download-url`),
     );
   }
 }

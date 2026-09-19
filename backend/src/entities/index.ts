@@ -1,6 +1,7 @@
 import { Admin } from './admin.entity';
 import { AuditLog } from './audit-log.entity';
 import { BlogPost } from './blog-post.entity';
+import { ClientCertificate } from './client-certificate.entity';
 import { ClientPreRegistration } from './client-pre-registration.entity';
 import { ComplianceTask } from './compliance-task.entity';
 import { DeviceToken } from './device-token.entity';
@@ -42,12 +43,14 @@ export const entities = [
   TicketAttachment,
   RentAgreement,
   ComplianceTask,
+  ClientCertificate,
 ];
 
 export {
   Admin,
   AuditLog,
   BlogPost,
+  ClientCertificate,
   ClientPreRegistration,
   ComplianceTask,
   DeviceToken,

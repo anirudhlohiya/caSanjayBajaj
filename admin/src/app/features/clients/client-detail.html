@@ -211,6 +211,65 @@
           </div>
         }
       </div>
+
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+        <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface">Certificates</h3>
+          <span class="text-body-sm text-on-surface-variant">lifetime</span>
+        </div>
+        <ul class="divide-y divide-outline-variant text-body-sm">
+          <li class="flex items-center justify-between p-4">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-on-surface-variant">verified_user</span>
+              <div>
+                <div class="font-medium text-on-surface">GST Certificate</div>
+                @if (certFor('gst_cert'); as cert) {
+                  <div class="text-on-surface-variant truncate max-w-xs">{{ cert.original_filename }}</div>
+                } @else {
+                  <div class="text-on-surface-variant">Not uploaded</div>
+                }
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              @if (certFor('gst_cert'); as cert) {
+                <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors" title="Download"
+                  (click)="downloadCertificate(cert)" [disabled]="isDownloading(cert.id)">
+                  <span class="material-symbols-outlined" style="font-size: 20px">download</span>
+                </button>
+              }
+              <button class="px-3 py-1 bg-primary-container text-on-primary-container rounded text-label-sm hover:bg-primary hover:text-on-primary"
+                (click)="openCertUpload('gst_cert')">
+                {{ hasCert('gst_cert') ? 'Replace' : 'Upload' }}
+              </button>
+            </div>
+          </li>
+          <li class="flex items-center justify-between p-4">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-on-surface-variant">badge</span>
+              <div>
+                <div class="font-medium text-on-surface">Udyam Certificate</div>
+                @if (certFor('udyam_cert'); as cert) {
+                  <div class="text-on-surface-variant truncate max-w-xs">{{ cert.original_filename }}</div>
+                } @else {
+                  <div class="text-on-surface-variant">Not uploaded</div>
+                }
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              @if (certFor('udyam_cert'); as cert) {
+                <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors" title="Download"
+                  (click)="downloadCertificate(cert)" [disabled]="isDownloading(cert.id)">
+                  <span class="material-symbols-outlined" style="font-size: 20px">download</span>
+                </button>
+              }
+              <button class="px-3 py-1 bg-primary-container text-on-primary-container rounded text-label-sm hover:bg-primary hover:text-on-primary"
+                (click)="openCertUpload('udyam_cert')">
+                {{ hasCert('udyam_cert') ? 'Replace' : 'Upload' }}
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 }
@@ -256,6 +315,45 @@
         <button type="submit" [disabled]="sending()"
           class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
           {{ sending() ? 'Uploading…' : 'Send Report' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>
+
+<app-modal [open]="showCertUpload()" (close)="showCertUpload.set(false)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-headline-md text-headline-md text-on-surface">
+        {{ hasCert(certForm.controls.cert_type.value) ? 'Replace' : 'Upload' }} Certificate
+      </h2>
+      <button class="text-on-surface-variant hover:text-on-surface" (click)="showCertUpload.set(false)">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form class="flex flex-col gap-4" [formGroup]="certForm" (ngSubmit)="submitCertificate()">
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="c-type">Certificate Type</label>
+        <select id="c-type" formControlName="cert_type"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+          <option value="gst_cert">GST Certificate</option>
+          <option value="udyam_cert">Udyam Certificate</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="c-file">Certificate File (PDF / JPG / PNG)</label>
+        <input id="c-file" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+          (change)="onCertFileSelected($event)"
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface" />
+        @if (certForm.controls.file.touched && !certForm.controls.file.value) {
+          <span class="text-error text-body-sm">Please choose a file</span>
+        }
+      </div>
+      <div class="flex justify-end gap-2 mt-2">
+        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showCertUpload.set(false)">Cancel</button>
+        <button type="submit" [disabled]="sending()"
+          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+          {{ sending() ? 'Uploading…' : 'Save Certificate' }}
         </button>
       </div>
     </form>

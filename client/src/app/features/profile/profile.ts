@@ -10,7 +10,11 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
-import { ProfileService } from '../../core/services/feature.services';
+import {
+  CertificatesService,
+  ProfileService,
+} from '../../core/services/feature.services';
+import { CertType, ClientCertificate } from '../../core/models';
 
 const PHOTO_KEY = 'fp_profile_photo';
 
@@ -27,9 +31,12 @@ export class Profile {
   readonly auth = inject(AuthService);
   readonly router = inject(Router);
   private readonly profileService = inject(ProfileService);
+  private readonly certificatesService = inject(CertificatesService);
 
   readonly savingPhone = signal(false);
   readonly photoUrl = signal<string | null>(localStorage.getItem(PHOTO_KEY));
+  readonly certificates = signal<ClientCertificate[]>([]);
+  readonly downloading = signal<string[]>([]);
 
   @ViewChild('photoInput') photoInput!: ElementRef<HTMLInputElement>;
 
@@ -40,12 +47,37 @@ export class Profile {
   async ngOnInit(): Promise<void> {
     try {
       await this.auth.loadProfile();
+      void this.loadCertificates();
     } catch {
       /* auth guard handles redirect */
     }
     const profile = this.auth.userProfile();
     if (profile?.phone) {
       this.phoneForm.controls.phone.setValue(profile.phone);
+    }
+  }
+
+  async loadCertificates(): Promise<void> {
+    try {
+      this.certificates.set(await this.certificatesService.list());
+    } catch {
+      /* interceptor toasts */
+    }
+  }
+
+  certFor(certType: CertType): ClientCertificate | undefined {
+    return this.certificates().find((c) => c.cert_type === certType);
+  }
+
+  async downloadCertificate(cert: ClientCertificate): Promise<void> {
+    this.downloading.update((l) => [...l, cert.id]);
+    try {
+      const { download_url } = await this.certificatesService.downloadUrl(cert.id);
+      window.open(download_url, '_blank');
+    } catch {
+      /* interceptor toasts */
+    } finally {
+      this.downloading.update((l) => l.filter((x) => x !== cert.id));
     }
   }
 

@@ -7,6 +7,17 @@ export type DocumentStatus = 'pending' | 'received' | 'processed';
 export type ReportType = 'gstr_1' | 'gstr_3b' | 'reconciliation' | 'other';
 export type ReminderChannel = 'push' | 'email';
 export type ReminderStatus = 'queued' | 'sent' | 'failed';
+export type CertType = 'gst_cert' | 'udyam_cert';
+
+export interface ClientCertificate {
+  id: string;
+  user_id: string;
+  cert_type: CertType;
+  s3_key: string;
+  original_filename: string;
+  uploaded_at: string;
+  created_at: string;
+}
 
 export const PERMISSIONS = [
   'view_clients',

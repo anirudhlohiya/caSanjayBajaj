@@ -4,7 +4,9 @@ import { ApiClient } from './api-client.service';
 import type {
   AuditLog,
   BlogPost,
+  CertType,
   Client,
+  ClientCertificate,
   DashboardStats,
   Document,
   FilingPeriod,
@@ -179,6 +181,44 @@ export class ReportsService {
   downloadUrl(id: string) {
     return firstValueFrom(
       this.api.get<{ download_url: string }>(`/admin/reports/${id}/download-url`),
+    );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class CertificatesService {
+  private readonly api = inject(ApiClient);
+
+  listForClient(userId: string) {
+    return firstValueFrom(
+      this.api.get<ClientCertificate[]>(`/admin/clients/${userId}/certificates`),
+    );
+  }
+
+  uploadUrl(userId: string, body: {
+    cert_type: CertType;
+    filename: string;
+    contentType: string;
+  }) {
+    return firstValueFrom(
+      this.api.post<{ certificate_id: string; upload_url: string; expires_in: number }>(
+        `/admin/clients/${userId}/certificates/upload-url`,
+        body,
+      ),
+    );
+  }
+
+  confirm(userId: string, certId: string) {
+    return firstValueFrom(
+      this.api.post<ClientCertificate>(
+        `/admin/clients/${userId}/certificates/${certId}/confirm`,
+      ),
+    );
+  }
+
+  downloadUrl(certId: string) {
+    return firstValueFrom(
+      this.api.get<{ download_url: string }>(`/me/certificates/${certId}/download-url`),
     );
   }
 }

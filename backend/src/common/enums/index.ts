@@ -89,6 +89,11 @@ export enum TaskStatus {
   NIL_DECLARED = 'nil_declared',
 }
 
+export enum CertType {
+  GST_CERT = 'gst_cert',
+  UDYAM_CERT = 'udyam_cert',
+}
+
 export enum GstFilingFrequency {
   MONTHLY = 'monthly',
   QUARTERLY = 'quarterly',

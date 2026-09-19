@@ -61,6 +61,31 @@ export class StorageService {
     return { uploadUrl, s3Key };
   }
 
+  /**
+   * Lifetime certificate upload (docs/13 §3.6 / §10). Stored under
+   * `certificates/{userId}/…` which is excluded from the 30-day lifecycle rule.
+   */
+  async createCertificateUploadUrl(
+    userId: string,
+    filename: string,
+    contentType: string,
+  ): Promise<UploadTarget> {
+    const ext = filename.split('.').pop()?.toLowerCase() ?? 'bin';
+    const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
+    const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const s3Key = `certificates/${userId}/${unique}_${safe}.${ext}`;
+    const command = new PutObjectCommand({
+      Bucket: this.docsBucket,
+      Key: s3Key,
+      ContentType: contentType,
+      Metadata: { original_name: filename },
+    });
+    const uploadUrl = await getSignedUrl(this.client, command, {
+      expiresIn: 300,
+    });
+    return { uploadUrl, s3Key };
+  }
+
   async createDownloadUrl(s3Key: string, expiresIn = 300): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: this.docsBucket,

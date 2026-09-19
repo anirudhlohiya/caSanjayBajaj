@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   ClientsService,
+  CertificatesService,
   DocumentsService,
   PeriodsService,
   ReportsService,
@@ -11,7 +12,7 @@ import {
 } from '../../core/services/feature.services';
 import { UploadService } from '../../core/services/upload.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Client, Document, FilingPeriod, Report } from '../../core/models';
+import { CertType, Client, ClientCertificate, Document, FilingPeriod, Report } from '../../core/models';
 import { PageHeader } from '../../shared/components/page-header';
 import { StatusChip } from '../../shared/components/status-chip';
 import { Pagination } from '../../shared/components/pagination';
@@ -30,6 +31,7 @@ export class ClientDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly clientsService = inject(ClientsService);
+  private readonly certificatesService = inject(CertificatesService);
   private readonly documentsService = inject(DocumentsService);
   private readonly reportsService = inject(ReportsService);
   private readonly periodsService = inject(PeriodsService);
@@ -51,11 +53,14 @@ export class ClientDetail implements OnInit {
   readonly reportPage = signal(1);
   readonly reportPages = signal(0);
 
+  readonly certificates = signal<ClientCertificate[]>([]);
+
   readonly periods = signal<FilingPeriod[]>([]);
   readonly tasks = signal<ComplianceTask[]>([]);
   readonly selectedPeriod = signal<string>('');
 
   readonly showReport = signal(false);
+  readonly showCertUpload = signal(false);
   readonly sending = signal(false);
   readonly processing = signal<string[]>([]);
   readonly downloading = signal<string[]>([]);
@@ -65,6 +70,11 @@ export class ClientDetail implements OnInit {
   readonly reportForm = this.fb.nonNullable.group({
     filing_period_id: ['', Validators.required],
     report_type: ['gstr_1'],
+    file: [null as File | null, Validators.required],
+  });
+
+  readonly certForm = this.fb.nonNullable.group({
+    cert_type: ['gst_cert' as CertType],
     file: [null as File | null, Validators.required],
   });
 
@@ -79,11 +89,12 @@ export class ClientDetail implements OnInit {
   async load(): Promise<void> {
     this.loading.set(true);
     try {
-      const [client, docsRes, reportsRes, periods] = await Promise.all([
+      const [client, docsRes, reportsRes, periods, certs] = await Promise.all([
         this.clientsService.get(this.id()),
         this.documentsService.listForUser(this.id(), { page: this.docPage(), pageSize: 10 }),
         this.reportsService.listForUser(this.id(), { page: this.reportPage(), pageSize: 10 }),
         this.periodsService.open(),
+        this.certificatesService.listForClient(this.id()),
       ]);
       this.client.set(client);
       this.docs.set(docsRes.items);
@@ -92,6 +103,7 @@ export class ClientDetail implements OnInit {
       this.reports.set(reportsRes.items);
       this.reportTotal.set(reportsRes.total);
       this.reportPages.set(reportsRes.totalPages);
+      this.certificates.set(certs);
       this.periods.set(periods);
       const defaultPeriod = periods[0]?.id ?? '';
       this.selectedPeriod.set(defaultPeriod);
@@ -199,6 +211,66 @@ export class ClientDetail implements OnInit {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.reportForm.controls.file.setValue(input.files?.[0] ?? null);
+  }
+
+  onCertFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.certForm.controls.file.setValue(input.files?.[0] ?? null);
+  }
+
+  certFor(certType: CertType): ClientCertificate | undefined {
+    return this.certificates().find((c) => c.cert_type === certType);
+  }
+
+  hasCert(certType: CertType): boolean {
+    return !!this.certFor(certType);
+  }
+
+  openCertUpload(certType: CertType): void {
+    this.certForm.controls.cert_type.setValue(certType);
+    this.certForm.controls.file.setValue(null);
+    this.showCertUpload.set(true);
+  }
+
+  async downloadCertificate(cert: ClientCertificate): Promise<void> {
+    this.downloading.update((l) => [...l, cert.id]);
+    try {
+      const { download_url } = await this.certificatesService.downloadUrl(cert.id);
+      window.open(download_url, '_blank');
+    } finally {
+      this.downloading.update((l) => l.filter((x) => x !== cert.id));
+    }
+  }
+
+  async submitCertificate(): Promise<void> {
+    const form = this.certForm;
+    if (form.invalid) {
+      form.markAllAsTouched();
+      return;
+    }
+    const file = form.controls.file.value;
+    if (!file) return;
+    this.sending.set(true);
+    try {
+      const { certificate_id, upload_url } = await this.certificatesService.uploadUrl(
+        this.id(),
+        {
+          cert_type: form.controls.cert_type.value,
+          filename: file.name,
+          contentType: file.type || 'application/pdf',
+        },
+      );
+      await this.upload.upload(upload_url, file, file.type || 'application/pdf');
+      await this.certificatesService.confirm(this.id(), certificate_id);
+      this.toast.success('Certificate uploaded');
+      this.showCertUpload.set(false);
+      await this.load();
+    } catch (e) {
+      console.error(e);
+      this.toast.error('Failed to upload certificate');
+    } finally {
+      this.sending.set(false);
+    }
   }
 
   async submitReport(): Promise<void> {
