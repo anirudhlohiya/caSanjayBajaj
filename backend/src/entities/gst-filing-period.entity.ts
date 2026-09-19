@@ -5,6 +5,7 @@ import {
   Index,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { PeriodSchedule } from '../common/types/gst-schedule';
 
 @Entity('gst_filing_periods')
 export class GstFilingPeriod {
@@ -23,6 +24,10 @@ export class GstFilingPeriod {
 
   @Column({ type: 'boolean', default: true })
   is_open: boolean;
+
+  /** Per-category deadlines + reminder dates. Nullable (default computed by SchedulingService). */
+  @Column({ type: 'jsonb', nullable: true })
+  schedule: PeriodSchedule | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;

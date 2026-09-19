@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ComplianceTasksService } from './compliance-tasks.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -24,10 +33,10 @@ export class ComplianceTasksController {
   async autoGenerateTasks(
     @CurrentUser() user: AuthUser,
     @Body('periodId') periodId: string,
-    @Body('isQuarterly') isQuarterly: boolean,
   ) {
-    // Allows the client app to trigger auto-generation when they view a period
-    return this.tasksService.autoGenerateTasks(user.sub, periodId, isQuarterly);
+    // Compatibility entry point: task sets are now generated per the user's
+    // stored cadence (gst_filing_frequency), so isQuarterly is ignored.
+    return this.tasksService.ensureTasksForPeriod(user.sub, periodId);
   }
 
   @Roles('super_admin', 'staff')
@@ -44,9 +53,8 @@ export class ComplianceTasksController {
   async adminAutoGenerateTasks(
     @Param('clientId') clientId: string,
     @Body('periodId') periodId: string,
-    @Body('isQuarterly') isQuarterly: boolean,
   ) {
-    return this.tasksService.autoGenerateTasks(clientId, periodId, isQuarterly);
+    return this.tasksService.ensureTasksForPeriod(clientId, periodId);
   }
 
   @Roles('super_admin', 'staff')
@@ -56,7 +64,11 @@ export class ComplianceTasksController {
     @Body('amount') amount: string,
     @Body('paidAt') paidAt: string,
   ) {
-    return this.tasksService.updatePayment(id, amount, paidAt ? new Date(paidAt) : null);
+    return this.tasksService.updatePayment(
+      id,
+      amount,
+      paidAt ? new Date(paidAt) : null,
+    );
   }
 
   @Roles('super_admin', 'staff')

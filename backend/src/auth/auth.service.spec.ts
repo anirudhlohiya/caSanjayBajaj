@@ -9,6 +9,7 @@ import { Permission } from '../entities/permission.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { User } from '../entities/user.entity';
 import { OtpVerification } from '../entities/otp-verification.entity';
+import { ClientPreRegistration } from '../entities/client-pre-registration.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 
 describe('AuthService', () => {
@@ -41,6 +42,11 @@ describe('AuthService', () => {
     findOne: jest.fn(),
     delete: jest.fn(),
   } as unknown as Repository<OtpVerification>;
+  const preRegistrations = {
+    findOneBy: jest.fn(),
+    save: jest.fn(),
+    create: jest.fn((v: object) => v),
+  } as unknown as Repository<ClientPreRegistration>;
   const notificationsService = {
     sendEmail: jest.fn().mockResolvedValue(true),
   } as unknown as NotificationsService;
@@ -59,6 +65,10 @@ describe('AuthService', () => {
         { provide: 'PermissionRepository', useValue: permissions },
         { provide: 'RefreshTokenRepository', useValue: refreshTokens },
         { provide: 'OtpVerificationRepository', useValue: otpVerifications },
+        {
+          provide: 'ClientPreRegistrationRepository',
+          useValue: preRegistrations,
+        },
         { provide: NotificationsService, useValue: notificationsService },
         { provide: JwtService, useValue: jwtService },
       ],

@@ -36,6 +36,13 @@ export class ComplianceTask {
   status: TaskStatus;
 
   @Column({ type: 'timestamptz', nullable: true })
+  nil_declared_at: Date | null;
+
+  /** Reminder-slot marker (0/1/2) used to dedupe auto-reminders per day (docs/13 §6.1). */
+  @Column({ type: 'int', nullable: true })
+  message_day: number | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
   due_date: Date | null;
 
   @Column({ type: 'numeric', precision: 12, scale: 2, nullable: true })

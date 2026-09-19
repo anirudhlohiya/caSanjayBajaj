@@ -71,17 +71,27 @@ export enum LeadStatus {
 
 export enum ComplianceCategory {
   GSTR_1 = 'gstr_1',
-  SALES_BILLS = 'sales_bills',
-  PURCHASE_BILLS = 'purchase_bills',
   IFF = 'iff',
   GSTR_3B = 'gstr_3b',
   GST_PAYMENT = 'gst_payment',
+  /**
+   * Legacy values retained in the DB (see docs/13 §6.4). Never generate new
+   * tasks with these — sales/purchase bills are merged into gstr_1/gstr_3b.
+   */
+  SALES_BILLS = 'sales_bills',
+  PURCHASE_BILLS = 'purchase_bills',
 }
 
 export enum TaskStatus {
   PENDING = 'pending',
   UPLOADED = 'uploaded',
   COMPLETED = 'completed',
+  NIL_DECLARED = 'nil_declared',
+}
+
+export enum GstFilingFrequency {
+  MONTHLY = 'monthly',
+  QUARTERLY = 'quarterly',
 }
 
 export const PERMISSIONS = [

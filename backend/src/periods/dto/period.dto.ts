@@ -2,10 +2,12 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsDateString,
+  IsObject,
   IsOptional,
   IsString,
   Length,
 } from 'class-validator';
+import type { PeriodSchedule } from '../../common/types/gst-schedule';
 
 export class CreatePeriodDto {
   @ApiProperty({ example: 'July 2026' })
@@ -26,6 +28,15 @@ export class CreatePeriodDto {
   @IsOptional()
   @IsBoolean()
   is_open?: boolean;
+
+  /**
+   * Optional per-category deadline + reminder schedule (docs/13 §6.2). When
+   * absent, the default schedule is computed from `period_code`.
+   */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsObject()
+  schedule?: PeriodSchedule;
 }
 
 export class UpdatePeriodDto {
@@ -44,4 +55,9 @@ export class UpdatePeriodDto {
   @IsOptional()
   @IsBoolean()
   is_open?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsObject()
+  schedule?: PeriodSchedule;
 }

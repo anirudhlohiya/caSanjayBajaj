@@ -48,6 +48,12 @@ export default () => ({
     cron: process.env.REMINDER_CRON ?? '0 8 * * *',
   },
 
+  autoCreatePeriods: {
+    // How many future months beyond the current one to auto-ensure on the
+    // monthly rollover cron (docs/13 §10).
+    prefetch: parseInt(process.env.AUTO_CREATE_PERIODS_PREFETCH ?? '2', 10),
+  },
+
   superAdmin: {
     email: process.env.SUPER_ADMIN_EMAIL ?? '',
     password: process.env.SUPER_ADMIN_PASSWORD ?? '',

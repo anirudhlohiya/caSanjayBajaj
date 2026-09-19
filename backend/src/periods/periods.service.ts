@@ -1,18 +1,28 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
+import { SchedulingService } from '../schedule/scheduling.service';
+import { ComplianceTasksService } from '../compliance-tasks/compliance-tasks.service';
 import { CreatePeriodDto, UpdatePeriodDto } from './dto/period.dto';
 
 @Injectable()
 export class PeriodsService {
+  private readonly logger = new Logger(PeriodsService.name);
+
   constructor(
     @InjectRepository(GstFilingPeriod)
     private readonly periods: Repository<GstFilingPeriod>,
+    private readonly scheduling: SchedulingService,
+    private readonly tasks: ComplianceTasksService,
+    private readonly config: ConfigService,
   ) {}
 
   list(): Promise<GstFilingPeriod[]> {
@@ -31,7 +41,28 @@ export class PeriodsService {
       period_code: dto.period_code,
     });
     if (exists) throw new BadRequestException('Period code already exists');
-    const period = this.periods.create(dto);
+
+    // Default hook (docs/13 §6.3): generate the schedule from the rules when
+    // the caller did not supply one; validate any caller-supplied override.
+    let schedule = dto.schedule ?? null;
+    if (dto.schedule) {
+      const problems = this.scheduling.validateSchedule(
+        dto.period_code,
+        dto.schedule,
+      );
+      if (problems.length > 0) {
+        throw new BadRequestException(
+          `Invalid schedule: ${problems.join('; ')}`,
+        );
+      }
+    } else {
+      schedule = this.scheduling.defaultScheduleForPeriodCode(dto.period_code);
+    }
+
+    const period = this.periods.create({
+      ...dto,
+      schedule,
+    });
     return this.periods.save(period);
   }
 
@@ -45,5 +76,67 @@ export class PeriodsService {
     const period = await this.findOne(id);
     Object.assign(period, dto);
     return this.periods.save(period);
+  }
+
+  /**
+   * Ensure the current month and the next `prefetch` months exist, each with a
+   * default schedule. Existing periods (including admin overrides) are left
+   * untouched. Returns the periods sorted newest-first.
+   */
+  async ensurePeriods(): Promise<GstFilingPeriod[]> {
+    const prefetch = this.config.get<number>('autoCreatePeriods.prefetch') ?? 2;
+    const now = new Date();
+
+    for (let offset = 0; offset <= prefetch; offset++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+      const periodCode = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const existing = await this.periods.findOneBy({
+        period_code: periodCode,
+      });
+      if (existing) continue;
+
+      const schedule = this.scheduling.defaultScheduleForPeriodCode(periodCode);
+      await this.periods.save(
+        this.periods.create({
+          period_label: SchedulingService.periodLabel(periodCode),
+          period_code: periodCode,
+          due_date: schedule.gstr1.due,
+          is_open: true,
+          schedule,
+        }),
+      );
+      this.logger.log(`Auto-created filing period ${periodCode}`);
+    }
+
+    return this.periods.find({ order: { period_code: 'DESC' } });
+  }
+
+  private currentPeriodCode(): string {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  /**
+   * Monthly rollover (docs/13 §5.1): ensure upcoming periods exist, then
+   * (idempotently) generate this month's compliance tasks for every active GST
+   * client per their cadence.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  async handleMonthRollover(): Promise<void> {
+    if (this.config.get('nodeEnv') === 'test') return;
+
+    await this.ensurePeriods();
+    const current = await this.periods.findOneBy({
+      period_code: this.currentPeriodCode(),
+    });
+    if (!current) {
+      this.logger.warn('Rollover: no current period found after ensure');
+      return;
+    }
+
+    const generated = await this.tasks.generateAllForPeriod(current.id);
+    this.logger.log(
+      `Rollover for ${current.period_label}: ensured tasks for ${generated} clients`,
+    );
   }
 }

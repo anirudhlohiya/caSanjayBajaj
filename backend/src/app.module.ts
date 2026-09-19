@@ -21,6 +21,7 @@ import { TicketsModule } from './tickets/tickets.module';
 import { RentAgreementsModule } from './rent-agreements/rent-agreements.module';
 import { SnsModule } from './sns/sns.module';
 import { ComplianceTasksModule } from './compliance-tasks/compliance-tasks.module';
+import { SchedulingModule } from './schedule/scheduling.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -48,6 +49,7 @@ import { HealthController } from './health.controller';
     RentAgreementsModule,
     SnsModule,
     ComplianceTasksModule,
+    SchedulingModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

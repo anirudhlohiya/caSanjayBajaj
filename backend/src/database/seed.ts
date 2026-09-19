@@ -7,6 +7,7 @@ import { Admin } from '../entities/admin.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { User } from '../entities/user.entity';
 import { AdminRole, UserType, UserStatus } from '../common/enums';
+import { SchedulingService } from '../schedule/scheduling.service';
 import { SeedModule } from './seed.module';
 
 async function run() {
@@ -63,6 +64,7 @@ async function run() {
   }
 
   // Seed default filing periods (current + next 2 months)
+  const scheduling = new SchedulingService();
   const now = new Date();
   for (let offset = 0; offset < 3; offset++) {
     const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
@@ -71,16 +73,16 @@ async function run() {
       month: 'long',
       year: 'numeric',
     });
-    // Due date: 11th of the following month (typical GSTR-1/3B) — configurable later
-    const due = new Date(d.getFullYear(), d.getMonth() + 1, 11);
+    const schedule = scheduling.defaultScheduleForPeriodCode(periodCode);
     const existing = await periods.findOneBy({ period_code: periodCode });
     if (!existing) {
       await periods.save(
         periods.create({
           period_label: periodLabel,
           period_code: periodCode,
-          due_date: due.toISOString().slice(0, 10),
+          due_date: schedule.gstr1.due,
           is_open: true,
+          schedule,
         }),
       );
       console.log('Filing period created:', periodLabel);
