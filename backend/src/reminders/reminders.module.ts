@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ComplianceTask } from '../entities/compliance-task.entity';
 import { Document } from '../entities/document.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { Reminder } from '../entities/reminder.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { SchedulingModule } from '../schedule/scheduling.module';
 import { UsersModule } from '../users/users.module';
 import { RemindersController } from './reminders.controller';
 import { RemindersService } from './reminders.service';
@@ -12,9 +14,15 @@ import { RemindersService } from './reminders.service';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    TypeOrmModule.forFeature([Reminder, GstFilingPeriod, Document]),
+    TypeOrmModule.forFeature([
+      Reminder,
+      GstFilingPeriod,
+      Document,
+      ComplianceTask,
+    ]),
     NotificationsModule,
     UsersModule,
+    SchedulingModule,
   ],
   controllers: [RemindersController],
   providers: [RemindersService],

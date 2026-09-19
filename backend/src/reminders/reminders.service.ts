@@ -2,19 +2,31 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, MoreThanOrEqual, Repository } from 'typeorm';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { paginate, PaginatedResult } from '../common/dto/pagination';
-import { ReminderChannel, ReminderStatus } from '../common/enums';
+import { ReminderChannel, ReminderStatus, TaskStatus } from '../common/enums';
+import { ComplianceTask } from '../entities/compliance-task.entity';
 import { Document } from '../entities/document.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { Reminder } from '../entities/reminder.entity';
+import { User } from '../entities/user.entity';
 import {
   NotificationsService,
   isPushSubscription,
 } from '../notifications/notifications.service';
+import { SchedulingService } from '../schedule/scheduling.service';
 import { UsersService } from '../users/users.service';
 import { ReminderLogQueryDto, SendReminderDto } from './dto/reminder.dto';
+import { ReminderCopy, buildReminderCopy } from './reminder-copy';
+
+/** Server-local YYYY-MM-DD (reminder dates are calendar dates, not UTC). */
+function localDateStr(d: Date = new Date()): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 @Injectable()
 export class RemindersService {
@@ -27,9 +39,12 @@ export class RemindersService {
     private readonly periods: Repository<GstFilingPeriod>,
     @InjectRepository(Document)
     private readonly documents: Repository<Document>,
+    @InjectRepository(ComplianceTask)
+    private readonly tasks: Repository<ComplianceTask>,
     private readonly notifications: NotificationsService,
     private readonly usersService: UsersService,
     private readonly config: ConfigService,
+    private readonly scheduling: SchedulingService,
   ) {}
 
   async sendReminder(
@@ -117,7 +132,15 @@ export class RemindersService {
         `<p>Dear ${user.name},</p><p>${body}</p><p><a href="${url}">Upload documents</a></p>`,
       );
     }
+    return this.pushToUser(user, title, body, url);
+  }
 
+  private async pushToUser(
+    user: User,
+    title: string,
+    body: string,
+    url: string,
+  ): Promise<boolean> {
     const tokens = await this.usersService.getTokensForPush(user.id);
     let ok = false;
     for (const token of tokens) {
@@ -164,31 +187,135 @@ export class RemindersService {
     return paginate(items, total, page, pageSize);
   }
 
-  // ----- Scheduled job: auto reminders -----
+  // ----- Scheduled job: auto reminders (docs/13 §5.2) -----
 
   @Cron(CronExpression.EVERY_DAY_AT_8AM)
-  async handleAutoReminders(): Promise<void> {
+  async handleAutoReminders(today: string = localDateStr()): Promise<void> {
     if (this.config.get('nodeEnv') === 'test') return;
-    const leadDays = this.config.get<number>('reminders.leadDays') ?? 5;
 
-    const leadDate = new Date();
-    leadDate.setDate(leadDate.getDate() + leadDays);
-    const leadDateStr = leadDate.toISOString().slice(0, 10);
+    const periods = await this.periods.find({ where: { is_open: true } });
+    let matchesTotal = 0;
+    let sentTotal = 0;
 
-    const periods = await this.periods.find({
-      where: { is_open: true },
-    });
-    const dueSoon = periods.filter((p) => p.due_date <= leadDateStr);
+    for (const period of periods) {
+      const schedule = this.scheduling.scheduleFor(period);
+      const matches = this.scheduling.remindersOn(
+        today,
+        schedule,
+        period.period_code,
+      );
+      // Order matches so earlier slots and non-quarterly come first.
+      matches.sort((a, b) => a.slot - b.slot);
+      for (const match of matches) {
+        matchesTotal++;
+        sentTotal += await this.runAutoMatch(period, match);
+      }
+    }
 
-    for (const period of dueSoon) {
-      const result = await this.sendReminder(null, {
-        filing_period_id: period.id,
-        all_unfiled: true,
-        channels: [ReminderChannel.PUSH, ReminderChannel.EMAIL],
-      });
+    if (matchesTotal > 0 || sentTotal > 0) {
       this.logger.log(
-        `Auto reminders for ${period.period_label}: ${result.sent}/${result.total}`,
+        `Auto reminders ${today}: ${matchesTotal} match(es), ${sentTotal} send(s)`,
       );
     }
   }
+
+  private async runAutoMatch(
+    period: GstFilingPeriod,
+    match: ReturnType<SchedulingService['remindersOn']>[number],
+  ): Promise<number> {
+    const pendingTasks = await this.tasks.find({
+      where: {
+        filing_period_id: period.id,
+        category: match.category,
+        status: In([TaskStatus.PENDING]),
+      },
+      relations: { user: true },
+    });
+
+    let sent = 0;
+    for (const task of pendingTasks) {
+      const user = task.user;
+      if (!user || user.gst_filing_frequency !== match.cadence) continue;
+
+      // Task-day dedupe: don't re-send a slot we already covered
+      if (task.message_day !== null && task.message_day >= match.slot) continue;
+
+      const copy = buildReminderCopy({
+        category: match.category,
+        slot: match.slot,
+        name: user.name,
+        month: match.month,
+        quarter: match.quarter,
+        due: match.due,
+      });
+
+      let anyOk = false;
+      for (const channel of [ReminderChannel.PUSH, ReminderChannel.EMAIL]) {
+        const alreadyToday = await this.reminders.exists({
+          where: {
+            user_id: user.id,
+            filing_period_id: period.id,
+            channel,
+            status: ReminderStatus.SENT,
+            triggered_by: 'system',
+            sent_at: MoreThanOrEqual(startOfLocalDay()),
+          },
+        });
+        if (alreadyToday) continue;
+
+        const reminder = await this.reminders.save(
+          this.reminders.create({
+            user_id: user.id,
+            filing_period_id: period.id,
+            channel,
+            status: ReminderStatus.QUEUED,
+            triggered_by: 'system',
+          }),
+        );
+
+        let ok = false;
+        try {
+          ok = await this.deliverAuto(user, channel, copy);
+        } catch (error) {
+          this.logger.error(
+            `Auto reminder delivery failed: ${(error as Error).message}`,
+          );
+        }
+        reminder.status = ok ? ReminderStatus.SENT : ReminderStatus.FAILED;
+        reminder.sent_at = ok ? new Date() : null;
+        await this.reminders.save(reminder);
+        if (ok) anyOk = true;
+      }
+
+      if (anyOk) {
+        // Message-day marker: this slot was covered for this task
+        task.message_day = match.slot;
+        await this.tasks.save(task);
+        sent++;
+      }
+    }
+    return sent;
+  }
+
+  private async deliverAuto(
+    user: User,
+    channel: ReminderChannel,
+    copy: ReminderCopy,
+  ): Promise<boolean> {
+    const url = `${process.env.API_BASE_URL ?? ''}/documents/upload`;
+    if (channel === ReminderChannel.EMAIL) {
+      return this.notifications.sendEmail(
+        { email: user.email, name: user.name },
+        copy.title,
+        `<p>${copy.body}</p><p><a href="${url}">Upload documents</a></p>`,
+      );
+    }
+    return this.pushToUser(user, copy.title, copy.body, url);
+  }
+}
+
+function startOfLocalDay(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
 }

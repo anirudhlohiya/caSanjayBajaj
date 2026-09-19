@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ComplianceCategory, GstFilingFrequency } from '../common/enums';
 import { PeriodSchedule, TaskSchedule } from '../common/types/gst-schedule';
 
 const MONTHS = [
@@ -45,6 +46,21 @@ export interface PeriodMonth {
   year: number;
   month: number; // 1-12
   periodCode: string; // YYYY-MM
+}
+
+/** A single reminder that fires on a given date (docs/13 §5.2). */
+export interface ReminderMatch {
+  category: ComplianceCategory;
+  /** Copy slot (0/1/2) → maps to day1/day2/day3 copy texts (§4). */
+  slot: number;
+  /** Category due date (YYYY-MM-DD) for the {dueDate} placeholder. */
+  due: string;
+  /** Period label for the {month} placeholder. */
+  month: string;
+  /** Quarter label for the {quarter} placeholder (quarterly GSTR-3B only). */
+  quarter?: string;
+  /** Which filer cadence this reminder targets (targets by category+period). */
+  cadence: GstFilingFrequency;
 }
 
 @Injectable()
@@ -198,6 +214,58 @@ export class SchedulingService {
     }
 
     return problems;
+  }
+
+  /**
+   * Which reminders fire on `date` (YYYY-MM-DD) for the given period schedule
+   * (docs/13 §5.2). GSTR-1/IFF have up to 3 slots mapping to copy day1/2/3;
+   * GSTR-3B and quarterly GSTR-3B each fire once. `payment.reminders` is always
+   * empty — payment is manual-only, so it never matches.
+   */
+  remindersOn(
+    date: string,
+    schedule: PeriodSchedule,
+    periodCode: string,
+  ): ReminderMatch[] {
+    const matches: ReminderMatch[] = [];
+    const month = SchedulingService.periodLabel(periodCode);
+    const scan = (
+      task: TaskSchedule | undefined,
+      category: ComplianceCategory,
+      cadence: GstFilingFrequency,
+      extra?: { quarter: string },
+    ) => {
+      if (!task) return;
+      task.reminders.forEach((reminder, slot) => {
+        if (reminder === date) {
+          matches.push({
+            category,
+            cadence,
+            slot,
+            due: task.due,
+            month,
+            ...(extra ? { quarter: extra.quarter } : {}),
+          });
+        }
+      });
+    };
+
+    scan(schedule.gstr1, ComplianceCategory.GSTR_1, GstFilingFrequency.MONTHLY);
+    scan(
+      schedule.gstr3b,
+      ComplianceCategory.GSTR_3B,
+      GstFilingFrequency.MONTHLY,
+    );
+    scan(schedule.iff, ComplianceCategory.IFF, GstFilingFrequency.QUARTERLY);
+    if (schedule.quarterly) {
+      scan(
+        schedule.quarterly.gstr3b,
+        ComplianceCategory.GSTR_3B,
+        GstFilingFrequency.QUARTERLY,
+        { quarter: schedule.quarterly.gstr3b.quarter_label },
+      );
+    }
+    return matches;
   }
 
   private static isDateInMonth(date: string, periodCode: string): boolean {

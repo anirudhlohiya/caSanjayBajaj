@@ -1,4 +1,5 @@
 import { SchedulingService } from './scheduling.service';
+import { ComplianceCategory, GstFilingFrequency } from '../common/enums';
 
 describe('SchedulingService', () => {
   let service: SchedulingService;
@@ -132,6 +133,100 @@ describe('SchedulingService', () => {
   describe('periodLabel', () => {
     it('formats a month label', () => {
       expect(SchedulingService.periodLabel('2026-10')).toBe('October 2026');
+    });
+  });
+
+  describe('remindersOn', () => {
+    it('matches GSTR-1 day1 on the 5th for monthly filers', () => {
+      const s = service.defaultScheduleForPeriodCode('2026-10');
+      const matches = service.remindersOn('2026-10-05', s, '2026-10');
+      expect(matches).toEqual([
+        {
+          category: ComplianceCategory.GSTR_1,
+          cadence: GstFilingFrequency.MONTHLY,
+          slot: 0,
+          due: '2026-10-11',
+          month: 'October 2026',
+        },
+        {
+          category: ComplianceCategory.IFF,
+          cadence: GstFilingFrequency.QUARTERLY,
+          slot: 0,
+          due: '2026-10-13',
+          month: 'October 2026',
+        },
+      ]);
+    });
+
+    it('matches GSTR-1 day2 (7th) and day3 (11th) slots', () => {
+      const s = service.defaultScheduleForPeriodCode('2026-10');
+      const day2 = service.remindersOn('2026-10-07', s, '2026-10');
+      expect(
+        day2.some(
+          (m) => m.category === ComplianceCategory.GSTR_1 && m.slot === 1,
+        ),
+      ).toBe(true);
+      const last = service.remindersOn('2026-10-11', s, '2026-10');
+      expect(
+        last.some(
+          (m) => m.category === ComplianceCategory.GSTR_1 && m.slot === 2,
+        ),
+      ).toBe(true);
+    });
+
+    it('matches the monthly GSTR-3B reminder on the 18th for monthly filers', () => {
+      const s = service.defaultScheduleForPeriodCode('2026-10');
+      const matches = service.remindersOn('2026-10-18', s, '2026-10');
+      expect(
+        matches.some(
+          (m) =>
+            m.category === ComplianceCategory.GSTR_3B &&
+            m.cadence === GstFilingFrequency.MONTHLY &&
+            m.slot === 0 &&
+            m.due === '2026-10-20',
+        ),
+      ).toBe(true);
+    });
+
+    it('matches the quarterly GSTR-3B reminder in the settling month', () => {
+      const s = service.defaultScheduleForPeriodCode('2026-12');
+      const matches = service.remindersOn('2027-01-20', s, '2026-12');
+      expect(
+        matches.some(
+          (m) =>
+            m.category === ComplianceCategory.GSTR_3B &&
+            m.cadence === GstFilingFrequency.QUARTERLY &&
+            m.quarter === 'Oct–Dec 2026' &&
+            m.slot === 0 &&
+            m.due === '2027-01-22' &&
+            m.month === 'December 2026',
+        ),
+      ).toBe(true);
+    });
+
+    it('returns no matches on a non-reminder date', () => {
+      const s = service.defaultScheduleForPeriodCode('2026-10');
+      expect(service.remindersOn('2026-10-02', s, '2026-10')).toEqual([]);
+    });
+
+    it('never emits a payment reminder (manual only)', () => {
+      const s = service.defaultScheduleForPeriodCode('2026-10');
+      expect(
+        service
+          .remindersOn('2026-10-20', s, '2026-10')
+          .some((m) => m.category === ComplianceCategory.GST_PAYMENT),
+      ).toBe(false);
+    });
+
+    it('respects an admin override schedule', () => {
+      const s = service.defaultScheduleForPeriodCode('2026-10');
+      s.gstr1.reminders = ['2026-10-04', '2026-10-08', '2026-10-14'];
+      const matches = service.remindersOn('2026-10-08', s, '2026-10');
+      expect(
+        matches.some(
+          (m) => m.category === ComplianceCategory.GSTR_1 && m.slot === 1,
+        ),
+      ).toBe(true);
     });
   });
 });
