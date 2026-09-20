@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { AuditService } from '../audit/audit.service';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { SchedulingService } from '../schedule/scheduling.service';
 import { ComplianceTasksService } from '../compliance-tasks/compliance-tasks.service';
@@ -23,6 +24,7 @@ export class PeriodsService {
     private readonly scheduling: SchedulingService,
     private readonly tasks: ComplianceTasksService,
     private readonly config: ConfigService,
+    private readonly audit: AuditService,
   ) {}
 
   list(): Promise<GstFilingPeriod[]> {
@@ -72,10 +74,65 @@ export class PeriodsService {
     return period;
   }
 
-  async update(id: string, dto: UpdatePeriodDto): Promise<GstFilingPeriod> {
+  /**
+   * Admin edit of a period (docs/13 §3.3 / §8). Deadline and reminder-date
+   * overrides are stored on the row; any schedule change is written to the
+   * audit log (§11.7).
+   */
+  async update(
+    id: string,
+    dto: UpdatePeriodDto,
+    adminId: string,
+  ): Promise<GstFilingPeriod> {
     const period = await this.findOne(id);
-    Object.assign(period, dto);
-    return this.periods.save(period);
+
+    const schedule = dto.schedule ?? null;
+    if (dto.schedule) {
+      const problems = this.scheduling.validateSchedule(
+        period.period_code,
+        dto.schedule,
+      );
+      if (problems.length > 0) {
+        throw new BadRequestException(
+          `Invalid schedule: ${problems.join('; ')}`,
+        );
+      }
+    }
+
+    const previous = {
+      period_label: period.period_label,
+      due_date: period.due_date,
+      is_open: period.is_open,
+      schedule: period.schedule,
+    };
+
+    if (schedule) period.schedule = schedule;
+    if (dto.period_label !== undefined) period.period_label = dto.period_label;
+    if (dto.due_date !== undefined) period.due_date = dto.due_date;
+    if (dto.is_open !== undefined) period.is_open = dto.is_open;
+
+    const saved = await this.periods.save(period);
+
+    const changed = [
+      previous.period_label !== saved.period_label && 'period_label',
+      previous.due_date != null &&
+        previous.due_date !== saved.due_date &&
+        'due_date',
+      previous.is_open !== saved.is_open && 'is_open',
+      JSON.stringify(previous.schedule) !== JSON.stringify(saved.schedule) &&
+        'schedule',
+    ].filter(Boolean) as string[];
+
+    if (changed.length > 0) {
+      await this.audit.log(
+        adminId,
+        'period.schedule_updated',
+        { period_code: saved.period_code, changed },
+        { period_id: saved.id },
+      );
+    }
+
+    return saved;
   }
 
   /**

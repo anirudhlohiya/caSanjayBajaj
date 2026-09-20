@@ -7,22 +7,31 @@ import {
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
-import { DocumentsService, PeriodsService, ComplianceTasksService, ComplianceTask, ReportRequestsService } from '../../core/services/feature.services';
-import { Document, GstFilingPeriod } from '../../core/models';
+import { AuthService } from '../../core/services/auth.service';
+import {
+  DocumentsService,
+  PeriodsService,
+  ComplianceTasksService,
+  ComplianceTask,
+  ReportRequestsService,
+  ReportsService,
+} from '../../core/services/feature.services';
+import {
+  Document,
+  GstFilingPeriod,
+  REPORT_TYPE_LABELS,
+  Report,
+} from '../../core/models';
 
-const FILTERS: { key: string; label: string }[] = [
-  { key: '', label: 'All' },
-  { key: 'pending', label: 'Pending' },
-  { key: 'received', label: 'Received' },
-  { key: 'processed', label: 'Processed' },
-];
+const UPLOAD_CATEGORIES = ['gstr_1', 'gstr_3b', 'iff'];
+const NIL_CATEGORIES = ['gstr_1', 'iff'];
 
 @Component({
   selector: 'app-documents',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './documents.html',
 })
@@ -31,8 +40,11 @@ export class Documents {
   private readonly periodsService = inject(PeriodsService);
   private readonly tasksService = inject(ComplianceTasksService);
   private readonly reportReqsService = inject(ReportRequestsService);
+  private readonly reportsService = inject(ReportsService);
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   readonly loading = signal(true);
   readonly docs = signal<Document[]>([]);
@@ -41,39 +53,13 @@ export class Documents {
   readonly periods = signal<GstFilingPeriod[]>([]);
   readonly periodId = signal('');
   readonly tasks = signal<ComplianceTask[]>([]);
+  readonly reports = signal<Report[]>([]);
   readonly selectedDoc = signal<Document | null>(null);
   readonly downloading = signal(false);
   readonly page = signal(1);
   readonly pageSize = 20;
 
   reportPeriodId = '';
-
-  uploadFiles(): void {
-    this.toast.info('Upload files flow coming soon');
-  }
-
-  async requestReport(): Promise<void> {
-    if (!this.reportPeriodId) {
-      this.toast.error('Please select a period');
-      return;
-    }
-    try {
-      await this.reportReqsService.create(this.reportPeriodId);
-      this.toast.success('Report requested successfully');
-    } catch {
-      this.toast.error('Failed to request report');
-    }
-  }
-
-  async markNil(task: ComplianceTask): Promise<void> {
-    try {
-      await this.tasksService.markNil(task.id);
-      this.toast.success('Declared Nil. Pending CA confirmation.');
-      await this.load();
-    } catch {
-      this.toast.error('Failed to declare Nil');
-    }
-  }
 
   readonly filteredLabel = computed(() => {
     const f = this.filter();
@@ -82,7 +68,50 @@ export class Documents {
 
   readonly totalPages = computed(() => Math.ceil(this.total() / this.pageSize));
 
-  readonly filterChips = FILTERS;
+  readonly filterChips = [
+    { key: '', label: 'All' },
+    { key: 'pending', label: 'Pending' },
+    { key: 'received', label: 'Received' },
+    { key: 'processed', label: 'Processed' },
+  ];
+
+  readonly cadence = computed(
+    () => this.authService.userProfile()?.gst_filing_frequency ?? 'monthly',
+  );
+
+  readonly currentPeriod = computed(() => {
+    const pid = this.periodId();
+    if (pid) {
+      const match = this.periods().find((p) => p.id === pid);
+      if (match) return match;
+    }
+    return this.periods()[0];
+  });
+
+  /** Tasks that need a document upload (every category except GST payment). */
+  readonly uploadTasks = computed(() =>
+    this.tasks().filter((t) => UPLOAD_CATEGORIES.includes(t.category)),
+  );
+
+  /** GST payment is info-only — no upload required (docs/13 §3.3). */
+  readonly paymentTask = computed(() =>
+    this.tasks().find((t) => t.category === 'gst_payment'),
+  );
+
+  readonly docTotal = computed(() => this.uploadTasks().length);
+
+  readonly docDone = computed(
+    () =>
+      this.uploadTasks().filter(
+        (t) => t.status === 'completed' || t.status === 'uploaded',
+      ).length,
+  );
+
+  readonly progressPct = computed(() => {
+    const total = this.docTotal();
+    if (!total) return 0;
+    return Math.round((this.docDone() / total) * 100);
+  });
 
   constructor() {
     const initial = this.route.snapshot.queryParamMap.get('period');
@@ -95,6 +124,7 @@ export class Documents {
       const periods = await this.periodsService.list();
       this.periods.set(periods);
       if (periods.length > 0) {
+        if (!this.periodId()) this.periodId.set(periods[0].id);
         this.reportPeriodId = periods[0].id;
       }
     } catch {
@@ -107,14 +137,19 @@ export class Documents {
     this.loading.set(true);
     try {
       const pid = this.periodId();
-      if (pid) {
-        const result = await this.tasksService.list(pid);
-        this.tasks.set(result);
-      } else {
-        this.tasks.set([]);
-      }
+      const [tasks, reportsRes] = await Promise.all([
+        pid ? this.tasksService.list(pid) : Promise.resolve<ComplianceTask[]>([]),
+        this.reportsService.list({
+          filingPeriodId: pid || undefined,
+          pageSize: 100,
+        }),
+      ]);
+      this.tasks.set(tasks);
+      this.reports.set(reportsRes.items);
     } catch {
       this.tasks.set([]);
+      this.reports.set([]);
+      this.docs.set([]);
     } finally {
       this.loading.set(false);
     }
@@ -144,41 +179,70 @@ export class Documents {
     await this.load();
   }
 
-  selectDoc(doc: Document): void {
-    this.selectedDoc.set(doc);
+  goUpload(): void {
+    void this.router.navigate(['/upload']);
   }
 
-  closeDoc(): void {
-    this.selectedDoc.set(null);
+  canFileNil(task: ComplianceTask): boolean {
+    return NIL_CATEGORIES.includes(task.category);
+  }
+
+  async markNil(task: ComplianceTask): Promise<void> {
+    try {
+      await this.tasksService.markNil(task.id);
+      this.toast.success('Declared Nil. Pending CA confirmation.');
+      await this.load();
+    } catch {
+      this.toast.error('Failed to declare Nil');
+    }
+  }
+
+  async requestReport(): Promise<void> {
+    if (!this.reportPeriodId) {
+      this.toast.error('Please select a period');
+      return;
+    }
+    try {
+      await this.reportReqsService.create(this.reportPeriodId);
+      this.toast.success('Report requested successfully');
+      await this.load();
+    } catch {
+      this.toast.error('Failed to request report');
+    }
+  }
+
+  typeLabel(report: Report): string {
+    return REPORT_TYPE_LABELS[report.report_type] ?? report.report_type;
+  }
+
+  async downloadReport(report: Report): Promise<void> {
+    this.downloading.set(true);
+    try {
+      const { download_url } = await this.reportsService.downloadUrl(report.id);
+      window.open(download_url, '_blank');
+    } catch {
+      this.toast.error('Could not open this report right now.');
+    } finally {
+      this.downloading.set(false);
+    }
+  }
+
+  taskLabel(task: ComplianceTask): string {
+    switch (task.category) {
+      case 'gstr_1':
+        return 'GSTR-1';
+      case 'gstr_3b':
+        return 'GSTR-3B';
+      case 'iff':
+        return 'IFF';
+      case 'gst_payment':
+        return 'GST Payment';
+      default:
+        return task.category.replace('_', ' ');
+    }
   }
 
   periodLabel(period?: GstFilingPeriod | null): string {
     return period?.period_label ?? '—';
-  }
-
-  fileSize(bytes: string): string {
-    const n = Number(bytes);
-    if (Number.isNaN(n)) return '—';
-    if (n < 1024) return `${n} B`;
-    if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
-    return `${(n / (1024 * 1024)).toFixed(1)} MB`;
-  }
-
-  fileIcon(doc: Document): string {
-    if (doc.file_type === 'image') return 'image';
-    if (doc.file_type === 'excel') return 'table_chart';
-    return 'picture_as_pdf';
-  }
-
-  async download(doc: Document): Promise<void> {
-    this.downloading.set(true);
-    try {
-      const { download_url } = await this.documentsService.downloadUrl(doc.id);
-      window.open(download_url, '_blank');
-    } catch {
-      this.toast.error('Could not open this document right now.');
-    } finally {
-      this.downloading.set(false);
-    }
   }
 }

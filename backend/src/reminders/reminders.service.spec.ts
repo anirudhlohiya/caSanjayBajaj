@@ -42,6 +42,8 @@ describe('RemindersService', () => {
   };
   let notifications: { sendEmail: jest.Mock; sendPush: jest.Mock };
   let usersService: { getTokensForPush: jest.Mock; listActiveUsers: jest.Mock };
+  let scheduler: { doesExist: jest.Mock; addCronJob: jest.Mock };
+  const registeredJobs: Array<{ stop: () => void }> = [];
   let tasks: ComplianceTask[];
   const saved: Reminder[] = [];
 
@@ -129,6 +131,14 @@ describe('RemindersService', () => {
         return undefined;
       }),
     } as unknown as ConfigService;
+    scheduler = {
+      doesExist: jest.fn().mockReturnValue(false),
+      addCronJob: jest.fn((name: string, job: { stop: () => void }) => {
+        void name;
+        registeredJobs.push(job);
+      }),
+    };
+    registeredJobs.length = 0;
 
     service = new RemindersService(
       remindersRepo as unknown as Repository<Reminder>,
@@ -139,6 +149,7 @@ describe('RemindersService', () => {
       usersService as unknown as UsersService,
       config,
       new SchedulingService(),
+      scheduler,
     );
   });
 
@@ -308,6 +319,34 @@ describe('RemindersService', () => {
       const sent = saved.filter((r) => r.status === ReminderStatus.SENT);
       expect(sent.length).toBe(1);
       expect(sent[0].channel).toBe(ReminderChannel.EMAIL);
+    });
+  });
+
+  describe('onModuleInit', () => {
+    afterEach(() => {
+      registeredJobs.forEach((job) => job.stop());
+      registeredJobs.length = 0;
+    });
+
+    it('registers the task-reminders cron from config and starts it', () => {
+      service.onModuleInit();
+
+      expect(scheduler.doesExist).toHaveBeenCalledWith(
+        'cron',
+        'task-reminders',
+      );
+      expect(scheduler.addCronJob).toHaveBeenCalledWith(
+        'task-reminders',
+        expect.any(Object),
+      );
+    });
+
+    it('does not register a second job when one already exists', () => {
+      scheduler.doesExist = jest.fn().mockReturnValue(true);
+
+      service.onModuleInit();
+
+      expect(scheduler.addCronJob).not.toHaveBeenCalled();
     });
   });
 });

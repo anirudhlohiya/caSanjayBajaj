@@ -10,7 +10,7 @@ import {
   MinLength,
   ValidateIf,
 } from 'class-validator';
-import { UserStatus, UserType } from '../../common/enums';
+import { GstFilingFrequency, UserStatus, UserType } from '../../common/enums';
 
 export class CreateUserDto {
   @ApiProperty()
@@ -28,14 +28,18 @@ export class CreateUserDto {
   password: string;
 
   @ApiPropertyOptional()
-  @ValidateIf((o) => o.user_type === UserType.GST)
+  @ValidateIf(
+    (o: { user_type: UserType | undefined }) => o.user_type === UserType.GST,
+  )
   @IsNotEmpty({ message: 'Phone is required for GST clients' })
   @IsString()
   @Length(10, 20)
   phone?: string;
 
   @ApiPropertyOptional()
-  @ValidateIf((o) => o.user_type === UserType.GST)
+  @ValidateIf(
+    (o: { user_type: UserType | undefined }) => o.user_type === UserType.GST,
+  )
   @IsNotEmpty({ message: 'GSTIN is required for GST clients' })
   @IsString()
   @Length(15, 15)
@@ -50,6 +54,14 @@ export class CreateUserDto {
   @IsOptional()
   @IsEnum(UserStatus)
   status?: UserStatus;
+
+  @ApiPropertyOptional({
+    enum: GstFilingFrequency,
+    default: GstFilingFrequency.MONTHLY,
+  })
+  @IsOptional()
+  @IsEnum(GstFilingFrequency)
+  gst_filing_frequency?: GstFilingFrequency;
 }
 
 export class UpdateUserDto {
@@ -75,6 +87,11 @@ export class UpdateUserDto {
   @IsOptional()
   @IsEnum(UserStatus)
   status?: UserStatus;
+
+  @ApiPropertyOptional({ enum: GstFilingFrequency })
+  @IsOptional()
+  @IsEnum(GstFilingFrequency)
+  gst_filing_frequency?: GstFilingFrequency;
 }
 
 export class UpdateProfileDto {

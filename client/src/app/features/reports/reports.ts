@@ -35,6 +35,16 @@ export class Reports {
 
   readonly total = computed(() => this.reports().length);
 
+  readonly pendingRequests = computed(() =>
+    this.requests().filter((r) => r.status === 'pending'),
+  );
+
+  statusLabel(status: string): string {
+    if (status === 'fulfilled') return 'Delivered';
+    if (status === 'rejected') return 'Declined';
+    return 'Pending';
+  }
+
   constructor() {
     void this.init();
   }

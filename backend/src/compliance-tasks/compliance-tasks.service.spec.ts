@@ -22,6 +22,7 @@ describe('ComplianceTasksService', () => {
   let tasksService: ComplianceTasksService;
   let saved: ComplianceTask[];
   let findMock: jest.Mock;
+  let findOneMock: jest.Mock;
   let saveMock: jest.Mock;
 
   const notifications = {
@@ -92,11 +93,12 @@ describe('ComplianceTasksService', () => {
         saved.push(...list);
         return Promise.resolve(rows);
       });
+    findOneMock = jest.fn();
     Object.assign(tasksRepo, {
       find: findMock,
       save: saveMock,
       create: jest.fn((v: object) => v),
-      findOne: jest.fn(),
+      findOne: findOneMock,
     });
 
     tasksService = new ComplianceTasksService(
@@ -415,6 +417,47 @@ describe('ComplianceTasksService', () => {
       await expect(tasksService.confirmNil('nope', 'admin1')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('markUploadedForDocumentConfirm', () => {
+    it('marks the first pending filing task UPLOADED', async () => {
+      const row = {
+        id: 't1',
+        user_id: 'u1',
+        filing_period_id: 'p1',
+        category: ComplianceCategory.GSTR_1,
+        status: TaskStatus.PENDING,
+      };
+      findOneMock.mockResolvedValue(row);
+
+      const result = await tasksService.markUploadedForDocumentConfirm(
+        'u1',
+        'p1',
+      );
+
+      expect(result).not.toBeNull();
+      expect(result!.status).toBe(TaskStatus.UPLOADED);
+      expect(findOneMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            user_id: 'u1',
+            filing_period_id: 'p1',
+            status: TaskStatus.PENDING,
+          }) as Record<string, unknown>,
+        }),
+      );
+    });
+
+    it('returns null when nothing is pending', async () => {
+      (tasksRepo.findOne as jest.Mock).mockResolvedValue(null);
+
+      const result = await tasksService.markUploadedForDocumentConfirm(
+        'u1',
+        'p1',
+      );
+
+      expect(result).toBeNull();
     });
   });
 });

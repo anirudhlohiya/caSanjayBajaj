@@ -60,6 +60,10 @@
               <span class="material-symbols-outlined" style="font-size: 18px">visibility</span>
               View
             </button>
+            <button class="btn-outline flex-1" (click)="$event.stopPropagation(); openEdit(c)">
+              <span class="material-symbols-outlined" style="font-size: 18px">edit</span>
+              Edit
+            </button>
             <button class="btn-outline flex-1" (click)="sendReminder(c.id)">
               <span class="material-symbols-outlined" style="font-size: 18px">mail</span>
               Remind
@@ -103,6 +107,13 @@
               <td class="p-4"><app-status-chip [status]="c.status" /></td>
               <td class="p-4 text-neutral-500 tabular-nums">{{ fmtDate(c.created_at) }}</td>
               <td class="p-4 text-right whitespace-nowrap" (click)="$event.stopPropagation()">
+                <button
+                  class="p-1.5 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors mr-1"
+                  title="Edit Client"
+                  (click)="openEdit(c)"
+                >
+                  <span class="material-symbols-outlined" style="font-size: 20px">edit</span>
+                </button>
                 <button
                   class="p-1.5 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors mr-1"
                   title="View Details"
@@ -262,3 +273,74 @@
     </form>
   </div>
 </app-modal>
+
+@if (editTarget(); as target) {
+  <app-modal [open]="showEdit()" (close)="showEdit.set(false)">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-headline-md text-headline-md text-on-surface">Edit Client</h2>
+        <button class="text-on-surface-variant hover:text-on-surface" (click)="showEdit.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form class="flex flex-col gap-4" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1 sm:col-span-2">
+            <label class="font-label-md text-label-md text-on-surface" for="e-name">Full Name</label>
+            <input id="e-name" formControlName="name"
+              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+              placeholder="Acme Corporation" />
+            @if (editForm.controls.name.touched && editForm.controls.name.invalid) {
+              <span class="text-error text-body-sm">Name is required</span>
+            }
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-label-md text-on-surface" for="e-phone">Phone</label>
+            <input id="e-phone" formControlName="phone"
+              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+              [class.border-error]="editForm.get('phone')?.touched && editForm.get('phone')?.invalid"
+              placeholder="9876543210" />
+            @if (editForm.get('phone')?.touched && editForm.get('phone')?.invalid) {
+              <span class="text-error text-body-sm">Enter a valid phone number (10-20 digits)</span>
+            }
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-label-md text-on-surface" for="e-gstin">GSTIN</label>
+            <input id="e-gstin" formControlName="gstin"
+              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+              [class.border-error]="editForm.get('gstin')?.touched && editForm.get('gstin')?.invalid"
+              placeholder="29ABCDE1234F1Z5" />
+            @if (editForm.get('gstin')?.touched && editForm.get('gstin')?.invalid) {
+              <span class="text-error text-body-sm">GSTIN must be exactly 15 characters</span>
+            }
+          </div>
+          @if (target.user_type === 'gst') {
+            <div class="flex flex-col gap-1">
+              <label class="font-label-md text-label-md text-on-surface" for="e-freq">Filing Frequency</label>
+              <select id="e-freq" formControlName="gst_filing_frequency"
+                class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+              </select>
+            </div>
+          }
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-label-md text-on-surface" for="e-status">Status</label>
+            <select id="e-status" formControlName="status"
+              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-2">
+          <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showEdit.set(false)">Cancel</button>
+          <button type="submit" [disabled]="editing()"
+            class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+            {{ editing() ? 'Saving…' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </app-modal>
+}

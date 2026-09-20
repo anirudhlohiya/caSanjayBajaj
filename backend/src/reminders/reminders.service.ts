@@ -1,5 +1,11 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
+import { CronJob } from 'cron';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, MoreThanOrEqual, Repository } from 'typeorm';
@@ -29,8 +35,10 @@ function localDateStr(d: Date = new Date()): string {
 }
 
 @Injectable()
-export class RemindersService {
+export class RemindersService implements OnModuleInit {
   private readonly logger = new Logger(RemindersService.name);
+  /** The cron job name is stable so re-registration (hot reload) is idempotent. */
+  private readonly cronJobName = 'task-reminders';
 
   constructor(
     @InjectRepository(Reminder)
@@ -45,7 +53,32 @@ export class RemindersService {
     private readonly usersService: UsersService,
     private readonly config: ConfigService,
     private readonly scheduling: SchedulingService,
+    private readonly scheduler: SchedulerRegistry,
   ) {}
+
+  /**
+   * Register the auto-reminder cron from config (docs/13 §5.2). Expression is
+   * TASK_REMINDER_CRON (default 0 8 * * * = 08:00 server time).
+   */
+  onModuleInit(): void {
+    if (this.config.get('nodeEnv') === 'test') return;
+
+    if (this.scheduler.doesExist('cron', this.cronJobName)) return;
+
+    const expression =
+      this.config.get<string>('reminders.taskCron') ?? '0 8 * * *';
+    const job = new CronJob(expression, () => {
+      void this.handleAutoReminders().catch((err) => {
+        this.logger.error(
+          `Auto reminder cron (${expression}) failed`,
+          err instanceof Error ? err.stack : err,
+        );
+      });
+    });
+    this.scheduler.addCronJob(this.cronJobName, job);
+    job.start();
+    this.logger.log(`Auto reminders scheduled on cron "${expression}"`);
+  }
 
   async sendReminder(
     auth: AuthUser | null,
@@ -188,8 +221,8 @@ export class RemindersService {
   }
 
   // ----- Scheduled job: auto reminders (docs/13 §5.2) -----
+  // Registered dynamically in onModuleInit; the expression comes from config.
 
-  @Cron(CronExpression.EVERY_DAY_AT_8AM)
   async handleAutoReminders(today: string = localDateStr()): Promise<void> {
     if (this.config.get('nodeEnv') === 'test') return;
 

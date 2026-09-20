@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ComplianceTasksModule } from '../compliance-tasks/compliance-tasks.module';
 import { Document } from '../entities/document.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { StorageModule } from '../storage/storage.module';
@@ -12,6 +13,7 @@ import { DocumentsService } from './documents.service';
     TypeOrmModule.forFeature([Document, GstFilingPeriod]),
     StorageModule,
     UsersModule,
+    ComplianceTasksModule,
   ],
   controllers: [DocumentsController],
   providers: [DocumentsService],

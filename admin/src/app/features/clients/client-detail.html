@@ -34,10 +34,33 @@
           <dt class="text-on-surface-variant">Type</dt>
           <dd class="text-on-surface font-medium flex items-center gap-2">
             {{ c.user_type.toUpperCase() }}
-            @if (c.user_type === 'gst' && c.gst_filing_frequency) {
-              <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-medium tracking-wide">
-                {{ c.gst_filing_frequency === 'monthly' ? 'Monthly' : 'Quarterly' }}
-              </span>
+            @if (c.user_type === 'gst') {
+              @if (!editingCadence()) {
+                <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-medium tracking-wide">
+                  {{ c.gst_filing_frequency === 'quarterly' ? 'Quarterly' : 'Monthly' }}
+                </span>
+                <button
+                  class="p-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"
+                  title="Change filing frequency"
+                  (click)="startCadenceEdit()"
+                >
+                  <span class="material-symbols-outlined" style="font-size: 16px">edit</span>
+                </button>
+              } @else {
+                <select id="cadence-select" [value]="c.gst_filing_frequency"
+                  class="px-2 py-1 text-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                </select>
+                <button class="px-2 py-1 bg-primary text-on-primary rounded text-xs font-label-sm hover:bg-secondary"
+                  [disabled]="cadenceSaving()" (click)="saveCadence()">
+                  {{ cadenceSaving() ? 'Saving…' : 'Save' }}
+                </button>
+                <button class="px-2 py-1 text-on-surface-variant hover:bg-surface-container-high rounded text-xs"
+                  [disabled]="cadenceSaving()" (click)="editingCadence.set(false)">
+                  Cancel
+                </button>
+              }
             }
           </dd>
         </div>

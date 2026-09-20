@@ -10,6 +10,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { AuthUser } from '../common/decorators/current-user.decorator';
 import { PaginationQueryDto } from '../common/dto/pagination';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermissionsGuard, RolesGuard } from '../common/guards/roles.guard';
@@ -48,8 +50,12 @@ export class UsersController {
   @Patch(':id')
   @Permissions('view_clients')
   @ApiOperation({ summary: 'Update a client user' })
-  update(@Param() { id }: UserIdParamDto, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(id, dto);
+  update(
+    @CurrentUser() auth: AuthUser,
+    @Param() { id }: UserIdParamDto,
+    @Body() dto: UpdateUserDto,
+  ) {
+    return this.usersService.update(id, dto, auth.sub);
   }
 
   @Delete(':id')

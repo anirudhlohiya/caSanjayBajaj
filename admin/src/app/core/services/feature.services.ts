@@ -67,7 +67,13 @@ export class ClientsService {
 
   update(
     id: string,
-    body: { name?: string; phone?: string; gstin?: string; status?: string },
+    body: {
+      name?: string;
+      phone?: string;
+      gstin?: string;
+      status?: string;
+      gst_filing_frequency?: 'monthly' | 'quarterly';
+    },
   ) {
     return firstValueFrom(this.api.patch<Client>(`/admin/users/${id}`, body));
   }

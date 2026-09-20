@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsWhere, In, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { ComplianceTask, GstFilingPeriod, User } from '../entities';
 import {
@@ -205,6 +205,35 @@ export class ComplianceTasksService {
     const task = await this.tasksRepository.findOne({ where: { id } });
     if (!task) throw new NotFoundException('Task not found');
     task.status = status;
+    return this.tasksRepository.save(task);
+  }
+
+  /**
+   * Advances the client's first still-open filing task for a period to
+   * UPLOADED after they confirm a document upload (docs/13 §5.2). This is what
+   * stops the task-slack reminders once evidence is on file. Returns null when
+   * nothing is pending.
+   */
+  async markUploadedForDocumentConfirm(
+    userId: string,
+    periodId: string,
+  ): Promise<ComplianceTask | null> {
+    const task = await this.tasksRepository.findOne({
+      where: {
+        user_id: userId,
+        filing_period_id: periodId,
+        category: In([
+          ComplianceCategory.GSTR_1,
+          ComplianceCategory.GSTR_3B,
+          ComplianceCategory.IFF,
+        ]),
+        status: TaskStatus.PENDING,
+      },
+      order: { created_at: 'ASC' },
+    });
+    if (!task) return null;
+
+    task.status = TaskStatus.UPLOADED;
     return this.tasksRepository.save(task);
   }
 

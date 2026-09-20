@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PeriodsService } from '../../core/services/feature.services';
 import { ToastService } from '../../core/services/toast.service';
@@ -20,6 +21,7 @@ export class Settings implements OnInit {
   private readonly periodsService = inject(PeriodsService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly periods = signal<FilingPeriod[]>([]);
@@ -73,6 +75,97 @@ export class Settings implements OnInit {
 
   ngOnInit(): void {
     void this.load();
+    const codeCtrl = this.addForm.get('period_code');
+    const dueCtrl = this.addForm.get('due_date');
+    codeCtrl?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.prefillSchedule());
+    dueCtrl?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.prefillSchedule());
+  }
+
+  private readonly MONTHS = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  /**
+   * Mirror of SchedulingService.defaultScheduleForPeriodCode (docs/13 §3.2):
+   * default dates for a period, computed from its YYYY-MM period code. The
+   * backend applies exactly these when an admin leaves the schedule blank,
+   * so we prefill them so the editor always shows what will actually fire.
+   */
+  private defaultScheduleFor(periodCode: string) {
+    const [yearStr, monthStr] = periodCode.split('-');
+    const year = Number(yearStr);
+    const month = Number(monthStr);
+    const pad = (d: number) => String(d).padStart(2, '0');
+    const inPeriod = (day: number) => `${year}-${pad(month)}-${pad(day)}`;
+    const qIndex = Math.floor((month - 1) / 3);
+    const endMonth = qIndex * 3 + 3;
+    const settlingMonth = endMonth === 12 ? 1 : endMonth + 1;
+    const settlingYear = endMonth === 12 ? year + 1 : year;
+    const inSettling = (day: number) =>
+      `${settlingYear}-${pad(settlingMonth)}-${pad(day)}`;
+    const startMonth = qIndex * 3 + 1;
+
+    return {
+      gstr1: {
+        due: inPeriod(11),
+        reminders: [inPeriod(5), inPeriod(7), inPeriod(11)],
+      },
+      gstr3b: {
+        due: inPeriod(20),
+        reminders: [inPeriod(18)],
+      },
+      iff: {
+        due: inPeriod(13),
+        reminders: [inPeriod(5), inPeriod(7), inPeriod(11)],
+      },
+      payment: {
+        due: inPeriod(20),
+        reminders: [],
+      },
+      quarterly: {
+        gstr3b: {
+          quarter_label: `${this.MONTHS[startMonth - 1]}–${this.MONTHS[endMonth - 1]} ${year}`,
+          due: inSettling(22),
+          reminders: [inSettling(20)],
+        },
+      },
+    };
+  }
+
+  private scheduleIsBlank(): boolean {
+    const s = this.addForm.get('schedule');
+    if (!s) return true;
+    const raw = s.getRawValue() as Record<string, unknown>;
+    const walk = (node: unknown): boolean => {
+      if (node == null) return true;
+      if (typeof node === 'string') return node === '';
+      if (Array.isArray(node)) return node.every((x) => walk(x));
+      if (typeof node === 'object') {
+        return Object.values(node).every((x) => walk(x));
+      }
+      return true;
+    };
+    return walk(raw);
+  }
+
+  prefillSchedule(): void {
+    if (!this.scheduleIsBlank()) return;
+    let periodCode = this.addForm.get('period_code')?.value ?? '';
+    if (!/^\d{4}-\d{2}$/.test(periodCode)) {
+      const due = this.addForm.get('due_date')?.value ?? '';
+      periodCode = /^\d{4}-\d{2}/.test(due) ? due.slice(0, 7) : '';
+    }
+    if (!periodCode) return;
+    try {
+      this.addForm.patchValue({ schedule: this.defaultScheduleFor(periodCode) });
+    } catch {
+      // invalid period code — leave the editor untouched
+    }
   }
 
   async load(): Promise<void> {
@@ -86,6 +179,7 @@ export class Settings implements OnInit {
 
   openAdd(): void {
     this.addForm.reset({ is_open: true });
+    this.prefillSchedule();
     this.showAdd.set(true);
   }
 

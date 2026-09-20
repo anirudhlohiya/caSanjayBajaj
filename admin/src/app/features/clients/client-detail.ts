@@ -67,6 +67,8 @@ export class ClientDetail implements OnInit {
   readonly sending = signal(false);
   readonly processing = signal<string[]>([]);
   readonly downloading = signal<string[]>([]);
+  readonly editingCadence = signal(false);
+  readonly cadenceSaving = signal(false);
 
   private readonly id = signal('');
 
@@ -349,6 +351,39 @@ export class ClientDetail implements OnInit {
 
   sendReminder(): void {
     void this.router.navigate(['/reminders'], { queryParams: { client: this.id() } });
+  }
+
+  startCadenceEdit(): void {
+    this.editingCadence.set(true);
+  }
+
+  async saveCadence(): Promise<void> {
+    const c = this.client();
+    if (!c || c.user_type !== 'gst') return;
+    const select = document.getElementById('cadence-select') as HTMLSelectElement | null;
+    const value = select?.value === 'quarterly' ? 'quarterly' : 'monthly';
+    if (value === c.gst_filing_frequency) {
+      this.editingCadence.set(false);
+      return;
+    }
+    this.cadenceSaving.set(true);
+    try {
+      await this.clientsService.update(this.id(), { gst_filing_frequency: value });
+      this.client.update((cur) =>
+        cur ? { ...cur, gst_filing_frequency: value } : cur,
+      );
+      this.toast.success(
+        value === 'quarterly'
+          ? 'Client is now quarterly — the next scheduled period will use the quarterly calendar'
+          : 'Client is now monthly',
+      );
+      this.editingCadence.set(false);
+    } catch (e) {
+      console.error(e);
+      this.toast.error('Failed to update filing frequency');
+    } finally {
+      this.cadenceSaving.set(false);
+    }
   }
 
   fmtDate(iso: string | null): string {

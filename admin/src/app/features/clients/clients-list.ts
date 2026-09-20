@@ -55,6 +55,9 @@ export class ClientsList implements OnInit {
   readonly showAdd = signal(false);
   readonly adding = signal(false);
   readonly dupEmail = signal('');
+  readonly showEdit = signal(false);
+  readonly editing = signal(false);
+  readonly editTarget = signal<Client | null>(null);
 
   readonly addForm = this.fb.nonNullable.group(
     {
@@ -69,6 +72,14 @@ export class ClientsList implements OnInit {
     },
     { validators: gstClientValidator },
   );
+
+  readonly editForm = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.maxLength(120)]],
+    phone: ['', [Validators.pattern(/^\d{10,20}$/)]],
+    gstin: ['', [Validators.pattern(/^[0-9A-Za-z]{15}$/)]],
+    status: ['active'],
+    gst_filing_frequency: ['monthly'],
+  });
 
   readonly filtered = computed(() => {
     const q = this.query().toLowerCase().trim();
@@ -170,6 +181,62 @@ export class ClientsList implements OnInit {
 
   viewClient(id: string): void {
     void this.router.navigate(['/clients', id]);
+  }
+
+  openEdit(client: Client): void {
+    this.editTarget.set(client);
+    this.editForm.setValue({
+      name: client.name,
+      phone: client.phone ?? '',
+      gstin: client.gstin ?? '',
+      status: client.status,
+      gst_filing_frequency: client.gst_filing_frequency ?? 'monthly',
+    });
+    this.showEdit.set(true);
+  }
+
+  async submitEdit(): Promise<void> {
+    const target = this.editTarget();
+    if (!target) return;
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+    this.editing.set(true);
+    try {
+      const f = this.editForm.value;
+      const body: {
+        name: string;
+        status: string;
+        phone?: string;
+        gstin?: string;
+        gst_filing_frequency?: 'monthly' | 'quarterly';
+      } = {
+        name: f.name ?? '',
+        status: f.status ?? '',
+        phone: f.phone || undefined,
+        gstin: f.gstin ? f.gstin.toUpperCase() : undefined,
+      };
+      if (target.user_type === 'gst') {
+        body.gst_filing_frequency = f.gst_filing_frequency as
+          | 'monthly'
+          | 'quarterly';
+      }
+      await this.clientsService.update(target.id, body);
+      this.toast.success('Client updated');
+      this.showEdit.set(false);
+      this.editTarget.set(null);
+      await this.load();
+    } catch (err) {
+      const msg = err instanceof HttpErrorResponse ? (err.error?.message ?? '') : '';
+      if (/already exists|another/i.test(String(msg))) {
+        this.toast.error(String(msg));
+      } else {
+        throw err;
+      }
+    } finally {
+      this.editing.set(false);
+    }
   }
 
   sendReminder(id: string): void {

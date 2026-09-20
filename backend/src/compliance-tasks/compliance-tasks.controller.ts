@@ -10,14 +10,14 @@ import {
 } from '@nestjs/common';
 import { ComplianceTasksService } from './compliance-tasks.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/permissions.decorator';
+import { PermissionsGuard, RolesGuard } from '../common/guards/roles.guard';
+import { Permissions, Roles } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
 import { TaskStatus } from '../common/enums';
 
 @Controller('compliance-tasks')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class ComplianceTasksController {
   constructor(private readonly tasksService: ComplianceTasksService) {}
 
@@ -47,6 +47,7 @@ export class ComplianceTasksController {
 
   /** Admin pending-nil queue (docs/13 §6.5). */
   @Roles('super_admin', 'staff')
+  @Permissions('view_clients')
   @Get('admin/nil-pending')
   async nilPending() {
     return this.tasksService.pendingNilFilings();
@@ -54,12 +55,14 @@ export class ComplianceTasksController {
 
   /** Admin confirms a nil filing → task completed (docs/13 §3.5). */
   @Roles('super_admin', 'staff')
+  @Permissions('view_clients')
   @Patch('admin/:id/nil-confirm')
   async confirmNil(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.tasksService.confirmNil(id, user.sub);
   }
 
   @Roles('super_admin', 'staff')
+  @Permissions('view_clients')
   @Get('admin/client/:clientId')
   async getAdminClientTasks(
     @Param('clientId') clientId: string,
@@ -69,6 +72,7 @@ export class ComplianceTasksController {
   }
 
   @Roles('super_admin', 'staff')
+  @Permissions('view_clients')
   @Post('admin/client/:clientId/auto-generate')
   async adminAutoGenerateTasks(
     @Param('clientId') clientId: string,
@@ -78,6 +82,7 @@ export class ComplianceTasksController {
   }
 
   @Roles('super_admin', 'staff')
+  @Permissions('view_clients')
   @Patch('admin/:id/payment')
   async updatePayment(
     @Param('id') id: string,
@@ -92,6 +97,7 @@ export class ComplianceTasksController {
   }
 
   @Roles('super_admin', 'staff')
+  @Permissions('view_clients')
   @Patch('admin/:id/status')
   async updateStatus(
     @Param('id') id: string,

@@ -8,6 +8,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { AuthUser } from '../common/decorators/current-user.decorator';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermissionsGuard, RolesGuard } from '../common/guards/roles.guard';
@@ -53,7 +55,11 @@ export class PeriodsController {
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Permissions('manage_settings')
   @ApiOperation({ summary: 'Update a filing period (admin)' })
-  update(@Param('id') id: string, @Body() dto: UpdatePeriodDto) {
-    return this.periodsService.update(id, dto);
+  update(
+    @CurrentUser() auth: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: UpdatePeriodDto,
+  ) {
+    return this.periodsService.update(id, dto, auth.sub);
   }
 }

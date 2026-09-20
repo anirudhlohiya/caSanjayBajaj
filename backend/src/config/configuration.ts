@@ -46,6 +46,12 @@ export default () => ({
   reminders: {
     leadDays: parseInt(process.env.REMINDER_LEAD_DAYS ?? '5', 10),
     cron: process.env.REMINDER_CRON ?? '0 8 * * *',
+    // Cron that drives the *task-slack* auto reminders (docs/13 §5.2).
+    // TASK_REMINDER_CRON overrides REMINDER_CRON; both default to 08:00.
+    taskCron:
+      process.env.TASK_REMINDER_CRON ??
+      process.env.REMINDER_CRON ??
+      '0 8 * * *',
   },
 
   shareLinks: {

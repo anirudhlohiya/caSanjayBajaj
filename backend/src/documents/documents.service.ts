@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ComplianceTasksService } from '../compliance-tasks/compliance-tasks.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { paginate, PaginatedResult } from '../common/dto/pagination';
 import { DocumentStatus } from '../common/enums';
@@ -28,6 +29,7 @@ export class DocumentsService {
     private readonly periods: Repository<GstFilingPeriod>,
     private readonly storage: StorageService,
     private readonly usersService: UsersService,
+    private readonly tasksService: ComplianceTasksService,
   ) {}
 
   async requestUploadUrl(auth: AuthUser, dto: CreateUploadUrlDto) {
@@ -88,7 +90,18 @@ export class DocumentsService {
 
     doc.status = DocumentStatus.RECEIVED;
     doc.file_size_bytes = String(dto.file_size_bytes);
-    return this.documents.save(doc);
+    const saved = await this.documents.save(doc);
+
+    // Evidence is now on file: advance the first pending filing task for this
+    // user+period so slack reminders skip it (docs/13 §5.2).
+    if (doc.status === DocumentStatus.RECEIVED) {
+      await this.tasksService.markUploadedForDocumentConfirm(
+        doc.user_id,
+        doc.filing_period_id,
+      );
+    }
+
+    return saved;
   }
 
   async listForUser(

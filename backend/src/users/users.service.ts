@@ -13,7 +13,13 @@ import {
   PaginatedResult,
   PaginationQueryDto,
 } from '../common/dto/pagination';
-import { DevicePlatform, UserStatus, UserType } from '../common/enums';
+import {
+  DevicePlatform,
+  GstFilingFrequency,
+  UserStatus,
+  UserType,
+} from '../common/enums';
+import { AuditService } from '../audit/audit.service';
 import { DeviceToken } from '../entities/device-token.entity';
 import { User } from '../entities/user.entity';
 import {
@@ -30,6 +36,7 @@ export class UsersService {
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(DeviceToken)
     private readonly deviceTokens: Repository<DeviceToken>,
+    private readonly audit: AuditService,
   ) {}
 
   async create(dto: CreateUserDto): Promise<User> {
@@ -57,6 +64,8 @@ export class UsersService {
       gstin: dto.gstin?.toUpperCase() ?? null,
       user_type: dto.user_type ?? UserType.GST,
       status: dto.status ?? UserStatus.ACTIVE,
+      gst_filing_frequency:
+        dto.gst_filing_frequency ?? GstFilingFrequency.MONTHLY,
     });
     return this.users.save(user);
   }
@@ -77,10 +86,29 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, dto: UpdateUserDto): Promise<User> {
+  /**
+   * Admin-side update of a client user. Every cadence change is written to the
+   * audit log (docs/13 §3.3 / §11.7) — it only takes effect from the *next*
+   * generated month; existing tasks are untouched.
+   */
+  async update(id: string, dto: UpdateUserDto, adminId: string): Promise<User> {
     const user = await this.findOne(id);
+    const previousCadence = user.gst_filing_frequency;
     Object.assign(user, dto);
-    return this.users.save(user);
+    const saved = await this.users.save(user);
+
+    if (
+      dto.gst_filing_frequency &&
+      dto.gst_filing_frequency !== previousCadence
+    ) {
+      await this.audit.log(
+        adminId,
+        'user.cadence_changed',
+        { from: previousCadence, to: dto.gst_filing_frequency },
+        { user_id: saved.id },
+      );
+    }
+    return saved;
   }
 
   async remove(id: string): Promise<void> {
