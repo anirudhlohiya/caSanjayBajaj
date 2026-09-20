@@ -1,73 +1,101 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/unbound-method */
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { ShareLinksService, hashToken } from './share-links.service';
-import { ReportShareLink } from '../entities/report-share-link.entity';
 import { Repository } from 'typeorm';
+import { ReportShareLink } from '../entities/report-share-link.entity';
+import { hashToken, ShareLinksService } from './share-links.service';
 
 describe('ShareLinksService', () => {
   let service: ShareLinksService;
-  let linksRepo: jest.Mocked<Repository<ReportShareLink>>;
+  let saved: ReportShareLink[];
+  let saveMock: jest.Mock;
+  let createMock: jest.Mock;
+  let findOneMock: jest.Mock;
 
-  beforeEach(async () => {
-    linksRepo = {
-      create: jest.fn().mockImplementation((dto) => dto),
-      save: jest
-        .fn()
-        .mockImplementation((entity) =>
-          Promise.resolve({ id: 'link-id', ...entity }),
-        ),
-      findOne: jest.fn(),
-    } as any;
+  const config = {
+    get: jest.fn().mockImplementation((key: string) => {
+      if (key === 'shareLinks.ttlDays') return 30;
+      return undefined;
+    }),
+  } as unknown as ConfigService;
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ShareLinksService,
-        {
-          provide: getRepositoryToken(ReportShareLink),
-          useValue: linksRepo,
+  const linkRow = (overrides: Partial<ReportShareLink> = {}) =>
+    ({
+      id: 'l1',
+      report_id: 'r1',
+      token_hash: 'abc',
+      expires_at: overrides.expires_at ?? new Date(Date.now() + 30 * 86400_000),
+      ...overrides,
+    }) as ReportShareLink;
+
+  beforeEach(() => {
+    saved = [];
+    saveMock = jest.fn((v: ReportShareLink) => {
+      const row = { ...v, id: v.id ?? `l${saved.length + 1}` };
+      saved.push(row);
+      return Promise.resolve(row);
+    });
+    createMock = jest.fn((v: object) => v);
+    findOneMock = jest
+      .fn()
+      .mockImplementation(
+        (opts: { where?: { token_hash?: string }; relations?: string[] }) => {
+          const row =
+            saved.find((r) => r.token_hash === opts?.where?.token_hash) ?? null;
+          return Promise.resolve(row);
         },
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn().mockReturnValue(30), // ttlDays = 30
-          },
-        },
-      ],
-    }).compile();
+      );
 
-    service = module.get<ShareLinksService>(ShareLinksService);
+    const repo = {
+      save: saveMock,
+      create: createMock,
+      findOne: findOneMock,
+    } as unknown as Repository<ReportShareLink>;
+
+    service = new ShareLinksService(repo, config);
   });
 
+  afterEach(() => jest.clearAllMocks());
+
   describe('createLink', () => {
-    it('creates a link with hashed token and expiry', async () => {
-      const { token, expires_at } = await service.createLink('report-1');
+    it('stores sha256(token) with a 30-day expiry and returns the raw token', async () => {
+      const issued = await service.createLink('r1');
 
-      expect(token).toBeDefined();
-      expect(expires_at).toBeInstanceOf(Date);
+      expect(typeof issued.token).toBe('string');
+      expect(issued.token.length).toBeGreaterThanOrEqual(32);
+      expect(issued.expires_at.getTime()).toBeGreaterThan(Date.now());
+      expect(saved).toHaveLength(1);
+      expect(saved[0].token_hash).toBe(hashToken(issued.token));
+      expect(saved[0].report_id).toBe('r1');
+      // ~30 days out
+      expect(
+        Math.abs(issued.expires_at.getTime() - Date.now() - 30 * 86400_000),
+      ).toBeLessThan(5000);
+    });
 
-      expect(linksRepo.create).toHaveBeenCalledWith({
-        report_id: 'report-1',
-        token_hash: hashToken(token),
-        expires_at: expires_at,
-      });
-      expect(linksRepo.save).toHaveBeenCalled();
+    it('never stores the readable token', async () => {
+      const issued = await service.createLink('r1');
+      expect(JSON.stringify(saved[0]).includes(issued.token)).toBe(false);
     });
   });
 
   describe('findByToken', () => {
-    it('looks up link by hashed token', async () => {
-      const mockLink = { id: 'link-id' };
-      linksRepo.findOne.mockResolvedValue(mockLink as any);
+    it('resolves a valid token to the link with the report loaded', async () => {
+      saved = [
+        linkRow({ token_hash: 'abc', report: {} as ReportShareLink['report'] }),
+      ];
+      findOneMock.mockImplementation(() => Promise.resolve(saved[0]));
 
-      const result = await service.findByToken('test-token');
+      const link = await service.findByToken('unknown-raw');
+      expect(link).not.toBeNull();
+      expect(findOneMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { token_hash: hashToken('unknown-raw') },
+        }),
+      );
+    });
 
-      expect(result).toBe(mockLink);
-      expect(linksRepo.findOne).toHaveBeenCalledWith({
-        where: { token_hash: hashToken('test-token') },
-        relations: { report: { filing_period: true } },
-      });
+    it('returns null for an unknown token', async () => {
+      const link = await service.findByToken('nope');
+      expect(link).toBeNull();
     });
   });
 });
