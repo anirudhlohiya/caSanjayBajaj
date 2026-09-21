@@ -91,18 +91,6 @@ function renderInlineRuns(parent: Element): string {
   return out;
 }
 
-function renderTextboxContent(
-  w: Element,
-  wrap: (inner: string) => string,
-): string {
-  const out: string[] = [];
-  for (const p of Array.from(w.getElementsByTagName('w:p'))) {
-    out.push(renderParagraph(p));
-  }
-  const joined = out.join('');
-  return joined ? wrap(joined) : '';
-}
-
 function renderParagraph(p: Element): string {
   const pPr = p.getElementsByTagName('w:pPr')[0] ?? null;
 

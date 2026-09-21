@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -15,6 +14,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermissionsGuard, RolesGuard } from '../common/guards/roles.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { AuthUser } from '../common/decorators/current-user.decorator';
 import { PaginationQueryDto } from '../common/dto/pagination';
 import { TicketsService } from './tickets.service';
 import {
@@ -34,7 +34,7 @@ export class ClientTicketsController {
   @Get()
   @ApiOperation({ summary: 'List my tickets' })
   list(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthUser,
     @Query() query: PaginationQueryDto & { status?: string },
   ) {
     return this.ticketsService.listForUser(user.sub, query);
@@ -43,7 +43,7 @@ export class ClientTicketsController {
   @Post('attachment-upload-url')
   @ApiOperation({ summary: 'Get presigned URL for attachment upload' })
   attachmentUploadUrl(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthUser,
     @Body() dto: TicketAttachmentUploadDto,
   ) {
     return this.ticketsService.createAttachmentUrlForUser(
@@ -56,7 +56,7 @@ export class ClientTicketsController {
   @Post('attachments/:attachmentId/download-url')
   @ApiOperation({ summary: 'Get presigned download URL for an attachment' })
   attachmentDownloadUrl(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthUser,
     @Param('attachmentId', ParseUUIDPipe) attachmentId: string,
   ) {
     return this.ticketsService.getAttachmentDownloadUrlForUser(
@@ -67,20 +67,20 @@ export class ClientTicketsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get ticket detail' })
-  get(@CurrentUser() user: any, @Param('id', ParseUUIDPipe) id: string) {
+  get(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.ticketsService.findOneForUser(id, user.sub);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create a ticket' })
-  create(@CurrentUser() user: any, @Body() dto: CreateTicketDto) {
+  create(@CurrentUser() user: AuthUser, @Body() dto: CreateTicketDto) {
     return this.ticketsService.createForUser(user.sub, dto);
   }
 
   @Post(':id/messages')
   @ApiOperation({ summary: 'Reply to a ticket' })
   reply(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CreateTicketMessageDto,
   ) {
@@ -89,7 +89,7 @@ export class ClientTicketsController {
 
   @Post(':id/close')
   @ApiOperation({ summary: 'Close a ticket' })
-  close(@CurrentUser() user: any, @Param('id', ParseUUIDPipe) id: string) {
+  close(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.ticketsService.closeForUser(id, user.sub);
   }
 }
@@ -121,7 +121,7 @@ export class AdminTicketsController {
   @Permissions('view_clients')
   @ApiOperation({ summary: 'Reply to a ticket as admin' })
   reply(
-    @CurrentUser() admin: any,
+    @CurrentUser() admin: AuthUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CreateTicketMessageDto,
   ) {

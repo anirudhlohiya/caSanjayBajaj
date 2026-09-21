@@ -29,6 +29,10 @@ import { PermissionsGuard } from '../common/guards/roles.guard';
 export class RentAgreementsController {
   constructor(private readonly rentAgreementsService: RentAgreementsService) {}
 
+  private errorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+  }
+
   @Get('templates')
   getTemplates() {
     return { data: TEMPLATES };
@@ -67,8 +71,8 @@ export class RentAgreementsController {
   }
 
   @Post('preview')
-  async preview(@Body() createDto: CreateRentAgreementDto) {
-    return { data: await this.rentAgreementsService.previewDocx(createDto) };
+  preview(@Body() createDto: CreateRentAgreementDto) {
+    return { data: this.rentAgreementsService.previewDocx(createDto) };
   }
 
   @Post('preview-pdf')
@@ -93,7 +97,7 @@ export class RentAgreementsController {
     } catch (error) {
       res.status(500).json({
         message: 'Failed to generate PDF preview',
-        error: error.message,
+        error: this.errorMessage(error),
       });
     }
   }
@@ -112,9 +116,10 @@ export class RentAgreementsController {
       );
       res.send(buffer);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: 'Failed to convert document', error: error.message });
+      res.status(500).json({
+        message: 'Failed to convert document',
+        error: this.errorMessage(error),
+      });
     }
   }
 
@@ -149,7 +154,7 @@ export class RentAgreementsController {
       const agreement = await this.rentAgreementsService.findOne(id);
       const filename2 =
         `Rent_Agreement_${agreement.tenant_name || 'Document'}.docx`.replace(
-          /[^a-zA-Z0-9_\-\.]/g,
+          /[^a-zA-Z0-9_\-.]/g,
           '_',
         );
 
@@ -160,9 +165,10 @@ export class RentAgreementsController {
       );
       res.send(buffer);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: 'Failed to generate document', error: error.message });
+      res.status(500).json({
+        message: 'Failed to generate document',
+        error: this.errorMessage(error),
+      });
     }
   }
 
@@ -192,7 +198,7 @@ export class RentAgreementsController {
     } catch (error) {
       res.status(500).json({
         message: 'Failed to generate PDF preview',
-        error: error.message,
+        error: this.errorMessage(error),
       });
     }
   }

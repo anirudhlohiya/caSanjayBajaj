@@ -68,8 +68,8 @@ export class LibreOfficeService {
       expiresAt: Date.now() + PDF_CACHE_TTL_MS,
     });
     if (this.cache.size > PDF_CACHE_MAX) {
-      const oldest = this.cache.keys().next().value;
-      if (oldest !== undefined) this.cache.delete(oldest);
+      const next = this.cache.keys().next();
+      if (!next.done) this.cache.delete(next.value);
     }
     return pdf;
   }
@@ -132,7 +132,8 @@ export class LibreOfficeService {
       }, this.timeoutMs);
 
       child.on('error', (err) => {
-        if ((err as any)?.code === 'ENOENT') {
+        const nodeError = err as NodeJS.ErrnoException;
+        if (nodeError.code === 'ENOENT') {
           fail(new Error(`LibreOffice binary not found: ${this.binary}`));
         } else {
           fail(err);

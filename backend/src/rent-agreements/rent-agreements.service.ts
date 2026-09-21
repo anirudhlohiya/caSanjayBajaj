@@ -19,9 +19,18 @@ import * as fs from 'fs';
 import * as path from 'path';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
-import HTMLtoDOCX from 'html-to-docx';
+// html-to-docx ships no type declarations alongside its UMD build.
+import HTMLtoDOCXRaw from 'html-to-docx';
 import { docxToHtml } from './docx-to-html';
 import { sanitizeDocumentXml } from './docx-repair';
+
+type HtmlToDocxFn = (
+  html: string,
+  header?: unknown,
+  options?: Record<string, unknown>,
+) => Promise<Buffer>;
+
+const HTMLtoDOCX = HTMLtoDOCXRaw as unknown as HtmlToDocxFn;
 
 function calculateAge(dobStr: string): string {
   if (!dobStr) return '';
@@ -96,27 +105,84 @@ function numberToWordsIndian(num: number | string): string {
   return 'Rupees ' + res.trim() + ' Only';
 }
 
-function extractSummary(formData: Record<string, any>) {
-  return {
-    owner_name:
-      formData?.owner_name ||
-      formData?.licensor_name ||
-      (Array.isArray(formData?.licensors)
-        ? (formData.licensors[0]?.name ?? null)
-        : null),
-    tenant_name:
-      formData?.tenant_name ||
-      formData?.licensee_name ||
-      (Array.isArray(formData?.licensees)
-        ? (formData.licensees[0]?.name ?? null)
-        : null),
-    property_address:
-      formData?.property_address ?? formData?.PROPERTY_ADDRESS ?? null,
-    agreement_start_date:
-      formData?.agreement_start_date ?? formData?.['starting date'] ?? null,
-    agreement_end_date:
-      formData?.agreement_end_date ?? formData?.['ending date'] ?? null,
+function firstPresent(...values: unknown[]): string | null {
+  for (const v of values) {
+    if (v !== null && v !== undefined) {
+      if (typeof v === 'string' && v.trim()) return v;
+      if (typeof v === 'number' && !Number.isNaN(v)) return String(v);
+      return null;
+    }
+  }
+  return null;
+}
+
+function extractSummary(formData: Record<string, unknown>): {
+  owner_name: string | null;
+  tenant_name: string | null;
+  property_address: string | null;
+  agreement_start_date: string | null;
+  agreement_end_date: string | null;
+} {
+  const first = (...keys: string[]): unknown => {
+    for (const key of keys) {
+      const value = formData[key];
+      if (value !== null && value !== undefined) return value;
+    }
+    return null;
   };
+
+  const listItem = (key: string): unknown => {
+    const value = formData[key];
+    return Array.isArray(value) ? value[0] : null;
+  };
+
+  const nameOf = (value: unknown): unknown => {
+    if (value && typeof value === 'object' && 'name' in value) {
+      return (value as { name?: unknown }).name;
+    }
+    return null;
+  };
+
+  return {
+    owner_name: firstPresent(
+      first('owner_name', 'licensor_name'),
+      nameOf(listItem('licensors')),
+    ),
+    tenant_name: firstPresent(
+      first('tenant_name', 'licensee_name'),
+      nameOf(listItem('licensees')),
+    ),
+    property_address: firstPresent(
+      first('property_address', 'PROPERTY_ADDRESS'),
+    ),
+    agreement_start_date: firstPresent(
+      first('agreement_start_date', 'starting date'),
+    ),
+    agreement_end_date: firstPresent(
+      first('agreement_end_date', 'ending date'),
+    ),
+  };
+}
+
+export interface OfficeEditorConfig {
+  documentType: string;
+  document: {
+    fileType: string;
+    key: string;
+    title: string;
+    url: string;
+    permissions: { edit: boolean; download: boolean; print: boolean };
+  };
+  editorConfig: {
+    mode: string;
+    lang: string;
+    callbackUrl: string;
+    user: { id: string; name: string };
+    customization: { autosave: boolean };
+  };
+  height: string;
+  width: string;
+  token?: string;
 }
 
 @Injectable()
@@ -188,7 +254,8 @@ export class RentAgreementsService {
     let generated = 0;
     for (const row of rows) {
       const count = parseInt(row.count, 10) || 0;
-      if (row.status === RentAgreementStatus.GENERATED) {
+      const status = row.status as RentAgreementStatus;
+      if (status === RentAgreementStatus.GENERATED) {
         generated = count;
       } else {
         draft = count;
@@ -209,7 +276,9 @@ export class RentAgreementsService {
     );
     if (!templateConfig) throw new NotFoundException('Template not found');
 
-    const summary = extractSummary(createDto.form_data || {});
+    const summary = extractSummary(
+      (createDto.form_data ?? {}) as Record<string, unknown>,
+    );
 
     const agreement = this.rentAgreementRepository.create({
       template_id: createDto.template_id,
@@ -229,8 +298,13 @@ export class RentAgreementsService {
     const agreement = await this.findOne(id);
 
     if (updateDto.form_data) {
-      agreement.form_data = { ...agreement.form_data, ...updateDto.form_data };
-      const summary = extractSummary(agreement.form_data);
+      agreement.form_data = {
+        ...(agreement.form_data ?? {}),
+        ...(updateDto.form_data ?? {}),
+      } as Record<string, unknown>;
+      const summary = extractSummary(
+        (agreement.form_data ?? {}) as Record<string, unknown>,
+      );
       agreement.owner_name = summary.owner_name;
       agreement.tenant_name = summary.tenant_name;
       agreement.property_address = summary.property_address;
@@ -247,13 +321,16 @@ export class RentAgreementsService {
 
   async generateDocx(id: string): Promise<Buffer> {
     const agreement = await this.findOne(id);
-    return this.generateDocxBuffer(agreement.template_id, agreement.form_data);
+    return this.generateDocxBuffer(
+      agreement.template_id,
+      (agreement.form_data ?? {}) as Record<string, unknown>,
+    );
   }
 
-  async previewDocx(createDto: CreateRentAgreementDto): Promise<string> {
-    const buffer = await this.generateDocxBuffer(
+  previewDocx(createDto: CreateRentAgreementDto): string {
+    const buffer = this.generateDocxBuffer(
       createDto.template_id,
-      createDto.form_data,
+      (createDto.form_data ?? {}) as Record<string, unknown>,
     );
     const zip = new PizZip(buffer);
     const xml = zip.files['word/document.xml'].asText();
@@ -261,9 +338,9 @@ export class RentAgreementsService {
   }
 
   async previewPdf(createDto: CreateRentAgreementDto): Promise<Buffer> {
-    const docx = await this.generateDocxBuffer(
+    const docx = this.generateDocxBuffer(
       createDto.template_id,
-      createDto.form_data,
+      (createDto.form_data ?? {}) as Record<string, unknown>,
     );
     return this.libreOffice.convertDocxToPdf(docx);
   }
@@ -276,15 +353,15 @@ export class RentAgreementsService {
         source = await this.storage.downloadBuffer(
           agreement.edited_docx_s3_key,
         );
-      } catch (error) {
+      } catch {
         this.logger.warn(
           `Edited DOCX missing from S3 (${agreement.edited_docx_s3_key}); falling back to generated docx for ${id}`,
         );
       }
     }
-    source ??= await this.generateDocxBuffer(
+    source ??= this.generateDocxBuffer(
       agreement.template_id,
-      agreement.form_data,
+      (agreement.form_data ?? {}) as Record<string, unknown>,
     );
     return this.libreOffice.convertDocxToPdf(source);
   }
@@ -295,7 +372,7 @@ export class RentAgreementsService {
       fontSize: '22',
       margin: { top: 720, right: 720, bottom: 720, left: 720 },
     });
-    return this.sanitizeDocxBuffer(Buffer.from(buffer));
+    return this.sanitizeDocxBuffer(buffer);
   }
 
   private sanitizeDocxBuffer(buffer: Buffer): Buffer {
@@ -318,8 +395,12 @@ export class RentAgreementsService {
         zip.file('word/document.xml', repaired);
       }
       return zip.generate({ type: 'nodebuffer' });
-    } catch (e: any) {
-      this.logger.error(`docx sanitize failed: ${e?.message}`);
+    } catch (err) {
+      this.logger.error(
+        `docx sanitize failed: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
       return buffer;
     }
   }
@@ -337,9 +418,9 @@ export class RentAgreementsService {
       throw new NotFoundException('OnlyOffice integration is not enabled');
     }
     const agreement = await this.findOne(id);
-    const buffer = await this.generateDocxBuffer(
+    const buffer = this.generateDocxBuffer(
       agreement.template_id,
-      agreement.form_data,
+      (agreement.form_data ?? {}) as Record<string, unknown>,
     );
 
     const key = randomUUID();
@@ -361,7 +442,7 @@ export class RentAgreementsService {
       ? `Rent_Agreement_${agreement.tenant_name}.docx`
       : 'Rent_Agreement.docx';
 
-    const config: any = {
+    const config: OfficeEditorConfig = {
       documentType: 'word',
       document: {
         fileType: 'docx',
@@ -383,7 +464,7 @@ export class RentAgreementsService {
 
     const jwtSecret = this.config.get<string>('onlyOffice.jwtSecret') ?? '';
     if (jwtSecret) {
-      config.token = jwt.sign(config, jwtSecret, {
+      config.token = jwt.sign({ ...config }, jwtSecret, {
         expiresIn: '2h',
         algorithm: 'HS256',
       });
@@ -409,15 +490,17 @@ export class RentAgreementsService {
     };
   }
 
-  async handleOfficeCallback(key: string, body: any) {
+  async handleOfficeCallback(key: string, bodyValue: unknown) {
     const session = this.officeSessions.get(key);
     if (!session) {
       return { error: 0 };
     }
-    const status = body?.status;
-    if ((status === 2 || status === 6) && body?.url) {
+    const body = (bodyValue ?? {}) as Record<string, unknown>;
+    const status = body['status'];
+    const url = body['url'];
+    if ((status === 2 || status === 6) && typeof url === 'string') {
       try {
-        const res = await fetch(body.url);
+        const res = await fetch(url);
         if (!res.ok)
           throw new Error(`OnlyOffice file download failed: ${res.status}`);
         const arrayBuffer = await res.arrayBuffer();
@@ -447,10 +530,10 @@ export class RentAgreementsService {
     return this.storage.downloadBuffer(agreement.edited_docx_s3_key);
   }
 
-  private async generateDocxBuffer(
+  private generateDocxBuffer(
     template_id: string,
-    form_data: any,
-  ): Promise<Buffer> {
+    form_data: Record<string, unknown>,
+  ): Buffer {
     const templateConfig = TEMPLATES.find((t) => t.id === template_id);
     if (!templateConfig)
       throw new NotFoundException('Template configuration not found');
@@ -476,37 +559,46 @@ export class RentAgreementsService {
       nullGetter: () => '',
     });
 
-    const data = { ...form_data };
+    const data: Record<string, unknown> = { ...form_data };
 
-    // Process licensors array
-    if (Array.isArray(data.licensors)) {
-      data.licensors = data.licensors.map((person: any) => ({
+    if (Array.isArray(data['licensors'])) {
+      const licensors = data['licensors'] as Array<Record<string, unknown>>;
+      data['licensors'] = licensors.map((person) => ({
         ...person,
-        abbreviation: person.gender === 'Female' ? 'Mrs.' : 'Mr.',
-        age: calculateAge(person.dob),
-        NAME: person.name,
+        abbreviation: person['gender'] === 'Female' ? 'Mrs.' : 'Mr.',
+        age: calculateAge(
+          typeof person['dob'] === 'string' ? person['dob'] : '',
+        ),
+        NAME: person['name'],
       }));
     }
 
-    // Process licensees array
-    if (Array.isArray(data.licensees)) {
-      data.licensees = data.licensees.map((person: any) => ({
+    if (Array.isArray(data['licensees'])) {
+      const licensees = data['licensees'] as Array<Record<string, unknown>>;
+      data['licensees'] = licensees.map((person) => ({
         ...person,
-        abbreviation: person.gender === 'Female' ? 'Mrs.' : 'Mr.',
-        age: calculateAge(person.dob),
-        NAME: person.name,
+        abbreviation: person['gender'] === 'Female' ? 'Mrs.' : 'Mr.',
+        age: calculateAge(
+          typeof person['dob'] === 'string' ? person['dob'] : '',
+        ),
+        NAME: person['name'],
       }));
     }
 
-    // Process rent and deposit words
-    if (data['rent in numbers']) {
-      data['rent in words'] = numberToWordsIndian(data['rent in numbers']);
+    const rentInNumbers = data['rent in numbers'];
+    if (
+      typeof rentInNumbers === 'string' ||
+      typeof rentInNumbers === 'number'
+    ) {
+      data['rent in words'] = numberToWordsIndian(rentInNumbers);
     }
 
-    if (data['deposit in numbers']) {
-      data['deposit in words'] = numberToWordsIndian(
-        data['deposit in numbers'],
-      );
+    const depositInNumbers = data['deposit in numbers'];
+    if (
+      typeof depositInNumbers === 'string' ||
+      typeof depositInNumbers === 'number'
+    ) {
+      data['deposit in words'] = numberToWordsIndian(depositInNumbers);
     }
 
     doc.render(data);

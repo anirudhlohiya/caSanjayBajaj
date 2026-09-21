@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import {
   paginate,
   PaginatedResult,
@@ -18,7 +18,12 @@ import {
 } from '../notifications/notifications.service';
 import { ReportNotificationsService } from '../notifications/report-notifications.service';
 import { UsersService } from '../users/users.service';
-import { Ticket, TicketStatus } from '../entities/ticket.entity';
+import {
+  Ticket,
+  TicketCategory,
+  TicketPriority,
+  TicketStatus,
+} from '../entities/ticket.entity';
 import { TicketMessage } from '../entities/ticket-message.entity';
 import { TicketAttachment } from '../entities/ticket-attachment.entity';
 import {
@@ -49,8 +54,8 @@ export class TicketsService {
     query: PaginationQueryDto & { status?: string },
   ): Promise<PaginatedResult<Ticket>> {
     const { page, pageSize, status } = query;
-    const where: any = { user_id: userId };
-    if (status) where.status = status;
+    const where: FindOptionsWhere<Ticket> = { user_id: userId };
+    if (status) where.status = status as TicketStatus;
     const [items, total] = await this.tickets.findAndCount({
       where,
       order: { updated_at: 'DESC' },
@@ -75,8 +80,8 @@ export class TicketsService {
     const ticket = this.tickets.create({
       user_id: userId,
       subject: dto.subject,
-      category: (dto.category as any) ?? 'general',
-      priority: (dto.priority as any) ?? 'medium',
+      category: (dto.category ?? TicketCategory.GENERAL) as TicketCategory,
+      priority: (dto.priority ?? TicketPriority.MEDIUM) as TicketPriority,
     });
     const saved = await this.tickets.save(ticket);
 
@@ -131,8 +136,8 @@ export class TicketsService {
     query: PaginationQueryDto & { status?: string; user_id?: string },
   ): Promise<PaginatedResult<Ticket>> {
     const { page, pageSize, status, user_id } = query;
-    const where: any = {};
-    if (status) where.status = status;
+    const where: FindOptionsWhere<Ticket> = {};
+    if (status) where.status = status as TicketStatus;
     if (user_id) where.user_id = user_id;
     const [items, total] = await this.tickets.findAndCount({
       where,
@@ -189,13 +194,14 @@ export class TicketsService {
   async updateStatus(id: string, status: string): Promise<Ticket> {
     const ticket = await this.findOneAdmin(id);
     const wasOpen = ticket.status !== TicketStatus.CLOSED;
-    ticket.status = status as TicketStatus;
-    if (status === TicketStatus.CLOSED) {
+    const nextStatus = status as TicketStatus;
+    ticket.status = nextStatus;
+    if (nextStatus === TicketStatus.CLOSED) {
       ticket.closed_at = new Date();
     }
     const saved = await this.tickets.save(ticket);
 
-    if (status === TicketStatus.CLOSED && wasOpen) {
+    if (nextStatus === TicketStatus.CLOSED && wasOpen) {
       void this.notifyClient(
         ticket.user_id,
         'Your ticket has been resolved',

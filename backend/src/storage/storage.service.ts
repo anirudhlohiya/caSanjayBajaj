@@ -144,7 +144,12 @@ export class StorageService {
       Key: s3Key,
     });
     const res = await this.client.send(command);
-    return Buffer.from(await (res.Body as any).transformToByteArray());
+    const body = res.Body as
+      { transformToByteArray: () => Promise<Uint8Array> } | undefined;
+    if (!body) {
+      throw new Error(`S3 GetObject returned an empty body for ${s3Key}`);
+    }
+    return Buffer.from(await body.transformToByteArray());
   }
 
   async health(): Promise<boolean> {
