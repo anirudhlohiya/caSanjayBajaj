@@ -60,6 +60,14 @@ export class WhatsappMessage {
 
   @Column({
     type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'media_filename',
+  })
+  mediaFilename: string | null;
+
+  @Column({
+    type: 'varchar',
     length: 100,
     nullable: true,
     name: 'template_name',

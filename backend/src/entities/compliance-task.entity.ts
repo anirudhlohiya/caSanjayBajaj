@@ -51,6 +51,23 @@ export class ComplianceTask {
   @Column({ type: 'timestamptz', nullable: true })
   paid_at: Date | null;
 
+  /** Set when the CA marks the return as filed (GSTR-1 / IFF / GSTR-3B). */
+  @Column({ type: 'timestamptz', nullable: true })
+  filed_at: Date | null;
+
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  arn: string | null;
+
+  /** Optional filed-return PDF, uploaded through the reports flow. */
+  @Column({ type: 'uuid', nullable: true })
+  filed_report_id: string | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  filed_by: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  payment_reminder_sent_at: Date | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 

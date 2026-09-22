@@ -15,6 +15,13 @@ import { User } from './user.entity';
 export type WhatsappConversationStatus =
   'ai_handling' | 'staff_takeover' | 'escalated' | 'closed';
 
+export interface WhatsappPendingUpload {
+  documentIds: string[];
+  /** 'collecting' = waiting for more files; 'ask_type' / 'ask_period' = question sent. */
+  step: 'collecting' | 'ask_type' | 'ask_period';
+  expiresAt: string;
+}
+
 @Entity('whatsapp_conversations')
 export class WhatsappConversation {
   @PrimaryGeneratedColumn('uuid')
@@ -60,6 +67,10 @@ export class WhatsappConversation {
 
   @Column({ type: 'text', nullable: true, name: 'internal_notes' })
   internalNotes: string | null;
+
+  /** Files received over WhatsApp awaiting the client's "what is this?" answer. */
+  @Column({ type: 'jsonb', nullable: true, name: 'pending_upload' })
+  pendingUpload: WhatsappPendingUpload | null;
 
   @Column({ type: 'int', default: 0, name: 'unread_count' })
   unreadCount: number;
