@@ -2,6 +2,8 @@ export default () => ({
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: parseInt(process.env.PORT ?? '3000', 10),
   apiBaseUrl: process.env.API_BASE_URL ?? 'http://localhost:3000',
+  // Public origin of the client PWA, used for links in emails/WhatsApp
+  clientAppUrl: process.env.CLIENT_APP_URL ?? 'https://app.snbajaj.com',
 
   database: {
     host: process.env.DB_HOST ?? 'localhost',
@@ -118,11 +120,37 @@ export default () => ({
     accessToken: process.env.WHATSAPP_ACCESS_TOKEN ?? '',
     number: process.env.WHATSAPP_NUMBER ?? '',
     verifyToken: process.env.WHATSAPP_VERIFY_TOKEN ?? '',
+    // Meta-approved Utility template names (see notifications/whatsapp-templates.ts)
+    templates: {
+      returnFiled: process.env.WHATSAPP_TPL_RETURN_FILED ?? 'gst_return_filed',
+      paymentReminder:
+        process.env.WHATSAPP_TPL_PAYMENT_REMINDER ?? 'gst_payment_reminder',
+      documentsReminder:
+        process.env.WHATSAPP_TPL_DOCUMENTS_REMINDER ?? 'gst_documents_reminder',
+      generalFollowup:
+        process.env.WHATSAPP_TPL_GENERAL_FOLLOWUP ??
+        'gst_filing_input_required',
+    },
+    templateLanguage: process.env.WHATSAPP_TPL_LANGUAGE ?? 'en',
+    // Account that owns the message templates (the Messaging Account under
+    // WAME, which can differ from WHATSAPP_BUSINESS_ID). Falls back to it.
+    templatesAccountId:
+      process.env.WHATSAPP_TEMPLATES_ACCOUNT_ID ||
+      process.env.WHATSAPP_BUSINESS_ID ||
+      '',
+    // Seconds to wait after the last file before asking the client what the files are
+    uploadBatchSeconds: parseInt(
+      process.env.WHATSAPP_UPLOAD_BATCH_SECONDS ?? '20',
+      10,
+    ),
   },
 
   groq: {
     apiKey: process.env.GROQ_API_KEY ?? '',
     model: process.env.GROQ_MODEL ?? 'llama-3.1-8b-instant',
+    // Speech-to-text for WhatsApp voice notes (Groq free tier)
+    transcriptionModel:
+      process.env.GROQ_TRANSCRIPTION_MODEL ?? 'whisper-large-v3-turbo',
   },
 
   r2: {

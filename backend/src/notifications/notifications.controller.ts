@@ -41,6 +41,7 @@ export class NotificationsController {
       const success = await this.notificationsService.sendWhatsappTemplate(
         body.phoneNumber,
         body.templateName,
+        body.templateName === 'hello_world' ? 'en_US' : 'en',
       );
       return { success };
     } else {

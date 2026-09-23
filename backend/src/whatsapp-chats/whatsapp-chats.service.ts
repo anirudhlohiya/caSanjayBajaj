@@ -16,6 +16,13 @@ import {
 } from '../entities/whatsapp-message.entity';
 import { User } from '../entities/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { StorageService } from '../storage/storage.service';
+import {
+  countTemplateParams,
+  renderTemplateBody,
+  WHATSAPP_TEMPLATE_DEFAULTS,
+  WhatsappTemplateKey,
+} from '../notifications/whatsapp-templates';
 import { WhatsappEventsService } from './whatsapp-events.service';
 
 export interface ConversationListQuery {
@@ -24,6 +31,27 @@ export interface ConversationListQuery {
   page?: number;
   limit?: number;
 }
+
+export interface SendTemplateParams {
+  template: string;
+  language?: string;
+  params?: string[];
+  staffId?: string | null;
+  sender?: 'staff' | 'ai';
+  headerDocument?: { link: string; filename: string };
+}
+
+export interface WhatsappTemplateOption {
+  name: string;
+  language: string;
+  category: string;
+  body: string;
+  paramCount: number;
+  paramLabels: string[];
+}
+
+const TEMPLATE_CACHE_MS = 10 * 60 * 1000;
+const MEDIA_URL_TTL_SECONDS = 60 * 60;
 
 export interface UpdateConversationDto {
   clientName?: string;
@@ -46,7 +74,45 @@ export class WhatsappChatsService {
     private readonly userRepo: Repository<User>,
     private readonly notificationsService: NotificationsService,
     private readonly eventsService: WhatsappEventsService,
+    private readonly storage: StorageService,
   ) {}
+
+  private templateCache: {
+    at: number;
+    items: WhatsappTemplateOption[];
+  } | null = null;
+
+  /**
+   * media_url holds either an absolute URL (R2 public) or a private S3 key.
+   * Keys are swapped for a signed GET URL so the admin desk can render them.
+   */
+  async withSignedMedia(msg: WhatsappMessage): Promise<WhatsappMessage> {
+    if (!msg.mediaUrl || /^https?:\/\//i.test(msg.mediaUrl)) return msg;
+    try {
+      const url = await this.storage.createDownloadUrl(
+        msg.mediaUrl,
+        MEDIA_URL_TTL_SECONDS,
+      );
+      return { ...msg, mediaUrl: url };
+    } catch (err) {
+      this.logger.warn(
+        `Could not sign WhatsApp media ${msg.mediaUrl}: ${(err as Error).message}`,
+      );
+      return msg;
+    }
+  }
+
+  private async emitMessage(msg: WhatsappMessage): Promise<void> {
+    this.eventsService.emit({
+      type: 'message',
+      conversationId: msg.conversationId,
+      data: await this.withSignedMedia(msg),
+    });
+    this.eventsService.emit({
+      type: 'conversation',
+      conversationId: msg.conversationId,
+    });
+  }
 
   /**
    * Attempts to match a WhatsApp phone number with a registered portal client (users table).
@@ -136,6 +202,7 @@ export class WhatsappChatsService {
     messageType?: WhatsappMessageType;
     body?: string;
     mediaUrl?: string;
+    mediaFilename?: string;
   }): Promise<{
     conversation: WhatsappConversation;
     message: WhatsappMessage;
@@ -163,6 +230,7 @@ export class WhatsappChatsService {
       messageType: params.messageType || 'text',
       body: params.body || null,
       mediaUrl: params.mediaUrl || null,
+      mediaFilename: params.mediaFilename || null,
     });
     const savedMsg = await this.msgRepo.save(msg);
 
@@ -175,15 +243,7 @@ export class WhatsappChatsService {
     conv.lastMessageAt = new Date();
     await this.convRepo.save(conv);
 
-    this.eventsService.emit({
-      type: 'message',
-      conversationId: conv.id,
-      data: savedMsg,
-    });
-    this.eventsService.emit({
-      type: 'conversation',
-      conversationId: conv.id,
-    });
+    await this.emitMessage(savedMsg);
 
     return { conversation: conv, message: savedMsg, isDuplicate: false };
   }
@@ -208,15 +268,7 @@ export class WhatsappChatsService {
       lastMessageAt: new Date(),
     });
 
-    this.eventsService.emit({
-      type: 'message',
-      conversationId,
-      data: savedMsg,
-    });
-    this.eventsService.emit({
-      type: 'conversation',
-      conversationId,
-    });
+    await this.emitMessage(savedMsg);
 
     return savedMsg;
   }
@@ -321,7 +373,193 @@ export class WhatsappChatsService {
 
     qb.orderBy('m.createdAt', 'ASC').take(Math.min(500, Math.max(1, limit)));
 
-    return qb.getMany();
+    const messages = await qb.getMany();
+    return Promise.all(messages.map((m) => this.withSignedMedia(m)));
+  }
+
+  /** Updates a message body in place (e.g. adding a voice-note transcript). */
+  async updateMessageBody(messageId: string, body: string): Promise<void> {
+    const msg = await this.msgRepo.findOne({ where: { id: messageId } });
+    if (!msg) return;
+    msg.body = body;
+    const saved = await this.msgRepo.save(msg);
+    await this.emitMessage(saved);
+  }
+
+  async findConversation(id: string): Promise<WhatsappConversation | null> {
+    return this.convRepo.findOne({ where: { id } });
+  }
+
+  async setPendingUpload(
+    conversationId: string,
+    pending: WhatsappConversation['pendingUpload'],
+  ): Promise<void> {
+    await this.convRepo.update(conversationId, { pendingUpload: pending });
+  }
+
+  /**
+   * Approved templates for the admin composer: Meta's approved list, with
+   * friendly parameter labels for the platform's own templates.
+   */
+  async listTemplates(): Promise<WhatsappTemplateOption[]> {
+    if (
+      this.templateCache &&
+      Date.now() - this.templateCache.at < TEMPLATE_CACHE_MS
+    ) {
+      return this.templateCache.items;
+    }
+    const known = this.knownTemplates();
+    const approved = await this.notificationsService.listApprovedTemplates();
+
+    const items: WhatsappTemplateOption[] = approved.map((t) => {
+      const ours = known.find((k) => k.name === t.name);
+      const paramCount = countTemplateParams(t.body);
+      return {
+        name: t.name,
+        language: t.language,
+        category: t.category,
+        body: t.body,
+        paramCount,
+        paramLabels:
+          ours?.params ??
+          Array.from({ length: paramCount }, (_v, i) => `Value ${i + 1}`),
+      };
+    });
+    this.templateCache = { at: Date.now(), items };
+    return items;
+  }
+
+  /**
+   * Sends an approved template to a phone number, creating the conversation
+   * if needed, and records it in the thread. Templates are the only way to
+   * message a client outside the 24h customer-service window.
+   */
+  async sendTemplate(
+    phoneNumber: string,
+    opts: SendTemplateParams,
+  ): Promise<{ conversation: WhatsappConversation; message: WhatsappMessage }> {
+    const params = opts.params ?? [];
+    const language =
+      opts.language ??
+      this.notificationsService.templateDef('generalFollowup').language;
+
+    const sent = await this.notificationsService.sendWhatsappTemplate(
+      phoneNumber,
+      opts.template,
+      language,
+      params,
+      opts.headerDocument,
+    );
+    if (!sent) {
+      throw new BadRequestException(
+        `WhatsApp template "${opts.template}" could not be delivered. Check that it is approved in Meta and all values are filled in.`,
+      );
+    }
+
+    const conv = await this.findOrCreateConversation(
+      this.normalizeWaId(phoneNumber),
+    );
+    const body = renderTemplateBody(
+      await this.templateBody(opts.template),
+      params,
+    );
+
+    const msg = this.msgRepo.create({
+      conversationId: conv.id,
+      direction: 'outbound',
+      sender: opts.sender ?? 'staff',
+      messageType: 'template',
+      templateName: opts.template,
+      body,
+      staffId: opts.staffId ?? null,
+      mediaFilename: opts.headerDocument?.filename ?? null,
+    });
+    const saved = await this.msgRepo.save(msg);
+    conv.lastMessageAt = new Date();
+    await this.convRepo.save(conv);
+    await this.emitMessage(saved);
+    return { conversation: conv, message: saved };
+  }
+
+  /**
+   * Staff starts (or re-opens, after the 24h window) a conversation with an
+   * approved template. The thread is put in staff_takeover so the AI does not
+   * jump in when the client replies.
+   */
+  async startWithTemplate(
+    target: { client_id?: string; phone?: string; conversation_id?: string },
+    opts: { template: string; language?: string; params?: string[] },
+    staffId: string,
+  ) {
+    let phone = target.phone?.trim();
+    if (target.conversation_id) {
+      const conv = await this.convRepo.findOne({
+        where: { id: target.conversation_id },
+      });
+      if (!conv) throw new NotFoundException('Conversation not found');
+      phone = conv.phoneNumber;
+    } else if (target.client_id) {
+      const client = await this.userRepo.findOne({
+        where: { id: target.client_id },
+      });
+      if (!client) throw new NotFoundException('Client not found');
+      if (!client.phone) {
+        throw new BadRequestException(
+          'This client has no phone number on their profile',
+        );
+      }
+      phone = client.phone;
+    }
+    if (!phone || phone.replace(/\D/g, '').length < 10) {
+      throw new BadRequestException('A valid phone number is required');
+    }
+
+    const approved = await this.listTemplates();
+    const tpl = approved.find(
+      (t) =>
+        t.name === opts.template &&
+        (!opts.language || t.language === opts.language),
+    );
+    if (!tpl) {
+      throw new BadRequestException(
+        `Template "${opts.template}" is not approved on the WhatsApp account`,
+      );
+    }
+    const params = (opts.params ?? []).map((p) => p?.trim() ?? '');
+    if (params.length < tpl.paramCount || params.some((p) => !p)) {
+      throw new BadRequestException(
+        `Fill in all ${tpl.paramCount} template values before sending`,
+      );
+    }
+
+    const result = await this.sendTemplate(phone, {
+      template: tpl.name,
+      language: tpl.language,
+      params: params.slice(0, tpl.paramCount),
+      staffId,
+      sender: 'staff',
+    });
+    const conv = await this.takeover(result.conversation.id, staffId);
+    return { conversation: conv, message: result.message };
+  }
+
+  /** Same wa_id format Meta uses for inbound messages (91XXXXXXXXXX). */
+  normalizeWaId(phone: string): string {
+    const digits = phone.replace(/\D/g, '');
+    return digits.length === 10 ? `91${digits}` : digits;
+  }
+
+  private knownTemplates() {
+    return (
+      Object.keys(WHATSAPP_TEMPLATE_DEFAULTS) as WhatsappTemplateKey[]
+    ).map((key) => this.notificationsService.templateDef(key));
+  }
+
+  private async templateBody(name: string): Promise<string> {
+    const known = this.knownTemplates().find((t) => t.name === name);
+    if (known) return known.body;
+    const approved = await this.listTemplates();
+    return approved.find((t) => t.name === name)?.body ?? `[Template: ${name}]`;
   }
 
   /**

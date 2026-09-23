@@ -5,6 +5,8 @@ import { WhatsappConversation } from '../entities/whatsapp-conversation.entity';
 import { WhatsappMessage } from '../entities/whatsapp-message.entity';
 import { User } from '../entities/user.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { StorageModule } from '../storage/storage.module';
+import { AuditModule } from '../audit/audit.module';
 import { WhatsappChatsService } from './whatsapp-chats.service';
 import { WhatsappChatsController } from './whatsapp-chats.controller';
 import { WhatsappEventsService } from './whatsapp-events.service';
@@ -14,6 +16,8 @@ import { WhatsappEventsService } from './whatsapp-events.service';
     TypeOrmModule.forFeature([WhatsappConversation, WhatsappMessage, User]),
     JwtModule.register({}),
     forwardRef(() => NotificationsModule),
+    StorageModule,
+    AuditModule,
   ],
   controllers: [WhatsappChatsController],
   providers: [WhatsappChatsService, WhatsappEventsService],

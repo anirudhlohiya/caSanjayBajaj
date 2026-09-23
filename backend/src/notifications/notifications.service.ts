@@ -5,6 +5,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import webpush from 'web-push';
+import {
+  WHATSAPP_TEMPLATE_DEFAULTS,
+  WhatsappTemplateDef,
+  WhatsappTemplateKey,
+} from './whatsapp-templates';
 
 export interface PushSubscription {
   endpoint: string;
@@ -203,10 +208,26 @@ export class NotificationsService {
     }
   }
 
+  /** Resolves a platform template (configured name + language + body text). */
+  templateDef(key: WhatsappTemplateKey): WhatsappTemplateDef {
+    const defaults = WHATSAPP_TEMPLATE_DEFAULTS[key];
+    return {
+      key,
+      ...defaults,
+      name:
+        this.config.get<string>(`whatsapp.templates.${key}`) ?? defaults.name,
+      language:
+        this.config.get<string>('whatsapp.templateLanguage') ??
+        defaults.language,
+    };
+  }
+
   async sendWhatsappTemplate(
     toPhoneNumber: string,
     templateName: string,
-    languageCode: string = 'en_US',
+    languageCode: string = 'en',
+    bodyParams: string[] = [],
+    headerDocument?: { link: string; filename: string },
   ): Promise<boolean> {
     const phoneNumberId = this.config.get<string>('whatsapp.phoneNumberId');
     const accessToken = this.config.get<string>('whatsapp.accessToken');
@@ -216,6 +237,32 @@ export class NotificationsService {
         'WhatsApp configuration missing; skipping WhatsApp template',
       );
       return false;
+    }
+
+    const components: Array<Record<string, unknown>> = [];
+    if (headerDocument) {
+      components.push({
+        type: 'header',
+        parameters: [
+          {
+            type: 'document',
+            document: {
+              link: headerDocument.link,
+              filename: headerDocument.filename,
+            },
+          },
+        ],
+      });
+    }
+    if (bodyParams.length > 0) {
+      components.push({
+        type: 'body',
+        // Meta rejects empty parameter text, so blank values become a dash
+        parameters: bodyParams.map((text) => ({
+          type: 'text',
+          text: text?.trim() ? text : '-',
+        })),
+      });
     }
 
     try {
@@ -240,6 +287,7 @@ export class NotificationsService {
               language: {
                 code: languageCode,
               },
+              ...(components.length > 0 ? { components } : {}),
             },
           }),
         },
@@ -248,7 +296,7 @@ export class NotificationsService {
       if (!response.ok) {
         const errorData = (await response.json()) as Record<string, unknown>;
         this.logger.error(
-          `WhatsApp template send failed for ${toPhoneNumber}: ${JSON.stringify(errorData)}`,
+          `WhatsApp template ${templateName} send failed for ${toPhoneNumber}: ${JSON.stringify(errorData)}`,
         );
         return false;
       }
@@ -257,6 +305,122 @@ export class NotificationsService {
     } catch (error) {
       this.logger.error(
         `WhatsApp template send failed for ${toPhoneNumber}: ${(error as Error).message}`,
+      );
+      return false;
+    }
+  }
+
+  /**
+   * Approved message templates on the WhatsApp Business Account, straight
+   * from the Graph API. Returns [] when WhatsApp is not configured.
+   */
+  async listApprovedTemplates(): Promise<
+    Array<{ name: string; language: string; category: string; body: string }>
+  > {
+    const businessId =
+      this.config.get<string>('whatsapp.templatesAccountId') ||
+      this.config.get<string>('whatsapp.businessId');
+    const accessToken = this.config.get<string>('whatsapp.accessToken');
+    if (!businessId || !accessToken) return [];
+
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/v21.0/${businessId}/message_templates?status=APPROVED&limit=100&fields=name,language,category,status,components`,
+        { headers: { Authorization: `Bearer ${accessToken}` } },
+      );
+      if (!response.ok) {
+        const errorData = (await response.json()) as Record<string, unknown>;
+        this.logger.warn(
+          `WhatsApp template list failed: ${JSON.stringify(errorData)}`,
+        );
+        return [];
+      }
+      const data = (await response.json()) as {
+        data?: Array<{
+          name: string;
+          language: string;
+          category: string;
+          status: string;
+          components?: Array<{ type: string; text?: string }>;
+        }>;
+      };
+      return (data.data ?? [])
+        .filter((t) => t.status === 'APPROVED')
+        .map((t) => ({
+          name: t.name,
+          language: t.language,
+          category: t.category,
+          body: t.components?.find((c) => c.type === 'BODY')?.text ?? '',
+        }));
+    } catch (error) {
+      this.logger.warn(
+        `WhatsApp template list error: ${(error as Error).message}`,
+      );
+      return [];
+    }
+  }
+
+  /** Interactive reply buttons (max 3, titles max 20 chars). */
+  async sendWhatsappButtons(
+    toPhoneNumber: string,
+    bodyText: string,
+    buttons: Array<{ id: string; title: string }>,
+    senderPhoneNumberId?: string,
+  ): Promise<boolean> {
+    const phoneNumberId =
+      senderPhoneNumberId || this.config.get<string>('whatsapp.phoneNumberId');
+    const accessToken = this.config.get<string>('whatsapp.accessToken');
+
+    if (!phoneNumberId || !accessToken) {
+      this.logger.warn(
+        'WhatsApp configuration missing; skipping WhatsApp buttons',
+      );
+      return false;
+    }
+
+    try {
+      let cleanNumber = toPhoneNumber.replace(/\D/g, '');
+      if (cleanNumber.length === 10) {
+        cleanNumber = '91' + cleanNumber;
+      }
+      const response = await fetch(
+        `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: cleanNumber,
+            type: 'interactive',
+            interactive: {
+              type: 'button',
+              body: { text: bodyText },
+              action: {
+                buttons: buttons.slice(0, 3).map((b) => ({
+                  type: 'reply',
+                  reply: { id: b.id, title: b.title.slice(0, 20) },
+                })),
+              },
+            },
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = (await response.json()) as Record<string, unknown>;
+        this.logger.warn(
+          `WhatsApp buttons send failed: ${JSON.stringify(errorData)}`,
+        );
+        return false;
+      }
+      return true;
+    } catch (error) {
+      this.logger.warn(
+        `WhatsApp buttons send error: ${(error as Error).message}`,
       );
       return false;
     }
