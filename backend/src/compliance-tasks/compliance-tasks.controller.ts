@@ -3,11 +3,13 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { IsOptional, IsString, IsUUID, Length } from 'class-validator';
 import { ComplianceTasksService } from './compliance-tasks.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermissionsGuard, RolesGuard } from '../common/guards/roles.guard';
@@ -15,6 +17,17 @@ import { Permissions, Roles } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
 import { TaskStatus } from '../common/enums';
+
+class MarkFiledDto {
+  @IsOptional()
+  @IsString()
+  @Length(1, 30)
+  arn?: string;
+
+  @IsOptional()
+  @IsUUID()
+  report_id?: string;
+}
 
 @Controller('compliance-tasks')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
@@ -94,6 +107,29 @@ export class ComplianceTasksController {
       amount,
       paidAt ? new Date(paidAt) : null,
     );
+  }
+
+  /** CA marks a return as filed → client alerted on all channels. */
+  @Roles('super_admin', 'staff')
+  @Permissions('view_clients')
+  @Patch('admin/:id/filed')
+  async markFiled(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: MarkFiledDto,
+  ) {
+    return this.tasksService.markFiled(id, user.sub, dto);
+  }
+
+  /** Manual GST payment reminder (never automatic). */
+  @Roles('super_admin', 'staff')
+  @Permissions('view_clients')
+  @Post('admin/:id/payment-reminder')
+  async sendPaymentReminder(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.tasksService.sendPaymentReminder(id, user.sub);
   }
 
   @Roles('super_admin', 'staff')

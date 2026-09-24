@@ -17,6 +17,7 @@ import { Document } from '../entities/document.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { Reminder } from '../entities/reminder.entity';
 import { User } from '../entities/user.entity';
+import { ClientAlertsService } from '../notifications/client-alerts.service';
 import {
   NotificationsService,
   isPushSubscription,
@@ -24,7 +25,12 @@ import {
 import { SchedulingService } from '../schedule/scheduling.service';
 import { UsersService } from '../users/users.service';
 import { ReminderLogQueryDto, SendReminderDto } from './dto/reminder.dto';
-import { ReminderCopy, buildReminderCopy } from './reminder-copy';
+import {
+  ReminderCopy,
+  buildReminderCopy,
+  formatDueDate,
+  returnTypeLabel,
+} from './reminder-copy';
 
 /** Server-local YYYY-MM-DD (reminder dates are calendar dates, not UTC). */
 function localDateStr(d: Date = new Date()): string {
@@ -54,6 +60,7 @@ export class RemindersService implements OnModuleInit {
     private readonly config: ConfigService,
     private readonly scheduling: SchedulingService,
     private readonly scheduler: SchedulerRegistry,
+    private readonly alerts: ClientAlertsService,
   ) {}
 
   /**
@@ -108,6 +115,7 @@ export class RemindersService implements OnModuleInit {
 
     let sent = 0;
     for (const userId of targets) {
+      let attempted = false;
       for (const channel of dto.channels) {
         // Duplicate guard: skip if a SENT reminder already exists for this user+period+channel today
         const alreadySent = await this.reminders.exists({
@@ -120,6 +128,7 @@ export class RemindersService implements OnModuleInit {
           },
         });
         if (alreadySent) continue;
+        attempted = true;
 
         const reminder = await this.reminders.save(
           this.reminders.create({
@@ -144,6 +153,17 @@ export class RemindersService implements OnModuleInit {
         await this.reminders.save(reminder);
         if (ok) sent++;
       }
+
+      // Mirror the reminder into the client's in-app inbox once per send
+      if (attempted) {
+        const copy = manualReminderCopy(period);
+        await this.alerts.recordInApp(
+          userId,
+          copy.title,
+          copy.body,
+          '/documents/upload',
+        );
+      }
     }
     return { total: targets.length * dto.channels.length, sent };
   }
@@ -154,8 +174,7 @@ export class RemindersService implements OnModuleInit {
     period: GstFilingPeriod,
   ): Promise<boolean> {
     const user = await this.usersService.findOne(userId);
-    const title = 'Documents due for GST filing';
-    const body = `Your ${period.period_label} documents are due by ${period.due_date}. Please upload them in the app.`;
+    const { title, body } = manualReminderCopy(period);
     const url = `${process.env.API_BASE_URL ?? ''}/documents/upload`;
 
     if (channel === ReminderChannel.EMAIL) {
@@ -166,9 +185,13 @@ export class RemindersService implements OnModuleInit {
       );
     }
     if (channel === ReminderChannel.WHATSAPP) {
-      if (!user.phone) return false;
-      // Using 'hello_world' template because free-form text is blocked outside 24h window
-      return this.notifications.sendWhatsappTemplate(user.phone, 'hello_world');
+      // Free-form text is blocked outside the 24h window, so use the template
+      return this.alerts.sendWhatsappTemplate(user, 'documentsReminder', [
+        firstName(user.name),
+        'GST',
+        period.period_label,
+        formatDueDate(String(period.due_date).slice(0, 10)),
+      ]);
     }
     return this.pushToUser(user, title, body, url);
   }
@@ -288,6 +311,7 @@ export class RemindersService implements OnModuleInit {
       });
 
       let anyOk = false;
+      let attempted = false;
       for (const channel of [
         ReminderChannel.PUSH,
         ReminderChannel.EMAIL,
@@ -304,6 +328,7 @@ export class RemindersService implements OnModuleInit {
           },
         });
         if (alreadyToday) continue;
+        attempted = true;
 
         const reminder = await this.reminders.save(
           this.reminders.create({
@@ -317,7 +342,12 @@ export class RemindersService implements OnModuleInit {
 
         let ok = false;
         try {
-          ok = await this.deliverAuto(user, channel, copy);
+          ok = await this.deliverAuto(user, channel, copy, [
+            firstName(user.name),
+            returnTypeLabel(match.category),
+            match.quarter ?? match.month,
+            formatDueDate(match.due),
+          ]);
         } catch (error) {
           this.logger.error(
             `Auto reminder delivery failed: ${(error as Error).message}`,
@@ -327,6 +357,15 @@ export class RemindersService implements OnModuleInit {
         reminder.sent_at = ok ? new Date() : null;
         await this.reminders.save(reminder);
         if (ok) anyOk = true;
+      }
+
+      if (attempted) {
+        await this.alerts.recordInApp(
+          user.id,
+          copy.title,
+          copy.body,
+          '/documents/upload',
+        );
       }
 
       if (anyOk) {
@@ -343,6 +382,7 @@ export class RemindersService implements OnModuleInit {
     user: User,
     channel: ReminderChannel,
     copy: ReminderCopy,
+    whatsappParams: string[],
   ): Promise<boolean> {
     const url = `${process.env.API_BASE_URL ?? ''}/documents/upload`;
     if (channel === ReminderChannel.EMAIL) {
@@ -353,12 +393,28 @@ export class RemindersService implements OnModuleInit {
       );
     }
     if (channel === ReminderChannel.WHATSAPP) {
-      if (!user.phone) return false;
-      // Using 'hello_world' template because free-form text is blocked outside 24h window
-      return this.notifications.sendWhatsappTemplate(user.phone, 'hello_world');
+      return this.alerts.sendWhatsappTemplate(
+        user,
+        'documentsReminder',
+        whatsappParams,
+      );
     }
     return this.pushToUser(user, copy.title, copy.body, url);
   }
+}
+
+function manualReminderCopy(period: GstFilingPeriod): {
+  title: string;
+  body: string;
+} {
+  return {
+    title: 'Documents due for GST filing',
+    body: `Your ${period.period_label} documents are due by ${period.due_date}. Please upload them in the app.`,
+  };
+}
+
+function firstName(name: string | null | undefined): string {
+  return name?.trim().split(/\s+/)[0] || 'there';
 }
 
 function startOfLocalDay(): Date {

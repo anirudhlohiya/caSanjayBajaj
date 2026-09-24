@@ -58,8 +58,10 @@ export class ReportsController {
   @ApiOperation({
     summary: 'Confirm report upload; deliver push + email to client',
   })
-  confirm(@Param('id') id: string) {
-    return this.reportsService.confirmAndNotify(id);
+  confirm(@Param('id') id: string, @Query('notify') notify?: string) {
+    // notify=false: the filed-return PDF is attached via "Mark filed", which
+    // sends its own alert, so the generic "report ready" one is skipped.
+    return this.reportsService.confirmAndNotify(id, notify !== 'false');
   }
 
   @Get('admin/users/:userId/reports')

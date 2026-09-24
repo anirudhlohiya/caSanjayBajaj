@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Raw } from 'typeorm';
 import { User } from '../entities/user.entity';
+import { ClientAlertsService } from '../notifications/client-alerts.service';
 import {
   NotificationsService,
   isPushSubscription,
@@ -17,6 +18,7 @@ export class BirthdayNotificationsService {
     @InjectRepository(User) private readonly users: Repository<User>,
     private readonly notifications: NotificationsService,
     private readonly usersService: UsersService,
+    private readonly alerts: ClientAlertsService,
   ) {}
 
   @Cron('1 0 * * *', { timeZone: 'Asia/Kolkata' })
@@ -76,6 +78,12 @@ export class BirthdayNotificationsService {
             </p>
           </div>
         `;
+        await this.alerts.recordInApp(
+          user.id,
+          `Happy Birthday, ${firstName}!`,
+          greeting,
+        );
+
         await this.notifications.sendEmail(
           { email: user.email },
           subject,

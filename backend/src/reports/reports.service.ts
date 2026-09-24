@@ -70,9 +70,10 @@ export class ReportsService {
     };
   }
 
-  async confirmAndNotify(reportId: string) {
+  async confirmAndNotify(reportId: string, notify = true) {
     const report = await this.reports.findOneBy({ id: reportId });
     if (!report) throw new NotFoundException('Report not found');
+    if (!notify) return report;
 
     const user = await this.usersService.findOne(report.user_id);
     const period = await this.periods.findOneBy({

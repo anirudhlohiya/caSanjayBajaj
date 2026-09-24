@@ -9,17 +9,31 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, In, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
-import { ComplianceTask, GstFilingPeriod, User } from '../entities';
+import {
+  ComplianceTask,
+  GstFilingPeriod,
+  Reminder,
+  Report,
+  User,
+} from '../entities';
 import {
   ComplianceCategory,
   GstFilingFrequency,
+  ReminderChannel,
+  ReminderStatus,
   TaskStatus,
   UserStatus,
   UserType,
 } from '../common/enums';
 import { PeriodSchedule, TaskSchedule } from '../common/types/gst-schedule';
+import {
+  ClientAlertResult,
+  ClientAlertsService,
+} from '../notifications/client-alerts.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { SchedulingService } from '../schedule/scheduling.service';
+import { ShareLinksService } from '../share-links/share-links.service';
+import { advanceFilingTaskOnUpload } from './task-upload.util';
 
 interface DesiredTask {
   category: ComplianceCategory;
@@ -41,6 +55,12 @@ export class ComplianceTasksService {
     private readonly notifications: NotificationsService,
     private readonly audit: AuditService,
     private readonly config: ConfigService,
+    @InjectRepository(Report)
+    private readonly reportsRepository: Repository<Report>,
+    @InjectRepository(Reminder)
+    private readonly remindersRepository: Repository<Reminder>,
+    private readonly alerts: ClientAlertsService,
+    private readonly shareLinks: ShareLinksService,
   ) {}
 
   async listForClient(
@@ -221,23 +241,7 @@ export class ComplianceTasksService {
     userId: string,
     periodId: string,
   ): Promise<ComplianceTask | null> {
-    const task = await this.tasksRepository.findOne({
-      where: {
-        user_id: userId,
-        filing_period_id: periodId,
-        category: In([
-          ComplianceCategory.GSTR_1,
-          ComplianceCategory.GSTR_3B,
-          ComplianceCategory.IFF,
-        ]),
-        status: TaskStatus.PENDING,
-      },
-      order: { created_at: 'ASC' },
-    });
-    if (!task) return null;
-
-    task.status = TaskStatus.UPLOADED;
-    return this.tasksRepository.save(task);
+    return advanceFilingTaskOnUpload(this.tasksRepository, userId, periodId);
   }
 
   /** Categories the client may declare nil (docs/13 §3.2). Payments are excluded. */
@@ -320,6 +324,184 @@ export class ComplianceTasksService {
     return saved;
   }
 
+  /**
+   * CA marks a return (GSTR-1 / IFF / GSTR-3B) as filed. Completes the task,
+   * records ARN + optional filed-return PDF, audits, and alerts the client on
+   * every channel (in-app, push, email, WhatsApp template). One-shot: a task
+   * that is already filed is rejected so the client never gets duplicates.
+   */
+  async markFiled(
+    id: string,
+    adminId: string,
+    dto: { arn?: string; report_id?: string },
+  ): Promise<ComplianceTask> {
+    const task = await this.tasksRepository.findOne({
+      where: { id },
+      relations: { user: true, filing_period: true },
+    });
+    if (!task) throw new NotFoundException('Task not found');
+    if (!ComplianceTasksService.nilEligible(task.category)) {
+      throw new BadRequestException(
+        'Only GSTR-1, IFF and GSTR-3B tasks can be marked as filed',
+      );
+    }
+    if (task.filed_at) {
+      throw new BadRequestException('This return is already marked as filed');
+    }
+
+    let report: Report | null = null;
+    if (dto.report_id) {
+      report = await this.reportsRepository.findOneBy({ id: dto.report_id });
+      if (!report || report.user_id !== task.user_id) {
+        throw new BadRequestException(
+          'Attached report does not belong to this client',
+        );
+      }
+    }
+
+    task.status = TaskStatus.COMPLETED;
+    task.filed_at = new Date();
+    task.filed_by = adminId;
+    task.arn = dto.arn?.trim() || null;
+    task.filed_report_id = report?.id ?? null;
+    const saved = await this.tasksRepository.save(task);
+
+    await this.audit.log(
+      adminId,
+      'compliance_task.filed',
+      {
+        task_id: task.id,
+        category: task.category,
+        period: task.filing_period?.period_code ?? null,
+        arn: task.arn,
+        report_id: task.filed_report_id,
+      },
+      { user_id: task.user_id, period_id: task.filing_period_id },
+    );
+
+    void this.notifyFiled(saved, report);
+    return saved;
+  }
+
+  private async notifyFiled(
+    task: ComplianceTask,
+    report: Report | null,
+  ): Promise<void> {
+    try {
+      const user = task.user;
+      if (!user) return;
+      const returnLabel = categoryLabel(task.category);
+      const period = task.filing_period?.period_label ?? 'this period';
+      const arnText = task.arn ? ` ARN: ${task.arn}.` : '';
+
+      let emailExtraHtml = '';
+      if (report) {
+        try {
+          const { token } = await this.shareLinks.createLink(report.id);
+          const shareUrl = `${this.config.get<string>('apiBaseUrl') ?? ''}/api/v1/public/report/download/${token}`;
+          emailExtraHtml = `<p><a href="${shareUrl}">Download the filed return (secure link, valid 30 days)</a></p>`;
+        } catch (error) {
+          this.logger.warn(
+            `Could not create share link for report ${report.id}: ${(error as Error).message}`,
+          );
+        }
+      }
+
+      await this.alerts.send(user, {
+        title: `${returnLabel} filed for ${period}`,
+        body: `Your ${returnLabel} return for ${period} has been filed successfully.${arnText}`,
+        deepLink: '/documents',
+        emailExtraHtml,
+        whatsapp: {
+          template: 'returnFiled',
+          params: [
+            firstName(user.name),
+            returnLabel,
+            period,
+            task.arn ?? 'will be shared in the app',
+          ],
+        },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Filed notification failed for task ${task.id}: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  /**
+   * Manual GST payment reminder sent by the CA (never automatic). Requires
+   * the payable amount to be set on the client's gst_payment task. Every
+   * channel attempt is logged in `reminders` and the action is audited.
+   */
+  async sendPaymentReminder(
+    id: string,
+    adminId: string,
+  ): Promise<{ task: ComplianceTask; channels: ClientAlertResult }> {
+    const task = await this.tasksRepository.findOne({
+      where: { id },
+      relations: { user: true, filing_period: true },
+    });
+    if (!task) throw new NotFoundException('Task not found');
+    if (task.category !== ComplianceCategory.GST_PAYMENT) {
+      throw new BadRequestException(
+        'Payment reminders can only be sent for GST payment tasks',
+      );
+    }
+    if (task.paid_at || task.status === TaskStatus.COMPLETED) {
+      throw new BadRequestException('This payment is already marked as paid');
+    }
+    if (!task.amount || Number(task.amount) <= 0) {
+      throw new BadRequestException(
+        'Set the GST payable amount before sending a reminder',
+      );
+    }
+
+    const user = task.user;
+    const period = task.filing_period?.period_label ?? 'this period';
+    const amount = formatInr(task.amount);
+    const due = task.due_date ? formatDate(task.due_date) : 'the due date';
+
+    const channels = await this.alerts.send(user, {
+      title: `GST payment due for ${period}`,
+      body: `Your GST payable for ${period} is ₹${amount}, due on ${due}. Please make the payment and share the challan with us.`,
+      deepLink: '/reminders',
+      whatsapp: {
+        template: 'paymentReminder',
+        params: [firstName(user.name), period, amount, due],
+      },
+    });
+
+    const now = new Date();
+    const logged: Array<[ReminderChannel, boolean]> = [
+      [ReminderChannel.PUSH, channels.push],
+      [ReminderChannel.EMAIL, channels.email],
+      [ReminderChannel.WHATSAPP, channels.whatsapp],
+    ];
+    await this.remindersRepository.save(
+      logged.map(([channel, ok]) =>
+        this.remindersRepository.create({
+          user_id: task.user_id,
+          filing_period_id: task.filing_period_id,
+          channel,
+          status: ok ? ReminderStatus.SENT : ReminderStatus.FAILED,
+          sent_at: ok ? now : null,
+          triggered_by: adminId,
+        }),
+      ),
+    );
+
+    task.payment_reminder_sent_at = now;
+    const saved = await this.tasksRepository.save(task);
+    await this.audit.log(
+      adminId,
+      'payment_reminder.sent',
+      { task_id: task.id, amount: task.amount, channels },
+      { user_id: task.user_id, period_id: task.filing_period_id },
+    );
+    return { task: saved, channels };
+  }
+
   /** Best-effort admin email alert for a fresh nil declaration (docs/13 §10.3). */
   private async notifyNilPending(task: ComplianceTask): Promise<void> {
     try {
@@ -341,4 +523,35 @@ export class ComplianceTasksService {
       );
     }
   }
+}
+
+const CATEGORY_LABELS: Partial<Record<ComplianceCategory, string>> = {
+  [ComplianceCategory.GSTR_1]: 'GSTR-1',
+  [ComplianceCategory.IFF]: 'IFF',
+  [ComplianceCategory.GSTR_3B]: 'GSTR-3B',
+  [ComplianceCategory.GST_PAYMENT]: 'GST payment',
+};
+
+function categoryLabel(category: ComplianceCategory): string {
+  return CATEGORY_LABELS[category] ?? category.replace(/_/g, ' ').toUpperCase();
+}
+
+function firstName(name: string | null | undefined): string {
+  return name?.trim().split(/\s+/)[0] || 'there';
+}
+
+function formatInr(amount: string): string {
+  return Number(amount).toLocaleString('en-IN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
+
+function formatDate(date: Date | string): string {
+  return new Date(date).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  });
 }

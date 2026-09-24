@@ -6,7 +6,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuditService } from '../audit/audit.service';
-import { ComplianceTask, GstFilingPeriod, User } from '../entities';
+import {
+  ComplianceTask,
+  GstFilingPeriod,
+  Reminder,
+  Report,
+  User,
+} from '../entities';
 import {
   ComplianceCategory,
   GstFilingFrequency,
@@ -14,7 +20,9 @@ import {
   UserStatus,
   UserType,
 } from '../common/enums';
+import { ClientAlertsService } from '../notifications/client-alerts.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ShareLinksService } from '../share-links/share-links.service';
 import { SchedulingService } from '../schedule/scheduling.service';
 import { ComplianceTasksService } from './compliance-tasks.service';
 
@@ -45,6 +53,24 @@ describe('ComplianceTasksService', () => {
     find: jest.fn(),
   } as unknown as Repository<GstFilingPeriod>;
   const tasksRepo = {} as unknown as Repository<ComplianceTask>;
+  const reportsRepo = {
+    findOneBy: jest.fn(),
+  } as unknown as Repository<Report>;
+  const remindersRepo = {
+    create: jest.fn((v: object) => v),
+    save: jest.fn((v: unknown) => Promise.resolve(v)),
+  } as unknown as Repository<Reminder>;
+  const alerts = {
+    send: jest.fn().mockResolvedValue({
+      in_app: true,
+      push: true,
+      email: true,
+      whatsapp: false,
+    }),
+  };
+  const shareLinks = {
+    createLink: jest.fn().mockResolvedValue({ token: 'tok' }),
+  };
 
   const monthlyUser = (overrides: Partial<User> = {}) =>
     ({
@@ -109,6 +135,10 @@ describe('ComplianceTasksService', () => {
       notifications as unknown as NotificationsService,
       audit as unknown as AuditService,
       config,
+      reportsRepo,
+      remindersRepo,
+      alerts as unknown as ClientAlertsService,
+      shareLinks as unknown as ShareLinksService,
     );
   });
 
@@ -458,6 +488,178 @@ describe('ComplianceTasksService', () => {
       );
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('markFiled', () => {
+    const client = {
+      id: 'u1',
+      name: 'Amit Shah',
+      email: 'amit@example.com',
+      phone: '9876543210',
+    } as User;
+    const filingTask = (overrides: Partial<ComplianceTask> = {}) =>
+      ({
+        id: 't1',
+        user_id: 'u1',
+        filing_period_id: 'p1',
+        category: ComplianceCategory.GSTR_3B,
+        status: TaskStatus.UPLOADED,
+        filed_at: null,
+        user: client,
+        filing_period: { period_label: 'October 2026', period_code: '2026-10' },
+        ...overrides,
+      }) as unknown as ComplianceTask;
+
+    it('completes the task, audits and alerts the client on all channels', async () => {
+      findOneMock.mockResolvedValue(filingTask());
+
+      const result = await tasksService.markFiled('t1', 'admin1', {
+        arn: ' AA0810260123456 ',
+      });
+      await new Promise((r) => setImmediate(r));
+
+      expect(result.status).toBe(TaskStatus.COMPLETED);
+      expect(result.filed_at).toBeInstanceOf(Date);
+      expect(result.arn).toBe('AA0810260123456');
+      expect(result.filed_by).toBe('admin1');
+      expect(audit.log).toHaveBeenCalledWith(
+        'admin1',
+        'compliance_task.filed',
+        expect.objectContaining({ task_id: 't1', arn: 'AA0810260123456' }),
+        { user_id: 'u1', period_id: 'p1' },
+      );
+      expect(alerts.send).toHaveBeenCalledWith(
+        client,
+        expect.objectContaining({
+          title: 'GSTR-3B filed for October 2026',
+          deepLink: '/documents',
+          whatsapp: {
+            template: 'returnFiled',
+            params: ['Amit', 'GSTR-3B', 'October 2026', 'AA0810260123456'],
+          },
+        }),
+      );
+    });
+
+    it('links an attached filed-return report and emails a secure link', async () => {
+      findOneMock.mockResolvedValue(filingTask());
+      (reportsRepo.findOneBy as jest.Mock).mockResolvedValue({
+        id: 'r1',
+        user_id: 'u1',
+      });
+
+      const result = await tasksService.markFiled('t1', 'admin1', {
+        report_id: 'r1',
+      });
+      await new Promise((r) => setImmediate(r));
+
+      expect(result.filed_report_id).toBe('r1');
+      expect(shareLinks.createLink).toHaveBeenCalledWith('r1');
+      const alert = (
+        alerts.send.mock.calls[0] as [User, { emailExtraHtml: string }]
+      )[1];
+      expect(alert.emailExtraHtml).toContain('/public/report/download/tok');
+    });
+
+    it('rejects a report that belongs to another client', async () => {
+      findOneMock.mockResolvedValue(filingTask());
+      (reportsRepo.findOneBy as jest.Mock).mockResolvedValue({
+        id: 'r1',
+        user_id: 'someone-else',
+      });
+
+      await expect(
+        tasksService.markFiled('t1', 'admin1', { report_id: 'r1' }),
+      ).rejects.toThrow(BadRequestException);
+      expect(alerts.send).not.toHaveBeenCalled();
+    });
+
+    it('refuses to file a payment task or an already-filed return', async () => {
+      findOneMock.mockResolvedValueOnce(
+        filingTask({ category: ComplianceCategory.GST_PAYMENT }),
+      );
+      await expect(tasksService.markFiled('t1', 'admin1', {})).rejects.toThrow(
+        BadRequestException,
+      );
+
+      findOneMock.mockResolvedValueOnce(filingTask({ filed_at: new Date() }));
+      await expect(tasksService.markFiled('t1', 'admin1', {})).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(alerts.send).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('sendPaymentReminder', () => {
+    const client = {
+      id: 'u1',
+      name: 'Amit Shah',
+      email: 'amit@example.com',
+      phone: '9876543210',
+    } as User;
+    const paymentTask = (overrides: Partial<ComplianceTask> = {}) =>
+      ({
+        id: 't9',
+        user_id: 'u1',
+        filing_period_id: 'p1',
+        category: ComplianceCategory.GST_PAYMENT,
+        status: TaskStatus.PENDING,
+        amount: '14500.00',
+        paid_at: null,
+        due_date: new Date('2026-11-20T00:00:00.000Z'),
+        user: client,
+        filing_period: { period_label: 'October 2026' },
+        ...overrides,
+      }) as unknown as ComplianceTask;
+
+    it('alerts the client and logs one reminder row per channel', async () => {
+      findOneMock.mockResolvedValue(paymentTask());
+
+      const result = await tasksService.sendPaymentReminder('t9', 'admin1');
+
+      expect(alerts.send).toHaveBeenCalledWith(
+        client,
+        expect.objectContaining({
+          whatsapp: {
+            template: 'paymentReminder',
+            params: ['Amit', 'October 2026', '14,500', '20 Nov 2026'],
+          },
+        }),
+      );
+      expect(result.channels.whatsapp).toBe(false);
+      const rows = (remindersRepo.save as jest.Mock).mock.calls[0][0] as Array<{
+        channel: string;
+        status: string;
+        triggered_by: string;
+      }>;
+      expect(rows.map((r) => [r.channel, r.status])).toEqual([
+        ['push', 'sent'],
+        ['email', 'sent'],
+        ['whatsapp', 'failed'],
+      ]);
+      expect(rows.every((r) => r.triggered_by === 'admin1')).toBe(true);
+      expect(result.task.payment_reminder_sent_at).toBeInstanceOf(Date);
+      expect(audit.log).toHaveBeenCalledWith(
+        'admin1',
+        'payment_reminder.sent',
+        expect.objectContaining({ task_id: 't9' }),
+        { user_id: 'u1', period_id: 'p1' },
+      );
+    });
+
+    it('requires an amount, an unpaid task and the payment category', async () => {
+      for (const overrides of [
+        { amount: null },
+        { paid_at: new Date() },
+        { category: ComplianceCategory.GSTR_1 },
+      ]) {
+        findOneMock.mockResolvedValueOnce(paymentTask(overrides));
+        await expect(
+          tasksService.sendPaymentReminder('t9', 'admin1'),
+        ).rejects.toThrow(BadRequestException);
+      }
+      expect(alerts.send).not.toHaveBeenCalled();
     });
   });
 });

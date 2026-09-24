@@ -44,6 +44,20 @@ export function formatDueDate(date: string): string {
   return `${d} ${MONTHS[m - 1]} ${year}`;
 }
 
+/** Short return label for WhatsApp template parameters. */
+export function returnTypeLabel(category: ComplianceCategory): string {
+  switch (category) {
+    case ComplianceCategory.GSTR_1:
+      return 'GSTR-1 (sales)';
+    case ComplianceCategory.IFF:
+      return 'IFF (sales)';
+    case ComplianceCategory.GSTR_3B:
+      return 'GSTR-3B (purchase)';
+    default:
+      return 'GST';
+  }
+}
+
 export function buildReminderCopy(input: ReminderCopyInput): ReminderCopy {
   const { category, slot, name, month, quarter, due } = input;
   const dueDate = formatDueDate(due);

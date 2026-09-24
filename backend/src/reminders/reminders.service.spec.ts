@@ -13,6 +13,7 @@ import { Document } from '../entities/document.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { Reminder } from '../entities/reminder.entity';
 import { User } from '../entities/user.entity';
+import { ClientAlertsService } from '../notifications/client-alerts.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { SchedulingService } from '../schedule/scheduling.service';
 import { UsersService } from '../users/users.service';
@@ -46,6 +47,7 @@ describe('RemindersService', () => {
     sendPush: jest.Mock;
     sendWhatsappTemplate: jest.Mock;
   };
+  let alerts: { sendWhatsappTemplate: jest.Mock; recordInApp: jest.Mock };
   let usersService: { getTokensForPush: jest.Mock; listActiveUsers: jest.Mock };
   let scheduler: { doesExist: jest.Mock; addCronJob: jest.Mock };
   const registeredJobs: Array<{ stop: () => void }> = [];
@@ -129,6 +131,10 @@ describe('RemindersService', () => {
       sendPush: jest.fn().mockResolvedValue(true),
       sendWhatsappTemplate: jest.fn().mockResolvedValue(true),
     };
+    alerts = {
+      sendWhatsappTemplate: jest.fn().mockResolvedValue(true),
+      recordInApp: jest.fn().mockResolvedValue(true),
+    };
     usersService = {
       getTokensForPush: jest.fn().mockResolvedValue([]),
       listActiveUsers: jest.fn().mockResolvedValue([]),
@@ -158,6 +164,7 @@ describe('RemindersService', () => {
       config,
       new SchedulingService(),
       scheduler as unknown as SchedulerRegistry,
+      alerts as unknown as ClientAlertsService,
     );
   });
 
@@ -186,9 +193,24 @@ describe('RemindersService', () => {
       const sent = saved.filter((r) => r.triggered_by === 'system');
       expect(sent.length).toBe(3); // email + push + whatsapp
       expect(sent.every((r) => r.status === ReminderStatus.SENT)).toBe(true);
+      // Mirrored once into the client's in-app inbox (not once per channel)
+      expect(alerts.recordInApp).toHaveBeenCalledTimes(1);
+      expect(alerts.recordInApp).toHaveBeenCalledWith(
+        monthlyUser.id,
+        expect.any(String),
+        expect.any(String),
+        '/documents/upload',
+      );
       expect(tasksRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ message_day: 0 }),
       );
+      // Real documents-reminder template with filled params, not hello_world
+      expect(alerts.sendWhatsappTemplate).toHaveBeenCalledWith(
+        monthlyUser,
+        'documentsReminder',
+        ['Amit', 'GSTR-1 (sales)', expect.any(String), expect.any(String)],
+      );
+      expect(notifications.sendWhatsappTemplate).not.toHaveBeenCalled();
     });
 
     it('advances the message-day slot on GSTR-1 day2', async () => {
