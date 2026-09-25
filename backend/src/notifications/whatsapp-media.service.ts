@@ -9,6 +9,8 @@ export interface StoredWhatsappMedia {
   filename: string;
   mimeType: string;
   sizeBytes: number;
+  /** Raw bytes, kept in memory only for the current message (e.g. transcription). */
+  buffer: Buffer;
 }
 
 @Injectable()
@@ -146,6 +148,7 @@ export class WhatsappMediaService {
         filename: baseFilename,
         mimeType: effectiveMime,
         sizeBytes: buffer.length,
+        buffer,
       };
     } catch (err) {
       this.logger.error(
@@ -173,7 +176,11 @@ export class WhatsappMediaService {
       'audio/ogg': '.ogg',
       'audio/mpeg': '.mp3',
       'audio/mp4': '.m4a',
+      'audio/aac': '.aac',
+      'video/mp4': '.mp4',
+      'video/3gpp': '.3gp',
     };
-    return map[mime] || '.bin';
+    // WhatsApp sends e.g. "audio/ogg; codecs=opus"
+    return map[mime.split(';')[0].trim().toLowerCase()] || '.bin';
   }
 }

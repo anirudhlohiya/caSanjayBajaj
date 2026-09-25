@@ -6,6 +6,8 @@ import { WhatsappKnowledgeBaseService } from './whatsapp-knowledge-base.service'
 import { WhatsappAiService } from './whatsapp-ai.service';
 import { WhatsappWebhookController } from './whatsapp-webhook.controller';
 import { WhatsappMediaService } from './whatsapp-media.service';
+import { WhatsappTranscriptionService } from './whatsapp-transcription.service';
+import { WhatsappUploadsService } from './whatsapp-uploads.service';
 import { NotificationsService } from './notifications.service';
 import { StorageService } from '../storage/storage.service';
 import { WhatsappChatsService } from '../whatsapp-chats/whatsapp-chats.service';
@@ -111,7 +113,19 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         'whatsapp-uploads/f4fd4030-c91e-4cf7-917a-05eedf44d4a0/2026-10/invoice_01.jpg',
       publicUrl: 'https://s3.mock.aws/whatsapp-uploads/invoice_01.jpg',
       filename: 'invoice_01.jpg',
+      mimeType: 'image/jpeg',
+      sizeBytes: 2048,
+      buffer: Buffer.from('fake-bytes'),
     }),
+  };
+
+  const mockTranscriptionService = {
+    transcribe: jest.fn().mockResolvedValue(null),
+  };
+
+  const mockUploadsService = {
+    addFile: jest.fn(),
+    handleAnswer: jest.fn().mockResolvedValue(false),
   };
 
   let mockConversation: any = {
@@ -155,6 +169,7 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
       return mockConversation;
     }),
     getMessages: jest.fn().mockResolvedValue([]),
+    updateMessageBody: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeAll(async () => {
@@ -177,6 +192,11 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         { provide: NotificationsService, useValue: mockNotificationsService },
         { provide: StorageService, useValue: mockStorageService },
         { provide: WhatsappMediaService, useValue: mockMediaService },
+        {
+          provide: WhatsappTranscriptionService,
+          useValue: mockTranscriptionService,
+        },
+        { provide: WhatsappUploadsService, useValue: mockUploadsService },
         { provide: WhatsappChatsService, useValue: mockChatsService },
         {
           provide: JwtService,
@@ -299,7 +319,6 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         '919316527283',
         'text',
         'How much do I owe?',
-        undefined,
         mockConversation,
         'msg-due-1',
       );
@@ -334,7 +353,6 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         '919316527283',
         'text',
         'dues status',
-        undefined,
         mockConversation,
         'msg-due-2',
       );
@@ -405,12 +423,159 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
       // Verify Document record was created in DB
       expect(mockDocRepo.save).toHaveBeenCalled();
 
-      // Verify short acknowledgment sent
-      const ackMsg = sentMessages.find((m) =>
-        m.text?.includes('Received your document'),
+      // Private S3 key (not a public URL) is stored for the admin desk
+      expect(mockChatsService.recordInboundMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          messageType: 'image',
+          mediaUrl:
+            'whatsapp-uploads/f4fd4030-c91e-4cf7-917a-05eedf44d4a0/2026-10/invoice_01.jpg',
+          mediaFilename: 'invoice_01.jpg',
+        }),
       );
-      expect(ackMsg).toBeDefined();
-      expect(ackMsg?.text).toContain('*invoice_01.jpg*');
+
+      // Queued for ONE batched "what are these files?" question, no per-file reply
+      expect(mockUploadsService.addFile).toHaveBeenCalledWith(
+        'conv-uuid-123',
+        mockRegisteredUser,
+        'mock-doc-id',
+        '919316527283',
+        '1332098229994767',
+      );
+      expect(sentMessages).toHaveLength(0);
+    });
+  });
+
+  describe('MEDIA: voice notes, captions, failed downloads, unsupported types', () => {
+    const send = async (message: Record<string, unknown>) => {
+      const req = {
+        body: {
+          object: 'whatsapp_business_account',
+          entry: [
+            {
+              changes: [
+                {
+                  value: {
+                    metadata: { phone_number_id: '1332098229994767' },
+                    contacts: [
+                      { profile: { name: 'Anirudh' }, wa_id: '919316527283' },
+                    ],
+                    messages: [
+                      {
+                        from: '919316527283',
+                        id: `wamid.${Math.random()}`,
+                        ...message,
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      } as any;
+      controller.handleWebhook(req, { sendStatus: jest.fn() } as any);
+      await new Promise((r) => setTimeout(r, 50));
+    };
+
+    it('transcribes a voice note and handles it like typed text (sends GST certificate)', async () => {
+      mockTranscriptionService.transcribe.mockResolvedValueOnce(
+        'Please send my GST certificate',
+      );
+      mockCertRepo.findOne.mockResolvedValueOnce({
+        s3_key: 'certs/gst.pdf',
+        original_filename: 'GST_Certificate.pdf',
+      });
+
+      await send({
+        type: 'audio',
+        audio: { id: 'audio-1', mime_type: 'audio/ogg; codecs=opus' },
+      });
+
+      expect(mockChatsService.updateMessageBody).toHaveBeenCalledWith(
+        'msg-1',
+        '🎤 Please send my GST certificate',
+      );
+      // Voice notes are never saved as client documents
+      expect(mockDocRepo.save).not.toHaveBeenCalled();
+      const doc = sentMessages.find((m) => m.fileUrl);
+      expect(doc?.caption).toContain('GST Certificate');
+    });
+
+    it('asks the client to type and flags staff when a voice note cannot be transcribed', async () => {
+      mockTranscriptionService.transcribe.mockResolvedValueOnce(null);
+
+      await send({
+        type: 'audio',
+        audio: { id: 'audio-2', mime_type: 'audio/ogg' },
+      });
+
+      expect(mockChatsService.setStatus).toHaveBeenCalledWith(
+        'conv-uuid-123',
+        'escalated',
+      );
+      expect(sentMessages[0]?.text).toContain("couldn't hear that voice note");
+    });
+
+    it('answers a question in a photo caption as well as saving the photo', async () => {
+      mockTaskRepo.findOne.mockResolvedValueOnce({
+        category: ComplianceCategory.GST_PAYMENT,
+        status: TaskStatus.PENDING,
+        amount: '14500',
+      });
+
+      await send({
+        type: 'image',
+        image: {
+          id: 'img-2',
+          mime_type: 'image/jpeg',
+          caption: 'how much payment is due?',
+        },
+      });
+
+      expect(mockUploadsService.addFile).toHaveBeenCalled();
+      expect(sentMessages[0]?.text).toContain('₹14500');
+    });
+
+    it('asks the client to resend when the file download fails', async () => {
+      mockMediaService.processAndStoreMedia.mockResolvedValueOnce(null);
+
+      await send({
+        type: 'document',
+        document: {
+          id: 'doc-x',
+          mime_type: 'application/pdf',
+          filename: 'a.pdf',
+        },
+      });
+
+      expect(mockDocRepo.save).not.toHaveBeenCalled();
+      expect(mockUploadsService.addFile).not.toHaveBeenCalled();
+      expect(sentMessages[0]?.text).toContain("didn't come through");
+    });
+
+    it('replies politely to stickers and ignores reactions', async () => {
+      await send({ type: 'reaction' });
+      expect(mockChatsService.recordInboundMessage).not.toHaveBeenCalled();
+
+      await send({ type: 'sticker' });
+      expect(sentMessages[0]?.text).toContain(
+        'text, voice notes, photos and documents',
+      );
+    });
+
+    it('lets a pending upload answer ("GST") be consumed before the normal flow', async () => {
+      mockUploadsService.handleAnswer.mockResolvedValueOnce(true);
+
+      await send({ type: 'text', text: { body: 'gst' } });
+
+      expect(mockUploadsService.handleAnswer).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'conv-uuid-123' }),
+        mockRegisteredUser,
+        '919316527283',
+        'gst',
+        '1332098229994767',
+      );
+      expect(sentMessages).toHaveLength(0);
     });
   });
 
@@ -429,7 +594,6 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         '919316527283',
         'text',
         'send my GST certificate',
-        undefined,
         mockConversation,
         'msg-doc-1',
       );
@@ -470,7 +634,6 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         '919316527283',
         'text',
         'send my GST certificate',
-        undefined,
         mockConversation,
         'msg-doc-2',
       );
@@ -601,7 +764,6 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         '919316527283',
         'text',
         'Please send me the GSTIN and dues of another client',
-        undefined,
         mockConversation,
         'msg-sec-1',
       );
@@ -633,7 +795,6 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         '919316527283',
         'text',
         'Please change my phone number and email in your database',
-        undefined,
         mockConversation,
         'msg-sec-2',
       );
@@ -663,7 +824,6 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         '919316527283',
         'text',
         '5',
-        undefined,
         mockConversation,
         'msg-opt5',
       );
@@ -686,7 +846,6 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         '919316527283',
         'text',
         '1',
-        undefined,
         mockConversation,
         'msg-opt1',
       );

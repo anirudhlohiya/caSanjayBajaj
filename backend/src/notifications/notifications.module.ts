@@ -9,7 +9,11 @@ import {
   ComplianceTask,
   Document,
   GstFilingPeriod,
+  DeviceToken,
 } from '../entities';
+import { ClientAlertsService } from './client-alerts.service';
+import { WhatsappTranscriptionService } from './whatsapp-transcription.service';
+import { WhatsappUploadsService } from './whatsapp-uploads.service';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
 import { ReportNotificationsController } from './report-notifications.controller';
@@ -32,6 +36,7 @@ import { StorageModule } from '../storage/storage.module';
       ComplianceTask,
       Document,
       GstFilingPeriod,
+      DeviceToken,
     ]),
     forwardRef(() => WhatsappChatsModule),
     StorageModule,
@@ -47,8 +52,12 @@ import { StorageModule } from '../storage/storage.module';
     WhatsappAiService,
     WhatsappMediaService,
     WhatsappKnowledgeBaseService,
+    WhatsappTranscriptionService,
+    WhatsappUploadsService,
+    ClientAlertsService,
   ],
   exports: [
+    ClientAlertsService,
     NotificationsService,
     ReportNotificationsService,
     WhatsappAiService,

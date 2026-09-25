@@ -34,7 +34,12 @@ import {
 } from '../common/enums';
 import { NotificationsService } from './notifications.service';
 import { WhatsappAiService } from './whatsapp-ai.service';
-import { WhatsappMediaService } from './whatsapp-media.service';
+import {
+  StoredWhatsappMedia,
+  WhatsappMediaService,
+} from './whatsapp-media.service';
+import { WhatsappTranscriptionService } from './whatsapp-transcription.service';
+import { WhatsappUploadsService } from './whatsapp-uploads.service';
 import { WhatsappChatsService } from '../whatsapp-chats/whatsapp-chats.service';
 import { StorageService } from '../storage/storage.service';
 import { WhatsappMessageType } from '../entities/whatsapp-message.entity';
@@ -56,6 +61,8 @@ interface WhatsappIncomingMessage {
   image?: WhatsappMediaAttachment;
   document?: WhatsappMediaAttachment;
   audio?: WhatsappMediaAttachment;
+  video?: WhatsappMediaAttachment;
+  button?: { payload?: string; text?: string };
   interactive?: {
     type?: 'list_reply' | 'button_reply';
     list_reply?: { id: string; title: string; description?: string };
@@ -91,6 +98,8 @@ export class WhatsappWebhookController {
     private readonly notificationsService: NotificationsService,
     private readonly whatsappAiService: WhatsappAiService,
     private readonly mediaService: WhatsappMediaService,
+    private readonly transcriptionService: WhatsappTranscriptionService,
+    private readonly uploadsService: WhatsappUploadsService,
     private readonly storage: StorageService,
     private readonly jwtService: JwtService,
     @Inject(forwardRef(() => WhatsappChatsService))
@@ -201,7 +210,9 @@ export class WhatsappWebhookController {
     try {
       let msgType: WhatsappMessageType = 'text';
       let msgBody: string | undefined = undefined;
+      let caption: string | undefined = undefined;
       let rawMediaAttachment: WhatsappMediaAttachment | undefined = undefined;
+      let unsupported: string | undefined = undefined;
 
       // Extract message content
       if (message.type === 'text' && message.text?.body) {
@@ -214,83 +225,54 @@ export class WhatsappWebhookController {
           message.interactive?.list_reply?.title ||
           message.interactive?.button_reply?.id ||
           message.interactive?.button_reply?.title;
+      } else if (message.type === 'button' && message.button) {
+        // Quick-reply button on a template message
+        msgType = 'text';
+        msgBody = message.button.payload || message.button.text;
       } else if (message.type === 'image' && message.image) {
         msgType = 'image';
         rawMediaAttachment = message.image;
-        msgBody = message.image.caption || '[Photo received]';
+        caption = message.image.caption;
+        msgBody = caption || '[Photo]';
       } else if (message.type === 'document' && message.document) {
         msgType = 'document';
         rawMediaAttachment = message.document;
+        caption = message.document.caption;
         const name = message.document.filename || 'Document';
-        msgBody = message.document.caption
-          ? `${name}: ${message.document.caption}`
-          : name;
+        msgBody = caption ? `${name}: ${caption}` : name;
       } else if (message.type === 'audio' && message.audio) {
         msgType = 'audio';
         rawMediaAttachment = message.audio;
-        msgBody = '[Voice note received]';
+        msgBody = '🎤 Voice note';
+      } else if (message.type === 'video' && message.video) {
+        // No 'video' message type in the schema; stored as a document so
+        // staff can download it from the desk.
+        msgType = 'document';
+        rawMediaAttachment = message.video;
+        caption = message.video.caption;
+        msgBody = caption ? `🎬 Video: ${caption}` : '🎬 Video';
+        unsupported = 'video';
+      } else if (message.type === 'reaction') {
+        // Emoji reactions to our messages need no reply or record
+        return;
       } else {
         msgType = 'text';
-        msgBody = `[Unsupported message type: ${message.type || 'unknown'}]`;
+        unsupported = message.type || 'unknown';
+        msgBody = `[${unsupported === 'sticker' ? 'Sticker' : unsupported === 'location' ? 'Location' : unsupported === 'contacts' ? 'Contact card' : 'Unsupported message'}]`;
       }
 
       // 1. Check if sender matches registered client in users table (strict 10-digit match)
       const user = await this.chatsService.findMatchingUserByPhone(from);
 
-      // 2. Handle media download & storage if attachment is present
-      let mediaS3Key: string | undefined = undefined;
-      let mediaPublicUrl: string | undefined = undefined;
-      let uploadedFilename: string | undefined = undefined;
-
+      // 2. Download media from Meta and store it in S3 (private; signed on read)
+      let stored: StoredWhatsappMedia | null = null;
       if (rawMediaAttachment) {
-        const clientFolder = user ? user.id : from;
-        const stored = await this.mediaService.processAndStoreMedia(
+        stored = await this.mediaService.processAndStoreMedia(
           rawMediaAttachment.id,
           rawMediaAttachment.mime_type,
           rawMediaAttachment.filename,
-          clientFolder,
+          user ? user.id : from,
         );
-
-        if (stored) {
-          mediaS3Key = stored.s3Key;
-          mediaPublicUrl = stored.publicUrl;
-          uploadedFilename = stored.filename;
-
-          // If registered client, create a document record in our database
-          if (user) {
-            let fileType = DocumentFileType.PDF;
-            if (rawMediaAttachment.mime_type?.includes('image/')) {
-              fileType = DocumentFileType.IMAGE;
-            } else if (
-              rawMediaAttachment.mime_type?.includes('spreadsheet') ||
-              rawMediaAttachment.mime_type?.includes('excel') ||
-              rawMediaAttachment.mime_type?.includes('csv')
-            ) {
-              fileType = DocumentFileType.EXCEL;
-            }
-
-            try {
-              const doc = this.docRepo.create({
-                user_id: user.id,
-                category: DocumentCategory.GENERAL,
-                s3_key: stored.s3Key,
-                original_filename: stored.filename,
-                file_type: fileType,
-                status: DocumentStatus.RECEIVED,
-                file_size_bytes: String(stored.sizeBytes),
-                uploaded_at: new Date(),
-              });
-              await this.docRepo.save(doc);
-              this.logger.log(
-                `Created Document record for client ${user.id} (${stored.filename})`,
-              );
-            } catch (docErr) {
-              this.logger.error(
-                `Failed to create Document record: ${(docErr as Error).message}`,
-              );
-            }
-          }
-        }
       }
 
       // 3. Record inbound message in DB (with deduplication on meta_message_id)
@@ -300,7 +282,8 @@ export class WhatsappWebhookController {
         metaMessageId: messageId,
         messageType: msgType,
         body: msgBody,
-        mediaUrl: mediaPublicUrl || mediaS3Key,
+        mediaUrl: stored?.s3Key,
+        mediaFilename: stored?.filename,
       });
 
       if (recordResult.isDuplicate) {
@@ -312,7 +295,35 @@ export class WhatsappWebhookController {
 
       const conversation = recordResult.conversation;
 
-      // 4. Check conversation status - AI SUPPRESSION RULE
+      // 4. Voice notes → text, so the request is understood (and staff can read it)
+      let transcript: string | null = null;
+      if (msgType === 'audio' && stored) {
+        transcript = await this.transcriptionService.transcribe(
+          stored.buffer,
+          stored.mimeType,
+        );
+        if (transcript) {
+          await this.chatsService.updateMessageBody(
+            recordResult.message.id,
+            `🎤 ${transcript}`,
+          );
+        }
+      }
+
+      // 5. Photos / PDFs / sheets from a registered client become documents
+      //    straight away so the CA sees them, even before the client says
+      //    what they are for.
+      let documentId: string | undefined;
+      if (
+        user &&
+        stored &&
+        (msgType === 'image' || msgType === 'document') &&
+        !unsupported
+      ) {
+        documentId = await this.createDocumentRecord(user, stored);
+      }
+
+      // 6. Check conversation status - AI SUPPRESSION RULE
       if (conversation.status === 'staff_takeover') {
         this.logger.log(
           `Conversation ${conversation.id} is in staff_takeover status. AI reply suppressed.`,
@@ -320,24 +331,101 @@ export class WhatsappWebhookController {
         return;
       }
 
-      // 5. FLOW — UNREGISTERED NUMBER
+      // 7. FLOW — UNREGISTERED NUMBER
       if (!user) {
         await this.handleUnregisteredSender(
           from,
-          msgBody || '',
+          transcript ?? caption ?? msgBody ?? '',
           conversation,
           phoneNumberId,
         );
         return;
       }
 
-      // 6. FLOW — REGISTERED CLIENT
+      // 8. FLOW — REGISTERED CLIENT, non-text messages
+      if (rawMediaAttachment && !stored) {
+        await this.sendAndRecordReply(
+          conversation.id,
+          from,
+          "That file didn't come through on our side. Could you please send it again?",
+          phoneNumberId,
+        );
+        return;
+      }
+
+      if (msgType === 'audio') {
+        if (!transcript) {
+          await this.chatsService.setStatus(conversation.id, 'escalated');
+          await this.chatsService.updateConversation(conversation.id, {
+            internalNotes: this.appendNote(
+              conversation.internalNotes,
+              '[Voice note] Could not be transcribed — please listen to it.',
+            ),
+          });
+          await this.sendAndRecordReply(
+            conversation.id,
+            from,
+            "Sorry, I couldn't hear that voice note clearly. Could you type your question? I've also flagged it for our team.",
+            phoneNumberId,
+          );
+          return;
+        }
+        // Treated exactly like a typed message from here on
+        await this.handleRegisteredClient(
+          user,
+          from,
+          'text',
+          transcript,
+          conversation,
+          messageId,
+          phoneNumberId,
+        );
+        return;
+      }
+
+      if (unsupported) {
+        const reply =
+          unsupported === 'video'
+            ? "Thanks, I've saved your video for our team. On this chat I can read text, voice notes, photos and documents."
+            : 'On this chat I can read text, voice notes, photos and documents. Could you send your question as a message?';
+        await this.sendAndRecordReply(
+          conversation.id,
+          from,
+          reply,
+          phoneNumberId,
+        );
+        return;
+      }
+
+      if (documentId) {
+        this.uploadsService.addFile(
+          conversation.id,
+          user,
+          documentId,
+          from,
+          phoneNumberId,
+        );
+        // A caption that asks something is answered as well
+        if (caption && this.looksLikeQuestion(caption)) {
+          await this.handleRegisteredClient(
+            user,
+            from,
+            'text',
+            caption,
+            conversation,
+            messageId,
+            phoneNumberId,
+          );
+        }
+        return;
+      }
+
+      // 9. FLOW — REGISTERED CLIENT, text
       await this.handleRegisteredClient(
         user,
         from,
         msgType,
         msgBody || '',
-        uploadedFilename,
         conversation,
         messageId,
         phoneNumberId,
@@ -348,6 +436,62 @@ export class WhatsappWebhookController {
         (err as Error).stack,
       );
     }
+  }
+
+  /** Saves a WhatsApp file as an unassigned client document. */
+  private async createDocumentRecord(
+    user: User,
+    stored: StoredWhatsappMedia,
+  ): Promise<string | undefined> {
+    let fileType = DocumentFileType.PDF;
+    if (stored.mimeType.includes('image/')) {
+      fileType = DocumentFileType.IMAGE;
+    } else if (
+      stored.mimeType.includes('spreadsheet') ||
+      stored.mimeType.includes('excel') ||
+      stored.mimeType.includes('csv')
+    ) {
+      fileType = DocumentFileType.EXCEL;
+    }
+
+    try {
+      const doc = await this.docRepo.save(
+        this.docRepo.create({
+          user_id: user.id,
+          category: DocumentCategory.GENERAL,
+          s3_key: stored.s3Key,
+          original_filename: stored.filename,
+          file_type: fileType,
+          status: DocumentStatus.RECEIVED,
+          file_size_bytes: String(stored.sizeBytes),
+          uploaded_at: new Date(),
+        }),
+      );
+      this.logger.log(
+        `Created Document record for client ${user.id} (${stored.filename})`,
+      );
+      return doc.id;
+    } catch (docErr) {
+      this.logger.error(
+        `Failed to create Document record: ${(docErr as Error).message}`,
+      );
+      return undefined;
+    }
+  }
+
+  /** Captions like "what is this?" or "please check" deserve an answer. */
+  private looksLikeQuestion(text: string): boolean {
+    const t = text.trim().toLowerCase();
+    return (
+      t.includes('?') ||
+      /^(what|why|how|when|which|is|are|can|could|please|pls|plz|check|kya|kab|kaise|kitna|kitne|batao|bataiye)\b/.test(
+        t,
+      )
+    );
+  }
+
+  private appendNote(existing: string | null, note: string): string {
+    return existing ? `${existing}\n${note}` : note;
   }
 
   /**
@@ -412,7 +556,6 @@ export class WhatsappWebhookController {
     from: string,
     msgType: WhatsappMessageType,
     msgBody: string,
-    uploadedFilename: string | undefined,
     conversation: WhatsappConversation,
     messageId: string,
     phoneNumberId?: string,
@@ -420,16 +563,16 @@ export class WhatsappWebhookController {
     const text = msgBody.trim();
     const lower = text.toLowerCase();
 
-    // 1. Media sent directly in chat → Send short acknowledgment
-    if (msgType === 'image' || msgType === 'document' || msgType === 'audio') {
-      const fileNameDisplay = uploadedFilename || 'file';
-      const ackMsg = `Received your document *${fileNameDisplay}*. Our team will verify and process it.`;
-      await this.sendAndRecordReply(
-        conversation.id,
+    // 1. Answer to a pending "what are these files?" question
+    if (
+      await this.uploadsService.handleAnswer(
+        conversation,
+        user,
         from,
-        ackMsg,
+        text,
         phoneNumberId,
-      );
+      )
+    ) {
       return;
     }
 
