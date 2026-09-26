@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsIn,
   IsOptional,
@@ -9,6 +11,7 @@ import {
   Matches,
   Max,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import {
   DocumentCategory,
@@ -108,6 +111,33 @@ export class DocumentStatusQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(DocumentStatus)
   status?: DocumentStatus;
+
+  @ApiPropertyOptional({
+    description:
+      'Only WhatsApp files not yet filed under a GST month or ITR year',
+  })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  unassigned?: boolean;
+}
+
+export class AssignDocumentDto {
+  @ApiProperty({ enum: DocumentCategory })
+  @IsEnum(DocumentCategory)
+  category: DocumentCategory;
+
+  @ApiPropertyOptional({ description: 'Required for GST documents' })
+  @ValidateIf((o: AssignDocumentDto) => o.category === DocumentCategory.GST)
+  @IsUUID()
+  filing_period_id?: string;
+
+  @ApiPropertyOptional({ example: '2026-27' })
+  @IsOptional()
+  @Matches(/^\d{4}-\d{2}$/, {
+    message: 'assessment_year must be in YYYY-YY format, e.g. 2026-27',
+  })
+  assessment_year?: string;
 }
 
 export class SetProcessedDto {

@@ -12,7 +12,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
-import { PaginationQueryDto } from '../common/dto/pagination';
+import { SearchPaginationQueryDto } from '../common/dto/pagination';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermissionsGuard, RolesGuard } from '../common/guards/roles.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
@@ -29,7 +29,7 @@ export class UsersController {
   @Get()
   @Permissions('view_clients')
   @ApiOperation({ summary: 'List client users (paginated)' })
-  list(@Query() query: PaginationQueryDto) {
+  list(@Query() query: SearchPaginationQueryDto) {
     return this.usersService.list(query);
   }
 

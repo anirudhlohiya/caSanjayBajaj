@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -15,6 +16,7 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermissionsGuard, RolesGuard } from '../common/guards/roles.guard';
 import {
+  AssignDocumentDto,
   ConfirmUploadDto,
   CreateUploadUrlDto,
   DocumentStatusQueryDto,
@@ -92,5 +94,18 @@ export class DocumentsController {
   @ApiOperation({ summary: 'Mark a document as processed (admin)' })
   markProcessed(@CurrentUser() auth: AuthUser, @Param('id') id: string) {
     return this.documentsService.markProcessed(auth, id);
+  }
+
+  @Patch('admin/documents/:id/assign')
+  @Permissions('view_documents')
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @ApiOperation({
+    summary: 'File a document under a GST month or ITR year (admin)',
+  })
+  assign(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: AssignDocumentDto,
+  ) {
+    return this.documentsService.assign(id, dto);
   }
 }

@@ -74,13 +74,23 @@ export class UsersService {
     return this.users.save(user);
   }
 
-  async list(query: PaginationQueryDto): Promise<PaginatedResult<User>> {
+  async list(
+    query: PaginationQueryDto & { search?: string },
+  ): Promise<PaginatedResult<User>> {
     const { page, pageSize } = query;
-    const [items, total] = await this.users.findAndCount({
-      order: { created_at: 'DESC' },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    });
+    const qb = this.users
+      .createQueryBuilder('u')
+      .orderBy('u.created_at', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize);
+    const term = query.search?.trim().toLowerCase();
+    if (term) {
+      qb.where(
+        "(LOWER(u.name) LIKE :term OR LOWER(u.email) LIKE :term OR COALESCE(u.phone, '') LIKE :term OR LOWER(COALESCE(u.gstin, '')) LIKE :term OR LOWER(COALESCE(u.business_name, '')) LIKE :term)",
+        { term: `%${term}%` },
+      );
+    }
+    const [items, total] = await qb.getManyAndCount();
     return paginate(items, total, page, pageSize);
   }
 

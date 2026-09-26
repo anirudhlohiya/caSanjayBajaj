@@ -17,7 +17,18 @@ import { PermissionsGuard } from '../common/guards/roles.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
-import { IsNotEmpty, IsString, IsOptional, IsBoolean } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+  ValidateIf,
+} from 'class-validator';
+import { AuditService } from '../audit/audit.service';
 import {
   WhatsappChatsService,
   UpdateConversationDto,
@@ -28,6 +39,34 @@ class SendStaffMessageDto {
   @IsString()
   @IsNotEmpty()
   body: string;
+}
+
+class SendTemplateDto {
+  @IsString()
+  @IsNotEmpty()
+  template: string;
+
+  @IsString()
+  @IsOptional()
+  language?: string;
+
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  @Length(1, 500, { each: true })
+  @IsOptional()
+  params?: string[];
+}
+
+class StartTemplateConversationDto extends SendTemplateDto {
+  @ValidateIf((o: StartTemplateConversationDto) => !o.phone)
+  @IsUUID()
+  client_id?: string;
+
+  @ValidateIf((o: StartTemplateConversationDto) => !o.client_id)
+  @IsString()
+  @Length(10, 16)
+  phone?: string;
 }
 
 class UpdateMetadataDto implements UpdateConversationDto {
@@ -60,6 +99,7 @@ export class WhatsappChatsController {
   constructor(
     private readonly chatsService: WhatsappChatsService,
     private readonly eventsService: WhatsappEventsService,
+    private readonly audit: AuditService,
   ) {}
 
   @Get('conversations')
@@ -77,6 +117,60 @@ export class WhatsappChatsController {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
     });
+  }
+
+  @Get('templates')
+  @Permissions('view_clients')
+  @ApiOperation({ summary: 'Approved WhatsApp templates for staff messages' })
+  async listTemplates() {
+    return this.chatsService.listTemplates();
+  }
+
+  @Post('conversations/start')
+  @Permissions('view_clients')
+  @ApiOperation({
+    summary: 'Start a conversation with an approved template (client or phone)',
+  })
+  async startConversation(
+    @Body() body: StartTemplateConversationDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const result = await this.chatsService.startWithTemplate(
+      { client_id: body.client_id, phone: body.phone },
+      body,
+      user.sub,
+    );
+    await this.audit.log(
+      user.sub,
+      'whatsapp.template_sent',
+      { template: body.template, conversation_id: result.conversation.id },
+      { user_id: result.conversation.clientId ?? undefined },
+    );
+    return result;
+  }
+
+  @Post('conversations/:id/template')
+  @Permissions('view_clients')
+  @ApiOperation({
+    summary: 'Send an approved template in an existing conversation',
+  })
+  async sendTemplate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: SendTemplateDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const result = await this.chatsService.startWithTemplate(
+      { conversation_id: id },
+      body,
+      user.sub,
+    );
+    await this.audit.log(
+      user.sub,
+      'whatsapp.template_sent',
+      { template: body.template, conversation_id: id },
+      { user_id: result.conversation.clientId ?? undefined },
+    );
+    return result;
   }
 
   @Get('usage')

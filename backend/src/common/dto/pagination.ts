@@ -19,6 +19,13 @@ export class PaginationQueryDto {
   pageSize: number = 20;
 }
 
+export class SearchPaginationQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ description: 'Name, email, phone or GSTIN contains' })
+  @IsOptional()
+  @IsString()
+  search?: string;
+}
+
 export class PeriodFilterQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional()
   @IsOptional()

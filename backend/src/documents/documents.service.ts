@@ -14,7 +14,9 @@ import { Document } from '../entities/document.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { UsersService } from '../users/users.service';
 import { StorageService } from '../storage/storage.service';
+import { currentAssessmentYear } from '../compliance-tasks/task-upload.util';
 import {
+  AssignDocumentDto,
   ConfirmUploadDto,
   CreateUploadUrlDto,
   DocumentStatusQueryDto,
@@ -261,6 +263,13 @@ export class DocumentsService {
       });
     if (query.status)
       qb.andWhere('doc.status = :status', { status: query.status });
+    if (query.unassigned) {
+      qb.andWhere("doc.s3_key LIKE 'whatsapp-uploads/%'")
+        .andWhere('doc.category = :general', {
+          general: DocumentCategory.GENERAL,
+        })
+        .andWhere('doc.filing_period_id IS NULL');
+    }
 
     const [items, total] = await qb
       .skip((page - 1) * pageSize)
@@ -290,6 +299,38 @@ export class DocumentsService {
     doc.status = DocumentStatus.PROCESSED;
     doc.processed_at = new Date();
     return this.documents.save(doc);
+  }
+
+  /**
+   * Admin files a document (typically an unassigned WhatsApp upload) under a
+   * GST month or ITR year. A GST month advances that month's filing task,
+   * the same as a client app upload.
+   */
+  async assign(documentId: string, dto: AssignDocumentDto) {
+    const doc = await this.documents.findOneBy({ id: documentId });
+    if (!doc) throw new NotFoundException('Document not found');
+
+    doc.category = dto.category;
+    doc.filing_period_id = null;
+    doc.assessment_year = null;
+    if (dto.category === DocumentCategory.GST) {
+      const period = await this.periods.findOneBy({
+        id: dto.filing_period_id,
+      });
+      if (!period) throw new BadRequestException('Filing period not found');
+      doc.filing_period_id = period.id;
+    } else if (dto.category === DocumentCategory.ITR) {
+      doc.assessment_year = dto.assessment_year ?? currentAssessmentYear();
+    }
+    const saved = await this.documents.save(doc);
+
+    if (saved.category === DocumentCategory.GST && saved.filing_period_id) {
+      await this.tasksService.markUploadedForDocumentConfirm(
+        saved.user_id,
+        saved.filing_period_id,
+      );
+    }
+    return saved;
   }
 
   private assertCanTouch(auth: AuthUser, doc: Document) {
