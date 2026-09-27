@@ -13,14 +13,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
+  ClientsService,
   WhatsappChatsService,
 } from '../../core/services/feature.services';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import {
+  Client,
   WhatsappConversation,
   WhatsappConversationStatus,
   WhatsappMessage,
+  WhatsappTemplateOption,
   WhatsappUsageStats,
 } from '../../core/models';
 import { Spinner } from '../../shared/components/spinner';
@@ -35,6 +38,7 @@ import { RouterLink } from '@angular/router';
 })
 export class WhatsappChatsPage implements OnInit {
   private readonly chatsService = inject(WhatsappChatsService);
+  private readonly clientsService = inject(ClientsService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly sanitizer = inject(DomSanitizer);
@@ -254,6 +258,154 @@ export class WhatsappChatsPage implements OnInit {
     }
   }
 
+  // --- Template composer: start a chat, or re-open one after the 24h window ---
+
+  readonly showTemplateModal = signal(false);
+  readonly templates = signal<WhatsappTemplateOption[]>([]);
+  readonly loadingTemplates = signal(false);
+  /** Set when sending inside the open thread instead of starting a new chat. */
+  readonly templateForConversation = signal<WhatsappConversation | null>(null);
+  readonly clientSearch = signal('');
+  readonly clientResults = signal<Client[]>([]);
+  readonly templateClient = signal<Client | null>(null);
+  readonly templatePhone = signal('');
+  readonly selectedTemplateName = signal('');
+  readonly templateParams = signal<string[]>([]);
+  readonly sendingTemplate = signal(false);
+  private clientSearchTimer: ReturnType<typeof setTimeout> | null = null;
+
+  readonly selectedTemplate = computed(
+    () => this.templates().find((t) => t.name === this.selectedTemplateName()) ?? null,
+  );
+
+  readonly templatePreview = computed(() => {
+    const tpl = this.selectedTemplate();
+    if (!tpl) return '';
+    const params = this.templateParams();
+    return tpl.body.replace(/\{\{(\d+)\}\}/g, (m, n: string) => params[Number(n) - 1]?.trim() || m);
+  });
+
+  readonly canSendTemplate = computed(() => {
+    const tpl = this.selectedTemplate();
+    if (!tpl || this.sendingTemplate()) return false;
+    const params = this.templateParams();
+    if (params.length < tpl.paramCount || params.slice(0, tpl.paramCount).some((p) => !p?.trim())) {
+      return false;
+    }
+    if (this.templateForConversation()) return true;
+    return !!this.templateClient() || this.templatePhone().replace(/\D/g, '').length >= 10;
+  });
+
+  async openTemplateModal(forConversation: WhatsappConversation | null = null): Promise<void> {
+    this.templateForConversation.set(forConversation);
+    this.templateClient.set(null);
+    this.templatePhone.set('');
+    this.clientSearch.set('');
+    this.clientResults.set([]);
+    this.selectedTemplateName.set('');
+    this.templateParams.set([]);
+    this.showTemplateModal.set(true);
+
+    this.loadingTemplates.set(true);
+    try {
+      this.templates.set(await this.chatsService.listTemplates());
+      const first = this.templates()[0];
+      if (first) this.chooseTemplate(first.name);
+    } catch {
+      this.toast.error('Could not load WhatsApp templates');
+    } finally {
+      this.loadingTemplates.set(false);
+    }
+  }
+
+  onClientSearch(term: string): void {
+    this.clientSearch.set(term);
+    if (this.clientSearchTimer) clearTimeout(this.clientSearchTimer);
+    if (term.trim().length < 2) {
+      this.clientResults.set([]);
+      return;
+    }
+    this.clientSearchTimer = setTimeout(async () => {
+      try {
+        const res = await this.clientsService.search(term.trim());
+        this.clientResults.set(res.items);
+      } catch {
+        this.clientResults.set([]);
+      }
+    }, 300);
+  }
+
+  pickClient(client: Client): void {
+    this.templateClient.set(client);
+    this.clientResults.set([]);
+    this.clientSearch.set('');
+    this.prefillParams();
+  }
+
+  clearPickedClient(): void {
+    this.templateClient.set(null);
+  }
+
+  chooseTemplate(name: string): void {
+    this.selectedTemplateName.set(name);
+    const tpl = this.templates().find((t) => t.name === name);
+    this.templateParams.set(Array.from({ length: tpl?.paramCount ?? 0 }, () => ''));
+    this.prefillParams();
+  }
+
+  setTemplateParam(index: number, value: string): void {
+    this.templateParams.update((p) => p.map((v, i) => (i === index ? value : v)));
+  }
+
+  /** {{1}} is the client's first name in every platform template. */
+  private prefillParams(): void {
+    const tpl = this.selectedTemplate();
+    if (!tpl || tpl.paramCount === 0) return;
+    const name =
+      this.templateClient()?.name ??
+      this.templateForConversation()?.clientName ??
+      this.templateForConversation()?.client?.name ??
+      '';
+    const first = name.trim().split(/\s+/)[0] ?? '';
+    if (first && /name/i.test(tpl.paramLabels[0] ?? '')) {
+      this.setTemplateParam(0, first);
+    }
+  }
+
+  async submitTemplate(): Promise<void> {
+    const tpl = this.selectedTemplate();
+    if (!tpl || !this.canSendTemplate()) return;
+    this.sendingTemplate.set(true);
+    try {
+      const params = this.templateParams().slice(0, tpl.paramCount).map((p) => p.trim());
+      const existing = this.templateForConversation();
+      const result = existing
+        ? await this.chatsService.sendTemplate(existing.id, {
+            template: tpl.name,
+            language: tpl.language,
+            params,
+          })
+        : await this.chatsService.startConversation({
+            client_id: this.templateClient()?.id,
+            phone: this.templateClient() ? undefined : this.templatePhone().trim(),
+            template: tpl.name,
+            language: tpl.language,
+            params,
+          });
+      this.showTemplateModal.set(false);
+      this.toast.success('Template message sent on WhatsApp');
+      await this.loadConversations();
+      const conv =
+        this.conversations().find((c) => c.id === result.conversation.id) ?? result.conversation;
+      await this.selectConversation(conv);
+      void this.loadUsage();
+    } catch (err: any) {
+      this.toast.error(err?.error?.message || 'Failed to send template');
+    } finally {
+      this.sendingTemplate.set(false);
+    }
+  }
+
   onComposerKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
@@ -365,9 +517,12 @@ export class WhatsappChatsPage implements OnInit {
 
             // If incoming message belongs to currently open thread
             if (cur && cur.id === payload.conversationId) {
+              // An existing id is an update (e.g. voice-note transcript added)
               this.messages.update((msgs) => {
                 const exists = msgs.some((m) => m.id === newMsg.id);
-                return exists ? msgs : [...msgs, newMsg];
+                return exists
+                  ? msgs.map((m) => (m.id === newMsg.id ? newMsg : m))
+                  : [...msgs, newMsg];
               });
               this.scrollToBottom();
             }
