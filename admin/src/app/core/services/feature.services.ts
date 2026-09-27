@@ -28,6 +28,7 @@ import type {
   UserType,
   WhatsappConversation,
   WhatsappMessage,
+  WhatsappTemplateOption,
   WhatsappUsageStats,
 } from '../models';
 
@@ -51,6 +52,12 @@ export class ClientsService {
   list(page = 1, pageSize = 20) {
     return firstValueFrom(
       this.api.get<PaginatedResult<Client>>('/admin/users', { page, pageSize }),
+    );
+  }
+
+  search(term: string, pageSize = 8) {
+    return firstValueFrom(
+      this.api.get<PaginatedResult<Client>>('/admin/users', { page: 1, pageSize, search: term }),
     );
   }
 
@@ -188,10 +195,23 @@ export class PeriodsService {
 export class DocumentsService {
   private readonly api = inject(ApiClient);
 
-  adminList(params: { page?: number; pageSize?: number; status?: string; filing_period_id?: string } = {}) {
+  adminList(
+    params: {
+      page?: number;
+      pageSize?: number;
+      status?: string;
+      filing_period_id?: string;
+      unassigned?: boolean;
+    } = {},
+  ) {
     return firstValueFrom(
       this.api.get<PaginatedResult<Document>>('/admin/documents', params),
     );
+  }
+
+  /** File a (WhatsApp) document under a GST month, or as ITR for the current AY. */
+  assign(id: string, body: { category: 'gst' | 'itr'; filing_period_id?: string }) {
+    return firstValueFrom(this.api.patch<Document>(`/admin/documents/${id}/assign`, body));
   }
 
   listForUser(userId: string, params: { page?: number; pageSize?: number } = {}) {
@@ -262,8 +282,11 @@ export class ReportsService {
     return firstValueFrom(this.api.post<ReportUploadUrl>('/admin/reports', body));
   }
 
-  confirm(id: string) {
-    return firstValueFrom(this.api.post<Report>(`/admin/reports/${id}/confirm`));
+  /** notify=false when the report is a filed return attached via "Mark filed" (it alerts the client itself). */
+  confirm(id: string, notify = true) {
+    return firstValueFrom(
+      this.api.post<Report>(`/admin/reports/${id}/confirm${notify ? '' : '?notify=false'}`),
+    );
   }
 
   downloadUrl(id: string) {
@@ -591,6 +614,17 @@ export interface ComplianceTask {
   paid_at: string | null;
   nil_declared_at?: string | null;
   message_day?: number | null;
+  filed_at?: string | null;
+  arn?: string | null;
+  filed_report_id?: string | null;
+  payment_reminder_sent_at?: string | null;
+}
+
+export interface ClientAlertChannels {
+  in_app: boolean;
+  push: boolean;
+  email: boolean;
+  whatsapp: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -640,6 +674,22 @@ export class ComplianceTasksService {
   confirmNil(id: string): Promise<ComplianceTask> {
     return firstValueFrom(
       this.api.patch<ComplianceTask>(`/compliance-tasks/admin/${id}/nil-confirm`)
+    );
+  }
+
+  /** Marks a GSTR-1 / IFF / GSTR-3B return filed and alerts the client on all channels. */
+  markFiled(id: string, body: { arn?: string; report_id?: string }): Promise<ComplianceTask> {
+    return firstValueFrom(
+      this.api.patch<ComplianceTask>(`/compliance-tasks/admin/${id}/filed`, body)
+    );
+  }
+
+  /** Manual GST payment reminder (in-app, push, email, WhatsApp). */
+  sendPaymentReminder(id: string): Promise<{ task: ComplianceTask; channels: ClientAlertChannels }> {
+    return firstValueFrom(
+      this.api.post<{ task: ComplianceTask; channels: ClientAlertChannels }>(
+        `/compliance-tasks/admin/${id}/payment-reminder`
+      )
     );
   }
 }
@@ -748,6 +798,41 @@ export class WhatsappChatsService {
       this.api.patch<WhatsappConversation>(
         `/whatsapp-chats/conversations/${conversationId}`,
         dto,
+      ),
+    );
+  }
+
+  listTemplates() {
+    return firstValueFrom(
+      this.api.get<WhatsappTemplateOption[]>('/whatsapp-chats/templates'),
+    );
+  }
+
+  /** Start a chat with a template (client_id or phone). Thread goes to staff takeover. */
+  startConversation(body: {
+    client_id?: string;
+    phone?: string;
+    template: string;
+    language: string;
+    params: string[];
+  }) {
+    return firstValueFrom(
+      this.api.post<{ conversation: WhatsappConversation; message: WhatsappMessage }>(
+        '/whatsapp-chats/conversations/start',
+        body,
+      ),
+    );
+  }
+
+  /** Template inside an existing chat (needed once the 24h window has closed). */
+  sendTemplate(
+    conversationId: string,
+    body: { template: string; language: string; params: string[] },
+  ) {
+    return firstValueFrom(
+      this.api.post<{ conversation: WhatsappConversation; message: WhatsappMessage }>(
+        `/whatsapp-chats/conversations/${conversationId}/template`,
+        body,
       ),
     );
   }

@@ -448,6 +448,126 @@ export class ClientDetail implements OnInit {
     this.showReport.set(true);
   }
 
+  // --- Mark return filed (client alerted on in-app, push, email, WhatsApp) ---
+
+  readonly filingTask = signal<ComplianceTask | null>(null);
+  readonly filingArn = signal('');
+  readonly filingFile = signal<File | null>(null);
+  readonly filingSaving = signal(false);
+  readonly reminding = signal<string[]>([]);
+  readonly amountDrafts = signal<Record<string, string>>({});
+
+  taskLabel(category: string): string {
+    const labels: Record<string, string> = {
+      gstr_1: 'GSTR-1',
+      iff: 'IFF',
+      gstr_3b: 'GSTR-3B',
+      gst_payment: 'GST Payment',
+    };
+    return labels[category] ?? category.replace('_', ' ').toUpperCase();
+  }
+
+  canMarkFiled(t: ComplianceTask): boolean {
+    return ['gstr_1', 'iff', 'gstr_3b'].includes(t.category) && !t.filed_at;
+  }
+
+  openMarkFiled(t: ComplianceTask): void {
+    this.filingTask.set(t);
+    this.filingArn.set('');
+    this.filingFile.set(null);
+  }
+
+  onFilingFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.filingFile.set(input.files?.[0] ?? null);
+  }
+
+  async submitMarkFiled(): Promise<void> {
+    const task = this.filingTask();
+    if (!task) return;
+    this.filingSaving.set(true);
+    try {
+      let reportId: string | undefined;
+      const file = this.filingFile();
+      if (file) {
+        const res = await this.reportsService.requestUploadUrl({
+          user_id: this.id(),
+          filing_period_id: task.filing_period_id,
+          report_type: task.category === 'gstr_3b' ? 'gstr_3b' : 'gstr_1',
+          filename: file.name,
+          contentType: file.type || 'application/pdf',
+          file_size_bytes: file.size,
+        });
+        await this.upload.upload(res.upload_url, file, file.type || 'application/pdf');
+        // The filed alert below carries the link, so skip the generic "report ready" alert
+        await this.reportsService.confirm(res.report_id, false);
+        reportId = res.report_id;
+      }
+      await this.tasksService.markFiled(task.id, {
+        arn: this.filingArn().trim() || undefined,
+        report_id: reportId,
+      });
+      this.toast.success(`${this.taskLabel(task.category)} marked as filed — client notified`);
+      this.filingTask.set(null);
+      await this.loadTasks(this.selectedPeriod());
+      if (reportId) await this.load();
+    } catch (e) {
+      console.error(e);
+      this.toast.error('Could not mark the return as filed');
+    } finally {
+      this.filingSaving.set(false);
+    }
+  }
+
+  // --- GST payment amount + manual payment reminder ---
+
+  amountDraft(t: ComplianceTask): string {
+    return this.amountDrafts()[t.id] ?? t.amount ?? '';
+  }
+
+  setAmountDraft(t: ComplianceTask, value: string): void {
+    this.amountDrafts.update((d) => ({ ...d, [t.id]: value }));
+  }
+
+  async saveAmount(t: ComplianceTask): Promise<void> {
+    const value = this.amountDraft(t).trim();
+    if (!value || Number(value) <= 0) {
+      this.toast.error('Enter the GST payable amount');
+      return;
+    }
+    await this.updatePayment(t, value);
+    this.amountDrafts.update(({ [t.id]: _drop, ...rest }) => rest);
+  }
+
+  isReminding(id: string): boolean {
+    return this.reminding().includes(id);
+  }
+
+  async sendPaymentReminder(t: ComplianceTask): Promise<void> {
+    if (!t.amount) {
+      this.toast.error('Save the payable amount first');
+      return;
+    }
+    if (!confirm(`Send a GST payment reminder of ₹${t.amount} to this client on app, email and WhatsApp?`)) {
+      return;
+    }
+    this.reminding.update((ids) => [...ids, t.id]);
+    try {
+      const { channels } = await this.tasksService.sendPaymentReminder(t.id);
+      const ok = (Object.entries(channels) as [string, boolean][])
+        .filter(([, v]) => v)
+        .map(([k]) => ({ in_app: 'app', push: 'push', email: 'email', whatsapp: 'WhatsApp' })[k] ?? k);
+      const failed = channels.whatsapp ? '' : ' (WhatsApp not delivered)';
+      this.toast.success(`Payment reminder sent via ${ok.join(', ') || 'no channel'}${failed}`);
+      await this.loadTasks(this.selectedPeriod());
+    } catch (e) {
+      console.error(e);
+      this.toast.error('Failed to send payment reminder');
+    } finally {
+      this.reminding.update((ids) => ids.filter((x) => x !== t.id));
+    }
+  }
+
   async markTaskPaid(task: ComplianceTask): Promise<void> {
     try {
       await this.tasksService.updatePayment(task.id, task.amount ?? '', new Date().toISOString());

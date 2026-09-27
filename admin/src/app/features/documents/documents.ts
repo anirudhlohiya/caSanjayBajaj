@@ -28,6 +28,8 @@ export class Documents implements OnInit {
   readonly totalPages = signal(0);
   readonly statusFilter = signal('');
   readonly periodFilter = signal('');
+  /** Files sent on WhatsApp that the client hasn't filed under a GST month / ITR yet. */
+  readonly unassignedOnly = signal(false);
   readonly periods = signal<FilingPeriod[]>([]);
   readonly processing = signal<string[]>([]);
   readonly downloading = signal<string[]>([]);
@@ -52,7 +54,8 @@ export class Documents implements OnInit {
         page: this.page(),
         pageSize: this.pageSize(),
         status: this.statusFilter() || undefined,
-        filing_period_id: this.periodFilter() || undefined,
+        filing_period_id: this.unassignedOnly() ? undefined : this.periodFilter() || undefined,
+        unassigned: this.unassignedOnly() || undefined,
       });
       this.docs.set(res.items);
       this.total.set(res.total);
@@ -88,6 +91,24 @@ export class Documents implements OnInit {
       await this.documentsService.markProcessed(doc.id);
       this.toast.success('Document marked as processed');
       await this.load();
+    } finally {
+      this.processing.update((l) => l.filter((x) => x !== doc.id));
+    }
+  }
+
+  /** value = period id, or 'itr' for the current assessment year */
+  async assign(doc: Document, value: string): Promise<void> {
+    if (!value) return;
+    this.processing.update((l) => [...l, doc.id]);
+    try {
+      await this.documentsService.assign(
+        doc.id,
+        value === 'itr' ? { category: 'itr' } : { category: 'gst', filing_period_id: value },
+      );
+      this.toast.success(value === 'itr' ? 'Filed under ITR documents' : 'Filed under the selected GST month');
+      await this.load();
+    } catch {
+      this.toast.error('Could not assign the document');
     } finally {
       this.processing.update((l) => l.filter((x) => x !== doc.id));
     }

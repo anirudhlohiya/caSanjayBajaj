@@ -317,23 +317,52 @@
                     <span class="material-symbols-outlined text-{{ t.status === 'completed' ? 'primary' : 'outline-variant' }}">
                       {{ t.status === 'completed' ? 'check_circle' : 'radio_button_unchecked' }}
                     </span>
-                    <div>
-                      <div class="font-medium text-on-surface uppercase">{{ t.category.replace('_', ' ') }}</div>
+                    <div class="min-w-0">
+                      <div class="font-medium text-on-surface">{{ taskLabel(t.category) }}</div>
                       <div class="text-body-sm text-on-surface-variant">
-                        Status: {{ t.status }}
+                        Status: {{ t.filed_at ? 'filed' : t.status }}
                         @if (t.category === 'gst_payment' && t.amount) {
                           · Amount: ₹{{ t.amount }}
                         }
                       </div>
+                      @if (t.filed_at) {
+                        <div class="text-body-sm text-emerald-700 dark:text-emerald-400">
+                          Filed on {{ fmtDate(t.filed_at) }}@if (t.arn) { · ARN {{ t.arn }} }@if (t.filed_report_id) { · PDF attached }
+                        </div>
+                      }
+                      @if (t.payment_reminder_sent_at) {
+                        <div class="text-body-sm text-on-surface-variant">Reminder sent {{ fmtDate(t.payment_reminder_sent_at) }}</div>
+                      }
                     </div>
                   </div>
-                  <div class="flex items-center gap-2">
+                  <div class="flex flex-wrap items-center justify-end gap-2">
                     @if (t.nil_declared_at && t.status !== 'completed') {
                       <button class="px-2 py-1 bg-secondary text-on-secondary rounded text-label-sm hover:bg-secondary/90 cursor-pointer" (click)="confirmNil(t)">
                         Confirm Nil
                       </button>
                     }
+                    @if (canMarkFiled(t)) {
+                      <button class="px-2 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="openMarkFiled(t)">
+                        Mark filed
+                      </button>
+                    }
                     @if (t.category === 'gst_payment' && t.status !== 'completed') {
+                      <input
+                        type="number" min="0" step="0.01" placeholder="Amount ₹"
+                        [value]="amountDraft(t)" (input)="setAmountDraft(t, $any($event.target).value)"
+                        class="w-28 px-2 py-1 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary"
+                        aria-label="GST payable amount"
+                      />
+                      @if (amountDraft(t) !== (t.amount ?? '')) {
+                        <button class="px-2 py-1 border border-outline-variant rounded text-label-sm hover:bg-surface-container-high cursor-pointer" (click)="saveAmount(t)">
+                          Save
+                        </button>
+                      }
+                      <button class="px-2 py-1 border border-outline-variant rounded text-label-sm hover:bg-surface-container-high cursor-pointer disabled:opacity-50"
+                        [disabled]="!t.amount || isReminding(t.id)" (click)="sendPaymentReminder(t)"
+                        [title]="t.amount ? 'Send payment reminder on app, email and WhatsApp' : 'Save the amount first'">
+                        {{ isReminding(t.id) ? 'Sending…' : 'Send payment reminder' }}
+                      </button>
                       <button class="px-2 py-1 border border-outline-variant rounded text-label-sm hover:bg-surface-container-high cursor-pointer" (click)="markTaskPaid(t)">
                         Mark Paid
                       </button>
@@ -670,6 +699,44 @@
   </div>
 </app-modal>
 
+
+<!-- Mark Return Filed Modal -->
+<app-modal [open]="!!filingTask()" (close)="filingTask.set(null)">
+  @if (filingTask(); as ft) {
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="font-headline-md text-headline-md text-on-surface">Mark {{ taskLabel(ft.category) }} as filed</h2>
+        <button class="text-on-surface-variant hover:text-on-surface cursor-pointer" (click)="filingTask.set(null)" aria-label="Close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <p class="text-body-sm text-on-surface-variant mb-4">
+        The client gets an app notification, push, email and WhatsApp message saying the return is filed.
+      </p>
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="f-arn">ARN (optional)</label>
+          <input id="f-arn" type="text" maxlength="30" [value]="filingArn()" (input)="filingArn.set($any($event.target).value)"
+            placeholder="e.g. AA0810260123456"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface" for="f-file">Filed return / acknowledgement PDF (optional)</label>
+          <input id="f-file" type="file" accept=".pdf,image/*" (change)="onFilingFile($event)"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface" />
+          <span class="text-body-sm text-on-surface-variant">Saved to the client's reports and linked in the email.</span>
+        </div>
+        <div class="flex justify-end gap-2 mt-2">
+          <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded cursor-pointer" (click)="filingTask.set(null)">Cancel</button>
+          <button type="button" [disabled]="filingSaving()" (click)="submitMarkFiled()"
+            class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60 cursor-pointer">
+            {{ filingSaving() ? 'Saving…' : 'Mark filed & notify client' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</app-modal>
 
 <!-- Confirm Direct Client Type Change Modal -->
 <app-modal [open]="showTypeChangeConfirm()" (close)="cancelTypeChange()">

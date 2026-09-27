@@ -22,9 +22,13 @@
       <option [value]="p.id">{{ p.period_label }}</option>
     }
   </select>
+  <label class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm flex items-center gap-2 cursor-pointer">
+    <input type="checkbox" [checked]="unassignedOnly()" (change)="unassignedOnly.set($any($event.target).checked); applyFilters()" />
+    Unassigned (WhatsApp)
+  </label>
   <button
     class="px-3 py-2 border border-outline-variant rounded text-on-surface-variant hover:bg-surface-container-high text-body-sm flex items-center gap-1"
-    (click)="statusFilter.set(''); periodFilter.set(''); applyFilters()"
+    (click)="statusFilter.set(''); periodFilter.set(''); unassignedOnly.set(false); applyFilters()"
   >
     <span class="material-symbols-outlined" style="font-size: 16px">filter_list</span>
     Reset
@@ -75,6 +79,16 @@
               </button>
             }
           </div>
+          @if (unassignedOnly()) {
+            <select class="mt-2 w-full px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm"
+              [disabled]="isProcessing(d.id)" (change)="assign(d, $any($event.target).value)" aria-label="Assign to month">
+              <option value="">Assign to…</option>
+              @for (p of periods(); track p.id) {
+                <option [value]="p.id">GST · {{ p.period_label }}</option>
+              }
+              <option value="itr">ITR (current year)</option>
+            </select>
+          }
         </div>
       } @empty {
         <div class="p-4">
@@ -117,6 +131,16 @@
                     (click)="markProcessed(d)" [disabled]="isProcessing(d.id)">
                     <span class="material-symbols-outlined" style="font-size: 20px">check</span>
                   </button>
+                }
+                @if (unassignedOnly()) {
+                  <select class="ml-1 px-2 py-1 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm"
+                    [disabled]="isProcessing(d.id)" (change)="assign(d, $any($event.target).value)" aria-label="Assign to month">
+                    <option value="">Assign to…</option>
+                    @for (p of periods(); track p.id) {
+                      <option [value]="p.id">GST · {{ p.period_label }}</option>
+                    }
+                    <option value="itr">ITR (current year)</option>
+                  </select>
                 }
               </td>
             </tr>

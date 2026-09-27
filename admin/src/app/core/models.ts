@@ -394,9 +394,20 @@ export interface WhatsappMessage {
   messageType: WhatsappMessageType;
   body: string | null;
   mediaUrl: string | null;
+  mediaFilename?: string | null;
   templateName: string | null;
   staffId: string | null;
   createdAt: string;
+}
+
+/** Meta-approved template the staff can send to start/re-open a chat. */
+export interface WhatsappTemplateOption {
+  name: string;
+  language: string;
+  category: string;
+  body: string;
+  paramCount: number;
+  paramLabels: string[];
 }
 
 export interface WhatsappUsageStats {
