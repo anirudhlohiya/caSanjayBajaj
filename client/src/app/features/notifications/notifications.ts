@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -31,7 +32,9 @@ export class Notifications {
   readonly page = signal(1);
   readonly totalPages = signal(1);
   readonly total = signal(0);
-  readonly hasUnread = signal(false);
+  readonly hasUnread = computed(
+    () => this.notificationsService.unreadCount() > 0,
+  );
 
   constructor() {
     void this.load();
@@ -48,12 +51,11 @@ export class Notifications {
       this.page.set(result.page);
       this.totalPages.set(Math.max(result.totalPages, 1));
       this.total.set(result.total);
-      this.hasUnread.set(result.items.some((n) => !n.is_read));
+      void this.notificationsService.refreshUnread();
     } catch {
       this.items.set([]);
       this.totalPages.set(1);
       this.total.set(0);
-      this.hasUnread.set(false);
     } finally {
       this.loading.set(false);
     }
@@ -73,7 +75,6 @@ export class Notifications {
     try {
       await this.notificationsService.markAllRead();
       this.items.update((list) => list.map((n) => ({ ...n, is_read: true })));
-      this.hasUnread.set(false);
       this.toast.success('All notifications marked as read.');
     } catch {
       /* toast handled by interceptor */
@@ -86,7 +87,6 @@ export class Notifications {
       this.items.update((list) =>
         list.map((n) => (n.id === item.id ? { ...n, is_read: true } : n)),
       );
-      this.hasUnread.set(this.items().some((n) => !n.is_read));
       try {
         await this.notificationsService.markRead(item.id);
       } catch {

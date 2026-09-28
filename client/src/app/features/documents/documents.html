@@ -95,7 +95,15 @@
             </div>
             <div class="flex items-center gap-3">
               <div class="text-right flex flex-col items-end">
-                @if (task.status === 'completed') {
+                @if (task.filed_at) {
+                  <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-mono text-xs font-medium">
+                    <span class="material-symbols-outlined text-[15px]">verified</span>
+                    Return filed
+                  </span>
+                  <div class="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 mt-0.5">
+                    {{ fmtFiledDate(task.filed_at) }}@if (task.arn) { · ARN {{ task.arn }} }
+                  </div>
+                } @else if (task.status === 'completed') {
                   <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-mono text-xs font-medium">
                     <span class="material-symbols-outlined text-[15px]">check_circle</span>
                     Filled

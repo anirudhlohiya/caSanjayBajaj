@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiClient } from './api-client.service';
 import {
@@ -151,7 +151,19 @@ export class ReportsService {
 
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
+  /** Unread inbox count, shown as the badge on the header bell. */
+  readonly unreadCount = signal(0);
+
   constructor(private readonly api: ApiClient) {}
+
+  async refreshUnread(): Promise<void> {
+    try {
+      const result = await this.list({ unreadOnly: true, pageSize: 1 });
+      this.unreadCount.set(result.total);
+    } catch {
+      /* non-fatal: keep the last known count */
+    }
+  }
 
   list(opts: {
     unreadOnly?: boolean;
@@ -169,16 +181,20 @@ export class NotificationsService {
     );
   }
 
-  markAllRead(): Promise<{ success: boolean }> {
-    return firstValueFrom(
+  async markAllRead(): Promise<{ success: boolean }> {
+    const result = await firstValueFrom(
       this.api.post<{ success: boolean }>('/me/notifications/read-all'),
     );
+    this.unreadCount.set(0);
+    return result;
   }
 
-  markRead(id: string): Promise<ReportNotification> {
-    return firstValueFrom(
+  async markRead(id: string): Promise<ReportNotification> {
+    const result = await firstValueFrom(
       this.api.post<ReportNotification>(`/me/notifications/${id}/read`),
     );
+    this.unreadCount.update((n) => Math.max(n - 1, 0));
+    return result;
   }
 }
 
@@ -302,6 +318,10 @@ export interface ComplianceTask {
   paid_at: string | null;
   nil_declared_at?: string | null;
   message_day?: number | null;
+  /** Set when the CA has filed this return (GSTR-1 / IFF / GSTR-3B). */
+  filed_at?: string | null;
+  arn?: string | null;
+  filed_report_id?: string | null;
   filing_period?: GstFilingPeriod;
 }
 

@@ -16,6 +16,7 @@ import {
 } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationsService } from '../../core/services/feature.services';
 import { NavEntry, resolveNav } from '../../core/services/nav-map';
 import { PushService } from '../../core/services/push.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -52,6 +53,8 @@ export class Shell implements OnInit, OnDestroy {
   private readonly push = inject(PushService);
   private readonly queue = inject(UploadQueueService);
   private readonly upload = inject(UploadService);
+  private readonly notifications = inject(NotificationsService);
+  readonly unreadCount = this.notifications.unreadCount;
 
   readonly navItems = [
     { label: 'Home', icon: 'home', route: '/dashboard', labelKey: 'NAV.HOME' },
@@ -82,11 +85,25 @@ export class Shell implements OnInit, OnDestroy {
     void this.push.init();
     void this.flushQueue();
     this.checkNotificationPermission();
+    void this.notifications.refreshUnread();
 
     this.navSub.add(
       this.router.events
         .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-        .subscribe((e) => this.navEntry.set(resolveNav(e.urlAfterRedirects))),
+        .subscribe((e) => {
+          this.navEntry.set(resolveNav(e.urlAfterRedirects));
+          void this.notifications.refreshUnread();
+        }),
+    );
+    // Pick up alerts that arrive while the app is open (or when it is refocused)
+    const onVisible = (): void => {
+      if (document.visibilityState === 'visible') {
+        void this.notifications.refreshUnread();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    this.navSub.add(() =>
+      document.removeEventListener('visibilitychange', onVisible),
     );
   }
 

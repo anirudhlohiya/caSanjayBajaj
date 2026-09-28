@@ -346,6 +346,14 @@ export class Documents {
     }
   }
 
+  fmtFiledDate(iso: string): string {
+    return new Date(iso).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
   taskLabel(task: ComplianceTask): string {
     switch (task.category) {
       case 'gstr_1':

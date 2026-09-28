@@ -40,6 +40,11 @@
       <div class="flex shrink-0 items-center gap-3">
         <button routerLink="/notifications" class="relative p-2 rounded-full hover:bg-canvas-soft transition-colors active:scale-95" [attr.aria-label]="'HEADER.NOTIFICATIONS' | translate">
           <span class="material-symbols-outlined text-primary text-[24px]">notifications</span>
+          @if (unreadCount() > 0) {
+            <span class="absolute right-0.5 top-0.5 flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold leading-none text-on-error">
+              {{ unreadCount() > 99 ? '99+' : unreadCount() }}
+            </span>
+          }
         </button>
         <button routerLink="/profile" class="p-1 rounded-full hover:bg-canvas-soft transition-colors active:scale-95" [attr.aria-label]="'HEADER.PROFILE' | translate">
           <span class="material-symbols-outlined text-primary text-[28px]">account_circle</span>
