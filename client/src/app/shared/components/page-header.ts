@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { Router } from '@angular/router';
+import { resolveNav } from '../../core/services/nav-map';
 
 @Component({
   selector: 'app-page-header',
@@ -35,12 +37,21 @@ export class PageHeader {
   readonly title = input.required<string>();
   readonly subtitle = input('');
   readonly back = input(false);
-  readonly onBack = input<() => void>(() => history.back());
+  /** Optional override. When omitted, back resolves to the route's logical parent. */
+  readonly onBack = input<(() => void) | null>(null);
+
+  private readonly router = inject(Router);
 
   goBack(): void {
-    const fn = this.onBack();
-    if (fn) {
-      fn();
+    const custom = this.onBack();
+    if (custom) {
+      custom();
+      return;
     }
+    // Resolved from the nav map rather than `history.back()`, so a deep link into
+    // this screen cannot drop the user out of the app. `replaceUrl` keeps the
+    // parent from being left in the history stack twice.
+    const parent = resolveNav(this.router.url).backTo;
+    void this.router.navigateByUrl(parent ?? '/dashboard', { replaceUrl: true });
   }
 }

@@ -4,7 +4,7 @@ import {
   provideZoneChangeDetection,
   isDevMode,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideServiceWorker } from '@angular/service-worker';
 
@@ -19,9 +19,14 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    provideRouter(
+      routes,
+      // Restores scroll position when returning to a route (e.g. back from
+      // Settings to a scrolled Profile) instead of snapping to the top.
+      withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }),
+    ),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
-    provideTranslateService(),
+    provideTranslateService({ fallbackLang: 'en' }),
     provideTranslateHttpLoader({ prefix: './i18n/', suffix: '.json' }),
     // '?v=2' busts any poisoned service-worker install from earlier builds:
     // a new script URL forces a fresh worker that claims the page immediately.

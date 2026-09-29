@@ -2,14 +2,13 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { Router, RouterLink } from '@angular/router';
 import { TicketsService } from '../../core/services/feature.services';
 import { Ticket, TICKET_STATUS_COLORS, TICKET_CATEGORY_LABELS } from '../../core/models';
-import { PageHeader } from '../../shared/components/page-header';
 import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
 
 @Component({
   selector: 'app-support',
   standalone: true,
-  imports: [RouterLink, PageHeader, Spinner, EmptyState],
+  imports: [RouterLink, Spinner, EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './support.html',
 })

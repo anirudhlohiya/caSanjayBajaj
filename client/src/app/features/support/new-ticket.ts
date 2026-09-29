@@ -10,7 +10,6 @@ import { Router, RouterLink } from '@angular/router';
 import { filter, firstValueFrom, last, tap } from 'rxjs';
 import { TicketsService } from '../../core/services/feature.services';
 import { ToastService } from '../../core/services/toast.service';
-import { PageHeader } from '../../shared/components/page-header';
 import { TICKET_CATEGORY_LABELS } from '../../core/models';
 
 interface TicketFile {
@@ -25,7 +24,7 @@ const MAX_SIZE = 25 * 1024 * 1024;
 @Component({
   selector: 'app-new-ticket',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeader],
+  imports: [ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './new-ticket.html',
 })
