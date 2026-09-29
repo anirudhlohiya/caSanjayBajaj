@@ -258,8 +258,8 @@ export class AuthService {
 
     const subject =
       dto.purpose === 'signup'
-        ? 'Filing App — Email Verification OTP'
-        : 'Filing App — Password Reset OTP';
+        ? 'S N Bajaj And Co — Email Verification OTP'
+        : 'S N Bajaj And Co — Password Reset OTP';
 
     const actionText =
       dto.purpose === 'signup' ? 'verify your email' : 'reset your password';
@@ -378,6 +378,26 @@ export class AuthService {
       purpose: 'signup',
     });
 
+    const firstName = user.name ? user.name.split(' ')[0] : 'there';
+    const signupSubject =
+      'S N Bajaj And Co — Welcome! Account Created Successfully';
+    const signupHtmlBody = `
+      <div style="font-family: sans-serif; padding: 20px; color: #191c1e; background-color: #f7f9fb;">
+        <h2 style="color: #001433;">S N BAJAJ AND CO</h2>
+        <p>Hi ${firstName},</p>
+        <p>Your account has been successfully created. Welcome to S N Bajaj And Co!</p>
+        <p style="font-size: 13px; color: #74777f;">
+          If you have any questions, feel free to contact our support team.
+        </p>
+      </div>
+    `;
+
+    await this.notifications.sendEmail(
+      { email: emailLower },
+      signupSubject,
+      signupHtmlBody,
+    );
+
     const payload: TokenPayload = {
       sub: user.id,
       type: 'user',
@@ -419,6 +439,25 @@ export class AuthService {
       email: emailLower,
       purpose: 'reset_password',
     });
+
+    const firstName = user.name ? user.name.split(' ')[0] : 'there';
+    const subject = 'S N Bajaj And Co — Password Changed Successfully';
+    const htmlBody = `
+      <div style="font-family: sans-serif; padding: 20px; color: #191c1e; background-color: #f7f9fb;">
+        <h2 style="color: #001433;">S N BAJAJ AND CO</h2>
+        <p>Hi ${firstName},</p>
+        <p>Your password has been successfully changed.</p>
+        <p style="font-size: 13px; color: #74777f;">
+          If you did not make this change, please contact us immediately.
+        </p>
+      </div>
+    `;
+
+    await this.notifications.sendEmail(
+      { email: emailLower },
+      subject,
+      htmlBody,
+    );
 
     return { success: true };
   }
