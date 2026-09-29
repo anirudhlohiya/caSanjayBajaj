@@ -104,7 +104,9 @@ export class AuthService {
       }
     }
     this.clearSession();
-    await this.router.navigate(['/login']);
+    // replaceUrl: a push would leave the authenticated screen behind the login
+    // page, so back (or the WebView's own back) would return to a dead session.
+    await this.router.navigate(['/login'], { replaceUrl: true });
   }
 
   private setTokens(tokens: AuthTokens): void {
