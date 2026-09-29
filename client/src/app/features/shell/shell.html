@@ -4,32 +4,42 @@
   @if (!online()) {
     <div class="flex items-center gap-2 bg-amber-50 border-b border-amber-100 px-4 py-2 text-xs font-medium text-amber-800">
       <span class="material-symbols-outlined text-[18px]">cloud_off</span>
-      You're offline — uploads will be queued and retried.
+      {{ 'SHELL.OFFLINE_MSG' | translate }}
     </div>
   }
 
   @if (notificationDenied()) {
     <div class="flex items-start gap-3 bg-amber-50 border-b border-amber-100 px-4 py-3">
       <span class="material-symbols-outlined text-[18px] text-amber-600 shrink-0 mt-0.5">notifications_off</span>
-      <p class="text-xs text-amber-800 flex-1">
-        <strong>App notifications are off.</strong> Go to your browser or device settings to turn on notifications for important updates from S N Bajaj And Co.
-      </p>
+        <strong>{{ 'SHELL.NOTIF_OFF_TITLE' | translate }}</strong> {{ 'SHELL.NOTIF_OFF_DESC' | translate }}
     </div>
   }
 
   <!-- TopAppBar -->
   <header class="w-full sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-hairline pt-4 pb-2">
-    <div class="flex justify-between items-center px-4 max-w-container-max mx-auto">
-      <div class="flex flex-col">
-        <span class="font-bold text-lg text-primary flex items-center gap-1">Namaste 👋</span>
-        <span class="text-xs text-on-surface-variant">How can we help you today?</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <button routerLink="/notifications" class="relative p-2 rounded-full hover:bg-canvas-soft transition-colors active:scale-95">
-          <span class="material-symbols-outlined text-primary text-[24px]">notifications</span>
-          <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border border-surface"></span>
+    <div class="flex items-center gap-1 px-4 max-w-container-max mx-auto">
+      @if (canGoBack()) {
+        <button
+          (click)="goBack()"
+          class="flex size-9 shrink-0 -ml-1 items-center justify-center rounded-full text-primary hover:bg-canvas-soft transition-colors active:scale-95"
+          [attr.aria-label]="'HEADER.BACK' | translate"
+        >
+          <span class="material-symbols-outlined text-[22px]">arrow_back</span>
         </button>
-        <button routerLink="/profile" class="p-1 rounded-full hover:bg-canvas-soft transition-colors active:scale-95">
+      }
+      <div class="flex min-w-0 flex-1 flex-col">
+        @if (header().titleKey; as title) {
+          <span class="truncate font-bold text-lg text-primary">{{ title | translate: headerParams() }}</span>
+          @if (header().subtitleKey; as subtitle) {
+            <span class="truncate text-xs text-on-surface-variant">{{ subtitle | translate }}</span>
+          }
+        }
+      </div>
+      <div class="flex shrink-0 items-center gap-3">
+        <button routerLink="/notifications" class="relative p-2 rounded-full hover:bg-canvas-soft transition-colors active:scale-95" [attr.aria-label]="'HEADER.NOTIFICATIONS' | translate">
+          <span class="material-symbols-outlined text-primary text-[24px]">notifications</span>
+        </button>
+        <button routerLink="/profile" class="p-1 rounded-full hover:bg-canvas-soft transition-colors active:scale-95" [attr.aria-label]="'HEADER.PROFILE' | translate">
           <span class="material-symbols-outlined text-primary text-[28px]">account_circle</span>
         </button>
       </div>
@@ -37,7 +47,7 @@
   </header>
 
   <!-- Main Content -->
-  <main class="flex-grow w-full pb-section-v">
+  <main class="flex-grow w-full pb-28">
     <router-outlet />
 
     <!-- Floating Action Button (Mobile Only) -->
@@ -52,8 +62,8 @@
     -->
   </main>
 
-  <!-- BottomNavBar (Mobile) -->
-  <nav class="fixed bottom-0 left-0 w-full z-50 border-t border-hairline bg-surface/95 backdrop-blur-lg md:hidden">
+  <!-- BottomNavBar (Always visible, constrained to mobile width on desktop) -->
+  <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full sm:max-w-[420px] z-50 border-t border-hairline bg-surface/95 backdrop-blur-lg" style="padding-bottom: env(safe-area-inset-bottom);">
     <div class="flex justify-around items-center h-16 px-2">
       @for (item of navItems; track item.label) {
         <a
@@ -66,7 +76,7 @@
           "
         >
           <span class="material-symbols-outlined text-[24px] mb-0.5" [style.font-variation-settings]="rla.isActive ? '\'FILL\' 1' : ''">{{ item.icon }}</span>
-          <span class="text-[10px]">{{ item.label }}</span>
+          <span class="text-[10px]">{{ item.labelKey | translate }}</span>
         </a>
       }
     </div>

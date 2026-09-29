@@ -28,5 +28,36 @@
     "UPI": "UPI ID: sanju.bajaj1994@oksbi",
     "DOWNLOAD_QR": "QR कोड डाउनलोड करें",
     "CLOSE": "बंद करें"
+  },
+  "SHELL": {
+    "OFFLINE_MSG": "आप ऑफ़लाइन हैं — अपलोड को कतार में रखा जाएगा और फिर से प्रयास किया जाएगा।",
+    "NOTIF_OFF_TITLE": "ऐप सूचनाएं बंद हैं।",
+    "NOTIF_OFF_DESC": "एस एन बजाज एंड कंपनी से महत्वपूर्ण अपडेट के लिए सूचनाएं चालू करने हेतु अपने ब्राउज़र या डिवाइस सेटिंग पर जाएं।"
+  },
+  "HEADER": {
+    "GREETING": "नमस्ते {{name}}",
+    "SUBGREETING": "आज हम आपकी कैसे मदद कर सकते हैं?",
+    "SERVICES": "Our Services",
+    "DOCUMENTS": "Documents",
+    "DOCUMENTS_SUB": "Manage your GST documents and returns",
+    "REMINDERS": "Reminders",
+    "REMINDERS_SUB": "Things that need your attention",
+    "PROFILE": "Profile",
+    "REPORTS": "Filing reports",
+    "REPORTS_SUB": "Reports shared by your CA",
+    "SUPPORT": "Support",
+    "SUPPORT_NEW": "New Support Ticket",
+    "SUPPORT_NEW_SUB": "Describe your request and we'll respond promptly",
+    "UPLOAD": "Upload Documents",
+    "UPLOAD_SUB": "Share your GST documents securely",
+    "NOTIFICATIONS": "Notifications",
+    "BACK": "Go back"
+  },
+  "NAV": {
+    "HOME": "होम",
+    "SERVICES": "सेवाएं",
+    "DOCUMENTS": "दस्तावेज़",
+    "REMINDERS": "अनुस्मारक",
+    "PROFILE": "प्रोफ़ाइल"
   }
 }

@@ -28,5 +28,36 @@
     "UPI": "UPI ID: sanju.bajaj1994@oksbi",
     "DOWNLOAD_QR": "Download QR Code",
     "CLOSE": "Close"
+  },
+  "SHELL": {
+    "OFFLINE_MSG": "You're offline — uploads will be queued and retried.",
+    "NOTIF_OFF_TITLE": "App notifications are off.",
+    "NOTIF_OFF_DESC": "Go to your browser or device settings to turn on notifications for important updates from S N Bajaj And Co."
+  },
+  "HEADER": {
+    "GREETING": "Namaste {{name}}",
+    "SUBGREETING": "How can we help you today?",
+    "SERVICES": "Our Services",
+    "DOCUMENTS": "Documents",
+    "DOCUMENTS_SUB": "Manage your GST documents and returns",
+    "REMINDERS": "Reminders",
+    "REMINDERS_SUB": "Things that need your attention",
+    "PROFILE": "Profile",
+    "REPORTS": "Filing reports",
+    "REPORTS_SUB": "Reports shared by your CA",
+    "SUPPORT": "Support",
+    "SUPPORT_NEW": "New Support Ticket",
+    "SUPPORT_NEW_SUB": "Describe your request and we'll respond promptly",
+    "UPLOAD": "Upload Documents",
+    "UPLOAD_SUB": "Share your GST documents securely",
+    "NOTIFICATIONS": "Notifications",
+    "BACK": "Go back"
+  },
+  "NAV": {
+    "HOME": "Home",
+    "SERVICES": "Services",
+    "DOCUMENTS": "Documents",
+    "REMINDERS": "Reminders",
+    "PROFILE": "Profile"
   }
 }
