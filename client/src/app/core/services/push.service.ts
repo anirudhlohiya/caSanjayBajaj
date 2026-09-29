@@ -53,16 +53,22 @@ export class PushService {
 
   async requestAndSubscribe(): Promise<boolean> {
     if (!this.supported()) return false;
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return false;
+    
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return false;
 
-    const registration = await navigator.serviceWorker.ready;
-    this.subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(APP.vapidPublicKey),
-    });
-    await this.syncSubscription(this.subscription);
-    return true;
+      const registration = await navigator.serviceWorker.ready;
+      this.subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(APP.vapidPublicKey),
+      });
+      await this.syncSubscription(this.subscription);
+      return true;
+    } catch (e) {
+      console.error('Push subscription failed:', e);
+      return false;
+    }
   }
 
   async isSubscribed(): Promise<boolean> {

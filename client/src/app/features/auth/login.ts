@@ -36,7 +36,7 @@ export class Login {
       if ('Notification' in window && Notification.permission === 'default') {
         void Notification.requestPermission();
       }
-      await this.router.navigate(['/dashboard']);
+      await this.router.navigate(['/dashboard'], { replaceUrl: true });
     } catch (err) {
       this.error.set(
         (err as { error?: { message?: string } })?.error?.message ??

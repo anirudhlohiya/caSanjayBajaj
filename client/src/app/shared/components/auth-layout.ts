@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="bg-surface-container-lowest text-on-surface font-geist min-h-dvh flex flex-col items-center justify-center antialiased w-full">
-      <div class="w-full max-w-md px-4 sm:px-0">
+      <div class="w-full max-w-md px-4 sm:px-6">
         <!-- Logo -->
         <div class="flex justify-center mb-8">
           <img alt="S N Bajaj And Co Logo" class="h-24 sm:h-32 w-auto object-contain" src="/logo-transparent.png" onerror="this.src='/logo-login.png'">

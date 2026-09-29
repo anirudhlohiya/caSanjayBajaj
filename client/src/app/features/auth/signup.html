@@ -70,6 +70,13 @@
             placeholder="000000"
             class="w-full h-12 mt-2 text-center text-xl tracking-[8px] bg-surface-container-lowest border border-hairline rounded px-3 font-geist text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
           />
+          <div class="flex justify-end mt-1">
+            @if (resendOtpCooldown() > 0) {
+              <span class="font-geist text-xs text-on-surface-variant">Resend in {{ resendOtpCooldown() }}s</span>
+            } @else {
+              <button type="button" (click)="resendOtp()" [disabled]="loading()" class="font-geist text-xs font-semibold text-primary hover:underline cursor-pointer dark:text-white disabled:opacity-50 disabled:cursor-not-allowed">Resend OTP</button>
+            }
+          </div>
         </div>
       </div>
 
@@ -85,7 +92,7 @@
       </div>
 
       <div class="flex flex-col gap-1">
-        <label class="font-geist-mono text-xs tracking-wider text-secondary" for="phone">Phone Number (Optional)</label>
+        <label class="font-geist-mono text-xs tracking-wider text-secondary" for="phone">Phone Number</label>
         <div class="flex bg-surface-container-lowest border border-hairline rounded overflow-hidden dark:bg-surface-container dark:border-hairline-strong focus-within:ring-1 focus-within:ring-primary focus-within:border-primary dark:focus-within:ring-white dark:focus-within:border-white transition-shadow">
           <div class="flex items-center justify-center px-3 border-r border-hairline bg-canvas-inset font-geist text-sm text-secondary dark:bg-surface-container dark:border-hairline-strong">
             +91
@@ -98,6 +105,9 @@
             class="w-full px-3 py-[10px] bg-transparent border-none text-on-surface focus:ring-0 font-geist text-sm placeholder:text-outline-variant outline-none dark:text-on-surface"
           />
         </div>
+        @if (signupForm.controls.phone.touched && signupForm.controls.phone.invalid) {
+          <p class="font-geist text-xs text-error">Enter a valid 10-digit phone number.</p>
+        }
       </div>
 
       <div class="flex flex-col gap-1">
@@ -113,6 +123,9 @@
           placeholder="29ABCDE1234F1Z5"
           class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant uppercase dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
         />
+        @if (signupForm.controls.gstin.touched && signupForm.controls.gstin.invalid) {
+          <p class="font-geist text-xs text-error">Enter a valid GSTIN format.</p>
+        }
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
