@@ -15,13 +15,17 @@ import {
   ProfileService,
 } from '../../core/services/feature.services';
 import { CertType, ClientCertificate } from '../../core/models';
+import { ThemeService, ThemeMode } from '../../core/services/theme.service';
+import { PushService } from '../../core/services/push.service';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 const PHOTO_KEY = 'fp_profile_photo';
+const LANG_PREF_KEY = 'fp_language';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.html',
 })
@@ -32,17 +36,45 @@ export class Profile {
   readonly router = inject(Router);
   private readonly profileService = inject(ProfileService);
   private readonly certificatesService = inject(CertificatesService);
+  readonly theme = inject(ThemeService);
+  private readonly push = inject(PushService);
+  readonly translate = inject(TranslateService);
 
-  readonly savingPhone = signal(false);
   readonly photoUrl = signal<string | null>(localStorage.getItem(PHOTO_KEY));
   readonly certificates = signal<ClientCertificate[]>([]);
   readonly downloading = signal<string[]>([]);
 
+  readonly pushEnabled = signal(false);
+  readonly pushSupported = signal(this.push.supported());
+  readonly pushBusy = signal(false);
+  readonly passwordBusy = signal(false);
+  readonly showPaymentModal = signal(false);
+  
+  readonly currentLanguage = signal(localStorage.getItem(LANG_PREF_KEY) || 'en');
+
+  readonly themeOptions: { label: string; value: ThemeMode; icon: string }[] = [
+    { label: 'System Default', value: 'system', icon: 'devices' },
+    { label: 'Light', value: 'light', icon: 'light_mode' },
+    { label: 'Dark', value: 'dark', icon: 'dark_mode' },
+  ];
+
+  readonly langOptions = [
+    { label: 'English', value: 'en' },
+    { label: 'हिंदी (Hindi)', value: 'hi' },
+    { label: 'ગુજરાતી (Gujarati)', value: 'gu' }
+  ];
+
+  readonly passwordForm = this.fb.nonNullable.group({
+    current_password: ['', [Validators.required, Validators.minLength(8)]],
+    new_password: ['', [Validators.required, Validators.minLength(8)]],
+    confirm: ['', [Validators.required]],
+  });
+
   @ViewChild('photoInput') photoInput!: ElementRef<HTMLInputElement>;
 
-  readonly phoneForm = this.fb.nonNullable.group({
-    phone: ['', [Validators.pattern(/^[0-9+\-\s]{10,20}$/)]],
-  });
+  constructor() {
+    this.translate.use(this.currentLanguage());
+  }
 
   async ngOnInit(): Promise<void> {
     try {
@@ -51,9 +83,9 @@ export class Profile {
     } catch {
       /* auth guard handles redirect */
     }
-    const profile = this.auth.userProfile();
-    if (profile?.phone) {
-      this.phoneForm.controls.phone.setValue(profile.phone);
+    
+    if (this.push.supported()) {
+      this.pushEnabled.set(await this.push.isSubscribed());
     }
   }
 
@@ -102,24 +134,6 @@ export class Profile {
     reader.readAsDataURL(file);
   }
 
-  async savePhone(): Promise<void> {
-    if (this.phoneForm.invalid) {
-      this.toast.error('Enter a valid phone number.');
-      return;
-    }
-    this.savingPhone.set(true);
-    try {
-      const { phone } = this.phoneForm.getRawValue();
-      await this.profileService.update({ phone: phone || undefined });
-      await this.auth.loadProfile();
-      this.toast.success('Phone number updated.');
-    } catch {
-      /* interceptor toasts */
-    } finally {
-      this.savingPhone.set(false);
-    }
-  }
-
   initials(): string {
     const name = this.auth.userProfile()?.name;
     if (!name) return '?';
@@ -128,5 +142,68 @@ export class Profile {
       .slice(0, 2)
       .map((p) => p[0]?.toUpperCase() ?? '')
       .join('');
+  }
+
+  setTheme(mode: ThemeMode): void {
+    this.theme.setMode(mode);
+    this.toast.success(`Theme set to ${mode === 'system' ? 'system default' : mode + ' mode'}.`);
+  }
+
+  setLanguage(lang: string): void {
+    this.currentLanguage.set(lang);
+    localStorage.setItem(LANG_PREF_KEY, lang);
+    this.translate.use(lang);
+  }
+
+  downloadQR(): void {
+    const link = document.createElement('a');
+    link.href = '/payment-qr.jpeg';
+    link.download = 'payment-qr.jpeg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  async togglePush(enabled: boolean): Promise<void> {
+    if (this.pushBusy()) return;
+    this.pushBusy.set(true);
+    try {
+      if (enabled) {
+        const ok = await this.push.requestAndSubscribe();
+        if (!ok) {
+          this.toast.error('Push notifications could not be enabled for this browser.');
+          return;
+        }
+      } else {
+        await this.push.unsubscribe();
+      }
+      this.pushEnabled.set(enabled);
+      this.toast.success(enabled ? 'Push notifications enabled.' : 'Push notifications disabled.');
+    } finally {
+      this.pushBusy.set(false);
+    }
+  }
+
+  async changePassword(): Promise<void> {
+    const form = this.passwordForm;
+    if (form.invalid) {
+      this.toast.error('Passwords must be at least 8 characters.');
+      return;
+    }
+    if (form.getRawValue().new_password !== form.getRawValue().confirm) {
+      this.toast.error('New passwords do not match.');
+      return;
+    }
+    this.passwordBusy.set(true);
+    try {
+      const { current_password, new_password } = form.getRawValue();
+      await this.profileService.changePassword(current_password, new_password);
+      this.toast.success('Password changed successfully.');
+      form.reset();
+    } catch {
+      /* interceptor toasts */
+    } finally {
+      this.passwordBusy.set(false);
+    }
   }
 }
