@@ -1,4 +1,4 @@
-<div class="max-w-container-max mx-auto px-4 pt-4 pb-24">
+<div class="max-w-container-max mx-auto px-4 pt-4">
   <!-- Search Bar -->
   <div class="relative mb-6">
     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
@@ -12,147 +12,30 @@
 
   <!-- Services List -->
   <div class="flex flex-col gap-4">
-    
-    <!-- Card 1 -->
-    <div (click)="onServiceClick()" class="bg-surface rounded-2xl p-4 shadow-card cursor-pointer hover:bg-surface-container transition-colors border border-card-border">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center">
-          <span class="material-symbols-outlined text-[20px] text-primary">receipt_long</span>
+    @for (service of filteredServices; track service.id) {
+      <!-- Card -->
+      <div (click)="onServiceClick()" class="bg-surface rounded-2xl p-4 shadow-card cursor-pointer hover:bg-surface-container transition-colors border border-card-border">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px] text-primary">{{ service.icon }}</span>
+          </div>
+          <h3 class="font-bold text-primary text-base">{{ service.title }}</h3>
         </div>
-        <h3 class="font-bold text-primary text-base">GST Services</h3>
-      </div>
-      <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
-        Comprehensive GST solutions including Registration, Return Filing, and Refund processing to ensure seamless compliance.
-      </p>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Registration</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Return Filing</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Refund</span>
-      </div>
-    </div>
-
-    <!-- Card 2 -->
-    <div (click)="onServiceClick()" class="bg-surface rounded-2xl p-4 shadow-card cursor-pointer hover:bg-surface-container transition-colors border border-card-border">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center">
-          <span class="material-symbols-outlined text-[20px] text-primary">account_balance_wallet</span>
+        <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
+          {{ service.description }}
+        </p>
+        <div class="flex flex-wrap gap-2">
+          @for (tag of service.tags; track tag) {
+            <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">{{ tag }}</span>
+          }
         </div>
-        <h3 class="font-bold text-primary text-base">Income Tax</h3>
       </div>
-      <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
-        Expert ITR Filing, Strategic Tax Planning, and meticulous TDS management optimized for individuals and corporate entities.
-      </p>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">ITR Filing</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Tax Planning</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">TDS</span>
-      </div>
-    </div>
+    }
 
-    <!-- Card 3 -->
-    <div (click)="onServiceClick()" class="bg-surface rounded-2xl p-4 shadow-card cursor-pointer hover:bg-surface-container transition-colors border border-card-border">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center">
-          <span class="material-symbols-outlined text-[20px] text-primary">trending_up</span>
-        </div>
-        <h3 class="font-bold text-primary text-base">Mutual Funds</h3>
+    @if (filteredServices.length === 0) {
+      <div class="text-center py-8 text-on-surface-variant">
+        No services found for "{{ searchQuery }}".
       </div>
-      <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
-        Tailored investment strategies through SIPs and Lump Sum allocations aligned with your specific long-term goals.
-      </p>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">SIP</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Lump Sum</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Goal Planning</span>
-      </div>
-    </div>
-
-    <!-- Card 4 -->
-    <div (click)="onServiceClick()" class="bg-surface rounded-2xl p-4 shadow-card cursor-pointer hover:bg-surface-container transition-colors border border-card-border">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center">
-          <span class="material-symbols-outlined text-[20px] text-primary">real_estate_agent</span>
-        </div>
-        <h3 class="font-bold text-primary text-base">Loan Services</h3>
-      </div>
-      <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
-        Streamlined processing and advisory for Home, Personal, and Business Loans to secure optimal financing terms.
-      </p>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Home</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Personal</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Business</span>
-      </div>
-    </div>
-
-    <!-- Card 5 -->
-    <div (click)="onServiceClick()" class="bg-surface rounded-2xl p-4 shadow-card cursor-pointer hover:bg-surface-container transition-colors border border-card-border">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center">
-          <span class="material-symbols-outlined text-[20px] text-primary">health_and_safety</span>
-        </div>
-        <h3 class="font-bold text-primary text-base">Insurance</h3>
-      </div>
-      <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
-        Risk mitigation through structured Life, Health, and General Insurance policies tailored to protect your assets.
-      </p>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Life</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Health</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">General</span>
-      </div>
-    </div>
-
-    <!-- Card 6 -->
-    <div (click)="onServiceClick()" class="bg-surface rounded-2xl p-4 shadow-card cursor-pointer hover:bg-surface-container transition-colors border border-card-border">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center">
-          <span class="material-symbols-outlined text-[20px] text-primary">pie_chart</span>
-        </div>
-        <h3 class="font-bold text-primary text-base">Financial Planning</h3>
-      </div>
-      <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
-        Holistic approaches to Wealth Creation and Retirement Planning ensuring sustained financial stability and growth.
-      </p>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Wealth Creation</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Retirement</span>
-      </div>
-    </div>
-
-    <!-- Card 7 -->
-    <div (click)="onServiceClick()" class="bg-surface rounded-2xl p-4 shadow-card cursor-pointer hover:bg-surface-container transition-colors border border-card-border">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center">
-          <span class="material-symbols-outlined text-[20px] text-primary">business</span>
-        </div>
-        <h3 class="font-bold text-primary text-base">Company Incorporation</h3>
-      </div>
-      <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
-        End-to-end assistance with entity formation, ROC Filing, and ongoing regulatory compliance frameworks.
-      </p>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">ROC Filing</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Compliance</span>
-      </div>
-    </div>
-
-    <!-- Card 8 -->
-    <div (click)="onServiceClick()" class="bg-surface rounded-2xl p-4 shadow-card cursor-pointer hover:bg-surface-container transition-colors border border-card-border">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center">
-          <span class="material-symbols-outlined text-[20px] text-primary">fact_check</span>
-        </div>
-        <h3 class="font-bold text-primary text-base">Audit & Assurance</h3>
-      </div>
-      <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
-        Rigorous Internal and Statutory Audits designed to enhance operational transparency and financial fidelity.
-      </p>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Internal Audit</span>
-        <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">Statutory Audit</span>
-      </div>
-    </div>
-
+    }
   </div>
 </div>
