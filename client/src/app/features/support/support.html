@@ -26,7 +26,9 @@
   <button
     class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
     [class.bg-neutral-200]="statusFilter() === 'closed'"
+    [class.dark:bg-neutral-800]="statusFilter() === 'closed'"
     [class.text-neutral-700]="statusFilter() === 'closed'"
+    [class.dark:text-neutral-300]="statusFilter() === 'closed'"
     [class.bg-surface-container]="statusFilter() !== 'closed'"
     [class.text-on-surface-variant]="statusFilter() !== 'closed'"
     (click)="filterByStatus('closed')"

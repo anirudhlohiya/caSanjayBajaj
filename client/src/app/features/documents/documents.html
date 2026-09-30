@@ -1,19 +1,19 @@
-<div class="max-w-container-max mx-auto px-4 pt-4 pb-24 flex flex-col gap-5">
+<div class="max-w-container-max mx-auto px-4 pt-4 flex flex-col gap-5">
   <div class="card p-4 flex flex-col gap-2">
-    <label class="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Select Period</label>
+    <label class="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Select Period</label>
     <div class="relative">
       <select
         [ngModel]="periodId()"
         (ngModelChange)="setPeriod($event)"
-        class="w-full appearance-none bg-white border border-neutral-200 rounded-lg p-3 pl-10 text-sm font-semibold text-neutral-900 cursor-pointer outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+        class="w-full appearance-none bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg p-3 pl-10 text-sm font-semibold text-neutral-900 dark:text-neutral-100 cursor-pointer outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
       >
         <option value="">All filing periods</option>
         @for (period of periods(); track period.id) {
           <option [value]="period.id">{{ period.period_label }}</option>
         }
       </select>
-      <span class="material-symbols-outlined text-neutral-500 text-[20px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">calendar_month</span>
-      <span class="material-symbols-outlined text-neutral-400 text-[20px] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+      <span class="material-symbols-outlined text-neutral-500 dark:text-neutral-400 text-[20px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">calendar_month</span>
+      <span class="material-symbols-outlined text-neutral-400 dark:text-neutral-500 text-[20px] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
     </div>
   </div>
 
@@ -21,21 +21,21 @@
     <div class="card p-4">
       <div class="flex items-start justify-between gap-2">
         <div>
-          <div class="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5">CURRENT GST PERIOD</div>
-          <div class="text-xl font-bold text-neutral-900 mb-0.5">{{ period.period_label }}</div>
-          <div class="text-[13px] text-neutral-600 mb-5 capitalize">{{ cadence() }} GST</div>
+          <div class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1.5">CURRENT GST PERIOD</div>
+          <div class="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-0.5">{{ period.period_label }}</div>
+          <div class="text-[13px] text-neutral-600 dark:text-neutral-400 mb-5 capitalize">{{ cadence() }} GST</div>
         </div>
-        <span class="px-2 py-1 rounded-full bg-neutral-100 text-[10px] font-semibold text-neutral-600 uppercase tracking-wider">
+        <span class="px-2 py-1 rounded-full bg-neutral-100 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">
           Due {{ period.due_date | date: 'd MMM yyyy' }}
         </span>
       </div>
 
       <div class="flex justify-between items-end mb-2">
-        <div class="text-[11px] font-semibold text-neutral-800">Documents Progress</div>
-        <div class="text-[11px] font-semibold text-neutral-800">{{ docDone() }} / {{ docTotal() }}</div>
+        <div class="text-[11px] font-semibold text-neutral-800 dark:text-neutral-200">Documents Progress</div>
+        <div class="text-[11px] font-semibold text-neutral-800 dark:text-neutral-200">{{ docDone() }} / {{ docTotal() }}</div>
       </div>
       <div class="h-2 w-full bg-neutral-100 rounded-full overflow-hidden mb-2">
-        <div class="h-full bg-neutral-900 rounded-full transition-all" [style.width.%]="progressPct()"></div>
+        <div class="h-full bg-neutral-900 dark:bg-neutral-100 rounded-full transition-all" [style.width.%]="progressPct()"></div>
       </div>
       <div class="text-[11px] font-semibold" [class]="docTotal() - docDone() > 0 ? 'text-amber-600' : 'text-green-600'">
         @if (docTotal() === 0) {
@@ -50,10 +50,10 @@
   }
 
   <div>
-    <div class="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-3 ml-1">DOCUMENTS TO SUBMIT</div>
+    <div class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-3 ml-1">DOCUMENTS TO SUBMIT</div>
     <div class="card overflow-hidden divide-y divide-neutral-100">
       @for (task of uploadTasks(); track task.id) {
-        <div class="p-4 flex items-center justify-between bg-white cursor-pointer hover:bg-neutral-50 transition-colors">
+        <div class="p-4 flex items-center justify-between bg-white dark:bg-neutral-900 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg flex flex-col items-center justify-center"
               [class]="task.status === 'completed' || task.status === 'uploaded' ? 'bg-green-50 text-green-700' : task.nil_declared_at ? 'bg-secondary/10 text-secondary' : 'bg-red-50 text-red-700'">
@@ -62,8 +62,8 @@
               </span>
             </div>
             <div>
-              <div class="font-semibold text-neutral-900 text-sm">{{ taskLabel(task) }}</div>
-              <div class="text-[11px] text-neutral-500 mt-0.5">PDF / Excel</div>
+              <div class="font-semibold text-neutral-900 dark:text-neutral-100 text-sm">{{ taskLabel(task) }}</div>
+              <div class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">PDF / Excel</div>
             </div>
           </div>
           <div class="flex items-center gap-3">
@@ -83,20 +83,20 @@
                   <span class="material-symbols-outlined text-[16px]">pending</span>
                   <span class="text-[11px] font-semibold">Nil Pending</span>
                 </div>
-                <div class="text-[10px] text-neutral-400">Awaiting CA confirmation</div>
+                <div class="text-[10px] text-neutral-400 dark:text-neutral-500">Awaiting CA confirmation</div>
               } @else {
-                <div class="flex items-center gap-1.5 text-neutral-600 mb-1.5">
+                <div class="flex items-center gap-1.5 text-neutral-600 dark:text-neutral-400 mb-1.5">
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                   <span class="text-[11px] font-semibold">Required</span>
                 </div>
                 <div class="flex gap-2">
                   @if (canFileNil(task)) {
-                    <button (click)="markNil(task); $event.stopPropagation()" class="flex items-center gap-1 px-3 py-1 rounded-md border border-neutral-200 text-[11px] font-semibold text-neutral-700 hover:bg-neutral-50 cursor-pointer">
+                    <button (click)="markNil(task); $event.stopPropagation()" class="flex items-center gap-1 px-3 py-1 rounded-md border border-neutral-200 dark:border-neutral-700 text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer">
                       File Nil
                     </button>
                   }
-                  <button (click)="goUpload(); $event.stopPropagation()" class="flex items-center gap-1 px-3 py-1 rounded-md bg-neutral-900 text-[11px] font-semibold text-white hover:bg-neutral-800 cursor-pointer">
-                    <span class="material-symbols-outlined text-[16px] text-white">add</span>
+                  <button (click)="goUpload(); $event.stopPropagation()" class="flex items-center gap-1 px-3 py-1 rounded-md bg-neutral-900 dark:bg-neutral-100 text-[11px] font-semibold text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px] text-white dark:text-neutral-900">add</span>
                     Upload
                   </button>
                 </div>
@@ -106,19 +106,19 @@
         </div>
       }
       @if (paymentTask(); as payment) {
-        <div class="p-4 flex items-center justify-between bg-white">
+        <div class="p-4 flex items-center justify-between bg-white dark:bg-neutral-900">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-amber-50 flex flex-col items-center justify-center text-amber-700">
               <span class="material-symbols-outlined text-[18px]">payments</span>
             </div>
             <div>
-              <div class="font-semibold text-neutral-900 text-sm">GST Tax Payment</div>
-              <div class="text-[11px] text-neutral-500 mt-0.5">No document upload needed</div>
+              <div class="font-semibold text-neutral-900 dark:text-neutral-100 text-sm">GST Tax Payment</div>
+              <div class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">No document upload needed</div>
             </div>
           </div>
           <div class="flex items-center gap-2">
             @if (payment.amount) {
-              <span class="px-2 py-1 rounded-md bg-neutral-900 text-[11px] font-semibold text-white">₹{{ payment.amount }}</span>
+              <span class="px-2 py-1 rounded-md bg-neutral-900 dark:bg-neutral-100 text-[11px] font-semibold text-white dark:text-neutral-900">₹{{ payment.amount }}</span>
             }
             @if (payment.status === 'completed' || payment.paid_at) {
               <span class="flex items-center gap-1 text-[11px] font-semibold text-green-600">
@@ -126,7 +126,7 @@
                 Paid
               </span>
             } @else {
-              <span class="flex items-center gap-1 text-[11px] font-semibold text-neutral-500">
+              <span class="flex items-center gap-1 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">
                 <span class="material-symbols-outlined text-[16px]">info</span>
                 Info only
               </span>
@@ -135,7 +135,7 @@
         </div>
       }
       @if (uploadTasks().length === 0 && !paymentTask()) {
-        <div class="p-4 text-center text-sm text-neutral-500">
+        <div class="p-4 text-center text-sm text-neutral-500 dark:text-neutral-400">
           No filing tasks for this period.
         </div>
       }
@@ -143,28 +143,28 @@
   </div>
 
   <div>
-    <div class="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-3 ml-1">FROM YOUR CA</div>
+    <div class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-3 ml-1">FROM YOUR CA</div>
     <div class="card overflow-hidden divide-y divide-neutral-100">
       @for (report of reports(); track report.id) {
-        <div class="p-4 flex items-center justify-between bg-white cursor-pointer hover:bg-neutral-50 transition-colors" (click)="downloadReport(report)">
+        <div class="p-4 flex items-center justify-between bg-white dark:bg-neutral-900 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors" (click)="downloadReport(report)">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-red-50 flex flex-col items-center justify-center text-red-700">
               <span class="text-[10px] font-bold">PDF</span>
             </div>
             <div>
-              <div class="font-semibold text-neutral-900 text-sm">{{ typeLabel(report) }}</div>
-              <div class="text-[11px] text-neutral-500 mt-0.5">{{ periodLabel(report.filing_period) }}</div>
+              <div class="font-semibold text-neutral-900 dark:text-neutral-100 text-sm">{{ typeLabel(report) }}</div>
+              <div class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">{{ periodLabel(report.filing_period) }}</div>
             </div>
           </div>
           <div class="flex items-center gap-3">
             <span class="text-[11px] font-semibold text-green-600">Available · {{ report.sent_at | date: 'd MMM' }}</span>
-            <button class="w-8 h-8 flex items-center justify-center text-neutral-900 cursor-pointer hover:bg-neutral-100 rounded-full" aria-label="Download report">
+            <button class="w-8 h-8 flex items-center justify-center text-neutral-900 dark:text-neutral-100 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full" aria-label="Download report">
               <span class="material-symbols-outlined text-[20px]">download</span>
             </button>
           </div>
         </div>
       } @empty {
-        <div class="p-4 text-center text-sm text-neutral-500">
+        <div class="p-4 text-center text-sm text-neutral-500 dark:text-neutral-400">
           Your CA will share reports here once they're ready.
         </div>
       }
@@ -172,25 +172,25 @@
   </div>
 
   <div>
-    <div class="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-3 ml-1">FILED RETURNS</div>
-    <div class="card p-4 flex flex-col gap-3 bg-white">
+    <div class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-3 ml-1">FILED RETURNS</div>
+    <div class="card p-4 flex flex-col gap-3 bg-white dark:bg-neutral-900">
       <div>
-        <label class="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5 block">Select Filing Period</label>
+        <label class="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1.5 block">Select Filing Period</label>
         <div class="relative">
           <select
             [(ngModel)]="reportPeriodId"
-            class="w-full appearance-none bg-white border border-neutral-200 rounded-lg p-3 pl-10 text-sm font-semibold text-neutral-900 cursor-pointer outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+            class="w-full appearance-none bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg p-3 pl-10 text-sm font-semibold text-neutral-900 dark:text-neutral-100 cursor-pointer outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
           >
             @for (period of periods(); track period.id) {
               <option [value]="period.id">{{ period.period_label }}</option>
             }
           </select>
-          <span class="material-symbols-outlined text-neutral-400 text-[20px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">calendar_month</span>
-          <span class="material-symbols-outlined text-neutral-400 text-[20px] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+          <span class="material-symbols-outlined text-neutral-400 dark:text-neutral-500 text-[20px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">calendar_month</span>
+          <span class="material-symbols-outlined text-neutral-400 dark:text-neutral-500 text-[20px] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
         </div>
       </div>
 
-      <button (click)="requestReport()" class="w-full py-2.5 mt-2 rounded-xl border border-neutral-300 text-sm font-bold text-neutral-900 hover:bg-neutral-50 transition-colors flex items-center justify-center cursor-pointer">
+      <button (click)="requestReport()" class="w-full py-2.5 mt-2 rounded-xl border border-neutral-300 dark:border-neutral-700 text-sm font-bold text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center cursor-pointer">
         Request Report
       </button>
     </div>

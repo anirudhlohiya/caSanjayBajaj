@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-2xl flex flex-col gap-6 pb-10">
+<div class="mx-auto w-full max-w-2xl flex flex-col gap-6">
   <app-page-header title="Upload Documents" subtitle="Share your GST documents securely" [back]="true" />
 
   @if (error()) {
@@ -30,7 +30,7 @@
   }
 
   <label class="flex flex-col gap-1.5">
-    <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Filing period</span>
+    <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Filing period</span>
     <select
       [ngModel]="selectedPeriodId()"
       (ngModelChange)="selectedPeriodId.set($event)"
@@ -56,11 +56,11 @@
   <button
     type="button"
     (click)="dropZoneClick()"
-    class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-250 bg-white px-6 py-10 text-center hover:bg-neutral-50/50 transition-colors cursor-pointer dark:bg-neutral-900"
+    class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-250 dark:border-neutral-700 bg-white px-6 py-10 text-center hover:bg-neutral-50/50 dark:hover:bg-neutral-800 transition-colors cursor-pointer dark:bg-neutral-900"
   >
-    <span class="material-symbols-outlined text-[36px] text-neutral-400">upload_file</span>
+    <span class="material-symbols-outlined text-[36px] text-neutral-400 dark:text-neutral-500">upload_file</span>
     <span class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Choose files</span>
-    <span class="text-xs text-neutral-400">
+    <span class="text-xs text-neutral-400 dark:text-neutral-500">
       PDF, image or Excel · up to 50 MB each
     </span>
   </button>
@@ -70,13 +70,13 @@
       @for (item of items(); track item.id) {
         <div class="flex items-center gap-3 rounded-xl border border-neutral-100 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
-            <span class="material-symbols-outlined text-[20px] text-neutral-500 dark:text-neutral-400">
+            <span class="material-symbols-outlined text-[20px] text-neutral-500 dark:text-neutral-400 dark:text-neutral-500">
               {{ item.file.type.includes('image/') ? 'image' : item.file.name.endsWith('.pdf') ? 'picture_as_pdf' : 'table_chart' }}
             </span>
           </span>
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ item.file.name }}</p>
-            <p class="text-xs text-neutral-400 mt-0.5">{{ formatSize(item.file.size) }}</p>
+            <p class="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">{{ formatSize(item.file.size) }}</p>
  
             @if (item.status === 'uploading') {
               <div class="mt-2 h-1 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
@@ -101,13 +101,13 @@
           @if (item.status === 'pending' || item.status === 'failed') {
             <button
               (click)="removeItem(item.id)"
-              class="flex size-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 cursor-pointer dark:hover:bg-neutral-800 dark:hover:bg-neutral-800"
+              class="flex size-8 items-center justify-center rounded-full text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 cursor-pointer dark:hover:bg-neutral-800 dark:hover:bg-neutral-800"
               aria-label="Remove file"
             >
               <span class="material-symbols-outlined text-[18px]">close</span>
             </button>
           } @else if (item.status === 'uploading') {
-            <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">{{ item.progress }}%</span>
+            <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 dark:text-neutral-500">{{ item.progress }}%</span>
           } @else {
             <span class="material-symbols-outlined text-[20px] text-emerald-600">
               {{ item.status === 'success' ? 'check_circle' : 'schedule' }}
