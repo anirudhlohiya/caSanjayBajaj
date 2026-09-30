@@ -685,6 +685,10 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
   - Removed email notification toggle; now only push notification toggle is shown. Fixed unhandled promise rejection in `push.service.ts` so failing subscriptions gracefully update the UI instead of silently failing.
   - **i18n Initialization Fix**: Moved `TranslateService` initialization from `profile.ts` up to the root `app.ts` using `setFallbackLang('en')` (fixed `@ngx-translate/core` v18 compatibility). The chosen language now applies application-wide on startup.
   - **i18n Shell Keys**: Extracted and translated hardcoded English text in the `Shell` layout (navigation, greetings, offline alerts) into `en.json`, `hi.json`, and `gu.json`. The rest of the app requires similar extraction.
+  - **Services Screen Data-Driven Architecture**: Refactored static HTML lists into a dynamic data array and implemented live filtering/search functionality.
+  - **Layout & Padding Fixes**: Removed double bottom padding (`pb-10`/`pb-24`) that was causing empty scrollable space at the bottom of all feature pages (since `shell.html` already manages bottom layout padding).
+  - **Comprehensive Dark Mode Support**: Replaced hardcoded light-mode Tailwind classes (`bg-white`, `text-neutral-900`) across `Reminders`, `Documents`, `Upload`, and `Support` screens with semantic/dark variants, ensuring full UI compatibility across light and dark themes. Fixed the notification banners in the shell to invert properly.
+  - **FOUC Prevention (Material Symbols)**: Addressed Flash of Unstyled Content (FOUC) where Material Symbol ligatures showed raw text or blank gaps for 1-2 seconds. Moved Google Fonts loading from CSS `@import` directly into `<head>` of `index.html` with `<link rel="preload">` in both client and admin apps to ensure instant font rendering.
 
 
 ## 11. Non-negotiable rules for contributors
