@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.view.View
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
 import android.webkit.URLUtil
@@ -19,8 +20,11 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,11 +65,67 @@ class MainActivity : AppCompatActivity() {
         swipeRefresh = findViewById(R.id.swipe_refresh)
         webView = findViewById(R.id.web_view)
 
+        applySystemBarInsets()
         setupWebView()
+        setupBackNavigation()
         refreshVersionInfo()
         if (savedInstanceState == null) {
-            webView.loadUrl(BuildConfig.APP_URL)
+            webView.loadUrl(portalUrlFrom(intent) ?: BuildConfig.APP_URL)
+        } else {
+            webView.restoreState(savedInstanceState)
         }
+    }
+
+    /** A portal link (App Link) tapped while the app is already open. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        portalUrlFrom(intent)?.let { webView.loadUrl(it) }
+    }
+
+    /** Only https links on the portal host are loaded from outside intents. */
+    private fun portalUrlFrom(intent: Intent?): String? {
+        val data = intent?.data ?: return null
+        if (intent.action != Intent.ACTION_VIEW) return null
+        val appHost = Uri.parse(BuildConfig.APP_URL).host
+        return if (data.scheme == "https" && data.host == appHost) data.toString() else null
+    }
+
+    /**
+     * Edge-to-edge is enforced from targetSdk 35, so pad the content by the
+     * status/navigation bar (and keyboard) insets; the root's background shows
+     * behind the bars.
+     */
+    private fun applySystemBarInsets() {
+        val root = findViewById<View>(R.id.root)
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or
+                    WindowInsetsCompat.Type.displayCutout() or
+                    WindowInsetsCompat.Type.ime(),
+            )
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+    }
+
+    /**
+     * From targetSdk 36 onBackPressed() is no longer called (predictive back),
+     * so back goes through the dispatcher: WebView history first, then exit.
+     */
+    private fun setupBackNavigation() {
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (webView.canGoBack()) {
+                        webView.goBack()
+                    } else {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                    }
+                }
+            },
+        )
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -240,11 +300,6 @@ class MainActivity : AppCompatActivity() {
         } catch (e: ActivityNotFoundException) {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(storeUrl)))
         }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (webView.canGoBack()) webView.goBack() else super.onBackPressed()
     }
 
     @Deprecated("Deprecated in Java")

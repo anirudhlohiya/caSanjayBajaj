@@ -1,0 +1,4 @@
+<resources>
+    <!-- Shown behind the status and navigation bars -->
+    <color name="system_bar">#1F1B16</color>
+</resources>

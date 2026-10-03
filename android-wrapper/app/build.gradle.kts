@@ -1,6 +1,16 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+}
+
+// Upload-key signing for Play Store builds. keystore.properties (and the .jks
+// it points to) live next to settings.gradle.kts and are NEVER committed.
+// See README "Release signing". Without the file, release builds are unsigned.
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
 }
 
 android {
@@ -10,9 +20,22 @@ android {
     defaultConfig {
         applicationId = "com.snbajaj.portal"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 2
-        versionName = "1.0.1"
+        // Google Play requires API 36 for new apps and updates from 31 Aug 2026.
+        targetSdk = 36
+        // +1 on every Play upload; versionName is what the forced-update gate compares.
+        versionCode = 3
+        versionName = "1.1.0"
+    }
+
+    signingConfigs {
+        if (keystorePropsFile.exists()) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildFeatures {
@@ -30,6 +53,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.findByName("release")
             buildConfigField("String", "APP_URL", "\"https://app.snbajaj.com\"")
             buildConfigField("String", "API_BASE_URL", "\"https://api.snbajaj.com/api/v1\"")
         }
