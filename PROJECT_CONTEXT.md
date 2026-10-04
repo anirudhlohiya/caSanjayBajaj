@@ -37,9 +37,12 @@ Four components:
    (`GET /api/v1/app/version` → `{min_version, latest_version, store_url}`, driven by
    env `APP_ANDROID_MIN_VERSION` / `APP_ANDROID_LATEST_VERSION` / `PLAY_STORE_URL`).
    App opens normally even when outdated; document upload/download is BLOCKED with a
-   non-dismissable Play Store dialog when `VERSION_NAME < min_version`. Debug APK v1.0.0
-   builds green via Gradle 8.14.2 / AGP 8.7.3 / compileSdk 36 / targetSdk 35; launcher
-   icons generated from root `logo.jfif`.
+   non-dismissable Play Store dialog when `VERSION_NAME < min_version`. **v1.1.0
+   (versionCode 3) is Play-Store ready** (Oct 23 2026): checked-in Gradle wrapper 8.13 /
+   AGP 8.12.3 / compileSdk 36 / **targetSdk 36**, release signing from a gitignored
+   `keystore.properties`, edge-to-edge insets, predictive-back dispatcher, App Links for
+   `app.snbajaj.com`, backups disabled (tokens). Build/sign/publish steps:
+   `android-wrapper/README.md`. Launcher icons generated from root `logo.jfif`.
 
 ## 2. Hard constraint: cost
 
@@ -154,15 +157,17 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - Full prod API E2E verified over HTTPS: auth+guards+429 throttle, users CRUD,
     periods, documents, reports presign→S3 PUT→confirm→download round-trip, reminders
     send+log, staff permissions grant/revoke, audit logs, Swagger off, redirects.
-- **SES production access — IN PROGRESS (Sep 14 2026)**: SES was in sandbox
-  (emails to unverified recipients rejected). IMPLEMENTED & DEPLOYED: a self-contained
+- **SES production access — LIVE (confirmed Oct 23 2026)**: SES is out of the sandbox;
+  emails reach any client address (OTP, welcome, report, filed-return and payment-reminder
+  mails). History: SES was in sandbox until the appeal below. IMPLEMENTED & DEPLOYED: a self-contained
   `SnsModule` (`backend/src/sns/*`) receives SES event notifications at
   `POST /api/v1/sns/notifications`, verifies the AWS SNS signing certificate
   (host-pinned to `sns.<region>.amazonaws.com`), auto-confirms topic subscriptions,
   and processes Bounce/Complaint events. Permanent bounces and complaints set a new
   `users.email_suppressed_at` timestamp; the send pipeline checks it in `NotificationsService.sendEmail`
   before every SES call, blocking further sends to suppressed addresses and logging
-  to `audit_logs`. **Remaining user steps**: (1) create SES Configuration Set +
+  to `audit_logs`. (Original setup steps, kept for reference — verify the bounce/complaint
+  SNS subscription is still confirmed if suppression ever stops working): (1) create SES Configuration Set +
   Event Destination (Bounce/Complaint → SNS topic); (2) subscribe
   `https://api.snbajaj.com/api/v1/sns/notifications` as an HTTPS endpoint
   (handler auto-confirms); (3) enable the SES account-level suppression list;
@@ -267,6 +272,21 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
     - Segmented filter controls with live badge counters (`All`, `Attention`, `AI Active`, `Takeover`, `Closed`).
     - Mobile PWA card responsiveness: switched service cards to `grid-cols-1 md:grid-cols-2` and removed all stray dots.
 
+- **Phase 15 (Oct 23 2026) — Core GST loop closed: "Return filed" + manual payment reminder on 4 channels, WhatsApp media handling, staff-initiated templates, Android Play-ready — CODE DONE, NOT YET COMMITTED/DEPLOYED (user is testing locally)**:
+  - **Business flow (as told by the user)**: client uploads a month's data → CA sees it (admin Documents / client-detail; "acknowledge" = in-app status only, no alert) → CA files the return and clicks **Mark filed** → client is told on **in-app inbox + web push + email + WhatsApp**. GST **payment reminders are MANUAL only** (CA clicks a button; never automatic). Monthly **document reminders stay automatic** and now really go out on WhatsApp.
+  - **Migration `1800000000003-AddFilingAndWhatsappUploads`**: `compliance_tasks.filed_at, arn (varchar 30), filed_report_id (FK reports ON DELETE SET NULL), filed_by, payment_reminder_sent_at`; `whatsapp_conversations.pending_upload jsonb`; `whatsapp_messages.media_filename`.
+  - **Mark filed**: `PATCH /compliance-tasks/admin/:id/filed` `{arn?, report_id?}` (`view_clients`). Only GSTR-1/IFF/GSTR-3B; one-shot (already-filed → 400, so no duplicate alerts). Optional filed-return PDF uses the normal report upload with `POST /admin/reports/:id/confirm?notify=false` (skips the generic "report ready" alert); the email then carries a 30-day share link. Audit `compliance_task.filed`.
+  - **Payment reminder**: `POST /compliance-tasks/admin/:id/payment-reminder` (`view_clients`). Needs a `gst_payment` task with an amount and not paid. One `reminders` row per channel (push/email/whatsapp, `triggered_by` = admin id) + audit `payment_reminder.sent`. Admin client-detail checklist now has an **amount input + Save** (there was previously no UI to set the amount), **Send payment reminder**, and **Mark filed** modal (ARN + optional PDF).
+  - **`ClientAlertsService`** (`backend/src/notifications/client-alerts.service.ts`): single entry point for in-app + push + email + WhatsApp template; channels independent; WhatsApp templates are recorded in the client's thread on the admin desk (`WhatsappChatsService.sendTemplate`). Email links use new env `CLIENT_APP_URL` (default `https://app.snbajaj.com`).
+  - **WhatsApp templates (Meta, submitted Oct 23 2026 on Messaging Account "S N Bajaj and CO" `3629482393869045`, WhatsApp account `1388702572995225`)**: `gst_return_filed` (1078069545222828), `gst_payment_reminder` (1389520796725367), `gst_documents_reminder` (1885106166233941) — UTILITY, pending review; `gst_filing_input_required` (39765904219690317, footer "S N Bajaj And Co, Chartered Accountants") — UTILITY, pending review, used for staff-initiated chats. It replaces `gst_general_followup` (1791918385386297), which Meta re-categorised to MARKETING for being too open-ended ("regarding {{2}}") and which was **deleted** the same day; that name can't be reused for ~30 days. Utility wording rule learnt: tie the message to a specific filing + period on the client's account and ask for a concrete action — no free-text topic placeholders. (Marketing ≈ ₹0.80/msg vs Utility ≈ ₹0.12 and needs opt-in; the admin composer warns if a Marketing template is picked.) Body text lives in `backend/src/notifications/whatsapp-templates.ts` and MUST match Meta exactly; names overridable via `WHATSAPP_TPL_*` env. The old placeholder `hello_world` is gone from all reminder paths. **Server `.env` needs `WHATSAPP_TEMPLATES_ACCOUNT_ID=3629482393869045`** (templates are listed from the Messaging Account, not `WHATSAPP_BUSINESS_ID`).
+  - **WhatsApp media fixes** (`whatsapp-webhook.controller.ts`, new `whatsapp-uploads.service.ts`, `whatsapp-transcription.service.ts`): files were invisible in admin because `media_url` held a raw private S3 key → now always the S3 key, signed (1h) on read and in SSE (`WhatsappChatsService.withSignedMedia`). **Voice notes** are transcribed with Groq Whisper (`GROQ_TRANSCRIPTION_MODEL`, default `whisper-large-v3-turbo`, free tier) and routed through the normal text flow (so "GST certificate bhej do" sends the certificate); transcript shown under the audio in admin; failure → "please type" + escalate; audio is never saved as a document. **Photos/PDFs/sheets**: saved immediately as unassigned `documents`, batched per conversation (`WHATSAPP_UPLOAD_BATCH_SECONDS`, default 20, in-memory timer — single PM2 instance assumption), then ONE question with buttons GST / ITR / Something else → GST asks the open month (interactive list) → files get the period and the task advances to `uploaded` (shared `advanceFilingTaskOnUpload` in `compliance-tasks/task-upload.util.ts`); ITR → current AY; other → escalated. Captions that look like questions are also answered. Failed downloads ask to resend; stickers/location get a one-liner; reactions ignored; video stored, not classified.
+  - **Admin fallback**: Documents page **Unassigned (WhatsApp)** filter (`GET /admin/documents?unassigned=true`) + **Assign to…** (`PATCH /admin/documents/:id/assign` `{category, filing_period_id?, assessment_year?}`).
+  - **Staff-initiated WhatsApp** (admin desk **New message** button, and **Send a template** when the 24h window has expired): `GET /whatsapp-chats/templates` (approved list from Meta, 10-min cache), `POST /whatsapp-chats/conversations/start` `{client_id|phone, template, language, params}`, `POST /whatsapp-chats/conversations/:id/template`. Thread is put into `staff_takeover`; audit `whatsapp.template_sent`. Composer shows category + cost warning for Marketing templates. `GET /admin/users` gained `search` (name/email/phone/GSTIN/business).
+  - **Client PWA**: Documents tab shows **Return filed · date · ARN** on filed tasks.
+  - **Tests**: backend 13 suites / 132 tests green (new: markFiled, payment reminder, uploads batching/classification, template start, media signing, voice/caption/failed-download acceptance); lint 0 errors; admin, client, backend builds green; Android `assembleDebug` + `bundleRelease` + `lintRelease` (0 errors) green.
+  - **In-app inbox = everything sent to the client**: the Notifications page (`report_notifications`, `GET /me/notifications`) previously only got report-ready, ticket-reply, filed and payment alerts. Document reminders (manual + automatic) and birthday wishes now also write an inbox entry via `ClientAlertsService.recordInApp` (once per send, not once per channel). Client header bell shows an unread-count badge (`NotificationsService.unreadCount`, refreshed on navigation / app refocus, decremented on read).
+  - **Known issue found, NOT fixed**: `POST /api/v1/notifications/test-whatsapp` is unauthenticated — anyone can send WhatsApp messages from the firm number. Lock it to admins or remove.
+
 ## 6. Functional notes (implemented)
 
 
@@ -283,9 +303,10 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
 - Report flow: admin uploads via pre-signed URL → confirm triggers in-app notification +
   FCM-style web push + SES email (link into app, NEVER raw attachment). Full report
   history kept per period/type (gstr_1, gstr_3b, reconciliation, other).
-- Reminders: daily cron 08:00 server time (hardcoded; `REMINDER_CRON` env parsed but
-  UNUSED) for open periods due within `REMINDER_LEAD_DAYS`; manual sends logged in
-  `reminders` table visible in admin panel.
+- Reminders: document-upload reminders run automatically on `TASK_REMINDER_CRON`
+  (default 08:00) per the period schedule on push + email + WhatsApp
+  (`gst_documents_reminder` template); GST **payment** reminders are manual only (Phase 15).
+  All sends logged in `reminders` table visible in admin panel.
 - Services: admin CRUD at `/admin/services`; public `GET /services` returns active services
   ordered by `display_order`. Website fetches dynamically; hardcoded fallback if API down.
 - Tickets: clients create support tickets (subject, category, priority, description) and
@@ -385,8 +406,9 @@ Git: origin https://github.com/anirudhlohiya/caSanjayBajaj.git, branch `main`.
 
 ## 9. Explicit non-goals
 
-No iOS/native app (PWA + optional thin wrapper later); no WhatsApp notifications (later);
-no RDS; no multi-region/HA; no payments/billing; no FCM/Firebase (self-hosted VAPID push).
+No iOS/native app (PWA + Android WebView wrapper only); no RDS; no multi-region/HA; no
+payments/billing; no FCM/Firebase (self-hosted VAPID push). (WhatsApp is now IN scope —
+AI desk since Phase 13, client alerts via approved templates since Phase 15.)
 
 ## 9b. Website migration project (Aug 2026) — snbajaj.com
 
@@ -678,7 +700,14 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
 
 ## 10. Open items
 
-- **SES production access — appeal letter pending**: backend pipeline is
+- **Phase 15 deploy (pending user's local test)**: commit + push (CI deploys), confirm the
+  migration ran, add `WHATSAPP_TEMPLATES_ACCOUNT_ID=3629482393869045` to the server `.env`,
+  `pm2 restart ca-api`; wait for Meta template approval (status in WhatsApp Manager).
+- **Android Play release**: create upload keystore + `keystore.properties`, `./gradlew
+  bundleRelease`, Play Console listing/data-safety/app-access, then publish
+  `/.well-known/assetlinks.json` with the Play app-signing SHA-256 (see
+  `android-wrapper/README.md`).
+- **SES production access — DONE (live as of Oct 23 2026)**. Historical notes: backend pipeline is
   implemented, deployed and live (verified: `POST /api/v1/sns/notifications`
   returns 200 for any parseable SNS message, including unsigned validation
   probes, which previously caused "Unreachable Endpoint"). The suppression
@@ -695,9 +724,8 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
   check `pm2 logs ca-api` for `Suppressed <email> after bounce: Permanent`
   and `email.suppressed` in `audit_logs`.
 - Browser-push live delivery test once a real device subscribes (Profile page).
-- Android: sideload v1.0.1 debug APK (built, android-wrapper/app/build/outputs/apk/debug/)
-  to verify shell against app.snbajaj.com; later Play release ($25 dev account) with
-  signed AAB; then raise `APP_ANDROID_MIN_VERSION` on each release.
+- Android: v1.1.0 is Play-ready (see "Android Play release" above); raise
+  `APP_ANDROID_MIN_VERSION` on each release.
 - Consider revoking `AmazonEC2FullAccess` from `ca-backend` IAM user now that infra is
   provisioned (S3+SES suffice for runtime).
 - **Security audit DONE (Aug 25 2026, §7b)** — trust proxy / CORS / OTP hashing /
