@@ -26,7 +26,7 @@ export class StorageService {
         accessKeyId: this.config.getOrThrow<string>('aws.accessKeyId'),
         secretAccessKey: this.config.getOrThrow<string>('aws.secretAccessKey'),
       },
-      requestChecksumCalculation: "WHEN_REQUIRED",
+      requestChecksumCalculation: 'WHEN_REQUIRED',
     });
   }
 

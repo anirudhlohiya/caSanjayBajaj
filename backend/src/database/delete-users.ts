@@ -8,14 +8,14 @@ async function run() {
   const app = await NestFactory.createApplicationContext(SeedModule, {
     bufferLogs: true,
   });
-  
+
   const users: Repository<User> = app.get(getRepositoryToken(User));
 
   // Truncate the users table and cascade delete related entities (like documents, device_tokens, etc.)
   await users.query('TRUNCATE TABLE "users" CASCADE;');
-  
+
   console.log('Successfully deleted all users (clients) from the database.');
-  
+
   await app.close();
 }
 

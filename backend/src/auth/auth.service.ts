@@ -137,7 +137,11 @@ export class AuthService {
     const refreshSecret = process.env.JWT_REFRESH_SECRET ?? '';
     const refreshTtl = process.env.JWT_REFRESH_TTL ?? '30d';
     const refresh_token = this.jwtService.sign(
-      { sub: subjectId, type: subjectType, jti: Date.now().toString() + '-' + Math.random().toString(36).slice(2) },
+      {
+        sub: subjectId,
+        type: subjectType,
+        jti: Date.now().toString() + '-' + Math.random().toString(36).slice(2),
+      },
       { secret: refreshSecret, expiresIn: refreshTtl as never },
     );
 

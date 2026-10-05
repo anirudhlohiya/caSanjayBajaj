@@ -3,7 +3,10 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Raw } from 'typeorm';
 import { User } from '../entities/user.entity';
-import { NotificationsService, isPushSubscription } from '../notifications/notifications.service';
+import {
+  NotificationsService,
+  isPushSubscription,
+} from '../notifications/notifications.service';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -26,7 +29,9 @@ export class BirthdayNotificationsService {
     await this.sendBirthdayWishes('evening');
   }
 
-  private async sendBirthdayWishes(timeOfDay: 'morning' | 'evening'): Promise<void> {
+  private async sendBirthdayWishes(
+    timeOfDay: 'morning' | 'evening',
+  ): Promise<void> {
     try {
       const today = new Date();
       const users = await this.users.find({
@@ -65,7 +70,11 @@ export class BirthdayNotificationsService {
             </p>
           </div>
         `;
-        await this.notifications.sendEmail({ email: user.email }, subject, htmlBody);
+        await this.notifications.sendEmail(
+          { email: user.email },
+          subject,
+          htmlBody,
+        );
 
         const pushTokens = await this.usersService.getTokensForPush(user.id);
         for (const token of pushTokens) {
@@ -86,7 +95,9 @@ export class BirthdayNotificationsService {
       }
       this.logger.log(`Sent ${users.length} birthday wishes (${timeOfDay})`);
     } catch (error) {
-      this.logger.error(`Failed to send birthday wishes: ${(error as Error).message}`);
+      this.logger.error(
+        `Failed to send birthday wishes: ${(error as Error).message}`,
+      );
     }
   }
 }
