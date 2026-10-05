@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { createHash } from 'crypto';
-import { Repository, IsNull } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   AdminRole,
   AdminStatus,
@@ -153,9 +153,10 @@ export class AuthService {
           expires_at: expiresAt,
         }),
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Retry once if token hash collision occurs
-      if (error?.code === '23505' || error?.driverError?.code === '23505') {
+      const err = error as { code?: string; driverError?: { code?: string } };
+      if (err?.code === '23505' || err?.driverError?.code === '23505') {
         const retryRefreshToken = this.jwtService.sign(
           { sub: subjectId, type: subjectType, jti: Date.now().toString() },
           { secret: refreshSecret, expiresIn: refreshTtl as never },
