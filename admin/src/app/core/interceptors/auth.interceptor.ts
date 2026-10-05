@@ -25,7 +25,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const token = auth.access;
   let authReq = req;
-  if (token && !req.url.includes('/auth/login')) {
+
+  // Skip auth header for S3 presigned URLs (they use query param signatures)
+  const isPresignedS3Url =
+    req.url.includes('amazonaws.com') ||
+    req.url.includes('.s3.') ||
+    req.url.includes('X-Amz-Algorithm') ||
+    req.url.includes('X-Amz-Signature');
+
+  if (token && !req.url.includes('/auth/login') && !isPresignedS3Url) {
     authReq = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` },
     });
@@ -35,11 +43,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: unknown) => {
       const is401 =
         error instanceof HttpErrorResponse && error.status === 401;
+      const isPresignedS3Url =
+        req.url.includes('amazonaws.com') ||
+        req.url.includes('.s3.') ||
+        req.url.includes('X-Amz-Algorithm') ||
+        req.url.includes('X-Amz-Signature');
+
       const canRefresh =
         is401 &&
         !authReq.headers.has('X-FP-Retried') &&
         !req.url.includes('/auth/login') &&
         !req.url.includes('/auth/refresh') &&
+        !isPresignedS3Url &&
         !!auth.refreshToken;
 
       if (!canRefresh) return throwError(() => error);

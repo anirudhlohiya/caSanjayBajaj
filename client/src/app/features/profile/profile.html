@@ -34,6 +34,9 @@
         @if (auth.userProfile()?.phone) {
           <p class="text-xs text-neutral-500 mt-0.5 dark:text-neutral-400">{{ auth.userProfile()?.phone }}</p>
         }
+        @if (auth.userProfile()?.dob) {
+          <p class="text-xs text-neutral-500 mt-0.5 dark:text-neutral-400">DOB: {{ auth.userProfile()?.dob | date: 'dd/MM/yyyy' }}</p>
+        }
       </div>
     </div>
   </div>

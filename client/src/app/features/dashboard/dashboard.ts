@@ -3,6 +3,8 @@ import {
   Component,
   inject,
   signal,
+  OnInit,
+  OnDestroy
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
@@ -19,7 +21,7 @@ import { Report } from '../../core/models';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
 })
-export class Dashboard {
+export class Dashboard implements OnInit, OnDestroy {
   readonly auth = inject(AuthService);
   private readonly reportsService = inject(ReportsService);
   readonly router = inject(Router);
@@ -27,8 +29,47 @@ export class Dashboard {
   readonly loading = signal(false);
   readonly latestReport = signal<Report | null>(null);
 
+  // Banner logic
+  banners = [
+    {
+      titleTop: 'One Stop Solution for',
+      titleHighlight: 'All Your ',
+      titleEnd: 'Financial Needs',
+      link: '/services',
+      buttonText: 'Explore Services'
+    },
+    {
+      titleTop: 'Track Your Returns',
+      titleHighlight: 'Easily ',
+      titleEnd: 'and Securely',
+      link: '/reports',
+      buttonText: 'View Dashboard'
+    },
+    {
+      titleTop: 'Expert Advice',
+      titleHighlight: 'Whenever ',
+      titleEnd: 'You Need',
+      link: '/support',
+      buttonText: 'Get Support'
+    }
+  ];
+  currentBannerIndex = signal(0);
+  private bannerInterval: any;
+
   constructor() {
     this.loadGSTOverview();
+  }
+
+  ngOnInit() {
+    this.bannerInterval = setInterval(() => {
+      this.currentBannerIndex.update(i => (i + 1) % this.banners.length);
+    }, 4000);
+  }
+
+  ngOnDestroy() {
+    if (this.bannerInterval) {
+      clearInterval(this.bannerInterval);
+    }
   }
 
   async loadGSTOverview() {

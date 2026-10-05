@@ -111,20 +111,17 @@
       </div>
 
       <div class="flex flex-col gap-1">
-        <div class="flex justify-between items-center">
-          <label class="font-geist-mono text-xs tracking-wider text-secondary" for="gstin">GSTIN</label>
-          <span class="font-geist-mono text-[10px] text-outline px-2 py-1 bg-surface-container rounded-sm uppercase dark:bg-surface-container-highest">Optional</span>
-        </div>
+        <label class="font-geist-mono text-xs tracking-wider text-secondary" for="dob">Date of Birth</label>
         <input
-          formControlName="gstin"
-          id="gstin"
+          formControlName="dob"
+          id="dob"
           type="text"
-          maxlength="15"
-          placeholder="29ABCDE1234F1Z5"
-          class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant uppercase dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
+          maxlength="10"
+          placeholder="DD/MM/YYYY"
+          class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface dark:focus:ring-white dark:focus:border-white"
         />
-        @if (signupForm.controls.gstin.touched && signupForm.controls.gstin.invalid) {
-          <p class="font-geist text-xs text-error">Enter a valid GSTIN format.</p>
+        @if (signupForm.controls.dob.touched && signupForm.controls.dob.invalid) {
+          <p class="font-geist text-xs text-error">Enter valid date in DD/MM/YYYY format.</p>
         }
       </div>
 

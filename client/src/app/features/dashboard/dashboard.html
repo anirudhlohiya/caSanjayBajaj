@@ -3,32 +3,43 @@
 } @else {
   <div class="max-w-container-max mx-auto px-4 pt-4">
     <!-- Carousel / Banner -->
-    <section class="bg-surface-container rounded-2xl p-6 mb-6 relative">
-      <h2 class="text-display-md leading-tight text-primary mb-2">
-        One Stop Solution for<br />
-        <span class="text-on-surface-variant font-medium">All Your </span><span class="text-on-surface-variant">Financial Needs</span>
-      </h2>
-      <div class="flex items-center gap-4 text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-6">
-        <span class="flex items-center gap-1">
-          <span class="material-symbols-outlined text-[14px]">verified_user</span> TRUSTED
-        </span>
-        <span class="flex items-center gap-1">
-          <span class="material-symbols-outlined text-[14px]">lock</span> SECURE
-        </span>
-        <span class="flex items-center gap-1">
-          <span class="material-symbols-outlined text-[14px]">support_agent</span> EXPERT SUPPORT
-        </span>
-      </div>
-      <button class="bg-primary text-on-primary rounded-full px-6 py-3 font-semibold text-sm flex items-center gap-2 hover:opacity-90 transition-opacity">
-        Explore Services <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-      </button>
+    <section class="bg-surface-container rounded-2xl mb-6 relative overflow-hidden min-h-[200px]">
+      @for (banner of banners; track $index) {
+        <div class="absolute inset-0 p-6 transition-opacity duration-1000 flex flex-col justify-center" 
+             [class.opacity-0]="currentBannerIndex() !== $index" 
+             [class.opacity-100]="currentBannerIndex() === $index" 
+             [class.pointer-events-none]="currentBannerIndex() !== $index">
+          <h2 class="text-display-md leading-tight text-primary mb-2">
+            {{ banner.titleTop }}<br />
+            <span class="text-on-surface-variant font-medium">{{ banner.titleHighlight }}</span><span class="text-on-surface-variant">{{ banner.titleEnd }}</span>
+          </h2>
+          <div class="flex items-center gap-4 text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-6">
+            <span class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">verified_user</span> TRUSTED
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">lock</span> SECURE
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">support_agent</span> EXPERT SUPPORT
+            </span>
+          </div>
+          <div>
+            <button [routerLink]="banner.link" class="bg-primary text-on-primary rounded-full px-6 py-3 font-semibold text-sm inline-flex items-center gap-2 hover:opacity-90 transition-opacity">
+              {{ banner.buttonText }} <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </button>
+          </div>
+        </div>
+      }
       
       <!-- Carousel Dots -->
-      <div class="flex justify-center gap-1.5 mt-6">
-        <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
-        <div class="w-1.5 h-1.5 rounded-full bg-outline-variant"></div>
-        <div class="w-1.5 h-1.5 rounded-full bg-outline-variant"></div>
-        <div class="w-1.5 h-1.5 rounded-full bg-outline-variant"></div>
+      <div class="absolute bottom-6 left-0 right-0 flex justify-center gap-1.5 z-10">
+        @for (banner of banners; track $index) {
+          <div class="w-1.5 h-1.5 rounded-full cursor-pointer transition-colors duration-300" 
+               [class.bg-primary]="currentBannerIndex() === $index" 
+               [class.bg-outline-variant]="currentBannerIndex() !== $index" 
+               (click)="currentBannerIndex.set($index)"></div>
+        }
       </div>
     </section>
 
@@ -107,6 +118,25 @@
         </div>
         <span class="text-[11px] font-medium leading-tight text-primary">Contact<br>Us</span>
       </button>
+    </section>
+
+    <!-- Quick Tools -->
+    <section class="mb-8">
+      <h3 class="text-xl font-bold text-primary mb-4">Quick Tools</h3>
+      <div class="bg-surface border border-card-border rounded-2xl p-4 shadow-card">
+        <a href="https://services.gst.gov.in/services/searchtp" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-between p-3 bg-surface-container-lowest rounded-xl border border-outline-variant hover:bg-surface-container transition-colors cursor-pointer">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined text-[20px]">open_in_new</span>
+            </div>
+            <div class="text-left">
+              <div class="font-semibold text-on-surface">Check GST Number</div>
+              <div class="text-[11px] text-on-surface-variant">Opens official GST portal in a new tab</div>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-primary">arrow_forward</span>
+        </a>
+      </div>
     </section>
 
     <!-- Our Services -->

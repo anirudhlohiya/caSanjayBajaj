@@ -18,6 +18,7 @@ import { CertType, ClientCertificate } from '../../core/models';
 import { ThemeService, ThemeMode } from '../../core/services/theme.service';
 import { PushService } from '../../core/services/push.service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { DatePipe } from '@angular/common';
 
 const PHOTO_KEY = 'fp_profile_photo';
 const LANG_PREF_KEY = 'fp_language';
@@ -25,7 +26,7 @@ const LANG_PREF_KEY = 'fp_language';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, TranslatePipe],
+  imports: [ReactiveFormsModule, TranslatePipe, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.html',
 })
@@ -64,11 +65,19 @@ export class Profile {
     { label: 'ગુજરાતી (Gujarati)', value: 'gu' }
   ];
 
+  readonly profileForm = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2)]],
+    phone: ['', [Validators.pattern(/^\d{10}$/)]],
+    dob: ['', [Validators.pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d{2}$/)]],
+  });
+
   readonly passwordForm = this.fb.nonNullable.group({
     current_password: ['', [Validators.required, Validators.minLength(8)]],
     new_password: ['', [Validators.required, Validators.minLength(8)]],
     confirm: ['', [Validators.required]],
   });
+
+  readonly profileBusy = signal(false);
 
   @ViewChild('photoInput') photoInput!: ElementRef<HTMLInputElement>;
 
@@ -79,6 +88,7 @@ export class Profile {
   async ngOnInit(): Promise<void> {
     try {
       await this.auth.loadProfile();
+      this.populateProfileForm();
       void this.loadCertificates();
     } catch {
       /* auth guard handles redirect */
@@ -86,6 +96,49 @@ export class Profile {
     
     if (this.push.supported()) {
       this.pushEnabled.set(await this.push.isSubscribed());
+    }
+  }
+
+  private populateProfileForm(): void {
+    const profile = this.auth.userProfile();
+    if (!profile) return;
+    const dobStr = profile.dob ? this.formatDateToDDMMYYYY(profile.dob) : '';
+    this.profileForm.patchValue({
+      name: profile.name || '',
+      phone: profile.phone || '',
+      dob: dobStr,
+    });
+  }
+
+  private formatDateToDDMMYYYY(date: string | Date | null): string {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  async saveProfile(): Promise<void> {
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      return;
+    }
+    this.profileBusy.set(true);
+    try {
+      const { name, phone, dob } = this.profileForm.getRawValue();
+      await this.profileService.update({
+        name,
+        phone: phone || undefined,
+        dob: dob || undefined,
+      });
+      await this.auth.loadProfile();
+      this.toast.success('Profile updated successfully.');
+    } catch {
+      /* interceptor toasts */
+    } finally {
+      this.profileBusy.set(false);
     }
   }
 

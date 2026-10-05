@@ -26,6 +26,9 @@ export class Login {
   });
 
   async submit(): Promise<void> {
+    if (this.loading()) {
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

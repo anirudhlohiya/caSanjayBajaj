@@ -176,7 +176,7 @@ export class NotificationsService {
 export class ProfileService {
   constructor(private readonly api: ApiClient) {}
 
-  update(body: { name?: string; phone?: string; gstin?: string }) {
+  update(body: { name?: string; phone?: string; gstin?: string; dob?: string }) {
     return firstValueFrom(this.api.patch('/me', body));
   }
 

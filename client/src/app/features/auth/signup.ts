@@ -39,7 +39,7 @@ export class Signup implements OnDestroy {
     otp_code: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]],
     name: ['', [Validators.required]],
     phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
-    gstin: ['', [Validators.pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i)]],
+    dob: ['', [Validators.required, Validators.pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d{2}$/)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     confirm_password: ['', [Validators.required]],
   });
@@ -99,7 +99,7 @@ export class Signup implements OnDestroy {
   async verifyAndSignup(): Promise<void> {
     if (this.signupForm.invalid || this.loading()) return;
 
-    const { otp_code, name, phone, gstin, password, confirm_password } = this.signupForm.getRawValue();
+    const { otp_code, name, phone, dob, password, confirm_password } = this.signupForm.getRawValue();
 
     if (password !== confirm_password) {
       this.error.set('Passwords do not match.');
@@ -111,7 +111,7 @@ export class Signup implements OnDestroy {
     try {
       const email = this.emailForm.controls.email.value;
       await this.auth.verifyOtp(email, otp_code, 'signup');
-      await this.auth.signup(email, password, name, phone || undefined, gstin?.toUpperCase() || undefined);
+      await this.auth.signup(email, password, name, phone, dob);
       this.toast.success('Registration successful!');
       // Ask for notification permission after signup
       if ('Notification' in window && Notification.permission === 'default') {
