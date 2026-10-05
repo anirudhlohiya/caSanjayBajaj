@@ -137,21 +137,47 @@ export class AuthService {
     const refreshSecret = process.env.JWT_REFRESH_SECRET ?? '';
     const refreshTtl = process.env.JWT_REFRESH_TTL ?? '30d';
     const refresh_token = this.jwtService.sign(
-      { sub: subjectId, type: subjectType },
+      { sub: subjectId, type: subjectType, jti: Date.now().toString() + '-' + Math.random().toString(36).slice(2) },
       { secret: refreshSecret, expiresIn: refreshTtl as never },
     );
 
     // Store only a hash of the refresh token server-side
-    const tokenHash = this.hashToken(refresh_token);
     const expiresAt = new Date(Date.now() + this.ttlToMs(refreshTtl));
-    await this.refreshTokens.save(
-      this.refreshTokens.create({
-        subject_type: subjectType,
-        subject_id: subjectId,
-        token_hash: tokenHash,
-        expires_at: expiresAt,
-      }),
-    );
+    let tokenHash = this.hashToken(refresh_token);
+    try {
+      await this.refreshTokens.save(
+        this.refreshTokens.create({
+          subject_type: subjectType,
+          subject_id: subjectId,
+          token_hash: tokenHash,
+          expires_at: expiresAt,
+        }),
+      );
+    } catch (error: any) {
+      // Retry once if token hash collision occurs
+      if (error?.code === '23505' || error?.driverError?.code === '23505') {
+        const retryRefreshToken = this.jwtService.sign(
+          { sub: subjectId, type: subjectType, jti: Date.now().toString() },
+          { secret: refreshSecret, expiresIn: refreshTtl as never },
+        );
+        tokenHash = this.hashToken(retryRefreshToken);
+        await this.refreshTokens.save(
+          this.refreshTokens.create({
+            subject_type: subjectType,
+            subject_id: subjectId,
+            token_hash: tokenHash,
+            expires_at: expiresAt,
+          }),
+        );
+        return {
+          access_token,
+          refresh_token: retryRefreshToken,
+          token_type: 'Bearer',
+          expires_in: 900,
+        };
+      }
+      throw error;
+    }
 
     return {
       access_token,
@@ -200,6 +226,18 @@ export class AuthService {
       { token_hash: tokenHash },
       { revoked_at: new Date() },
     );
+  }
+
+  private parseDateDDMMYYYY(dateStr: string): Date | null {
+    if (!dateStr) return null;
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return null;
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = parseInt(parts[2], 10);
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+    const d = new Date(Date.UTC(year, month, day));
+    return d;
   }
 
   private hashToken(token: string): string {
@@ -341,9 +379,6 @@ export class AuthService {
       throw new BadRequestException('Email is already registered');
     }
 
-    const gstinUpper = dto.gstin?.toUpperCase() ?? null;
-    const userType = gstinUpper ? UserType.GST : UserType.ITR;
-
     const passwordHash = await argon2.hash(dto.password);
     const user = await this.users.save(
       this.users.create({
@@ -351,27 +386,12 @@ export class AuthService {
         email: emailLower,
         password_hash: passwordHash,
         phone: dto.phone ?? null,
-        gstin: gstinUpper,
-        user_type: userType,
+        gstin: null,
+        user_type: UserType.NORMAL,
         status: UserStatus.ACTIVE,
+        dob: this.parseDateDDMMYYYY(dto.dob),
       }),
     );
-
-    // Auto-link pre-registered client if GSTIN matches
-    if (gstinUpper) {
-      const preReg = await this.preRegistrations.findOne({
-        where: { gstin: gstinUpper, linked_user_id: IsNull() },
-      });
-      if (preReg) {
-        preReg.linked_user_id = user.id;
-        await this.preRegistrations.save(preReg);
-        // Update user with pre-registration data if fields were empty
-        if (!user.phone && preReg.phone) {
-          user.phone = preReg.phone;
-          await this.users.save(user);
-        }
-      }
-    }
 
     await this.otpVerifications.delete({
       email: emailLower,
@@ -382,11 +402,14 @@ export class AuthService {
     const signupSubject =
       'S N Bajaj And Co — Welcome! Account Created Successfully';
     const signupHtmlBody = `
-      <div style="font-family: sans-serif; padding: 20px; color: #191c1e; background-color: #f7f9fb;">
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif; padding: 20px; color: #191c1e; background-color: #f7f9fb;">
         <h2 style="color: #001433;">S N BAJAJ AND CO</h2>
-        <p>Hi ${firstName},</p>
-        <p>Your account has been successfully created. Welcome to S N Bajaj And Co!</p>
-        <p style="font-size: 13px; color: #74777f;">
+        <p>Dear ${firstName},</p>
+        <p>Welcome to S N Bajaj And Co! Your account has been successfully created.</p>
+        <p>Thank you for joining us. We look forward to serving you.</p>
+        <p style="font-size: 13px; color: #74777f; margin-top: 20px;">
           If you have any questions, feel free to contact our support team.
         </p>
       </div>

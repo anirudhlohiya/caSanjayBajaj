@@ -26,6 +26,7 @@ import { CertificatesModule } from './certificates/certificates.module';
 import { HealthController } from './health.controller';
 import { ReportRequestsModule } from './report-requests/report-requests.module';
 import { ShareLinksModule } from './share-links/share-links.module';
+import { BirthdayNotificationsModule } from './birthday-notifications/birthday-notifications.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { ShareLinksModule } from './share-links/share-links.module';
     CertificatesModule,
     ShareLinksModule,
     ReportRequestsModule,
+    BirthdayNotificationsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

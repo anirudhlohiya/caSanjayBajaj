@@ -26,6 +26,7 @@ export class StorageService {
         accessKeyId: this.config.getOrThrow<string>('aws.accessKeyId'),
         secretAccessKey: this.config.getOrThrow<string>('aws.secretAccessKey'),
       },
+      requestChecksumCalculation: "WHEN_REQUIRED",
     });
   }
 
@@ -53,7 +54,6 @@ export class StorageService {
       Bucket: this.docsBucket,
       Key: s3Key,
       ContentType: contentType,
-      Metadata: { original_name: filename },
     });
     const uploadUrl = await getSignedUrl(this.client, command, {
       expiresIn: 300,
@@ -78,7 +78,6 @@ export class StorageService {
       Bucket: this.docsBucket,
       Key: s3Key,
       ContentType: contentType,
-      Metadata: { original_name: filename },
     });
     const uploadUrl = await getSignedUrl(this.client, command, {
       expiresIn: 300,

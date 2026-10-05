@@ -1,6 +1,7 @@
 export enum UserType {
   GST = 'gst',
   ITR = 'itr',
+  NORMAL = 'normal',
 }
 
 export enum UserStatus {

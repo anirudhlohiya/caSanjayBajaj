@@ -52,13 +52,16 @@ export class SignupDto {
   @IsString()
   phone?: string;
 
-  @ApiPropertyOptional({
-    description: 'GSTIN (15 chars) — required for GST clients',
-  })
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @Length(15, 15, { message: 'GSTIN must be exactly 15 characters' })
   gstin?: string;
+
+  @ApiProperty()
+  @IsString()
+  @Length(10, 10, { message: 'Date of birth must be in DD/MM/YYYY format' })
+  dob: string;
 }
 
 export class ResetPasswordDto {

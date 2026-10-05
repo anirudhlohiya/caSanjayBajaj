@@ -112,6 +112,12 @@ export class UpdateProfileDto {
   @IsString()
   @Length(15, 15)
   gstin?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @Length(10, 10, { message: 'Date of birth must be in DD/MM/YYYY format' })
+  dob?: string;
 }
 
 export class ChangePasswordDto {

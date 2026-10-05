@@ -125,8 +125,28 @@ export class UsersService {
 
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<User> {
     const user = await this.findOne(userId);
-    Object.assign(user, dto);
-    return this.users.save(user);
+    if (dto.name !== undefined) user.name = dto.name.trim();
+    if (dto.phone !== undefined) user.phone = dto.phone?.trim() || null;
+    if (dto.gstin !== undefined) {
+      const g = dto.gstin?.trim().toUpperCase() || null;
+      user.gstin = g && g.length === 15 ? g : g || null;
+    }
+    if (dto.dob !== undefined) {
+      user.dob = this.parseDateDDMMYYYY(dto.dob);
+    }
+    await this.users.save(user);
+    return user;
+  }
+
+  private parseDateDDMMYYYY(dateStr: string): Date | null {
+    if (!dateStr) return null;
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return null;
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = parseInt(parts[2], 10);
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+    return new Date(Date.UTC(year, month, day));
   }
 
   async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {

@@ -29,7 +29,10 @@ export class User {
   @Column({ type: 'varchar', length: 15, unique: true, nullable: true })
   gstin: string | null;
 
-  @Column({ type: 'enum', enum: UserType, default: UserType.GST })
+  @Column({ type: 'date', nullable: true })
+  dob: Date | string | null;
+
+  @Column({ type: 'enum', enum: UserType, default: UserType.NORMAL })
   user_type: UserType;
 
   @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVE })
