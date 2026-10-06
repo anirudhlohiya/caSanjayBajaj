@@ -41,6 +41,7 @@ export enum ReportType {
 export enum ReminderChannel {
   PUSH = 'push',
   EMAIL = 'email',
+  WHATSAPP = 'whatsapp',
 }
 
 export enum ReminderStatus {

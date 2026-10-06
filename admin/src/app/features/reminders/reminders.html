@@ -56,7 +56,12 @@
             <input type="checkbox" [checked]="isChannelChecked('email')" (change)="toggleChannel('email', $any($event.target).checked)" class="accent-secondary" />
             Email
           </label>
+          <label class="flex items-center gap-2 text-body-md text-body-md">
+            <input type="checkbox" [checked]="isChannelChecked('whatsapp')" (change)="toggleChannel('whatsapp', $any($event.target).checked)" class="accent-secondary" />
+            WhatsApp
+          </label>
         </div>
+
       </div>
 
       <button type="submit" [disabled]="sending()"

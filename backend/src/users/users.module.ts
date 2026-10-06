@@ -9,7 +9,11 @@ import { UsersService } from './users.service';
 import { StorageModule } from '../storage/storage.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, DeviceToken]), AuditModule, StorageModule],
+  imports: [
+    TypeOrmModule.forFeature([User, DeviceToken]),
+    AuditModule,
+    StorageModule,
+  ],
   controllers: [UsersController, ProfileController],
   providers: [UsersService],
   exports: [UsersService],

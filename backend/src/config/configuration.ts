@@ -108,4 +108,11 @@ export default () => ({
     jwtSecret: process.env.ONLYOFFICE_JWT_SECRET ?? '',
     apiBaseUrl: process.env.API_BASE_URL ?? 'http://localhost:3000',
   },
+
+  whatsapp: {
+    phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID ?? '',
+    businessId: process.env.WHATSAPP_BUSINESS_ID ?? '',
+    accessToken: process.env.WHATSAPP_ACCESS_TOKEN ?? '',
+    number: process.env.WHATSAPP_NUMBER ?? '',
+  },
 });
