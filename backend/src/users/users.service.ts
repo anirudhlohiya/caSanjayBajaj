@@ -123,13 +123,12 @@ export class UsersService {
 
   // ----- Client self-service -----
 
-  async getProfile(userId: string): Promise<any> {
+  async getProfile(userId: string): Promise<User> {
     const user = await this.findOne(userId);
-    let profile_photo_url = user.profile_photo_url;
-    if (profile_photo_url) {
-      profile_photo_url = await this.storage.createDownloadUrl(profile_photo_url, 86400); // 1 day
+    if (user.profile_photo_url) {
+      user.profile_photo_url = await this.storage.createDownloadUrl(user.profile_photo_url, 86400); // 1 day
     }
-    return { ...user, profile_photo_url };
+    return user;
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<User> {
@@ -149,7 +148,7 @@ export class UsersService {
     return this.getProfile(userId);
   }
 
-  async updateProfilePhoto(userId: string, file: Express.Multer.File): Promise<any> {
+  async updateProfilePhoto(userId: string, file: Express.Multer.File): Promise<User> {
     const user = await this.findOne(userId);
 
     const processedBuffer = await sharp(file.buffer)
