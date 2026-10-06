@@ -122,6 +122,13 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - Admin UI: tickets list with status filters (`/tickets`), ticket detail with message thread and reply (`/tickets/:id`).
   - Client PWA: support tab in bottom nav (5-tab layout), ticket list (`/support`), new ticket form (`/support/new`), ticket detail with chat bubbles (`/support/:id`).
   - Services/Tickets nav items added to admin shell sidebar.
+- **Phase 9 (Oct 2026) — User DOB & Birthday Notifications — DONE**:
+  - `User` entity updated with `dob` (date) field and `UserType.NORMAL` added.
+  - Client PWA updated to capture and display `dob` in the Profile page.
+  - New `BirthdayNotificationsModule` added to backend with automated cron jobs running at 00:01 (morning) and 23:59 (evening) in `Asia/Kolkata` time zone.
+  - Cron query converts UTC server time to IST locally before querying the PostgreSQL `dob` column using `EXTRACT` to prevent timezone offsets causing misfired birthdays.
+  - Notifications pushed via both email (SES) and Web Push (via `UsersService` device tokens).
+  - Test data deletion script `delete-users.ts` added to wipe client users (`TRUNCATE CASCADE`) safely while keeping the `admins` table intact.
 - **DEPLOYED & LIVE (Sep 14 2026)**: https://app.snbajaj.com + https://admin.snbajaj.com on
   Lightsail `ca-platform-app` (Mumbai, static IP 3.111.8.176, $7/mo LOS bundle) — EC2
   t3.micro `i-09f7e0f0d3fc6414b` (IP 65.0.45.190, ap-south-1, ami al2023 ami-06a83a7a581c729a9)
