@@ -288,7 +288,11 @@ export class RemindersService implements OnModuleInit {
       });
 
       let anyOk = false;
-      for (const channel of [ReminderChannel.PUSH, ReminderChannel.EMAIL, ReminderChannel.WHATSAPP]) {
+      for (const channel of [
+        ReminderChannel.PUSH,
+        ReminderChannel.EMAIL,
+        ReminderChannel.WHATSAPP,
+      ]) {
         const alreadyToday = await this.reminders.exists({
           where: {
             user_id: user.id,

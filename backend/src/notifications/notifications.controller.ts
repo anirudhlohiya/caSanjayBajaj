@@ -1,5 +1,10 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiTags,
+  ApiProperty,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 import { NotificationsService } from './notifications.service';
 
@@ -9,12 +14,16 @@ export class TestWhatsappDto {
   @IsNotEmpty()
   phoneNumber: string;
 
-  @ApiPropertyOptional({ description: 'Required if templateName is not provided' })
+  @ApiPropertyOptional({
+    description: 'Required if templateName is not provided',
+  })
   @IsString()
   @IsOptional()
   message?: string;
 
-  @ApiPropertyOptional({ description: 'Pre-approved template name like hello_world' })
+  @ApiPropertyOptional({
+    description: 'Pre-approved template name like hello_world',
+  })
   @IsString()
   @IsOptional()
   templateName?: string;

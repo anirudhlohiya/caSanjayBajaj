@@ -34,7 +34,9 @@ export class BirthdayNotificationsService {
   ): Promise<void> {
     try {
       const now = new Date();
-      const nowIST = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      const nowIST = new Date(
+        now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }),
+      );
       const currentMonth = nowIST.getMonth() + 1;
       const currentDay = nowIST.getDate();
 

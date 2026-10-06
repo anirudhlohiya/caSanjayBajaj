@@ -173,7 +173,7 @@ export class NotificationsService {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = (await response.json()) as Record<string, unknown>;
         this.logger.error(
           `WhatsApp send failed for ${toPhoneNumber}: ${JSON.stringify(errorData)}`,
         );
@@ -232,7 +232,7 @@ export class NotificationsService {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = (await response.json()) as Record<string, unknown>;
         this.logger.error(
           `WhatsApp template send failed for ${toPhoneNumber}: ${JSON.stringify(errorData)}`,
         );
@@ -254,7 +254,7 @@ export class NotificationsService {
       push: this.vapidConfigured,
       whatsapp: Boolean(
         this.config.get<string>('whatsapp.phoneNumberId') &&
-          this.config.get<string>('whatsapp.accessToken'),
+        this.config.get<string>('whatsapp.accessToken'),
       ),
     };
   }

@@ -126,7 +126,10 @@ export class UsersService {
   async getProfile(userId: string): Promise<User> {
     const user = await this.findOne(userId);
     if (user.profile_photo_url) {
-      user.profile_photo_url = await this.storage.createDownloadUrl(user.profile_photo_url, 86400); // 1 day
+      user.profile_photo_url = await this.storage.createDownloadUrl(
+        user.profile_photo_url,
+        86400,
+      ); // 1 day
     }
     return user;
   }
@@ -143,12 +146,15 @@ export class UsersService {
       user.dob = this.parseDateDDMMYYYY(dto.dob);
     }
     await this.users.save(user);
-    
+
     // Return updated profile with signed url
     return this.getProfile(userId);
   }
 
-  async updateProfilePhoto(userId: string, file: Express.Multer.File): Promise<User> {
+  async updateProfilePhoto(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<User> {
     const user = await this.findOne(userId);
 
     const processedBuffer = await sharp(file.buffer)
@@ -160,10 +166,10 @@ export class UsersService {
     const s3Key = `profiles/${userId}/${unique}.webp`;
 
     await this.storage.uploadBuffer(s3Key, processedBuffer, 'image/webp');
-    
+
     user.profile_photo_url = s3Key;
     await this.users.save(user);
-    
+
     return this.getProfile(userId);
   }
 
