@@ -136,10 +136,126 @@ export class NotificationsService {
     }
   }
 
-  health(): { ses: boolean; push: boolean } {
+  async sendWhatsapp(toPhoneNumber: string, message: string): Promise<boolean> {
+    const phoneNumberId = this.config.get<string>('whatsapp.phoneNumberId');
+    const accessToken = this.config.get<string>('whatsapp.accessToken');
+
+    if (!phoneNumberId || !accessToken) {
+      this.logger.warn(
+        'WhatsApp configuration missing; skipping WhatsApp message',
+      );
+      return false;
+    }
+
+    try {
+      // Remove any non-numeric characters from the phone number
+      let cleanNumber = toPhoneNumber.replace(/\D/g, '');
+      if (cleanNumber.length === 10) {
+        cleanNumber = '91' + cleanNumber;
+      }
+      const response = await fetch(
+        `https://graph.facebook.com/v17.0/${phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: cleanNumber,
+            type: 'text',
+            text: {
+              body: message,
+            },
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        this.logger.error(
+          `WhatsApp send failed for ${toPhoneNumber}: ${JSON.stringify(errorData)}`,
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `WhatsApp send failed for ${toPhoneNumber}: ${(error as Error).message}`,
+      );
+      return false;
+    }
+  }
+
+  async sendWhatsappTemplate(
+    toPhoneNumber: string,
+    templateName: string,
+    languageCode: string = 'en_US',
+  ): Promise<boolean> {
+    const phoneNumberId = this.config.get<string>('whatsapp.phoneNumberId');
+    const accessToken = this.config.get<string>('whatsapp.accessToken');
+
+    if (!phoneNumberId || !accessToken) {
+      this.logger.warn(
+        'WhatsApp configuration missing; skipping WhatsApp template',
+      );
+      return false;
+    }
+
+    try {
+      let cleanNumber = toPhoneNumber.replace(/\D/g, '');
+      if (cleanNumber.length === 10) {
+        cleanNumber = '91' + cleanNumber;
+      }
+      const response = await fetch(
+        `https://graph.facebook.com/v17.0/${phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: cleanNumber,
+            type: 'template',
+            template: {
+              name: templateName,
+              language: {
+                code: languageCode,
+              },
+            },
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        this.logger.error(
+          `WhatsApp template send failed for ${toPhoneNumber}: ${JSON.stringify(errorData)}`,
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `WhatsApp template send failed for ${toPhoneNumber}: ${(error as Error).message}`,
+      );
+      return false;
+    }
+  }
+
+  health(): { ses: boolean; push: boolean; whatsapp: boolean } {
     return {
       ses: Boolean(this.sourceEmail),
       push: this.vapidConfigured,
+      whatsapp: Boolean(
+        this.config.get<string>('whatsapp.phoneNumberId') &&
+          this.config.get<string>('whatsapp.accessToken'),
+      ),
     };
   }
 }

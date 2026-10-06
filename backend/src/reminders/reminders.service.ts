@@ -165,6 +165,11 @@ export class RemindersService implements OnModuleInit {
         `<p>Dear ${user.name},</p><p>${body}</p><p><a href="${url}">Upload documents</a></p>`,
       );
     }
+    if (channel === ReminderChannel.WHATSAPP) {
+      if (!user.phone) return false;
+      // Using 'hello_world' template because free-form text is blocked outside 24h window
+      return this.notifications.sendWhatsappTemplate(user.phone, 'hello_world');
+    }
     return this.pushToUser(user, title, body, url);
   }
 
@@ -283,7 +288,7 @@ export class RemindersService implements OnModuleInit {
       });
 
       let anyOk = false;
-      for (const channel of [ReminderChannel.PUSH, ReminderChannel.EMAIL]) {
+      for (const channel of [ReminderChannel.PUSH, ReminderChannel.EMAIL, ReminderChannel.WHATSAPP]) {
         const alreadyToday = await this.reminders.exists({
           where: {
             user_id: user.id,
@@ -342,6 +347,11 @@ export class RemindersService implements OnModuleInit {
         copy.title,
         `<p>${copy.body}</p><p><a href="${url}">Upload documents</a></p>`,
       );
+    }
+    if (channel === ReminderChannel.WHATSAPP) {
+      if (!user.phone) return false;
+      // Using 'hello_world' template because free-form text is blocked outside 24h window
+      return this.notifications.sendWhatsappTemplate(user.phone, 'hello_world');
     }
     return this.pushToUser(user, copy.title, copy.body, url);
   }
