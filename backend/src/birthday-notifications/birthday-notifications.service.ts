@@ -33,15 +33,19 @@ export class BirthdayNotificationsService {
     timeOfDay: 'morning' | 'evening',
   ): Promise<void> {
     try {
-      const today = new Date();
+      const now = new Date();
+      const nowIST = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      const currentMonth = nowIST.getMonth() + 1;
+      const currentDay = nowIST.getDate();
+
       const users = await this.users.find({
         where: {
           dob: Raw(
             (alias) =>
               `EXTRACT(MONTH FROM ${alias}) = :month AND EXTRACT(DAY FROM ${alias}) = :day`,
             {
-              month: today.getMonth() + 1,
-              day: today.getDate(),
+              month: currentMonth,
+              day: currentDay,
             },
           ),
         },
