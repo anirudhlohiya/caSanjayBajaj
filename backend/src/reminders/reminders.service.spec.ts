@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { Repository } from 'typeorm';
 import {
   ComplianceCategory,
@@ -152,7 +153,7 @@ describe('RemindersService', () => {
       usersService as unknown as UsersService,
       config,
       new SchedulingService(),
-      scheduler,
+      scheduler as unknown as SchedulerRegistry,
     );
   });
 
