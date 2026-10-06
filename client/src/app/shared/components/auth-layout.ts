@@ -8,12 +8,14 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     <div class="bg-surface-container-lowest text-on-surface font-geist min-h-dvh flex flex-col items-center justify-center antialiased w-full">
       <div class="w-full max-w-md px-4 sm:px-6">
         <!-- Logo -->
-        <div class="flex justify-center mb-8">
-          <img alt="S N Bajaj And Co Logo" class="h-24 sm:h-32 w-auto object-contain" src="/logo-transparent.png" onerror="this.src='/logo-login.png'">
-        </div>
+        @if (showLogo()) {
+          <div class="flex justify-center mb-8">
+            <img alt="S N Bajaj And Co Logo" class="h-24 sm:h-32 w-auto object-contain" src="/logo-transparent.png" onerror="this.src='/logo-login.png'">
+          </div>
+        }
         
         <!-- Auth Container -->
-        <div class="bg-canvas-soft border border-hairline rounded-lg p-6 sm:p-8 shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] dark:shadow-none w-full">
+        <div [class]="'bg-canvas-soft border border-hairline rounded-lg px-6 pb-6 sm:px-8 sm:pb-8 shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] dark:shadow-none w-full ' + (showLogo() ? 'pt-6 sm:pt-8' : 'pt-10 sm:pt-12')">
           @if (heroTitle()) {
             <h1 class="font-geist font-semibold text-2xl tracking-[-0.96px] text-center mb-2">{{ heroTitle() }}</h1>
           }
@@ -34,4 +36,5 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 export class AuthLayout {
   readonly heroTitle = input<string>();
   readonly heroSubtitle = input<string>();
+  readonly showLogo = input<boolean>(true);
 }

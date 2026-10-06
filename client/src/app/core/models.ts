@@ -63,6 +63,7 @@ export interface UserProfile {
   status: UserStatus;
   gst_filing_frequency?: 'monthly' | 'quarterly';
   dob?: string | null;
+  profile_photo_url?: string | null;
   created_at: string;
   updated_at: string;
 }

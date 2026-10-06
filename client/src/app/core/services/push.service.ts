@@ -35,6 +35,8 @@ export class PushService {
       }
     });
 
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) return;
     const registration = await navigator.serviceWorker.ready;
     this.subscription = await registration.pushManager.getSubscription();
     if (this.subscription) {
@@ -58,6 +60,11 @@ export class PushService {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') return false;
 
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg) {
+        console.warn('Service worker not registered. Push is disabled.');
+        return false;
+      }
       const registration = await navigator.serviceWorker.ready;
       this.subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -73,6 +80,8 @@ export class PushService {
 
   async isSubscribed(): Promise<boolean> {
     if (!this.supported()) return false;
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) return false;
     const registration = await navigator.serviceWorker.ready;
     this.subscription = await registration.pushManager.getSubscription();
     return !!this.subscription;
@@ -80,6 +89,8 @@ export class PushService {
 
   async unsubscribe(): Promise<boolean> {
     if (!this.supported()) return false;
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) return false;
     const registration = await navigator.serviceWorker.ready;
     this.subscription = await registration.pushManager.getSubscription();
     if (!this.subscription) return false;

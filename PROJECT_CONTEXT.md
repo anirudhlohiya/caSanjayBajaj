@@ -129,6 +129,13 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - Cron query converts UTC server time to IST locally before querying the PostgreSQL `dob` column using `EXTRACT` to prevent timezone offsets causing misfired birthdays.
   - Notifications pushed via both email (SES) and Web Push (via `UsersService` device tokens).
   - Test data deletion script `delete-users.ts` added to wipe client users (`TRUNCATE CASCADE`) safely while keeping the `admins` table intact.
+- **Phase 10 (Oct 2026) — Cloud Profile Photos & Push Notification Resilience — DONE**:
+  - Migrated profile photos from `localStorage` to cloud S3 buckets (`profile_photo_url` in DB).
+  - Added backend processing pipeline: uses `sharp` to automatically crop/resize uploaded photos to 256x256 and compress to highly optimized WebP format to save AWS egress cost.
+  - Implemented strong backend validation: 5MB size limit + `@nestjs/throttler` (5 uploads / 15 min limit).
+  - Backend dynamically signs secure presigned URLs on every `/me` fetch for photos instead of saving hardcoded signed URLs in DB.
+  - Hardened Angular Service Worker (Push Notifications): patched `push.service.ts` to query `navigator.serviceWorker.getRegistration()` before blocking the UI toggle button, preventing infinite lock-ups on browsers that disabled service workers.
+  - Set `enabled: true` for the Angular service worker in `app.config.ts` so developers can successfully test Web Push notifications natively during `npm start` instead of getting silent failures.
 - **DEPLOYED & LIVE (Sep 14 2026)**: https://app.snbajaj.com + https://admin.snbajaj.com on
   Lightsail `ca-platform-app` (Mumbai, static IP 3.111.8.176, $7/mo LOS bundle) — EC2
   t3.micro `i-09f7e0f0d3fc6414b` (IP 65.0.45.190, ap-south-1, ami al2023 ami-06a83a7a581c729a9)

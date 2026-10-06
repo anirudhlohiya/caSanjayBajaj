@@ -7,6 +7,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { Repository } from 'typeorm';
+import sharp from 'sharp';
+// Trigger reload
+import { StorageService } from '../storage/storage.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import {
   paginate,
@@ -37,6 +40,7 @@ export class UsersService {
     @InjectRepository(DeviceToken)
     private readonly deviceTokens: Repository<DeviceToken>,
     private readonly audit: AuditService,
+    private readonly storage: StorageService,
   ) {}
 
   async create(dto: CreateUserDto): Promise<User> {
@@ -119,8 +123,13 @@ export class UsersService {
 
   // ----- Client self-service -----
 
-  async getProfile(userId: string): Promise<User> {
-    return this.findOne(userId);
+  async getProfile(userId: string): Promise<any> {
+    const user = await this.findOne(userId);
+    let profile_photo_url = user.profile_photo_url;
+    if (profile_photo_url) {
+      profile_photo_url = await this.storage.createDownloadUrl(profile_photo_url, 86400); // 1 day
+    }
+    return { ...user, profile_photo_url };
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<User> {
@@ -135,7 +144,28 @@ export class UsersService {
       user.dob = this.parseDateDDMMYYYY(dto.dob);
     }
     await this.users.save(user);
-    return user;
+    
+    // Return updated profile with signed url
+    return this.getProfile(userId);
+  }
+
+  async updateProfilePhoto(userId: string, file: Express.Multer.File): Promise<any> {
+    const user = await this.findOne(userId);
+
+    const processedBuffer = await sharp(file.buffer)
+      .resize({ width: 256, height: 256, fit: 'cover' })
+      .webp({ quality: 80 })
+      .toBuffer();
+
+    const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const s3Key = `profiles/${userId}/${unique}.webp`;
+
+    await this.storage.uploadBuffer(s3Key, processedBuffer, 'image/webp');
+    
+    user.profile_photo_url = s3Key;
+    await this.users.save(user);
+    
+    return this.getProfile(userId);
   }
 
   private parseDateDDMMYYYY(dateStr: string): Date | null {

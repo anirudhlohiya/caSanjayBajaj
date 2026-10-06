@@ -1,5 +1,24 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnDestroy } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+
+export function ageValidator(minAge: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) return null;
+    const today = new Date();
+    const birthDate = new Date(control.value);
+    if (isNaN(birthDate.getTime())) return { invalidDate: true };
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    if (age < minAge) {
+      return { minAge: { requiredAge: minAge, actualAge: age } };
+    }
+    return null;
+  };
+}
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastContainer } from '../../shared/components/toast-container';
@@ -31,6 +50,8 @@ export class Signup implements OnDestroy {
     }
   }
 
+  readonly maxDob: string;
+
   readonly emailForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
   });
@@ -39,11 +60,22 @@ export class Signup implements OnDestroy {
     otp_code: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]],
     name: ['', [Validators.required]],
     phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
-    dob: ['', [Validators.required, Validators.pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d{2}$/)]],
+    dob: ['', [Validators.required, ageValidator(18)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     confirm_password: ['', [Validators.required]],
   });
 
+  constructor() {
+    const today = new Date();
+    today.setFullYear(today.getFullYear() - 18);
+    this.maxDob = today.toISOString().split('T')[0];
+    
+    this.signupForm.controls.otp_code.valueChanges.subscribe(val => {
+      if (val?.length === 6 && !this.otpVerified() && !this.otpVerifying()) {
+        this.onOtpInput();
+      }
+    });
+  }
   async requestOtp(): Promise<void> {
     if (this.emailForm.invalid || this.loading()) return;
     this.error.set('');
@@ -96,22 +128,57 @@ export class Signup implements OnDestroy {
     }
   }
 
+  readonly otpVerified = signal(false);
+  readonly otpVerifying = signal(false);
+
+  async onOtpInput(): Promise<void> {
+    const otp = this.signupForm.controls.otp_code.value;
+    if (otp.length === 6 && !this.otpVerified() && !this.otpVerifying()) {
+      this.error.set('');
+      this.otpVerifying.set(true);
+      try {
+        const email = this.emailForm.controls.email.value;
+        await this.auth.verifyOtp(email, otp, 'signup');
+        this.otpVerified.set(true);
+        this.signupForm.controls.otp_code.disable();
+        this.toast.success('OTP verified successfully!');
+      } catch (err) {
+        this.error.set(
+          (err as { error?: { message?: string } })?.error?.message ??
+            'Invalid OTP. Please try again.',
+        );
+      } finally {
+        this.otpVerifying.set(false);
+      }
+    }
+  }
+
   async verifyAndSignup(): Promise<void> {
     if (this.signupForm.invalid || this.loading()) return;
+    if (!this.otpVerified()) {
+      this.error.set('Please verify OTP first.');
+      return;
+    }
 
-    const { otp_code, name, phone, dob, password, confirm_password } = this.signupForm.getRawValue();
+    const { name, phone, dob, password, confirm_password } = this.signupForm.getRawValue();
 
     if (password !== confirm_password) {
       this.error.set('Passwords do not match.');
       return;
     }
 
+    // Convert YYYY-MM-DD to DD/MM/YYYY for backend
+    let formattedDob = dob;
+    if (dob && dob.includes('-')) {
+      const [year, month, day] = dob.split('-');
+      formattedDob = `${day}/${month}/${year}`;
+    }
+
     this.error.set('');
     this.loading.set(true);
     try {
       const email = this.emailForm.controls.email.value;
-      await this.auth.verifyOtp(email, otp_code, 'signup');
-      await this.auth.signup(email, password, name, phone, dob);
+      await this.auth.signup(email, password, name, phone, formattedDob);
       this.toast.success('Registration successful!');
       // Ask for notification permission after signup
       if ('Notification' in window && Notification.permission === 'default') {

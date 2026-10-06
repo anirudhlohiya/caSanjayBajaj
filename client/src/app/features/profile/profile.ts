@@ -3,6 +3,7 @@ import {
   Component,
   inject,
   signal,
+  computed,
   ViewChild,
   ElementRef,
 } from '@angular/core';
@@ -41,7 +42,8 @@ export class Profile {
   private readonly push = inject(PushService);
   readonly translate = inject(TranslateService);
 
-  readonly photoUrl = signal<string | null>(localStorage.getItem(PHOTO_KEY));
+  readonly photoUrl = computed(() => this.auth.userProfile()?.profile_photo_url || null);
+
   readonly certificates = signal<ClientCertificate[]>([]);
   readonly downloading = signal<string[]>([]);
 
@@ -170,21 +172,23 @@ export class Profile {
     this.photoInput.nativeElement.click();
   }
 
-  onPhotoSelected(event: Event): void {
+  async onPhotoSelected(event: Event): Promise<void> {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      this.toast.error('Image must be under 2 MB.');
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.error('Image must be under 5 MB.');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      localStorage.setItem(PHOTO_KEY, dataUrl);
-      this.photoUrl.set(dataUrl);
+    this.profileBusy.set(true);
+    try {
+      await this.auth.uploadProfilePhoto(file);
       this.toast.success('Profile photo updated.');
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      // API client or interceptor usually handles toasts, but fallback
+    } finally {
+      this.profileBusy.set(false);
+      (event.target as HTMLInputElement).value = '';
+    }
   }
 
   initials(): string {

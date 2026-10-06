@@ -35,6 +35,9 @@ export class User {
   @Column({ type: 'enum', enum: UserType, default: UserType.NORMAL })
   user_type: UserType;
 
+  @Column({ type: 'text', nullable: true })
+  profile_photo_url: string | null;
+
   @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVE })
   status: UserStatus;
 

@@ -31,7 +31,7 @@ export const appConfig: ApplicationConfig = {
     // '?v=2' busts any poisoned service-worker install from earlier builds:
     // a new script URL forces a fresh worker that claims the page immediately.
     provideServiceWorker('ngsw-worker.js?v=2', {
-        enabled: !isDevMode(),
+        enabled: true,
         registrationStrategy: 'registerWhenStable:30000',
       }),
   ],

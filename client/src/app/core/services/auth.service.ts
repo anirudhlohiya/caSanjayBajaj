@@ -123,6 +123,7 @@ export class AuthService {
     this.profileLoaded.set(false);
     localStorage.removeItem(APP.tokens.access);
     localStorage.removeItem(APP.tokens.refresh);
+    localStorage.removeItem('fp_profile_photo');
   }
 
   async sendOtp(email: string, purpose: 'signup' | 'reset_password'): Promise<void> {
@@ -149,5 +150,14 @@ export class AuthService {
     await firstValueFrom(
       this.api.post('/auth/reset-password', { email, password: newPassword }),
     );
+  }
+
+  async uploadProfilePhoto(file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const profile = await firstValueFrom(
+      this.api.post<UserProfile>('/me/photo', formData)
+    );
+    this.userProfile.set(profile);
   }
 }

@@ -203,13 +203,13 @@
             [disabled]="pushBusy()"
             [class]="
               'relative h-7 w-12 rounded-full transition-colors ' +
-              (pushEnabled() ? 'bg-neutral-900' : 'bg-neutral-200') +
+              (pushEnabled() ? 'bg-neutral-900 dark:bg-neutral-100' : 'bg-neutral-200 dark:bg-neutral-700') +
               (pushBusy() ? ' opacity-60' : '')
             "
             aria-label="Toggle push notifications"
           >
             <span
-              class="absolute top-0.5 size-6 rounded-full bg-white shadow-sm transition-all dark:bg-neutral-900"
+              [class]="'absolute top-0.5 size-6 rounded-full shadow-sm transition-all ' + (pushEnabled() ? 'bg-white dark:bg-neutral-900' : 'bg-white dark:bg-neutral-400')"
               [style.left.px]="pushEnabled() ? 22 : 2"
             ></span>
           </button>

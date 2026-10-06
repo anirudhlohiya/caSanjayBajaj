@@ -6,9 +6,10 @@ import { User } from '../entities/user.entity';
 import { ProfileController } from './profile.controller';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, DeviceToken]), AuditModule],
+  imports: [TypeOrmModule.forFeature([User, DeviceToken]), AuditModule, StorageModule],
   controllers: [UsersController, ProfileController],
   providers: [UsersService],
   exports: [UsersService],
