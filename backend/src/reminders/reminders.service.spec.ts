@@ -40,7 +40,7 @@ describe('RemindersService', () => {
     find: jest.Mock<Promise<ComplianceTask[]>, [TaskFindArgs]>;
     save: jest.Mock<Promise<ComplianceTask>, [ComplianceTask]>;
   };
-  let notifications: { sendEmail: jest.Mock; sendPush: jest.Mock };
+  let notifications: { sendEmail: jest.Mock; sendPush: jest.Mock; sendWhatsappTemplate: jest.Mock };
   let usersService: { getTokensForPush: jest.Mock; listActiveUsers: jest.Mock };
   let scheduler: { doesExist: jest.Mock; addCronJob: jest.Mock };
   const registeredJobs: Array<{ stop: () => void }> = [];
@@ -51,6 +51,7 @@ describe('RemindersService', () => {
     id: 'user-monthly',
     name: 'Amit',
     email: 'amit@example.com',
+    phone: '9876543210',
     gst_filing_frequency: GstFilingFrequency.MONTHLY,
   } as User;
 
@@ -58,6 +59,7 @@ describe('RemindersService', () => {
     id: 'user-quarterly',
     name: 'Ravi',
     email: 'ravi@example.com',
+    phone: '9876543210',
     gst_filing_frequency: GstFilingFrequency.QUARTERLY,
   } as User;
 
@@ -120,6 +122,7 @@ describe('RemindersService', () => {
     notifications = {
       sendEmail: jest.fn().mockResolvedValue(true),
       sendPush: jest.fn().mockResolvedValue(true),
+      sendWhatsappTemplate: jest.fn().mockResolvedValue(true),
     };
     usersService = {
       getTokensForPush: jest.fn().mockResolvedValue([]),
@@ -176,7 +179,7 @@ describe('RemindersService', () => {
       expect(notifications.sendEmail).toHaveBeenCalledTimes(1);
       expect(notifications.sendPush).toHaveBeenCalledTimes(1);
       const sent = saved.filter((r) => r.triggered_by === 'system');
-      expect(sent.length).toBe(2); // email + push
+      expect(sent.length).toBe(3); // email + push + whatsapp
       expect(sent.every((r) => r.status === ReminderStatus.SENT)).toBe(true);
       expect(tasksRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ message_day: 0 }),
@@ -307,10 +310,11 @@ describe('RemindersService', () => {
     it('does not resend a slot already logged today', async () => {
       periodsRepo.find.mockResolvedValue([makePeriod('p1', null)]);
       tasks = [makeTask(monthlyUser, ComplianceCategory.GSTR_1)];
-      // PUSH already logged today -> skipped; EMAIL proceeds
+      // PUSH already logged today -> skipped; EMAIL proceeds; WHATSAPP already logged -> skipped
       remindersRepo.exists
         .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
 
       await service.handleAutoReminders('2026-10-05');
 
