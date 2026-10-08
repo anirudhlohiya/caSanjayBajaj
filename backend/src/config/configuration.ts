@@ -114,5 +114,7 @@ export default () => ({
     businessId: process.env.WHATSAPP_BUSINESS_ID ?? '',
     accessToken: process.env.WHATSAPP_ACCESS_TOKEN ?? '',
     number: process.env.WHATSAPP_NUMBER ?? '',
+    verifyToken: process.env.WHATSAPP_VERIFY_TOKEN ?? '',
   },
 });
+
