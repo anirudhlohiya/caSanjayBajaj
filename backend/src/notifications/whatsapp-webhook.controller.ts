@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
 
 @Controller('notifications/whatsapp-webhook')
 export class WhatsappWebhookController {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   @Get()
   verifyWebhook(@Req() req: Request, @Res() res: Response) {
@@ -22,13 +22,28 @@ export class WhatsappWebhookController {
         return res.sendStatus(HttpStatus.FORBIDDEN);
       }
     }
-    
+
     return res.sendStatus(HttpStatus.BAD_REQUEST);
   }
 
   @Post()
   handleWebhook(@Req() req: Request, @Res() res: Response) {
-    const body = req.body;
+    interface WhatsappWebhookBody {
+      object?: string;
+      entry?: Array<{
+        changes?: Array<{
+          value?: {
+            messages?: Array<{
+              from: string;
+              text?: { body: string };
+            }>;
+            metadata?: { phone_number_id: string };
+          };
+        }>;
+      }>;
+    }
+
+    const body = req.body as WhatsappWebhookBody;
 
     console.log('Incoming WhatsApp Webhook:', JSON.stringify(body, null, 2));
 
@@ -37,17 +52,17 @@ export class WhatsappWebhookController {
         body.entry &&
         body.entry[0].changes &&
         body.entry[0].changes[0] &&
-        body.entry[0].changes[0].value.messages &&
+        body.entry[0].changes[0].value?.messages &&
         body.entry[0].changes[0].value.messages[0]
       ) {
         // A message was received
-        const phoneNumberId = body.entry[0].changes[0].value.metadata.phone_number_id;
+        const phoneNumberId = body.entry[0].changes[0].value.metadata?.phone_number_id;
         const from = body.entry[0].changes[0].value.messages[0].from;
-        const msgBody = body.entry[0].changes[0].value.messages[0].text.body;
+        const msgBody = body.entry[0].changes[0].value.messages[0].text?.body;
 
         console.log(`Received message from ${from}: ${msgBody} on number ID ${phoneNumberId}`);
       }
-      
+
       // Always return a 200 OK to acknowledge receipt
       return res.sendStatus(HttpStatus.OK);
     } else {
