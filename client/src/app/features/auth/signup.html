@@ -168,10 +168,31 @@
         </div>
       </div>
 
+      <!-- Terms & Conditions and Privacy Policy Consent Checkbox -->
+      <div class="flex flex-col gap-1 mt-2">
+        <label class="flex items-start gap-2.5 cursor-pointer select-none">
+          <input
+            formControlName="terms_accepted"
+            type="checkbox"
+            id="terms_accepted"
+            class="mt-0.5 size-4 rounded border-hairline-strong accent-primary text-primary focus:ring-1 focus:ring-primary dark:accent-white dark:border-hairline dark:bg-surface-container cursor-pointer"
+          />
+          <span class="font-geist text-xs leading-5 text-on-surface-variant">
+            I agree to the
+            <a routerLink="/terms-and-conditions" target="_blank" rel="noopener noreferrer" class="font-medium text-primary hover:underline dark:text-white">Terms and Conditions</a>
+            and
+            <a routerLink="/privacy-policy" target="_blank" rel="noopener noreferrer" class="font-medium text-primary hover:underline dark:text-white">Privacy Policy</a>.
+          </span>
+        </label>
+        @if (signupForm.controls.terms_accepted.touched && signupForm.controls.terms_accepted.invalid) {
+          <p class="font-geist text-xs text-error">You must agree to the Terms and Conditions and Privacy Policy to create an account.</p>
+        }
+      </div>
+
       <button
         type="submit"
         [disabled]="signupForm.invalid || loading() || !otpVerified()"
-        class="flex justify-center items-center gap-2 w-full bg-primary text-on-primary font-geist text-sm font-medium rounded-full py-[10px] mt-4 hover:bg-tertiary-container transition-colors active:scale-[0.98] disabled:opacity-50 cursor-pointer dark:bg-white dark:text-black dark:hover:bg-neutral-200"
+        class="flex justify-center items-center gap-2 w-full bg-primary text-on-primary font-geist text-sm font-medium rounded-full py-[10px] mt-2 hover:bg-tertiary-container transition-colors active:scale-[0.98] disabled:opacity-50 cursor-pointer dark:bg-white dark:text-black dark:hover:bg-neutral-200"
       >
         @if (loading()) {
           <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white dark:border-black/40 dark:border-t-black"></span>

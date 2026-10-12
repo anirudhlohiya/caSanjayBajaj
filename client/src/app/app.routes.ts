@@ -90,6 +90,31 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'privacy-policy',
+    loadComponent: () =>
+      import('./features/legal/privacy-policy').then((m) => m.PrivacyPolicy),
+  },
+  {
+    path: 'privacy',
+    redirectTo: 'privacy-policy',
+    pathMatch: 'full',
+  },
+  {
+    path: 'terms-and-conditions',
+    loadComponent: () =>
+      import('./features/legal/terms-and-conditions').then((m) => m.TermsConditions),
+  },
+  {
+    path: 'terms',
+    redirectTo: 'terms-and-conditions',
+    pathMatch: 'full',
+  },
+  {
+    path: '404',
+    loadComponent: () =>
+      import('./features/not-found/not-found').then((m) => m.NotFound),
+  },
+  {
     path: 'not-found',
     loadComponent: () =>
       import('./features/not-found/not-found').then((m) => m.NotFound),

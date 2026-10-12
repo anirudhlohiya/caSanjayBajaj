@@ -63,6 +63,7 @@ export class Signup implements OnDestroy {
     dob: ['', [Validators.required, ageValidator(18)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     confirm_password: ['', [Validators.required]],
+    terms_accepted: [false, [Validators.requiredTrue]],
   });
 
   constructor() {

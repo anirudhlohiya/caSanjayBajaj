@@ -1,273 +1,292 @@
 @if (loading()) {
-  <app-spinner />
+<app-spinner />
 } @else {
-  <div class="max-w-container-max mx-auto px-4 pt-4">
-    <!-- Carousel / Banner -->
-    <section class="bg-surface-container rounded-2xl mb-6 relative overflow-hidden min-h-[200px]">
-      @for (banner of banners; track $index) {
-        <div class="absolute inset-0 p-6 transition-opacity duration-1000 flex flex-col justify-center" 
-             [class.opacity-0]="currentBannerIndex() !== $index" 
-             [class.opacity-100]="currentBannerIndex() === $index" 
-             [class.pointer-events-none]="currentBannerIndex() !== $index">
-          <h2 class="text-display-md leading-tight text-primary mb-2">
-            {{ banner.titleTop }}<br />
-            <span class="text-on-surface-variant font-medium">{{ banner.titleHighlight }}</span><span class="text-on-surface-variant">{{ banner.titleEnd }}</span>
-          </h2>
-          <div class="flex items-center gap-4 text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-6">
-            <span class="flex items-center gap-1">
-              <span class="material-symbols-outlined text-[14px]">verified_user</span> TRUSTED
-            </span>
-            <span class="flex items-center gap-1">
-              <span class="material-symbols-outlined text-[14px]">lock</span> SECURE
-            </span>
-            <span class="flex items-center gap-1">
-              <span class="material-symbols-outlined text-[14px]">support_agent</span> EXPERT SUPPORT
-            </span>
-          </div>
-          <div>
-            <button [routerLink]="banner.link" class="bg-primary text-on-primary rounded-full px-6 py-3 font-semibold text-sm inline-flex items-center gap-2 hover:opacity-90 transition-opacity">
-              {{ banner.buttonText }} <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-            </button>
-          </div>
-        </div>
-      }
-      
-      <!-- Carousel Dots -->
-      <div class="absolute bottom-6 left-0 right-0 flex justify-center gap-1.5 z-10">
-        @for (banner of banners; track $index) {
-          <div class="w-1.5 h-1.5 rounded-full cursor-pointer transition-colors duration-300" 
-               [class.bg-primary]="currentBannerIndex() === $index" 
-               [class.bg-outline-variant]="currentBannerIndex() !== $index" 
-               (click)="currentBannerIndex.set($index)"></div>
-        }
+<div class="max-w-container-max mx-auto px-4 pt-4">
+  <!-- Carousel / Banner -->
+  <section class="bg-surface-container rounded-2xl mb-6 relative overflow-hidden min-h-[200px]">
+    @for (banner of banners; track $index) {
+    <div class="absolute inset-0 p-6 transition-opacity duration-1000 flex flex-col justify-center"
+      [class.opacity-0]="currentBannerIndex() !== $index" [class.opacity-100]="currentBannerIndex() === $index"
+      [class.pointer-events-none]="currentBannerIndex() !== $index">
+      <h2 class="text-display-md leading-tight text-primary mb-2">
+        {{ banner.titleTop }}<br />
+        <span class="text-on-surface-variant font-medium">{{ banner.titleHighlight }}</span><span
+          class="text-on-surface-variant">{{ banner.titleEnd }}</span>
+      </h2>
+      <div
+        class="flex items-center gap-4 text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-6">
+        <span class="flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">verified_user</span> TRUSTED
+        </span>
+        <span class="flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">lock</span> SECURE
+        </span>
+        <span class="flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">support_agent</span> EXPERT SUPPORT
+        </span>
       </div>
-    </section>
-
-    <!-- GST Overview (Only for GST users) -->
-    @if (auth.userProfile()?.user_type === 'gst') {
-      <section class="mb-8">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-bold text-primary">Your GST Overview</h3>
-          <a routerLink="/reports" class="text-link text-sm font-medium flex items-center gap-1 hover:underline">
-            View Dashboard <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-          </a>
-        </div>
-
-        <div class="bg-surface border border-card-border rounded-2xl p-4 shadow-card">
-          @if (latestReport(); as report) {
-            <div class="flex justify-between items-center mb-4">
-              <span class="text-sm font-medium text-on-surface-variant">{{ report.filing_period?.period_label || 'Latest' }}</span>
-              <span class="text-[10px] font-semibold bg-green-100 text-green-700 px-2 py-1 rounded">Monthly GST</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 mb-3">
-              <div class="border border-outline-variant rounded-xl p-3 bg-surface-container-lowest">
-                <div class="text-[11px] font-semibold text-green-600 mb-1">Sales</div>
-                <div class="text-lg font-bold text-on-surface">{{ (report.sales || 0) | currency:'INR':'symbol':'1.0-0' }}</div>
-              </div>
-              <div class="border border-outline-variant rounded-xl p-3 bg-surface-container-lowest">
-                <div class="text-[11px] font-semibold text-blue-600 mb-1">Purchases</div>
-                <div class="text-lg font-bold text-on-surface">{{ (report.purchases || 0) | currency:'INR':'symbol':'1.0-0' }}</div>
-              </div>
-              <div class="border border-outline-variant rounded-xl p-3 bg-surface-container-lowest">
-                <div class="text-[11px] font-semibold text-orange-500 mb-1">Output GST</div>
-                <div class="text-lg font-bold text-on-surface">{{ (report.total_liability || 0) | currency:'INR':'symbol':'1.0-0' }}</div>
-              </div>
-              <div class="border border-outline-variant rounded-xl p-3 bg-surface-container-lowest">
-                <div class="text-[11px] font-semibold text-purple-600 mb-1">Eligible ITC</div>
-                <div class="text-lg font-bold text-on-surface">{{ (report.itc_claimed || 0) | currency:'INR':'symbol':'1.0-0' }}</div>
-              </div>
-            </div>
-
-            <div class="border border-outline-variant rounded-xl p-3 bg-surface-container-lowest flex justify-between items-center">
-              <div class="text-sm font-bold text-on-surface">Net GST Payable</div>
-              <div class="text-xl font-bold text-red-600">{{ (report.net_payable || 0) | currency:'INR':'symbol':'1.0-0' }}</div>
-            </div>
-          } @else {
-            <div class="text-center py-6 text-on-surface-variant text-sm">
-              No recent GST data available.
-            </div>
-          }
-        </div>
-      </section>
+      <div>
+        <button [routerLink]="banner.link"
+          class="bg-primary text-on-primary rounded-full px-6 py-3 font-semibold text-sm inline-flex items-center gap-2 hover:opacity-90 transition-opacity">
+          {{ banner.buttonText }} <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+        </button>
+      </div>
+    </div>
     }
 
-    <!-- Quick Actions -->
-    <section class="grid grid-cols-4 gap-2 mb-8">
-      <button class="flex flex-col items-center gap-2 text-center group cursor-pointer">
-        <div class="w-14 h-14 rounded-2xl bg-surface border border-card-border shadow-sm flex items-center justify-center group-hover:bg-surface-container transition-colors">
-          <span class="material-symbols-outlined text-[24px] text-primary">calendar_month</span>
-        </div>
-        <span class="text-[11px] font-medium leading-tight text-primary">Due Date<br>Calendar</span>
-      </button>
-      <button routerLink="/documents/upload" class="flex flex-col items-center gap-2 text-center group cursor-pointer">
-        <div class="w-14 h-14 rounded-2xl bg-surface border border-card-border shadow-sm flex items-center justify-center group-hover:bg-surface-container transition-colors">
-          <span class="material-symbols-outlined text-[24px] text-primary">upload_file</span>
-        </div>
-        <span class="text-[11px] font-medium leading-tight text-primary">Upload<br>Document</span>
-      </button>
-      <button class="flex flex-col items-center gap-2 text-center group cursor-pointer">
-        <div class="w-14 h-14 rounded-2xl bg-surface border border-card-border shadow-sm flex items-center justify-center group-hover:bg-surface-container transition-colors">
-          <span class="material-symbols-outlined text-[24px] text-primary">support_agent</span>
-        </div>
-        <span class="text-[11px] font-medium leading-tight text-primary">Talk to<br>Expert</span>
-      </button>
-      <button class="flex flex-col items-center gap-2 text-center group cursor-pointer">
-        <div class="w-14 h-14 rounded-2xl bg-surface border border-card-border shadow-sm flex items-center justify-center group-hover:bg-surface-container transition-colors">
-          <span class="material-symbols-outlined text-[24px] text-primary">chat</span>
-        </div>
-        <span class="text-[11px] font-medium leading-tight text-primary">Contact<br>Us</span>
-      </button>
-    </section>
+    <!-- Carousel Dots -->
+    <div class="absolute bottom-6 left-0 right-0 flex justify-center gap-1.5 z-10">
+      @for (banner of banners; track $index) {
+      <div class="w-1.5 h-1.5 rounded-full cursor-pointer transition-colors duration-300"
+        [class.bg-primary]="currentBannerIndex() === $index"
+        [class.bg-outline-variant]="currentBannerIndex() !== $index" (click)="currentBannerIndex.set($index)"></div>
+      }
+    </div>
+  </section>
 
-    <!-- Quick Tools -->
-    <section class="mb-8">
-      <h3 class="text-xl font-bold text-primary mb-4">Quick Tools</h3>
-      <div class="bg-surface border border-card-border rounded-2xl p-4 shadow-card">
-        <a href="https://services.gst.gov.in/services/searchtp" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-between p-3 bg-surface-container-lowest rounded-xl border border-outline-variant hover:bg-surface-container transition-colors cursor-pointer">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-              <span class="material-symbols-outlined text-[20px]">open_in_new</span>
-            </div>
-            <div class="text-left">
-              <div class="font-semibold text-on-surface">Check GST Number</div>
-              <div class="text-[11px] text-on-surface-variant">Opens official GST portal in a new tab</div>
-            </div>
-          </div>
-          <span class="material-symbols-outlined text-primary">arrow_forward</span>
-        </a>
-      </div>
-    </section>
+  <!-- GST Overview (Only for GST users) -->
+  @if (auth.userProfile()?.user_type === 'gst') {
+  <section class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold text-primary">Your GST Overview</h3>
+      <a routerLink="/reports" class="text-link text-sm font-medium flex items-center gap-1 hover:underline">
+        View Dashboard <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+      </a>
+    </div>
 
-    <!-- Our Services -->
-    <section class="mb-8">
+    <div class="bg-surface border border-card-border rounded-2xl p-4 shadow-card">
+      @if (latestReport(); as report) {
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-bold text-primary">Our Services</h3>
-        <a routerLink="/services" class="text-link text-sm font-medium flex items-center gap-1 hover:underline">
-          View All <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-        </a>
+        <span class="text-sm font-medium text-on-surface-variant">{{ report.filing_period?.period_label || 'Latest'
+          }}</span>
+        <span class="text-[10px] font-semibold bg-green-100 text-green-700 px-2 py-1 rounded">Monthly GST</span>
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
-        <!-- Service 1 -->
-        <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-          <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-            <span class="material-symbols-outlined text-[20px] text-primary">receipt_long</span>
-          </div>
-          <h4 class="font-semibold text-primary mb-1">GST Services</h4>
-          <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-            GST Registration, Return Filing, Refund & more
-          </p>
-          <div class="mt-4 flex justify-end">
-            <button class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-            </button>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div class="border border-outline-variant rounded-xl p-3 bg-surface-container-lowest">
+          <div class="text-[11px] font-semibold text-green-600 mb-1">Sales</div>
+          <div class="text-lg font-bold text-on-surface">{{ (report.sales || 0) | currency:'INR':'symbol':'1.0-0' }}
           </div>
         </div>
-
-        <!-- Service 2 -->
-        <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-          <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-            <span class="material-symbols-outlined text-[20px] text-primary">account_balance_wallet</span>
-          </div>
-          <h4 class="font-semibold text-primary mb-1">Income Tax</h4>
-          <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-            ITR Filing, Tax Planning, TDS & more
-          </p>
-          <div class="mt-4 flex justify-end">
-            <button class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-            </button>
+        <div class="border border-outline-variant rounded-xl p-3 bg-surface-container-lowest">
+          <div class="text-[11px] font-semibold text-blue-600 mb-1">Purchases</div>
+          <div class="text-lg font-bold text-on-surface">{{ (report.purchases || 0) | currency:'INR':'symbol':'1.0-0' }}
           </div>
         </div>
-
-        <!-- Service 3 -->
-        <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-          <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-            <span class="material-symbols-outlined text-[20px] text-primary">trending_up</span>
-          </div>
-          <h4 class="font-semibold text-primary mb-1">Mutual Fund</h4>
-          <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-            SIP, Lump Sum, Goal Planning & more
-          </p>
-          <div class="mt-4 flex justify-end">
-            <button class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-            </button>
-          </div>
+        <div class="border border-outline-variant rounded-xl p-3 bg-surface-container-lowest">
+          <div class="text-[11px] font-semibold text-orange-500 mb-1">Output GST</div>
+          <div class="text-lg font-bold text-on-surface">{{ (report.total_liability || 0) |
+            currency:'INR':'symbol':'1.0-0' }}</div>
         </div>
-
-        <!-- Service 4 -->
-        <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-          <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-            <span class="material-symbols-outlined text-[20px] text-primary">real_estate_agent</span>
-          </div>
-          <h4 class="font-semibold text-primary mb-1">Loan Services</h4>
-          <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-            Home Loan, Personal Loan, Business Loan
-          </p>
-          <div class="mt-4 flex justify-end">
-            <button class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Service 5 -->
-        <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-          <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-            <span class="material-symbols-outlined text-[20px] text-primary">health_and_safety</span>
-          </div>
-          <h4 class="font-semibold text-primary mb-1">Insurance</h4>
-          <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-            Life, Health, General Insurance
-          </p>
-          <div class="mt-4 flex justify-end">
-            <button class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Service 6 -->
-        <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-          <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-            <span class="material-symbols-outlined text-[20px] text-primary">pie_chart</span>
-          </div>
-          <h4 class="font-semibold text-primary mb-1">Financial Planning</h4>
-          <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-            Wealth Creation, Retirement Planning & more
-          </p>
-          <div class="mt-4 flex justify-end">
-            <button class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-            </button>
-          </div>
+        <div class="border border-outline-variant rounded-xl p-3 bg-surface-container-lowest">
+          <div class="text-[11px] font-semibold text-purple-600 mb-1">Eligible ITC</div>
+          <div class="text-lg font-bold text-on-surface">{{ (report.itc_claimed || 0) | currency:'INR':'symbol':'1.0-0'
+            }}</div>
         </div>
       </div>
-    </section>
 
-    <!-- Why Choose Us? -->
-    <section class="bg-surface-dim rounded-2xl p-6 -mx-4">
-      <h3 class="text-center font-bold text-primary mb-6">Why Choose Us?</h3>
-      <div class="flex justify-between">
-        <div class="flex flex-col items-center gap-2">
-          <span class="material-symbols-outlined text-[28px] text-primary">psychology</span>
-          <span class="text-[11px] font-semibold text-primary">Expert</span>
-        </div>
-        <div class="flex flex-col items-center gap-2">
-          <span class="material-symbols-outlined text-[28px] text-primary">verified</span>
-          <span class="text-[11px] font-semibold text-primary">100%</span>
-        </div>
-        <div class="flex flex-col items-center gap-2">
-          <span class="material-symbols-outlined text-[28px] text-primary">update</span>
-          <span class="text-[11px] font-semibold text-primary">On-Time</span>
-        </div>
-        <div class="flex flex-col items-center gap-2">
-          <span class="material-symbols-outlined text-[28px] text-primary">savings</span>
-          <span class="text-[11px] font-semibold text-primary">Affordable</span>
+      <div
+        class="border border-outline-variant rounded-xl p-3 bg-surface-container-lowest flex justify-between items-center">
+        <div class="text-sm font-bold text-on-surface">Net GST Payable</div>
+        <div class="text-xl font-bold text-red-600">{{ (report.net_payable || 0) | currency:'INR':'symbol':'1.0-0' }}
         </div>
       </div>
-    </section>
-  </div>
+      } @else {
+      <div class="text-center py-6 text-on-surface-variant text-sm">
+        No recent GST data available.
+      </div>
+      }
+    </div>
+  </section>
+  }
+
+  <!-- Quick Actions -->
+  <section class="grid grid-cols-4 gap-2 mb-8">
+    <button class="flex flex-col items-center gap-2 text-center group cursor-pointer">
+      <div
+        class="w-14 h-14 rounded-2xl bg-surface border border-card-border shadow-sm flex items-center justify-center group-hover:bg-surface-container transition-colors">
+        <span class="material-symbols-outlined text-[24px] text-primary">calendar_month</span>
+      </div>
+      <span class="text-[11px] font-medium leading-tight text-primary">Due Date<br>Calendar</span>
+    </button>
+    <button routerLink="/documents/upload" class="flex flex-col items-center gap-2 text-center group cursor-pointer">
+      <div
+        class="w-14 h-14 rounded-2xl bg-surface border border-card-border shadow-sm flex items-center justify-center group-hover:bg-surface-container transition-colors">
+        <span class="material-symbols-outlined text-[24px] text-primary">upload_file</span>
+      </div>
+      <span class="text-[11px] font-medium leading-tight text-primary">Upload<br>Document</span>
+    </button>
+    <button class="flex flex-col items-center gap-2 text-center group cursor-pointer">
+      <div
+        class="w-14 h-14 rounded-2xl bg-surface border border-card-border shadow-sm flex items-center justify-center group-hover:bg-surface-container transition-colors">
+        <span class="material-symbols-outlined text-[24px] text-primary">support_agent</span>
+      </div>
+      <span class="text-[11px] font-medium leading-tight text-primary">Talk to<br>Expert</span>
+    </button>
+    <button class="flex flex-col items-center gap-2 text-center group cursor-pointer">
+      <div
+        class="w-14 h-14 rounded-2xl bg-surface border border-card-border shadow-sm flex items-center justify-center group-hover:bg-surface-container transition-colors">
+        <span class="material-symbols-outlined text-[24px] text-primary">chat</span>
+      </div>
+      <span class="text-[11px] font-medium leading-tight text-primary">Contact<br>Us</span>
+    </button>
+  </section>
+
+  <!-- Quick Tools -->
+  <section class="mb-8">
+    <h3 class="text-xl font-bold text-primary mb-4">Quick Tools</h3>
+    <div class="bg-surface border border-card-border rounded-2xl p-4 shadow-card">
+      <a href="https://services.gst.gov.in/services/searchtp" target="_blank" rel="noopener noreferrer"
+        class="w-full flex items-center justify-between p-3 bg-surface-container-lowest rounded-xl border border-outline-variant hover:bg-surface-container transition-colors cursor-pointer">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-[20px]">open_in_new</span>
+          </div>
+          <div class="text-left">
+            <div class="font-semibold text-on-surface">Check GST Number</div>
+            <div class="text-[11px] text-on-surface-variant">Check GST Number</div>
+          </div>
+        </div>
+        <span class="material-symbols-outlined text-primary">arrow_forward</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Our Services -->
+  <section class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold text-primary">Our Services</h3>
+      <a routerLink="/services" class="text-link text-sm font-medium flex items-center gap-1 hover:underline">
+        View All <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <!-- Service 1 -->
+      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
+        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[20px] text-primary">receipt_long</span>
+        </div>
+        <h4 class="font-semibold text-primary mb-1">GST Services</h4>
+        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
+          GST Registration, Return Filing, Refund & more
+        </p>
+        <div class="mt-4 flex justify-end">
+          <button
+            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Service 2 -->
+      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
+        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[20px] text-primary">account_balance_wallet</span>
+        </div>
+        <h4 class="font-semibold text-primary mb-1">Income Tax</h4>
+        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
+          ITR Filing, Tax Planning, TDS & more
+        </p>
+        <div class="mt-4 flex justify-end">
+          <button
+            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Service 3 -->
+      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
+        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[20px] text-primary">trending_up</span>
+        </div>
+        <h4 class="font-semibold text-primary mb-1">Mutual Fund</h4>
+        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
+          SIP, Lump Sum, Goal Planning & more
+        </p>
+        <div class="mt-4 flex justify-end">
+          <button
+            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Service 4 -->
+      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
+        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[20px] text-primary">real_estate_agent</span>
+        </div>
+        <h4 class="font-semibold text-primary mb-1">Loan Services</h4>
+        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
+          Home Loan, Personal Loan, Business Loan
+        </p>
+        <div class="mt-4 flex justify-end">
+          <button
+            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Service 5 -->
+      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
+        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[20px] text-primary">health_and_safety</span>
+        </div>
+        <h4 class="font-semibold text-primary mb-1">Insurance</h4>
+        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
+          Life, Health, General Insurance
+        </p>
+        <div class="mt-4 flex justify-end">
+          <button
+            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Service 6 -->
+      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
+        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[20px] text-primary">pie_chart</span>
+        </div>
+        <h4 class="font-semibold text-primary mb-1">Financial Planning</h4>
+        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
+          Wealth Creation, Retirement Planning & more
+        </p>
+        <div class="mt-4 flex justify-end">
+          <button
+            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Choose Us? -->
+  <section class="bg-surface-dim rounded-2xl p-6 -mx-4">
+    <h3 class="text-center font-bold text-primary mb-6">Why Choose Us?</h3>
+    <div class="flex justify-between">
+      <div class="flex flex-col items-center gap-2">
+        <span class="material-symbols-outlined text-[28px] text-primary">psychology</span>
+        <span class="text-[11px] font-semibold text-primary">Expert</span>
+      </div>
+      <div class="flex flex-col items-center gap-2">
+        <span class="material-symbols-outlined text-[28px] text-primary">verified</span>
+        <span class="text-[11px] font-semibold text-primary">100%</span>
+      </div>
+      <div class="flex flex-col items-center gap-2">
+        <span class="material-symbols-outlined text-[28px] text-primary">update</span>
+        <span class="text-[11px] font-semibold text-primary">On-Time</span>
+      </div>
+      <div class="flex flex-col items-center gap-2">
+        <span class="material-symbols-outlined text-[28px] text-primary">savings</span>
+        <span class="text-[11px] font-semibold text-primary">Affordable</span>
+      </div>
+    </div>
+  </section>
+</div>
 }

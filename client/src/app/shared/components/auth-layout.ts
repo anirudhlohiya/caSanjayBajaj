@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-auth-layout',
   standalone: true,
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="bg-surface-container-lowest text-on-surface font-geist min-h-dvh flex flex-col items-center justify-center antialiased w-full">
@@ -26,7 +28,12 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
           <ng-content></ng-content>
         </div>
         
-        <footer class="mt-8 text-center">
+        <footer class="mt-8 text-center space-y-2">
+          <div class="flex items-center justify-center gap-3 font-geist text-xs text-on-surface-variant">
+            <a routerLink="/terms-and-conditions" class="hover:text-primary dark:hover:text-white transition-colors">Terms & Conditions</a>
+            <span>•</span>
+            <a routerLink="/privacy-policy" class="hover:text-primary dark:hover:text-white transition-colors">Privacy Policy</a>
+          </div>
           <p class="font-geist-mono text-xs tracking-wider text-secondary">Provided to you by S N Bajaj And Co</p>
         </footer>
       </div>
