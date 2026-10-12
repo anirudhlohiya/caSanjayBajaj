@@ -117,4 +117,3 @@ export default () => ({
     verifyToken: process.env.WHATSAPP_VERIFY_TOKEN ?? '',
   },
 });
-

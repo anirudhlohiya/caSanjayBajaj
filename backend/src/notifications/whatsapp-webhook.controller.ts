@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
 
 @Controller('notifications/whatsapp-webhook')
 export class WhatsappWebhookController {
-  constructor(private readonly configService: ConfigService) { }
+  constructor(private readonly configService: ConfigService) {}
 
   @Get()
   verifyWebhook(@Req() req: Request, @Res() res: Response) {
@@ -56,11 +56,14 @@ export class WhatsappWebhookController {
         body.entry[0].changes[0].value.messages[0]
       ) {
         // A message was received
-        const phoneNumberId = body.entry[0].changes[0].value.metadata?.phone_number_id;
+        const phoneNumberId =
+          body.entry[0].changes[0].value.metadata?.phone_number_id;
         const from = body.entry[0].changes[0].value.messages[0].from;
         const msgBody = body.entry[0].changes[0].value.messages[0].text?.body;
 
-        console.log(`Received message from ${from}: ${msgBody} on number ID ${phoneNumberId}`);
+        console.log(
+          `Received message from ${from}: ${msgBody} on number ID ${phoneNumberId}`,
+        );
       }
 
       // Always return a 200 OK to acknowledge receipt

@@ -41,7 +41,11 @@ describe('RemindersService', () => {
     find: jest.Mock<Promise<ComplianceTask[]>, [TaskFindArgs]>;
     save: jest.Mock<Promise<ComplianceTask>, [ComplianceTask]>;
   };
-  let notifications: { sendEmail: jest.Mock; sendPush: jest.Mock; sendWhatsappTemplate: jest.Mock };
+  let notifications: {
+    sendEmail: jest.Mock;
+    sendPush: jest.Mock;
+    sendWhatsappTemplate: jest.Mock;
+  };
   let usersService: { getTokensForPush: jest.Mock; listActiveUsers: jest.Mock };
   let scheduler: { doesExist: jest.Mock; addCronJob: jest.Mock };
   const registeredJobs: Array<{ stop: () => void }> = [];

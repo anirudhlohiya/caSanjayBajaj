@@ -10,7 +10,11 @@ import { WhatsappWebhookController } from './whatsapp-webhook.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ReportNotification, User])],
-  controllers: [ReportNotificationsController, NotificationsController, WhatsappWebhookController],
+  controllers: [
+    ReportNotificationsController,
+    NotificationsController,
+    WhatsappWebhookController,
+  ],
   providers: [NotificationsService, ReportNotificationsService],
   exports: [NotificationsService, ReportNotificationsService],
 })
