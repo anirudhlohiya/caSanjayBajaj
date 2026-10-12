@@ -17,6 +17,7 @@ import { PermissionsGuard } from '../common/guards/roles.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
+import { IsNotEmpty, IsString, IsOptional, IsBoolean } from 'class-validator';
 import {
   WhatsappChatsService,
   UpdateConversationDto,
@@ -24,14 +25,30 @@ import {
 import { WhatsappEventsService } from './whatsapp-events.service';
 
 class SendStaffMessageDto {
+  @IsString()
+  @IsNotEmpty()
   body: string;
 }
 
 class UpdateMetadataDto implements UpdateConversationDto {
+  @IsString()
+  @IsOptional()
   clientName?: string;
+
+  @IsString()
+  @IsOptional()
   businessName?: string;
+
+  @IsString()
+  @IsOptional()
   gstin?: string;
+
+  @IsBoolean()
+  @IsOptional()
   verified?: boolean;
+
+  @IsString()
+  @IsOptional()
   internalNotes?: string;
 }
 
