@@ -1,24 +1,69 @@
-import { Controller, Get, Post, Req, Res, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
+import { NotificationsService } from './notifications.service';
+import { WhatsappAiService } from './whatsapp-ai.service';
+
+interface WhatsappIncomingMessage {
+  from: string;
+  id: string;
+  timestamp?: string;
+  type?: string;
+  text?: { body: string };
+}
+
+interface WhatsappWebhookBody {
+  object?: string;
+  entry?: Array<{
+    id?: string;
+    changes?: Array<{
+      value?: {
+        messages?: WhatsappIncomingMessage[];
+        metadata?: { phone_number_id?: string; display_phone_number?: string };
+        statuses?: unknown[];
+      };
+      field?: string;
+    }>;
+  }>;
+}
 
 @Controller('notifications/whatsapp-webhook')
 export class WhatsappWebhookController {
-  constructor(private readonly configService: ConfigService) {}
+  private readonly logger = new Logger(WhatsappWebhookController.name);
+
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly notificationsService: NotificationsService,
+    private readonly whatsappAiService: WhatsappAiService,
+  ) {}
 
   @Get()
   verifyWebhook(@Req() req: Request, @Res() res: Response) {
     const mode = req.query['hub.mode'];
-    const token = req.query['hub.verify_token'];
+    const token =
+      typeof req.query['hub.verify_token'] === 'string'
+        ? req.query['hub.verify_token']
+        : '';
     const challenge = req.query['hub.challenge'];
 
     const verifyToken = this.configService.get<string>('whatsapp.verifyToken');
 
     if (mode && token) {
       if (mode === 'subscribe' && token === verifyToken) {
-        console.log('WEBHOOK_VERIFIED');
+        this.logger.log('WhatsApp Webhook successfully verified by Meta');
         return res.status(HttpStatus.OK).send(challenge);
       } else {
+        this.logger.warn(
+          `Webhook verification token mismatch. Received: ${token}, Expected: ${verifyToken ?? ''}`,
+        );
         return res.sendStatus(HttpStatus.FORBIDDEN);
       }
     }
@@ -28,48 +73,63 @@ export class WhatsappWebhookController {
 
   @Post()
   handleWebhook(@Req() req: Request, @Res() res: Response) {
-    interface WhatsappWebhookBody {
-      object?: string;
-      entry?: Array<{
-        changes?: Array<{
-          value?: {
-            messages?: Array<{
-              from: string;
-              text?: { body: string };
-            }>;
-            metadata?: { phone_number_id: string };
-          };
-        }>;
-      }>;
-    }
-
     const body = req.body as WhatsappWebhookBody;
 
-    console.log('Incoming WhatsApp Webhook:', JSON.stringify(body, null, 2));
+    // Acknowledge Meta immediately with 200 OK
+    res.sendStatus(HttpStatus.OK);
 
-    if (body.object) {
-      if (
-        body.entry &&
-        body.entry[0].changes &&
-        body.entry[0].changes[0] &&
-        body.entry[0].changes[0].value?.messages &&
-        body.entry[0].changes[0].value.messages[0]
-      ) {
-        // A message was received
-        const phoneNumberId =
-          body.entry[0].changes[0].value.metadata?.phone_number_id;
-        const from = body.entry[0].changes[0].value.messages[0].from;
-        const msgBody = body.entry[0].changes[0].value.messages[0].text?.body;
+    if (body.object && body.entry) {
+      for (const entry of body.entry) {
+        if (!entry.changes) continue;
+        for (const change of entry.changes) {
+          const value = change.value;
+          if (!value?.messages || value.messages.length === 0) {
+            continue;
+          }
 
-        console.log(
-          `Received message from ${from}: ${msgBody} on number ID ${phoneNumberId}`,
-        );
+          for (const message of value.messages) {
+            const from = message.from;
+            const messageId = message.id;
+            const msgBody = message.text?.body;
+
+            if (!from || !msgBody) {
+              continue;
+            }
+
+            this.logger.log(
+              `Incoming WhatsApp message from ${from} (ID: ${messageId}): "${msgBody}"`,
+            );
+
+            // Process message and send AI reply asynchronously
+            void (async () => {
+              try {
+                const aiReply = await this.whatsappAiService.generateReply(
+                  from,
+                  messageId,
+                  msgBody,
+                );
+
+                if (aiReply) {
+                  this.logger.log(`Sending AI reply to ${from}`);
+                  const sent = await this.notificationsService.sendWhatsapp(
+                    from,
+                    aiReply,
+                  );
+                  if (sent) {
+                    this.logger.log(`AI reply successfully sent to ${from}`);
+                  } else {
+                    this.logger.warn(`Failed to deliver AI reply to ${from}`);
+                  }
+                }
+              } catch (err) {
+                this.logger.error(
+                  `Error processing WhatsApp AI reply for ${from}: ${(err as Error).message}`,
+                );
+              }
+            })();
+          }
+        }
       }
-
-      // Always return a 200 OK to acknowledge receipt
-      return res.sendStatus(HttpStatus.OK);
-    } else {
-      return res.sendStatus(HttpStatus.NOT_FOUND);
     }
   }
 }

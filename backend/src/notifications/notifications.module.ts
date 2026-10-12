@@ -6,6 +6,7 @@ import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
 import { ReportNotificationsController } from './report-notifications.controller';
 import { ReportNotificationsService } from './report-notifications.service';
+import { WhatsappAiService } from './whatsapp-ai.service';
 import { WhatsappWebhookController } from './whatsapp-webhook.controller';
 
 @Module({
@@ -15,7 +16,15 @@ import { WhatsappWebhookController } from './whatsapp-webhook.controller';
     NotificationsController,
     WhatsappWebhookController,
   ],
-  providers: [NotificationsService, ReportNotificationsService],
-  exports: [NotificationsService, ReportNotificationsService],
+  providers: [
+    NotificationsService,
+    ReportNotificationsService,
+    WhatsappAiService,
+  ],
+  exports: [
+    NotificationsService,
+    ReportNotificationsService,
+    WhatsappAiService,
+  ],
 })
 export class NotificationsModule {}
