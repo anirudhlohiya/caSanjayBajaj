@@ -283,3 +283,67 @@ export interface TicketAttachment {
   created_at: string;
   download_url?: string;
 }
+
+export type WhatsappConversationStatus =
+  | 'ai_handling'
+  | 'staff_takeover'
+  | 'escalated'
+  | 'closed';
+
+export type WhatsappMessageType =
+  | 'text'
+  | 'image'
+  | 'document'
+  | 'audio'
+  | 'template'
+  | 'interactive';
+
+export type WhatsappSender = 'client' | 'ai' | 'staff';
+export type WhatsappMessageDirection = 'inbound' | 'outbound';
+
+export interface WhatsappConversation {
+  id: string;
+  phoneNumber: string;
+  clientName: string | null;
+  businessName: string | null;
+  gstin: string | null;
+  verified: boolean;
+  status: WhatsappConversationStatus;
+  assignedStaffId: string | null;
+  internalNotes: string | null;
+  unreadCount: number;
+  lastMessageAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lastMessage?: {
+    id: string;
+    sender: WhatsappSender;
+    body: string | null;
+    messageType: WhatsappMessageType;
+    createdAt: string;
+  } | null;
+}
+
+export interface WhatsappMessage {
+  id: string;
+  conversationId: string;
+  metaMessageId: string | null;
+  direction: WhatsappMessageDirection;
+  sender: WhatsappSender;
+  messageType: WhatsappMessageType;
+  body: string | null;
+  mediaUrl: string | null;
+  templateName: string | null;
+  staffId: string | null;
+  createdAt: string;
+}
+
+export interface WhatsappUsageStats {
+  month: string;
+  outboundServiceMessages: number;
+  outboundTemplateMessages: number;
+  freeTierLimit: number;
+  remainingFreeServiceMessages: number;
+  percentUsed: number;
+}
+

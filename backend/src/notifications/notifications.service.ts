@@ -159,7 +159,7 @@ export class NotificationsService {
         cleanNumber = '91' + cleanNumber;
       }
       const response = await fetch(
-        `https://graph.facebook.com/v17.0/${phoneNumberId}/messages`,
+        `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
         {
           method: 'POST',
           headers: {
@@ -215,7 +215,7 @@ export class NotificationsService {
         cleanNumber = '91' + cleanNumber;
       }
       const response = await fetch(
-        `https://graph.facebook.com/v17.0/${phoneNumberId}/messages`,
+        `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
         {
           method: 'POST',
           headers: {

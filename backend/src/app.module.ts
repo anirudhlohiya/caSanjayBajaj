@@ -27,6 +27,7 @@ import { HealthController } from './health.controller';
 import { ReportRequestsModule } from './report-requests/report-requests.module';
 import { ShareLinksModule } from './share-links/share-links.module';
 import { BirthdayNotificationsModule } from './birthday-notifications/birthday-notifications.module';
+import { WhatsappChatsModule } from './whatsapp-chats/whatsapp-chats.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { BirthdayNotificationsModule } from './birthday-notifications/birthday-n
     ShareLinksModule,
     ReportRequestsModule,
     BirthdayNotificationsModule,
+    WhatsappChatsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

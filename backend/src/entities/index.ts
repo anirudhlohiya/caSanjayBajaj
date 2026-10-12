@@ -22,6 +22,8 @@ import { TicketMessage } from './ticket-message.entity';
 import { TicketAttachment } from './ticket-attachment.entity';
 import { User } from './user.entity';
 import { RentAgreement } from './rent-agreement.entity';
+import { WhatsappConversation } from './whatsapp-conversation.entity';
+import { WhatsappMessage } from './whatsapp-message.entity';
 
 export const entities = [
   User,
@@ -48,6 +50,8 @@ export const entities = [
   RentAgreement,
   ComplianceTask,
   ClientCertificate,
+  WhatsappConversation,
+  WhatsappMessage,
 ];
 
 export {
@@ -75,4 +79,6 @@ export {
   TicketAttachment,
   RentAgreement,
   User,
+  WhatsappConversation,
+  WhatsappMessage,
 };

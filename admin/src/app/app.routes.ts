@@ -65,6 +65,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/tickets/ticket-detail').then((m) => m.TicketDetailPage),
       },
       {
+        path: 'whatsapp-chats',
+        canActivate: [permissionGuard('view_clients')],
+        loadComponent: () => import('./features/whatsapp-chats/whatsapp-chats').then((m) => m.WhatsappChatsPage),
+      },
+      {
         path: 'audit',
         canActivate: [permissionGuard('view_audit_logs')],
         loadComponent: () => import('./features/audit/audit').then((m) => m.Audit),

@@ -23,6 +23,9 @@ import type {
   UploadUrl,
   Admin,
   ReportRequest,
+  WhatsappConversation,
+  WhatsappMessage,
+  WhatsappUsageStats,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -553,5 +556,119 @@ export class ComplianceTasksService {
     return firstValueFrom(
       this.api.patch<ComplianceTask>(`/compliance-tasks/admin/${id}/nil-confirm`)
     );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class WhatsappChatsService {
+  private readonly api = inject(ApiClient);
+
+  listConversations(
+    params: {
+      status?: string;
+      search?: string;
+      page?: number;
+      limit?: number;
+    } = {},
+  ) {
+    return firstValueFrom(
+      this.api.get<{
+        items: WhatsappConversation[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      }>('/whatsapp-chats/conversations', params),
+    );
+  }
+
+  getUsage() {
+    return firstValueFrom(
+      this.api.get<WhatsappUsageStats>('/whatsapp-chats/usage'),
+    );
+  }
+
+  getMessages(
+    conversationId: string,
+    params: { limit?: number; before?: string } = {},
+  ) {
+    return firstValueFrom(
+      this.api.get<WhatsappMessage[]>(
+        `/whatsapp-chats/conversations/${conversationId}/messages`,
+        params,
+      ),
+    );
+  }
+
+  sendStaffMessage(conversationId: string, body: string) {
+    return firstValueFrom(
+      this.api.post<WhatsappMessage>(
+        `/whatsapp-chats/conversations/${conversationId}/messages`,
+        { body },
+      ),
+    );
+  }
+
+  takeover(conversationId: string) {
+    return firstValueFrom(
+      this.api.patch<WhatsappConversation>(
+        `/whatsapp-chats/conversations/${conversationId}/takeover`,
+      ),
+    );
+  }
+
+  release(conversationId: string) {
+    return firstValueFrom(
+      this.api.patch<WhatsappConversation>(
+        `/whatsapp-chats/conversations/${conversationId}/release`,
+      ),
+    );
+  }
+
+  escalate(conversationId: string) {
+    return firstValueFrom(
+      this.api.patch<WhatsappConversation>(
+        `/whatsapp-chats/conversations/${conversationId}/escalate`,
+      ),
+    );
+  }
+
+  close(conversationId: string) {
+    return firstValueFrom(
+      this.api.patch<WhatsappConversation>(
+        `/whatsapp-chats/conversations/${conversationId}/close`,
+      ),
+    );
+  }
+
+  markAsRead(conversationId: string) {
+    return firstValueFrom(
+      this.api.patch<WhatsappConversation>(
+        `/whatsapp-chats/conversations/${conversationId}/read`,
+      ),
+    );
+  }
+
+  updateMetadata(
+    conversationId: string,
+    dto: {
+      clientName?: string;
+      businessName?: string;
+      gstin?: string;
+      verified?: boolean;
+      internalNotes?: string;
+    },
+  ) {
+    return firstValueFrom(
+      this.api.patch<WhatsappConversation>(
+        `/whatsapp-chats/conversations/${conversationId}`,
+        dto,
+      ),
+    );
+  }
+
+  getStreamUrl(token?: string): string {
+    const base = `${this.api.baseUrl}/whatsapp-chats/stream`;
+    return token ? `${base}?token=${encodeURIComponent(token)}` : base;
   }
 }

@@ -121,4 +121,12 @@ export default () => ({
     apiKey: process.env.GROQ_API_KEY ?? '',
     model: process.env.GROQ_MODEL ?? 'llama-3.1-8b-instant',
   },
+
+  r2: {
+    accountId: process.env.R2_ACCOUNT_ID ?? '',
+    accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+    bucketName: process.env.R2_BUCKET_NAME ?? 'snbajaj-whatsapp-media',
+    publicUrl: process.env.R2_PUBLIC_URL ?? '',
+  },
 });

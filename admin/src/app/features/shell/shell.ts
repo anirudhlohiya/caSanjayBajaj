@@ -35,6 +35,7 @@ export class Shell {
     { label: 'Website', route: '/website', icon: 'language', show: () => this.auth.hasPermission('manage_website') },
     { label: 'Services', route: '/services', icon: 'home_repair_service', show: () => this.auth.hasPermission('manage_website') },
     { label: 'Tickets', route: '/tickets', icon: 'support_agent', show: () => this.auth.hasPermission('view_clients') },
+    { label: 'WhatsApp Chats', route: '/whatsapp-chats', icon: 'chat', show: () => this.auth.hasPermission('view_clients') },
     { label: 'Audit Logs', route: '/audit', icon: 'history', show: () => this.auth.hasPermission('view_audit_logs') },
     { label: 'Rent Agreements', route: '/rent-agreements', icon: 'description', show: () => this.auth.hasPermission('view_clients') },
     { label: 'Settings', route: '/settings', icon: 'settings', show: () => this.auth.hasPermission('manage_settings') },
