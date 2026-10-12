@@ -105,7 +105,7 @@ export class WhatsappAiService {
 
     const apiKey = this.config.get<string>('groq.apiKey');
     const model =
-      this.config.get<string>('groq.model') || 'llama-3.3-70b-versatile';
+      this.config.get<string>('groq.model') || 'llama-3.1-8b-instant';
 
     if (!apiKey) {
       this.logger.warn(
