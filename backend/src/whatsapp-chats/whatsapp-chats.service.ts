@@ -112,6 +112,11 @@ export class WhatsappChatsService {
     });
     const savedMsg = await this.msgRepo.save(msg);
 
+    // If conversation was marked closed, auto-reopen to AI handling on new customer activity
+    if (conv.status === 'closed') {
+      conv.status = 'ai_handling';
+    }
+
     conv.unreadCount = (conv.unreadCount || 0) + 1;
     conv.lastMessageAt = new Date();
     await this.convRepo.save(conv);

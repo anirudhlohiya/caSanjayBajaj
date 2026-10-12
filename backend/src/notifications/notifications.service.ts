@@ -185,19 +185,9 @@ export class NotificationsService {
           `WhatsApp send failed for ${toPhoneNumber}: ${JSON.stringify(errorData)}`,
         );
 
-        // Fallback for Meta error 131037 (display name approval pending on custom number)
-        const verifiedFallbackId = '1286517461221916';
-        if (
-          errorData.error?.code === 131037 &&
-          phoneNumberId !== verifiedFallbackId
-        ) {
+        if (errorData.error?.code === 131037) {
           this.logger.warn(
-            `Number ID ${phoneNumberId} needs display name approval (131037). Automatically falling back to verified sender ${verifiedFallbackId}`,
-          );
-          return this.sendWhatsapp(
-            toPhoneNumber,
-            message,
-            verifiedFallbackId,
+            `WhatsApp sender ID ${phoneNumberId} needs display name approval in Meta Business Manager before outbound messages can be delivered.`,
           );
         }
 

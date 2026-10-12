@@ -706,7 +706,19 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
 - **WhatsApp AI Agent & Support Desk Integration (Oct 2026)**:
   - **Architecture**: Inbound webhook at `POST /api/v1/notifications/whatsapp-webhook` over Meta WhatsApp Cloud API (Graph API `v21.0`).
   - **AI Engine**: Groq free-tier LLM (`qwen/qwen3.8-27b`) delivering conversational responses tailored to firm practice areas (GST, ITR, company registrations, office timings, address, portal links).
-  - **Cost Optimization (Target ~₹0/mo)**: Direct Cloud API integration (no BSP markup); 1,000 free service messages/month per number; single-bubble responses; AI suppression when conversation status is `staff_takeover` or `closed`; strict filtering to ignore `statuses` delivery receipts; 24-hour customer service window enforcement for staff replies.
+  - **Phone Numbers & WABA Setup**:
+    - **Primary Business Number**: `+1 555-960-3342` (Phone Number ID: `1338742349323780`), registered under primary WABA `1608612210731434` ("Anirudh Lohiya" / "S N Bajaj And Co"). Configured in `.env` as `WHATSAPP_PHONE_NUMBER_ID=1338742349323780` and `WHATSAPP_BUSINESS_ID=1608612210731434`.
+    - **Legacy / Test Number**: `+1 555-635-9623` (Phone Number ID: `1286517461221916`), registered under old test WABA `1757489425951419`.
+  - **Meta Error 131037 & Display Name Approval**:
+    - When sending outbound messages from trial / newly provisioned numbers (`1338742349323780`), Meta returns error code `131037`: `"(#131037) WhatsApp provided number needs display name approval before message can be sent."`
+    - Cloud API registration endpoint was invoked and succeeded (`POST /1338742349323780/register` -> `success: true`).
+    - The permanent resolution for Meta 131037 requires Meta's automated display name review to clear in Meta WhatsApp Manager -> Account Tools -> Phone Numbers (Display Name / Certificate). Once approved by Meta, outbound messages from `1338742349323780` are unblocked permanently without relying on test number fallbacks.
+  - **AI Lifecycle & Takeover Mechanics**:
+    - **Status Modes**: Conversations cycle through `ai_handling`, `staff_takeover`, `escalated`, and `closed`.
+    - **AI Suppression**: When a staff member manually clicks "Take Over", conversation transitions to `staff_takeover`. Automated AI replies are intentionally suppressed so staff can converse with the client uninterrupted.
+    - **Return to AI**: Staff can click "Return to AI" / "Hand to AI" in the thread header or metadata drawer to return handling to the AI assistant.
+    - **Auto-Reopen on Inbound Message**: If a conversation was marked `closed` and the client messages again later, the system automatically transitions the status back to `ai_handling` so the AI immediately attends to the client.
+  - **Cost Optimization (Target ~₹0/mo)**: Direct Cloud API integration (no BSP markup); 1,000 free service messages/month per number; single-bubble responses; strict filtering to ignore `statuses` delivery receipts; 24-hour customer service window enforcement for staff replies.
   - **Admin Support Desk (`/whatsapp-chats`)**: Three-pane responsive support inbox (Conversation List, Active Thread with AI/Staff badges, Client details panel with editable metadata, internal staff notes, and takeover/release toggle). Mobile-first responsive view switching between inbox list and active thread with back button navigation and drawer toggle. Live updates powered by Server-Sent Events (`/api/v1/whatsapp-chats/stream`) with query-token JWT authentication.
   - **Storage & Inbound Media**: Conversations (`whatsapp_conversations`) and messages (`whatsapp_messages`) persisted in PostgreSQL with deduplication on Meta message ID (`meta_message_id` unique index). Inbound media downloaded from Meta upon receipt and stored in Cloudflare R2 object storage to prevent expiration with zero egress fees.
   - **Monthly Budget Guard**: Lightweight tracker monitoring outbound service and utility messages against the 1,000 free monthly tier (`GET /api/v1/whatsapp-chats/usage`).
