@@ -186,17 +186,19 @@ export class NotificationsService {
         );
 
         // Fallback for Meta error 131037 (display name approval pending on custom number)
-        const defaultPhoneNumberId = this.config.get<string>('whatsapp.phoneNumberId');
+        const verifiedFallbackId = '1286517461221916';
         if (
           errorData.error?.code === 131037 &&
-          senderPhoneNumberId &&
-          defaultPhoneNumberId &&
-          senderPhoneNumberId !== defaultPhoneNumberId
+          phoneNumberId !== verifiedFallbackId
         ) {
           this.logger.warn(
-            `Retrying WhatsApp send using default verified phone number ID ${defaultPhoneNumberId}`,
+            `Number ID ${phoneNumberId} needs display name approval (131037). Automatically falling back to verified sender ${verifiedFallbackId}`,
           );
-          return this.sendWhatsapp(toPhoneNumber, message, defaultPhoneNumberId);
+          return this.sendWhatsapp(
+            toPhoneNumber,
+            message,
+            verifiedFallbackId,
+          );
         }
 
         return false;
