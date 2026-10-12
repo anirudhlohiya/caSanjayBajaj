@@ -1,0 +1,62 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+export const prerender = true;
+---
+
+<Base
+  title="404 — Page Not Found | S N Bajaj And Co, Surat"
+  description="The page you requested could not be found. Return to S N Bajaj And Co — Chartered Accountants in Surat."
+  canonical="/404"
+  robots="noindex, follow"
+>
+  <Header />
+
+  <section class="section" style="min-height: 70vh; justify-content: center; text-align: center; flex-direction: column; padding: 140px 10% 80px;">
+    <div style="max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+      <div style="display: inline-flex; align-items: center; justify-content: center; width: 90px; height: 90px; border-radius: 50%; background: #e6f0fd; color: var(--primary-color); font-size: 42px; margin-bottom: 8px;">
+        <i class="ri-compass-3-line"></i>
+      </div>
+
+      <span style="color: var(--primary-color); font-weight: 700; letter-spacing: 2px; font-size: 1.1rem; text-transform: uppercase;">
+        Error 404
+      </span>
+
+      <h1 style="font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.2; color: var(--secondary-color);">
+        Page Not Found
+      </h1>
+
+      <p style="font-size: 17px; line-height: 28px; color: #4a5568; max-width: 540px;">
+        Sorry, the page you are looking for doesn't exist, has been removed, or the link you followed is incorrect.
+      </p>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 15px;">
+        <a href="/" class="btn" style="color: #fff; width: auto; padding: 0 35px; height: 56px; font-size: 16px; font-weight: 600; text-decoration: none;">
+          <span>Return to Homepage</span>
+          <i class="ri-home-4-line"></i>
+        </a>
+        <a href="/#Contact Us" class="btn" style="background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); width: auto; padding: 0 30px; height: 56px; font-size: 16px; font-weight: 600; text-decoration: none;">
+          <span>Contact Us</span>
+          <i class="ri-mail-send-line"></i>
+        </a>
+      </div>
+
+      <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e2e8f0; width: 100%;">
+        <p style="font-size: 14px; color: #718096; margin-bottom: 12px; font-weight: 600;">
+          Looking for something specific?
+        </p>
+        <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; font-size: 15px;">
+          <a href="/#Services" style="color: var(--primary-color); text-decoration: underline;">Our Services</a>
+          <a href="/blog" style="color: var(--primary-color); text-decoration: underline;">Tax & Finance Blog</a>
+          <a href="/#About" style="color: var(--primary-color); text-decoration: underline;">About CA Sanjay Bajaj</a>
+          <a href="/privacy-policy" style="color: var(--primary-color); text-decoration: underline;">Privacy Policy</a>
+          <a href="/terms-and-conditions" style="color: var(--primary-color); text-decoration: underline;">Terms & Conditions</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Base>
