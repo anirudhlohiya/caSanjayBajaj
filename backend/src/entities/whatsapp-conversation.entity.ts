@@ -10,10 +10,7 @@ import {
 import { WhatsappMessage } from './whatsapp-message.entity';
 
 export type WhatsappConversationStatus =
-  | 'ai_handling'
-  | 'staff_takeover'
-  | 'escalated'
-  | 'closed';
+  'ai_handling' | 'staff_takeover' | 'escalated' | 'closed';
 
 @Entity('whatsapp_conversations')
 export class WhatsappConversation {
@@ -27,7 +24,12 @@ export class WhatsappConversation {
   @Column({ type: 'varchar', length: 150, nullable: true, name: 'client_name' })
   clientName: string | null;
 
-  @Column({ type: 'varchar', length: 200, nullable: true, name: 'business_name' })
+  @Column({
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+    name: 'business_name',
+  })
   businessName: string | null;
 
   @Column({ type: 'varchar', length: 20, nullable: true })

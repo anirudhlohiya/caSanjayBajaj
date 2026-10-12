@@ -93,9 +93,17 @@ export class AddWhatsappChatTables1800000000001 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE IF EXISTS "whatsapp_messages"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "whatsapp_conversations"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "whatsapp_messages_message_type_enum"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "whatsapp_messages_sender_enum"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "whatsapp_messages_direction_enum"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "whatsapp_conversations_status_enum"`);
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "whatsapp_messages_message_type_enum"`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "whatsapp_messages_sender_enum"`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "whatsapp_messages_direction_enum"`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "whatsapp_conversations_status_enum"`,
+    );
   }
 }

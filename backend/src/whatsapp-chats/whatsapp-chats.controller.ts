@@ -1,4 +1,4 @@
-  import {
+import {
   Controller,
   Get,
   Post,
@@ -27,7 +27,7 @@ class SendStaffMessageDto {
   body: string;
 }
 
-class UpdateMetadataDto {
+class UpdateMetadataDto implements UpdateConversationDto {
   clientName?: string;
   businessName?: string;
   gstin?: string;
@@ -140,12 +140,14 @@ export class WhatsappChatsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateMetadataDto,
   ) {
-    return this.chatsService.updateConversation(id, body as UpdateConversationDto);
+    return this.chatsService.updateConversation(id, body);
   }
 
   @Sse('stream')
   @Permissions('view_clients')
-  @ApiOperation({ summary: 'Server-Sent Events for real-time WhatsApp chat updates' })
+  @ApiOperation({
+    summary: 'Server-Sent Events for real-time WhatsApp chat updates',
+  })
   stream(): Observable<{ data: string }> {
     return this.eventsService.getStream().pipe(
       map((event) => ({

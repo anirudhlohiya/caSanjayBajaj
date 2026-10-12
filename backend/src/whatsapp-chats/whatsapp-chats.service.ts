@@ -12,7 +12,6 @@ import {
 } from '../entities/whatsapp-conversation.entity';
 import {
   WhatsappMessage,
-  WhatsappSender,
   WhatsappMessageType,
 } from '../entities/whatsapp-message.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -62,7 +61,10 @@ export class WhatsappChatsService {
         unreadCount: 0,
       });
       conv = await this.convRepo.save(conv);
-      this.eventsService.emit({ type: 'conversation', conversationId: conv.id });
+      this.eventsService.emit({
+        type: 'conversation',
+        conversationId: conv.id,
+      });
     } else if (profileName && !conv.clientName) {
       conv.clientName = profileName;
       conv = await this.convRepo.save(conv);
@@ -80,7 +82,11 @@ export class WhatsappChatsService {
     messageType?: WhatsappMessageType;
     body?: string;
     mediaUrl?: string;
-  }): Promise<{ conversation: WhatsappConversation; message: WhatsappMessage; isDuplicate: boolean }> {
+  }): Promise<{
+    conversation: WhatsappConversation;
+    message: WhatsappMessage;
+    isDuplicate: boolean;
+  }> {
     const conv = await this.findOrCreateConversation(
       params.phoneNumber,
       params.profileName,
@@ -173,7 +179,7 @@ export class WhatsappChatsService {
     if (query.search?.trim()) {
       const term = `%${query.search.trim().toLowerCase()}%`;
       qb.andWhere(
-        '(LOWER(c.phoneNumber) LIKE :term OR LOWER(COALESCE(c.clientName, \'\')) LIKE :term OR LOWER(COALESCE(c.businessName, \'\')) LIKE :term OR LOWER(COALESCE(c.gstin, \'\')) LIKE :term)',
+        "(LOWER(c.phoneNumber) LIKE :term OR LOWER(COALESCE(c.clientName, '')) LIKE :term OR LOWER(COALESCE(c.businessName, '')) LIKE :term OR LOWER(COALESCE(c.gstin, '')) LIKE :term)",
         { term },
       );
     }
@@ -219,11 +225,7 @@ export class WhatsappChatsService {
   /**
    * Fetch thread messages for a conversation.
    */
-  async getMessages(
-    conversationId: string,
-    limit = 50,
-    before?: string,
-  ) {
+  async getMessages(conversationId: string, limit = 50, before?: string) {
     const qb = this.msgRepo
       .createQueryBuilder('m')
       .where('m.conversationId = :conversationId', { conversationId });
@@ -351,10 +353,7 @@ export class WhatsappChatsService {
     return saved;
   }
 
-  async updateConversation(
-    conversationId: string,
-    dto: UpdateConversationDto,
-  ) {
+  async updateConversation(conversationId: string, dto: UpdateConversationDto) {
     const conv = await this.convRepo.findOne({ where: { id: conversationId } });
     if (!conv) throw new NotFoundException('Conversation not found');
 
@@ -402,7 +401,10 @@ export class WhatsappChatsService {
       outboundTemplateMessages: outboundTemplates,
       freeTierLimit: freeLimit,
       remainingFreeServiceMessages: remainingFree,
-      percentUsed: Math.min(100, Math.round((outboundServiceMsgs / freeLimit) * 100)),
+      percentUsed: Math.min(
+        100,
+        Math.round((outboundServiceMsgs / freeLimit) * 100),
+      ),
     };
   }
 }

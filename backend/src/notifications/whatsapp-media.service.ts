@@ -67,7 +67,10 @@ export class WhatsappMediaService {
         return null;
       }
 
-      const metaData = (await metaRes.json()) as { url?: string; mime_type?: string };
+      const metaData = (await metaRes.json()) as {
+        url?: string;
+        mime_type?: string;
+      };
       if (!metaData.url) {
         return null;
       }
@@ -87,7 +90,8 @@ export class WhatsappMediaService {
       }
 
       const buffer = Buffer.from(await downloadRes.arrayBuffer());
-      const effectiveMime = mimeType || metaData.mime_type || 'application/octet-stream';
+      const effectiveMime =
+        mimeType || metaData.mime_type || 'application/octet-stream';
       const extension = this.getExtension(effectiveMime, filenameHint);
       const key = `whatsapp/${Date.now()}_${mediaId.slice(-8)}${extension}`;
 

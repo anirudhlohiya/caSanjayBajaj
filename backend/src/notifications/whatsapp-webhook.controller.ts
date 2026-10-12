@@ -175,14 +175,15 @@ export class WhatsappWebhookController {
                 }
 
                 // 1. Record inbound message in DB with deduplication
-                const recordResult = await this.chatsService.recordInboundMessage({
-                  phoneNumber: from,
-                  profileName: contactName,
-                  metaMessageId: messageId,
-                  messageType: msgType,
-                  body: msgBody,
-                  mediaUrl: mediaUrl,
-                });
+                const recordResult =
+                  await this.chatsService.recordInboundMessage({
+                    phoneNumber: from,
+                    profileName: contactName,
+                    metaMessageId: messageId,
+                    messageType: msgType,
+                    body: msgBody,
+                    mediaUrl: mediaUrl,
+                  });
 
                 if (recordResult.isDuplicate) {
                   this.logger.debug(
@@ -238,7 +239,9 @@ export class WhatsappWebhookController {
                       conversation.id,
                       aiReply,
                     );
-                    this.logger.log(`AI reply successfully sent and recorded for ${from}`);
+                    this.logger.log(
+                      `AI reply successfully sent and recorded for ${from}`,
+                    );
                   } else {
                     this.logger.warn(`Failed to deliver AI reply to ${from}`);
                   }
@@ -256,4 +259,3 @@ export class WhatsappWebhookController {
     }
   }
 }
-
