@@ -178,10 +178,27 @@ export class NotificationsService {
       );
 
       if (!response.ok) {
-        const errorData = (await response.json()) as Record<string, unknown>;
+        const errorData = (await response.json()) as {
+          error?: { code?: number; message?: string };
+        };
         this.logger.error(
           `WhatsApp send failed for ${toPhoneNumber}: ${JSON.stringify(errorData)}`,
         );
+
+        // Fallback for Meta error 131037 (display name approval pending on custom number)
+        const defaultPhoneNumberId = this.config.get<string>('whatsapp.phoneNumberId');
+        if (
+          errorData.error?.code === 131037 &&
+          senderPhoneNumberId &&
+          defaultPhoneNumberId &&
+          senderPhoneNumberId !== defaultPhoneNumberId
+        ) {
+          this.logger.warn(
+            `Retrying WhatsApp send using default verified phone number ID ${defaultPhoneNumberId}`,
+          );
+          return this.sendWhatsapp(toPhoneNumber, message, defaultPhoneNumberId);
+        }
+
         return false;
       }
 
