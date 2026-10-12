@@ -136,8 +136,13 @@ export class NotificationsService {
     }
   }
 
-  async sendWhatsapp(toPhoneNumber: string, message: string): Promise<boolean> {
-    const phoneNumberId = this.config.get<string>('whatsapp.phoneNumberId');
+  async sendWhatsapp(
+    toPhoneNumber: string,
+    message: string,
+    senderPhoneNumberId?: string,
+  ): Promise<boolean> {
+    const phoneNumberId =
+      senderPhoneNumberId || this.config.get<string>('whatsapp.phoneNumberId');
     const accessToken = this.config.get<string>('whatsapp.accessToken');
 
     if (!phoneNumberId || !accessToken) {

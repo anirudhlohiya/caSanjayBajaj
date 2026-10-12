@@ -87,6 +87,8 @@ export class WhatsappWebhookController {
             continue;
           }
 
+          const phoneNumberId = value.metadata?.phone_number_id;
+
           for (const message of value.messages) {
             const from = message.from;
             const messageId = message.id;
@@ -97,7 +99,7 @@ export class WhatsappWebhookController {
             }
 
             this.logger.log(
-              `Incoming WhatsApp message from ${from} (ID: ${messageId}): "${msgBody}"`,
+              `Incoming WhatsApp message on number ID ${phoneNumberId} from ${from} (ID: ${messageId}): "${msgBody}"`,
             );
 
             // Process message and send AI reply asynchronously
@@ -110,10 +112,13 @@ export class WhatsappWebhookController {
                 );
 
                 if (aiReply) {
-                  this.logger.log(`Sending AI reply to ${from}`);
+                  this.logger.log(
+                    `Sending AI reply to ${from} via phone ID ${phoneNumberId}`,
+                  );
                   const sent = await this.notificationsService.sendWhatsapp(
                     from,
                     aiReply,
+                    phoneNumberId,
                   );
                   if (sent) {
                     this.logger.log(`AI reply successfully sent to ${from}`);
