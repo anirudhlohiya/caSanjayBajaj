@@ -707,12 +707,9 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
   - **Architecture**: Inbound webhook at `POST /api/v1/notifications/whatsapp-webhook` over Meta WhatsApp Cloud API (Graph API `v21.0`).
   - **AI Engine**: Groq free-tier LLM (`qwen/qwen3.8-27b`) delivering conversational responses tailored to firm practice areas (GST, ITR, company registrations, office timings, address, portal links).
   - **Phone Numbers & WABA Setup**:
-    - **Primary Business Number**: `+1 555-960-3342` (Phone Number ID: `1338742349323780`), registered under primary WABA `1608612210731434` ("Anirudh Lohiya" / "S N Bajaj And Co"). Configured in `.env` as `WHATSAPP_PHONE_NUMBER_ID=1338742349323780` and `WHATSAPP_BUSINESS_ID=1608612210731434`.
-    - **Legacy / Test Number**: `+1 555-635-9623` (Phone Number ID: `1286517461221916`), registered under old test WABA `1757489425951419`.
-  - **Meta Error 131037 & Display Name Approval**:
-    - When sending outbound messages from trial / newly provisioned numbers (`1338742349323780`), Meta returns error code `131037`: `"(#131037) WhatsApp provided number needs display name approval before message can be sent."`
-    - Cloud API registration endpoint was invoked and succeeded (`POST /1338742349323780/register` -> `success: true`).
-    - The permanent resolution for Meta 131037 requires Meta's automated display name review to clear in Meta WhatsApp Manager -> Account Tools -> Phone Numbers (Display Name / Certificate). Once approved by Meta, outbound messages from `1338742349323780` are unblocked permanently without relying on test number fallbacks.
+    - **Official Dedicated Indian Number**: `+91 78783 98067` (Phone Number ID: `1332098229994767`), registered under official WABA `3629482393869045` ("S N Bajaj and CO"). Configured in `.env` as `WHATSAPP_PHONE_NUMBER_ID=1332098229994767` and `WHATSAPP_BUSINESS_ID=3629482393869045`.
+    - **Previous Trial Number**: `+1 555-960-3342` (Phone Number ID: `1338742349323780`), under personal WABA `1608612210731434` ("Anirudh Lohiya").
+    - **Legacy / Sandbox Number**: `+1 555-635-9623` (Phone Number ID: `1286517461221916`), registered under old test WABA `1757489425951419`.
   - **AI Lifecycle & Takeover Mechanics**:
     - **Status Modes**: Conversations cycle through `ai_handling`, `staff_takeover`, `escalated`, and `closed`.
     - **AI Suppression**: When a staff member manually clicks "Take Over", conversation transitions to `staff_takeover`. Automated AI replies are intentionally suppressed so staff can converse with the client uninterrupted.
