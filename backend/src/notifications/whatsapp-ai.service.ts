@@ -105,7 +105,7 @@ export class WhatsappAiService {
 
     const apiKey = this.config.get<string>('groq.apiKey');
     const model =
-      this.config.get<string>('groq.model') || 'llama-3.1-8b-instant';
+      this.config.get<string>('groq.model') || 'openai/gpt-oss-120b';
 
     if (!apiKey) {
       this.logger.warn(
@@ -136,27 +136,49 @@ export class WhatsappAiService {
       ...session.messages,
     ];
 
-    try {
-      const response = await fetch(
-        'https://api.groq.com/openai/v1/chat/completions',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model,
-            messages: payloadMessages,
-            temperature: 0.6,
-            max_tokens: 650,
-          }),
-        },
-      );
+    const candidateModels = [
+      model,
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b',
+      'qwen/qwen3.8-27b',
+    ].filter((m, idx, arr) => arr.indexOf(m) === idx);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        this.logger.error(`Groq API error (${response.status}): ${errorText}`);
+    try {
+      let response: Response | null = null;
+      let lastErrorText = '';
+
+      for (const currentModel of candidateModels) {
+        response = await fetch(
+          'https://api.groq.com/openai/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: currentModel,
+              messages: payloadMessages,
+              temperature: 0.6,
+              max_tokens: 650,
+            }),
+          },
+        );
+
+        if (response.ok) {
+          break;
+        }
+
+        lastErrorText = await response.text();
+        this.logger.warn(
+          `Groq model ${currentModel} failed (${response.status}): ${lastErrorText}. Trying fallback...`,
+        );
+      }
+
+      if (!response || !response.ok) {
+        this.logger.error(
+          `All Groq models failed. Last error: ${lastErrorText}`,
+        );
         return (
           'Thank you for messaging *S N Bajaj And Co*.\n\n' +
           'We received your message and our team will get back to you shortly. You can also reach our office at *+91 99098 31995* or visit https://app.snbajaj.com.'

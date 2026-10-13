@@ -88,7 +88,7 @@ export class WhatsappChatsService {
     if (!conv) {
       conv = this.convRepo.create({
         phoneNumber,
-        clientName: matchingUser ? matchingUser.name : (profileName || null),
+        clientName: matchingUser ? matchingUser.name : profileName || null,
         clientId: matchingUser ? matchingUser.id : null,
         gstin: matchingUser?.gstin || null,
         verified: !!matchingUser,

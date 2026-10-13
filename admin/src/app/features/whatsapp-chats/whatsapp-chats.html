@@ -1,97 +1,99 @@
-<div class="h-full flex flex-col space-y-4">
+<div class="h-full flex flex-col space-y-3 md:space-y-4">
   <!-- Top Bar: Title & Free Tier Budget Monitor -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-neutral-200">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-neutral-200/80 dark:border-neutral-800">
     <div>
       <div class="flex items-center gap-2">
-        <h1 class="text-xl font-bold text-neutral-900 tracking-tight">WhatsApp AI Support Desk</h1>
-        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+        <h1 class="text-lg md:text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+          WhatsApp AI Support Desk
+        </h1>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
           Live Sync Active
         </span>
       </div>
-      <p class="text-xs text-neutral-500 mt-0.5">
+      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
         Monitor client queries, oversee AI responses, and intervene with staff takeover when needed.
       </p>
     </div>
 
     <!-- Free Tier Usage Counter (Hard Cost Constraint Monitor) -->
-    <div class="flex items-center gap-3 bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2">
+    <div class="flex items-center gap-3 bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-xl px-3 py-2 shadow-2xs self-start sm:self-auto">
       <div class="flex flex-col">
         <div class="flex items-center justify-between gap-4 text-xs">
-          <span class="font-medium text-neutral-700">Meta Free Tier:</span>
-          <span class="font-semibold text-neutral-900">
+          <span class="font-medium text-neutral-500 dark:text-neutral-400">Meta Free Tier:</span>
+          <span class="font-mono font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">
             {{ usage()?.outboundServiceMessages ?? 0 }} / {{ usage()?.freeTierLimit ?? 1000 }} msgs
           </span>
         </div>
-        <div class="w-48 bg-neutral-200 h-1.5 rounded-full overflow-hidden mt-1.5">
+        <div class="w-36 sm:w-44 bg-neutral-100 dark:bg-neutral-800 h-1.5 rounded-full overflow-hidden mt-1.5">
           <div
-            class="h-full bg-emerald-600 rounded-full transition-all duration-500"
+            class="h-full bg-emerald-600 dark:bg-emerald-500 rounded-full transition-all duration-500"
             [style.width.%]="usage()?.percentUsed ?? 0"
           ></div>
         </div>
       </div>
-      <div class="text-right pl-2 border-l border-neutral-200">
-        <span class="text-[10px] uppercase font-bold text-emerald-600 tracking-wider block">Cost</span>
-        <span class="text-xs font-bold text-neutral-800">₹0 / mo</span>
+      <div class="text-right pl-3 border-l border-neutral-200/80 dark:border-neutral-800">
+        <span class="text-[9px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 block">Cost</span>
+        <span class="text-xs font-mono font-bold text-neutral-900 dark:text-neutral-100">₹0 / mo</span>
       </div>
     </div>
   </div>
 
   <!-- Three-Pane Container -->
-  <div class="flex-1 min-h-0 flex relative border border-neutral-200 rounded-xl overflow-hidden bg-white shadow-xs">
+  <div class="flex-1 min-h-0 flex relative border border-neutral-200/80 dark:border-neutral-800 rounded-2xl overflow-hidden bg-white dark:bg-neutral-950 shadow-xs">
     
     <!-- LEFT PANE: Conversation List & Filters (Always visible on desktop md+, toggled on mobile) -->
     <div
-      class="w-full md:w-80 lg:w-96 flex-shrink-0 border-r border-neutral-200 flex-col bg-neutral-50/60"
+      class="w-full md:w-80 lg:w-[340px] flex-shrink-0 border-r border-neutral-200/80 dark:border-neutral-800 flex-col bg-neutral-50/40 dark:bg-neutral-950"
       [ngClass]="mobileView() === 'chat' ? 'hidden md:flex' : 'flex'"
     >
       <!-- Search & Filters -->
-      <div class="p-3 border-b border-neutral-200 space-y-2 bg-white">
+      <div class="p-3 border-b border-neutral-200/80 dark:border-neutral-800 space-y-2 bg-white dark:bg-neutral-950">
         <div class="relative">
-          <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-neutral-400 text-[18px]">search</span>
+          <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-neutral-400 dark:text-neutral-500 text-[18px]">search</span>
           <input
             type="text"
             [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
             placeholder="Search by name, phone, GSTIN..."
-            class="w-full pl-8 pr-3 py-1.5 text-xs bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:bg-white"
+            class="w-full pl-8 pr-3 py-1.5 text-xs bg-neutral-100/70 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-neutral-900 focus:border-neutral-900 dark:focus:border-neutral-100 focus:ring-1 focus:ring-neutral-900 dark:focus:ring-neutral-100 transition-all"
           />
         </div>
 
-        <!-- Filter Tabs -->
-        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 text-[11px]">
+        <!-- Filter Tabs (Vercel Segmented Control) -->
+        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar p-1 rounded-lg bg-neutral-100/80 dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 text-[11px]">
           <button
             (click)="activeTab.set('all')"
-            [class]="activeTab() === 'all' ? 'bg-neutral-900 text-white font-medium' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'"
-            class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap"
+            [class]="activeTab() === 'all' ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium shadow-2xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'"
+            class="px-2.5 py-1 rounded-md transition-all whitespace-nowrap"
           >
             All
           </button>
           <button
             (click)="activeTab.set('needs_attention')"
-            [class]="activeTab() === 'needs_attention' ? 'bg-amber-600 text-white font-medium' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'"
-            class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap"
+            [class]="activeTab() === 'needs_attention' ? 'bg-white dark:bg-neutral-800 text-amber-700 dark:text-amber-400 font-medium shadow-2xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'"
+            class="px-2.5 py-1 rounded-md transition-all whitespace-nowrap"
           >
             Attention
           </button>
           <button
             (click)="activeTab.set('ai_handling')"
-            [class]="activeTab() === 'ai_handling' ? 'bg-emerald-600 text-white font-medium' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'"
-            class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap"
+            [class]="activeTab() === 'ai_handling' ? 'bg-white dark:bg-neutral-800 text-emerald-700 dark:text-emerald-400 font-medium shadow-2xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'"
+            class="px-2.5 py-1 rounded-md transition-all whitespace-nowrap"
           >
             AI Active
           </button>
           <button
             (click)="activeTab.set('staff_takeover')"
-            [class]="activeTab() === 'staff_takeover' ? 'bg-amber-700 text-white font-medium' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'"
-            class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap"
+            [class]="activeTab() === 'staff_takeover' ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium shadow-2xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'"
+            class="px-2.5 py-1 rounded-md transition-all whitespace-nowrap"
           >
-            Staff Takeover
+            Takeover
           </button>
           <button
             (click)="activeTab.set('closed')"
-            [class]="activeTab() === 'closed' ? 'bg-neutral-600 text-white font-medium' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'"
-            class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap"
+            [class]="activeTab() === 'closed' ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium shadow-2xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'"
+            class="px-2.5 py-1 rounded-md transition-all whitespace-nowrap"
           >
             Closed
           </button>
@@ -99,42 +101,42 @@
       </div>
 
       <!-- Conversations Scroll List -->
-      <div class="flex-1 overflow-y-auto divide-y divide-neutral-100">
+      <div class="flex-1 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-900/80">
         @if (loadingConversations()) {
           <div class="p-8 flex justify-center">
             <app-spinner />
           </div>
         } @else if (filteredConversations().length === 0) {
-          <div class="p-8 text-center text-xs text-neutral-400">
-            <span class="material-symbols-outlined text-[32px] text-neutral-300 block mb-1">chat_bubble_outline</span>
+          <div class="p-8 text-center text-xs text-neutral-400 dark:text-neutral-500">
+            <span class="material-symbols-outlined text-[32px] text-neutral-300 dark:text-neutral-600 block mb-1">chat_bubble_outline</span>
             No conversations found
           </div>
         } @else {
           @for (conv of filteredConversations(); track conv.id) {
             <div
               (click)="selectConversation(conv)"
-              [class]="selectedConversation()?.id === conv.id ? 'bg-neutral-100/90 border-l-4 border-l-neutral-900' : 'hover:bg-neutral-100/50 bg-white'"
-              class="p-3 cursor-pointer transition-colors relative"
+              [class]="selectedConversation()?.id === conv.id ? 'bg-neutral-100/90 dark:bg-neutral-900 border-l-2 border-l-neutral-900 dark:border-l-neutral-100' : 'hover:bg-neutral-100/60 dark:hover:bg-neutral-900/50 bg-white dark:bg-neutral-950'"
+              class="p-3.5 cursor-pointer transition-all duration-150 relative"
             >
               <div class="flex items-start justify-between gap-2">
-                <div class="flex items-center gap-2 min-w-0">
-                  <div class="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-700 font-semibold text-xs flex-shrink-0">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700/80 flex items-center justify-center text-neutral-800 dark:text-neutral-200 font-semibold text-xs shrink-0 tracking-tight">
                     {{ (conv.clientName || conv.phoneNumber).slice(0, 2).toUpperCase() }}
                   </div>
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5">
-                      <p class="text-xs font-semibold text-neutral-900 truncate">
+                      <p class="text-xs font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 truncate">
                         {{ conv.clientName || conv.phoneNumber }}
                       </p>
                       @if (conv.verified || conv.clientId) {
-                        <span class="material-symbols-outlined text-emerald-600 text-[14px]" title="Verified Portal Client">verified</span>
+                        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[15px]" title="Verified Portal Client">verified</span>
                       }
                     </div>
                     @if (conv.businessName) {
-                      <p class="text-[11px] text-neutral-500 truncate">{{ conv.businessName }}</p>
+                      <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">{{ conv.businessName }}</p>
                     }
                     @if (conv.clientId) {
-                      <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mt-0.5">
+                      <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mt-0.5">
                         <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
                         Portal Client
                       </span>
@@ -142,12 +144,12 @@
                   </div>
                 </div>
 
-                <div class="flex flex-col items-end flex-shrink-0">
-                  <span class="text-[10px] text-neutral-400">
+                <div class="flex flex-col items-end shrink-0">
+                  <span class="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 tabular-nums">
                     {{ fmtTime(conv.lastMessageAt || conv.createdAt) }}
                   </span>
                   @if (conv.unreadCount > 0) {
-                    <span class="mt-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-600 text-white">
+                    <span class="mt-1 px-1.5 py-0.2 rounded-full font-mono text-[10px] font-bold bg-neutral-900 dark:bg-white text-white dark:text-neutral-950">
                       {{ conv.unreadCount }}
                     </span>
                   }
@@ -156,17 +158,17 @@
 
               <!-- Message preview & Status Pill -->
               <div class="mt-2 flex items-center justify-between gap-2">
-                <p class="text-[11px] text-neutral-500 truncate flex-1">
+                <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate flex-1 leading-normal">
                   @if (conv.lastMessage?.sender === 'ai') {
-                    <span class="font-medium text-emerald-700">AI: </span>
+                    <span class="font-medium text-emerald-700 dark:text-emerald-400">AI: </span>
                   } @else if (conv.lastMessage?.sender === 'staff') {
-                    <span class="font-medium text-blue-700">Staff: </span>
+                    <span class="font-medium text-neutral-900 dark:text-neutral-100">Staff: </span>
                   }
                   {{ conv.lastMessage?.body || 'No messages yet' }}
                 </p>
 
                 <span
-                  class="px-1.5 py-0.5 rounded text-[10px] font-medium border flex-shrink-0"
+                  class="px-1.5 py-0.5 rounded text-[10px] font-medium border shrink-0 tracking-tight"
                   [ngClass]="getStatusClass(conv.status)"
                 >
                   {{ getStatusLabel(conv.status) }}
@@ -180,32 +182,32 @@
 
     <!-- CENTER PANE: Active Chat Thread (Always visible on desktop md+, toggled on mobile) -->
     <div
-      class="flex-1 flex-col min-w-0 bg-white"
+      class="flex-1 flex-col min-w-0 bg-white dark:bg-neutral-950"
       [ngClass]="mobileView() === 'list' ? 'hidden md:flex' : 'flex'"
     >
       @if (selectedConversation(); as conv) {
         <!-- Thread Header -->
-        <div class="p-3 border-b border-neutral-200 flex items-center justify-between gap-2 bg-neutral-50/40">
+        <div class="p-3 border-b border-neutral-200/80 dark:border-neutral-800 flex items-center justify-between gap-2 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-xs">
           <div class="flex items-center gap-2 min-w-0">
             <!-- Mobile back button to conversation list -->
             <button
               (click)="mobileView.set('list')"
-              class="md:hidden p-1.5 -ml-1 text-neutral-600 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 flex-shrink-0"
+              class="md:hidden p-1.5 -ml-1 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shrink-0"
               title="Back to inbox"
             >
               <span class="material-symbols-outlined text-[20px]">arrow_back</span>
             </button>
 
-            <div class="w-8 h-8 md:w-9 md:h-9 rounded-full bg-neutral-200 flex items-center justify-center font-bold text-xs text-neutral-700 flex-shrink-0">
+            <div class="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 flex items-center justify-center font-semibold text-xs shrink-0 tracking-tight">
               {{ (conv.clientName || conv.phoneNumber).slice(0, 2).toUpperCase() }}
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
-                <h2 class="text-xs md:text-sm font-bold text-neutral-900 truncate">
+                <h2 class="text-xs md:text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 truncate">
                   {{ conv.clientName || conv.phoneNumber }}
                 </h2>
                 @if (conv.verified || conv.clientId) {
-                  <span class="material-symbols-outlined text-emerald-600 text-[16px]" title="Verified Portal Client">verified</span>
+                  <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[16px]" title="Verified Portal Client">verified</span>
                 }
                 <span
                   class="px-1.5 py-0.5 rounded text-[9px] md:text-[10px] font-medium border"
@@ -214,15 +216,15 @@
                   {{ getStatusLabel(conv.status) }}
                 </span>
               </div>
-              <div class="flex items-center gap-2 text-[11px] text-neutral-500 truncate">
-                <span>{{ conv.phoneNumber }}</span>
+              <div class="flex items-center gap-2 text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+                <span class="font-mono">{{ conv.phoneNumber }}</span>
                 @if (conv.gstin) {
-                  <span>· GST: <span class="font-mono text-neutral-700">{{ conv.gstin }}</span></span>
+                  <span>· GST: <span class="font-mono text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 px-1 py-0.2 rounded">{{ conv.gstin }}</span></span>
                 }
                 @if (conv.clientId) {
                   <a
                     [routerLink]="['/clients', conv.clientId]"
-                    class="text-emerald-700 hover:text-emerald-800 font-semibold inline-flex items-center gap-0.5 hover:underline"
+                    class="text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-semibold inline-flex items-center gap-0.5 hover:underline"
                     title="Open client profile & documents in portal"
                   >
                     <span>View Profile</span>
@@ -234,16 +236,15 @@
           </div>
 
           <!-- 24h Service Window & Quick Actions -->
-          <div class="flex items-center gap-1.5 flex-shrink-0">
+          <div class="flex items-center gap-1.5 shrink-0">
             <!-- 24h Window Indicator -->
             <div
-              class="hidden sm:flex px-2 py-1 rounded text-[11px] font-medium items-center gap-1 border"
-              [ngClass]="windowStatus().isActive ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
+              class="hidden sm:flex px-2 py-1 rounded-md text-[11px] font-mono font-medium items-center gap-1.5 border border-neutral-200/80 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300"
               [title]="windowStatus().isActive ? 'Free-form replies allowed within 24 hours of client message' : 'Window expired; client must message first'"
             >
-              <span class="w-1.5 h-1.5 rounded-full" [ngClass]="windowStatus().isActive ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+              <span class="w-1.5 h-1.5 rounded-full" [ngClass]="windowStatus().isActive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
               @if (windowStatus().isActive) {
-                <span>24h Window Active ({{ windowStatus().remainingHours }}h left)</span>
+                <span>24h Window ({{ windowStatus().remainingHours }}h left)</span>
               } @else {
                 <span>24h Window Expired</span>
               }
@@ -253,7 +254,7 @@
             @if (conv.status === 'ai_handling') {
               <button
                 (click)="takeover()"
-                class="px-2 py-1 text-xs font-medium rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 flex items-center gap-1"
+                class="px-2.5 py-1 text-xs font-medium rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/20 dark:border-amber-500/30 transition-all flex items-center gap-1"
                 title="Pause AI and take over manually"
               >
                 <span class="material-symbols-outlined text-[16px]">front_hand</span>
@@ -262,7 +263,7 @@
             } @else if (conv.status === 'staff_takeover') {
               <button
                 (click)="release()"
-                class="px-2 py-1 text-xs font-medium rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 flex items-center gap-1"
+                class="px-2.5 py-1 text-xs font-medium rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 transition-all flex items-center gap-1"
                 title="Return handling back to AI assistant"
               >
                 <span class="material-symbols-outlined text-[16px]">smart_toy</span>
@@ -273,7 +274,7 @@
             @if (conv.status !== 'closed') {
               <button
                 (click)="changeStatus('closed')"
-                class="px-2 py-1 text-xs text-neutral-500 hover:text-neutral-800 border border-neutral-200 rounded-lg hover:bg-neutral-50"
+                class="px-2.5 py-1 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all"
                 title="Mark conversation as resolved and closed"
               >
                 Close
@@ -281,7 +282,7 @@
             } @else {
               <button
                 (click)="release()"
-                class="px-2 py-1 text-xs text-neutral-600 hover:text-neutral-900 border border-neutral-200 rounded-lg hover:bg-neutral-50"
+                class="px-2.5 py-1 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all"
               >
                 Reopen
               </button>
@@ -290,7 +291,7 @@
             <!-- Mobile Info Drawer Toggle -->
             <button
               (click)="showDetailsDrawer.set(!showDetailsDrawer())"
-              class="lg:hidden p-1.5 text-neutral-600 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 border border-neutral-200"
+              class="lg:hidden p-1.5 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-800 transition-colors"
               title="Toggle Client Details"
             >
               <span class="material-symbols-outlined text-[18px]">info</span>
@@ -301,22 +302,22 @@
         <!-- Thread Messages List -->
         <div
           #messagesContainer
-          class="flex-1 overflow-y-auto p-4 space-y-3 bg-neutral-50/50"
+          class="flex-1 overflow-y-auto p-4 space-y-3.5 bg-neutral-50/50 dark:bg-neutral-950"
         >
           @if (loadingMessages()) {
             <div class="p-8 flex justify-center">
               <app-spinner />
             </div>
           } @else if (messages().length === 0) {
-            <div class="p-8 text-center text-xs text-neutral-400">
+            <div class="p-8 text-center text-xs text-neutral-400 dark:text-neutral-500">
               No messages in this conversation thread yet.
             </div>
           } @else {
             @for (msg of messages(); track msg.id) {
               <!-- Inbound Client Message (Left) -->
               @if (msg.direction === 'inbound') {
-                <div class="flex flex-col items-start max-w-[80%]">
-                  <div class="bg-white border border-neutral-200 rounded-2xl rounded-tl-xs px-3.5 py-2.5 shadow-2xs">
+                <div class="flex flex-col items-start max-w-[85%] sm:max-w-[78%]">
+                  <div class="bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl rounded-tl-xs px-3.5 py-2.5 shadow-2xs">
                     <!-- Media Renderer if present -->
                     @if (msg.mediaUrl) {
                       <div class="mb-2">
@@ -325,7 +326,7 @@
                             <img
                               [src]="msg.mediaUrl"
                               alt="WhatsApp attachment"
-                              class="rounded-lg max-h-56 object-cover border border-neutral-200 hover:opacity-95"
+                              class="rounded-lg max-h-56 object-cover border border-neutral-200 dark:border-neutral-800 hover:opacity-95"
                             />
                           </a>
                         } @else if (msg.messageType === 'audio') {
@@ -338,47 +339,47 @@
                             [href]="msg.mediaUrl"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="flex items-center gap-2 p-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs font-medium text-neutral-800 hover:bg-neutral-100"
+                            class="flex items-center gap-2 p-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs font-medium text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700"
                           >
-                            <span class="material-symbols-outlined text-[20px] text-neutral-500">description</span>
+                            <span class="material-symbols-outlined text-[20px] text-neutral-500 dark:text-neutral-400">description</span>
                             <span class="truncate">Download Attached File</span>
-                            <span class="material-symbols-outlined text-[16px] text-neutral-400 ml-auto">open_in_new</span>
+                            <span class="material-symbols-outlined text-[16px] text-neutral-400 dark:text-neutral-500 ml-auto">open_in_new</span>
                           </a>
                         }
                       </div>
                     }
 
-                    <p class="text-xs text-neutral-800 whitespace-pre-wrap leading-relaxed">{{ msg.body }}</p>
+                    <p class="text-xs text-neutral-900 dark:text-neutral-100 whitespace-pre-wrap leading-relaxed">{{ msg.body }}</p>
                   </div>
-                  <span class="text-[10px] text-neutral-400 mt-1 ml-1">{{ fmtDateTime(msg.createdAt) }}</span>
+                  <span class="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 mt-1 ml-1">{{ fmtDateTime(msg.createdAt) }}</span>
                 </div>
               }
 
               <!-- Outbound Message (Right: AI or Staff) -->
               @if (msg.direction === 'outbound') {
-                <div class="flex flex-col items-end max-w-[80%] ml-auto">
+                <div class="flex flex-col items-end max-w-[85%] sm:max-w-[78%] ml-auto">
                   <div
                     class="rounded-2xl rounded-tr-xs px-3.5 py-2.5 shadow-2xs border"
-                    [ngClass]="msg.sender === 'ai' ? 'bg-emerald-50/70 border-emerald-200 text-neutral-900' : 'bg-neutral-900 text-white border-neutral-800'"
+                    [ngClass]="msg.sender === 'ai' ? 'bg-emerald-500/[0.05] dark:bg-emerald-500/[0.1] border-emerald-500/20 dark:border-emerald-500/30 text-neutral-900 dark:text-neutral-100' : 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-950 border-neutral-900 dark:border-neutral-100'"
                   >
                     <!-- Sender badge -->
-                    <div class="flex items-center gap-1 mb-1 text-[10px] font-semibold">
+                    <div class="flex items-center gap-1 mb-1 text-[10px] font-semibold tracking-tight">
                       @if (msg.sender === 'ai') {
-                        <span class="text-emerald-700 flex items-center gap-1">
+                        <span class="text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                           <span class="material-symbols-outlined text-[14px]">smart_toy</span>
                           AI Assistant
                         </span>
                       } @else {
-                        <span class="text-neutral-300 flex items-center gap-1">
+                        <span class="text-neutral-300 dark:text-neutral-600 flex items-center gap-1">
                           <span class="material-symbols-outlined text-[14px]">person</span>
                           Staff Reply
                         </span>
                       }
                     </div>
 
-                    <p class="text-xs whitespace-pre-wrap leading-relaxed" [ngClass]="msg.sender === 'ai' ? 'text-neutral-800' : 'text-neutral-100'">{{ msg.body }}</p>
+                    <p class="text-xs whitespace-pre-wrap leading-relaxed" [ngClass]="msg.sender === 'ai' ? 'text-neutral-900 dark:text-neutral-100' : 'text-white dark:text-neutral-950'">{{ msg.body }}</p>
                   </div>
-                  <span class="text-[10px] text-neutral-400 mt-1 mr-1">{{ fmtDateTime(msg.createdAt) }}</span>
+                  <span class="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 mt-1 mr-1">{{ fmtDateTime(msg.createdAt) }}</span>
                 </div>
               }
             }
@@ -386,18 +387,18 @@
         </div>
 
         <!-- Thread Composer -->
-        <div class="p-3 border-t border-neutral-200 bg-white">
+        <div class="p-3 border-t border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-950">
           <!-- Takeover warning notice if AI is currently handling -->
           @if (conv.status === 'ai_handling') {
-            <div class="mb-2 px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-800 flex items-center gap-2">
-              <span class="material-symbols-outlined text-[16px] text-amber-600 flex-shrink-0">info</span>
+            <div class="mb-2 px-2.5 py-1.5 rounded-lg bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20 dark:border-amber-500/30 text-[11px] text-amber-800 dark:text-amber-300 flex items-center gap-2">
+              <span class="material-symbols-outlined text-[16px] text-amber-600 dark:text-amber-400 shrink-0">info</span>
               <span>AI is actively replying. Sending a message from staff will automatically switch this conversation to <strong>Staff Takeover</strong> mode.</span>
             </div>
           }
 
           @if (!windowStatus().isActive) {
-            <div class="mb-2 px-2.5 py-1.5 rounded-lg bg-neutral-100 border border-neutral-200 text-[11px] text-neutral-600 flex items-center gap-2">
-              <span class="material-symbols-outlined text-[16px] text-neutral-500 flex-shrink-0">lock_clock</span>
+            <div class="mb-2 px-2.5 py-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-[11px] text-neutral-600 dark:text-neutral-400 flex items-center gap-2">
+              <span class="material-symbols-outlined text-[16px] text-neutral-500 dark:text-neutral-400 shrink-0">lock_clock</span>
               <span>24-hour customer service window expired. Meta policy blocks custom text replies until the client sends a new message.</span>
             </div>
           }
@@ -410,16 +411,16 @@
               placeholder="Type staff WhatsApp reply (Ctrl+Enter to send)..."
               rows="2"
               [disabled]="!windowStatus().isActive || sending()"
-              class="flex-1 p-2.5 text-xs bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:bg-white resize-none disabled:opacity-50"
+              class="flex-1 p-2.5 text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded-xl focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-100 focus:bg-white dark:focus:bg-neutral-900 focus:ring-1 focus:ring-neutral-900 dark:focus:ring-neutral-100 resize-none disabled:opacity-50 transition-all"
             ></textarea>
 
             <button
               (click)="sendMessage()"
               [disabled]="!replyText().trim() || !windowStatus().isActive || sending()"
-              class="px-4 py-2.5 rounded-lg bg-neutral-900 text-white font-medium text-xs hover:bg-neutral-800 disabled:opacity-40 flex items-center gap-1.5 h-[42px] transition-colors"
+              class="px-4 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-medium text-xs hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-40 flex items-center gap-1.5 h-[42px] transition-all shadow-2xs active:scale-[0.98]"
             >
               @if (sending()) {
-                <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                <span class="w-4 h-4 border-2 border-white/30 dark:border-neutral-950/30 border-t-white dark:border-t-neutral-950 rounded-full animate-spin"></span>
               } @else {
                 <span class="material-symbols-outlined text-[16px]">send</span>
                 <span>Send</span>
@@ -428,35 +429,37 @@
           </div>
         </div>
       } @else {
-        <div class="flex-1 flex flex-col items-center justify-center text-center p-8 text-neutral-400">
-          <span class="material-symbols-outlined text-[48px] text-neutral-300 mb-2">forum</span>
-          <h3 class="text-sm font-semibold text-neutral-700">No Conversation Selected</h3>
-          <p class="text-xs text-neutral-400 mt-1 max-w-sm">
+        <div class="flex-1 flex flex-col items-center justify-center text-center p-8 text-neutral-400 dark:text-neutral-500">
+          <div class="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 flex items-center justify-center text-neutral-400 dark:text-neutral-500 mb-3">
+            <span class="material-symbols-outlined text-[32px]">chat</span>
+          </div>
+          <h3 class="text-sm font-semibold text-neutral-800 dark:text-neutral-200">No Conversation Selected</h3>
+          <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 max-w-sm">
             Select a conversation from the left inbox to view the complete WhatsApp message thread and oversee AI operations.
           </p>
         </div>
       }
     </div>
 
-    <!-- RIGHT PANE: Client Info Drawer & Actions -->
+    <!-- RIGHT PANE: Client Info Drawer & Actions (Responsive Slide-In on Mobile) -->
     @if (selectedConversation(); as conv) {
+      <!-- Backdrop overlay on mobile -->
+      @if (showDetailsDrawer()) {
+        <div
+          (click)="showDetailsDrawer.set(false)"
+          class="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-xs z-30 transition-opacity"
+        ></div>
+      }
+
       <div
-        class="w-full sm:w-80 lg:w-80 flex-shrink-0 border-l border-neutral-200 p-4 bg-white flex-col overflow-y-auto space-y-4"
-        [class.hidden]="!showDetailsDrawer()"
-        [class.flex]="showDetailsDrawer()"
-        [class.lg:flex]="true"
-        [class.absolute]="true"
-        [class.inset-0]="true"
-        [class.z-20]="true"
-        [class.lg:static]="true"
-        [class.lg:inset-auto]="true"
-        [class.lg:z-auto]="true"
+        class="w-full sm:w-88 flex-shrink-0 border-l border-neutral-200/80 dark:border-neutral-800 p-4 bg-white dark:bg-neutral-950 flex-col overflow-y-auto space-y-4"
+        [ngClass]="showDetailsDrawer() ? 'fixed inset-y-0 right-0 z-40 max-w-[85vw] shadow-2xl flex' : 'hidden lg:flex lg:static lg:inset-auto lg:z-auto lg:shadow-none lg:w-80'"
       >
         <!-- Client Profile Header -->
-        <div class="space-y-1 pb-3 border-b border-neutral-100">
+        <div class="space-y-1 pb-3 border-b border-neutral-100 dark:border-neutral-800">
           <div class="flex items-center justify-between">
-            <h3 class="text-xs font-bold text-neutral-900 uppercase tracking-wider">Client Details</h3>
-            <div class="flex items-center gap-1">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-neutral-900 dark:text-neutral-100">Client Details</h3>
+            <div class="flex items-center gap-1.5">
               <span
                 class="px-1.5 py-0.5 rounded text-[10px] font-medium border"
                 [ngClass]="getStatusClass(conv.status)"
@@ -466,50 +469,50 @@
               <!-- Close details on mobile -->
               <button
                 (click)="showDetailsDrawer.set(false)"
-                class="lg:hidden p-1 text-neutral-400 hover:text-neutral-700 rounded"
+                class="lg:hidden p-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 rounded transition-colors"
               >
                 <span class="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
           </div>
-          <p class="text-xs text-neutral-500 font-mono">{{ conv.phoneNumber }}</p>
+          <p class="font-mono text-xs text-neutral-500 dark:text-neutral-400">{{ conv.phoneNumber }}</p>
         </div>
 
         <!-- Portal Client Auto-Linked Card -->
         @if (conv.clientId) {
-          <div class="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-2.5">
+          <div class="p-3.5 bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border border-emerald-500/20 dark:border-emerald-500/30 rounded-xl space-y-2.5">
             <div class="flex items-center justify-between">
-              <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
-                <span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
+              <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">
+                <span class="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">verified</span>
                 Verified Portal Client
               </span>
-              <span class="text-[9px] font-semibold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded-full">
+              <span class="text-[9px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
                 Auto-Linked
               </span>
             </div>
 
-            <div class="text-[11px] space-y-1.5 text-neutral-700">
+            <div class="text-[11px] space-y-1.5 text-neutral-700 dark:text-neutral-300">
               <div class="flex items-center justify-between gap-2">
-                <span class="text-neutral-500 flex-shrink-0">Portal Name:</span>
-                <span class="font-semibold text-neutral-900 truncate text-right">{{ conv.client?.name || conv.clientName }}</span>
+                <span class="text-neutral-500 dark:text-neutral-400 shrink-0">Portal Name:</span>
+                <span class="font-semibold text-neutral-900 dark:text-neutral-100 truncate text-right">{{ conv.client?.name || conv.clientName }}</span>
               </div>
               @if (conv.client?.email) {
                 <div class="flex items-center justify-between gap-2">
-                  <span class="text-neutral-500 flex-shrink-0">Email:</span>
-                  <span class="font-mono text-neutral-800 text-[10px] truncate text-right">{{ conv.client?.email }}</span>
+                  <span class="text-neutral-500 dark:text-neutral-400 shrink-0">Email:</span>
+                  <span class="font-mono text-neutral-800 dark:text-neutral-300 text-[10px] truncate text-right">{{ conv.client?.email }}</span>
                 </div>
               }
               @if (conv.client?.gstin || conv.gstin) {
                 <div class="flex items-center justify-between gap-2">
-                  <span class="text-neutral-500 flex-shrink-0">GSTIN:</span>
-                  <span class="font-mono font-medium text-neutral-900 text-[11px] text-right">{{ conv.client?.gstin || conv.gstin }}</span>
+                  <span class="text-neutral-500 dark:text-neutral-400 shrink-0">GSTIN:</span>
+                  <span class="font-mono font-medium text-neutral-900 dark:text-neutral-100 text-[11px] text-right">{{ conv.client?.gstin || conv.gstin }}</span>
                 </div>
               }
             </div>
 
             <a
               [routerLink]="['/clients', conv.clientId]"
-              class="w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs transition-colors mt-2"
+              class="w-full py-2 px-3 rounded-lg bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-neutral-950 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs transition-all mt-2"
             >
               <span class="material-symbols-outlined text-[16px]">account_box</span>
               <span>Open Client Profile & Docs</span>
@@ -521,36 +524,36 @@
         <!-- Editable Metadata Form -->
         <div class="space-y-3">
           <div>
-            <label class="block text-[11px] font-medium text-neutral-600 mb-1">Client Name</label>
+            <label class="block text-[11px] font-medium text-neutral-500 dark:text-neutral-400 mb-1 uppercase tracking-wider">Client Name</label>
             <input
               type="text"
               [ngModel]="clientNameEdit()"
               (ngModelChange)="clientNameEdit.set($event)"
               placeholder="Full name or Contact"
-              class="w-full px-2.5 py-1.5 text-xs bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              class="w-full px-2.5 py-1.5 text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-neutral-900 focus:border-neutral-900 dark:focus:border-neutral-100 focus:ring-1 focus:ring-neutral-900 dark:focus:ring-neutral-100 transition-all"
             />
           </div>
 
           <div>
-            <label class="block text-[11px] font-medium text-neutral-600 mb-1">Business Name</label>
+            <label class="block text-[11px] font-medium text-neutral-500 dark:text-neutral-400 mb-1 uppercase tracking-wider">Business Name</label>
             <input
               type="text"
               [ngModel]="businessNameEdit()"
               (ngModelChange)="businessNameEdit.set($event)"
               placeholder="Firm / Trade name"
-              class="w-full px-2.5 py-1.5 text-xs bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              class="w-full px-2.5 py-1.5 text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-neutral-900 focus:border-neutral-900 dark:focus:border-neutral-100 focus:ring-1 focus:ring-neutral-900 dark:focus:ring-neutral-100 transition-all"
             />
           </div>
 
           <div>
-            <label class="block text-[11px] font-medium text-neutral-600 mb-1">GSTIN</label>
+            <label class="block text-[11px] font-medium text-neutral-500 dark:text-neutral-400 mb-1 uppercase tracking-wider">GSTIN</label>
             <input
               type="text"
               [ngModel]="gstinEdit()"
               (ngModelChange)="gstinEdit.set($event)"
               placeholder="24AAAAA0000A1Z5"
               maxlength="15"
-              class="w-full px-2.5 py-1.5 text-xs font-mono bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 uppercase"
+              class="w-full px-2.5 py-1.5 text-xs font-mono uppercase bg-neutral-50 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-neutral-900 focus:border-neutral-900 dark:focus:border-neutral-100 focus:ring-1 focus:ring-neutral-900 dark:focus:ring-neutral-100 transition-all"
             />
           </div>
 
@@ -560,28 +563,28 @@
               id="verifiedCheck"
               [ngModel]="verifiedEdit()"
               (ngModelChange)="verifiedEdit.set($event)"
-              class="rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
+              class="rounded border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-neutral-900"
             />
-            <label for="verifiedCheck" class="text-xs text-neutral-700 select-none">
+            <label for="verifiedCheck" class="text-xs text-neutral-700 dark:text-neutral-300 select-none">
               Mark as Verified Client
             </label>
           </div>
 
           <div>
-            <label class="block text-[11px] font-medium text-neutral-600 mb-1">Internal Staff Notes</label>
+            <label class="block text-[11px] font-medium text-neutral-500 dark:text-neutral-400 mb-1 uppercase tracking-wider">Internal Staff Notes</label>
             <textarea
               [ngModel]="internalNotesEdit()"
               (ngModelChange)="internalNotesEdit.set($event)"
               placeholder="Notes for CA team (not shared with client)..."
               rows="3"
-              class="w-full p-2.5 text-xs bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 resize-none"
+              class="w-full p-2.5 text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-neutral-900 focus:border-neutral-900 dark:focus:border-neutral-100 focus:ring-1 focus:ring-neutral-900 dark:focus:ring-neutral-100 resize-none transition-all"
             ></textarea>
           </div>
 
           <button
             (click)="saveMetadata()"
             [disabled]="savingMetadata()"
-            class="w-full py-1.5 rounded-lg border border-neutral-300 text-xs font-medium text-neutral-800 hover:bg-neutral-50 disabled:opacity-50 transition-colors"
+            class="w-full py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-xs font-medium text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-50 transition-all shadow-2xs"
           >
             @if (savingMetadata()) {
               <span>Saving...</span>
@@ -592,34 +595,34 @@
         </div>
 
         <!-- Conversation Controls -->
-        <div class="pt-3 border-t border-neutral-100 space-y-2">
-          <h4 class="text-[11px] font-bold text-neutral-900 uppercase tracking-wider">Status Actions</h4>
+        <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800 space-y-2">
+          <h4 class="text-[11px] font-semibold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider">Status Actions</h4>
           <div class="grid grid-cols-2 gap-1.5">
             <button
               (click)="changeStatus('staff_takeover')"
               [disabled]="conv.status === 'staff_takeover'"
-              class="px-2 py-1.5 rounded text-xs font-medium border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-40"
+              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-amber-500/20 dark:border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 disabled:opacity-40 transition-all"
             >
               Take Over
             </button>
             <button
               (click)="changeStatus('ai_handling')"
               [disabled]="conv.status === 'ai_handling'"
-              class="px-2 py-1.5 rounded text-xs font-medium border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-40"
+              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-emerald-500/20 dark:border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 disabled:opacity-40 transition-all"
             >
               Hand to AI
             </button>
             <button
               (click)="changeStatus('escalated')"
               [disabled]="conv.status === 'escalated'"
-              class="px-2 py-1.5 rounded text-xs font-medium border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:opacity-40"
+              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-rose-500/20 dark:border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-800 dark:text-rose-300 disabled:opacity-40 transition-all"
             >
               Escalate
             </button>
             <button
               (click)="changeStatus('closed')"
               [disabled]="conv.status === 'closed'"
-              class="px-2 py-1.5 rounded text-xs font-medium border border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100 disabled:opacity-40"
+              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200/70 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 disabled:opacity-40 transition-all"
             >
               Close
             </button>
@@ -627,8 +630,8 @@
         </div>
 
         <!-- Zero-Cost Architecture Reminder -->
-        <div class="mt-auto pt-3 border-t border-neutral-100 text-[10px] text-neutral-400 space-y-1">
-          <p class="font-medium text-neutral-500">Zero-Cost Policy Check:</p>
+        <div class="mt-auto pt-3 border-t border-neutral-100 dark:border-neutral-800 text-[10px] text-neutral-400 dark:text-neutral-500 space-y-1">
+          <p class="font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider text-[9px]">Zero-Cost Policy Check:</p>
           <p>• Inbound messages: Free</p>
           <p>• Service window replies: Free (within 1,000/mo quota)</p>
           <p>• R2 media storage: Zero egress fees</p>

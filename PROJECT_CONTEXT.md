@@ -235,6 +235,14 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - **Client UI**: `documents.ts/html` rewritten — real current-period card (label + cadence + due + progress), real doc tasks (upload/nil/uploaded/paid), payment shown as **info-only chip (`₹amount`) with no upload**, "From Your CA" shares real reports with download, "Filed Returns" requests real reports from the backend. Reports screen filters genuinely-pending requests + real status badges. Reminders screen de-legacy-ified: no `sales_bills`/`purchase_bills`/`overdue` mocks; needs-attention = pending-with-due-within-2-days or `nil_declared`.
   - **CI**: new `.github/workflows/ci.yml` (backend lint+test+build, admin `--base-href=/admin/` build, client build) alongside `deploy.yml`.
   - **Deviation note (per §11 rule 1)**: nil admin endpoints keep their existing `/compliance-tasks/admin` paths; they only GAINED the `view_clients` guard — no path renames (do not "fix" to `/admin/compliance-tasks/*`).
+- **Phase 13 (Oct 2026) — WhatsApp AI Support Desk & Live Automation Desk — DONE**:
+  - **Zero-Cost Architecture**: Operates strictly within Meta Cloud API's 1,000 free monthly service conversations and Groq's high-speed free tier (`openai/gpt-oss-120b` with multi-model fallback to `openai/gpt-oss-20b` and `qwen/qwen3.8-27b`) for ₹0 operational cost.
+  - **Client Auto-Linking**: `whatsapp_conversations.client_id` (UUID foreign key to `users.id`) auto-links inbound messages to registered portal clients based on phone number matching (`RIGHT(phone, 10)`). Auto-populates client name, GSTIN, and verified status.
+  - **Backend**: `whatsapp-chats` module with Server-Sent Events (SSE) `/api/v1/whatsapp-chats/stream` for instant real-time thread synchronization, staff takeover/release endpoints (`/takeover`, `/release`, `/escalate`, `/close`), 24h customer service window tracking, and monthly free tier usage monitor (`/usage`). Migration: `1791890000000-AddWhatsappConversationClientId.ts`.
+  - **Admin UI Redesign (Vercel Geist Aesthetics)**: Completely overhauled `/admin/whatsapp-chats` adhering to Vercel design principles (`npx getdesign@latest add vercel`): hairline 1px borders, high-contrast segmented filters, monospace metric counters, and emerald/stark chat bubbles.
+  - **Mobile Responsiveness**: Adaptive 1-pane/2-pane layout with back button navigation on `< 768px` screens and a slide-in client details drawer with backdrop blur on `< 1024px` screens.
+  - **Dark Theme Ready**: Configured with Tailwind CSS v4 `@custom-variant dark` in `styles.css` and explicit `dark:...` styling tokens across all cards, inputs, and conversation bubbles.
+  - **Local Testing & Documentation**: Created `docs/14-whatsapp-local-testing-guide.md` and `documents/WHATSAPP_LOCAL_TESTING_GUIDE.md` detailing instant script simulation and Cloudflare Tunnel / ngrok live webhook debugging.
 
 ## 6. Functional notes (implemented)
 
