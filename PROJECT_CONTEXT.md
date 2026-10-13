@@ -707,7 +707,7 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
   - **Architecture**: Inbound webhook at `POST /api/v1/notifications/whatsapp-webhook` over Meta WhatsApp Cloud API (Graph API `v21.0`).
   - **AI Engine**: Groq free-tier LLM (`qwen/qwen3.8-27b`) delivering conversational responses tailored to firm practice areas (GST, ITR, company registrations, office timings, address, portal links).
   - **Phone Numbers & WABA Setup**:
-    - **Official Dedicated Indian Number**: `+91 78783 98067` (Phone Number ID: `1332098229994767`), registered under official WABA `3629482393869045` ("S N Bajaj and CO"). Configured in `.env` as `WHATSAPP_PHONE_NUMBER_ID=1332098229994767` and `WHATSAPP_BUSINESS_ID=3629482393869045`.
+    - **Official Dedicated Indian Number**: `+91 78783 98067` (Phone Number ID: `1332098229994767`), registered under official WABA `1388702572995225` ("S N Bajaj and CO", Portfolio Messaging Account ID `3629482393869045`). Configured in `.env` as `WHATSAPP_PHONE_NUMBER_ID=1332098229994767` and `WHATSAPP_BUSINESS_ID=1388702572995225`.
     - **Previous Trial Number**: `+1 555-960-3342` (Phone Number ID: `1338742349323780`), under personal WABA `1608612210731434` ("Anirudh Lohiya").
     - **Legacy / Sandbox Number**: `+1 555-635-9623` (Phone Number ID: `1286517461221916`), registered under old test WABA `1757489425951419`.
   - **AI Lifecycle & Takeover Mechanics**:
