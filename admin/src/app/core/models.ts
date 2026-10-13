@@ -313,6 +313,15 @@ export interface WhatsappConversation {
   internalNotes: string | null;
   unreadCount: number;
   lastMessageAt: string | null;
+  clientId?: string | null;
+  client?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string | null;
+    gstin?: string | null;
+    user_type?: string;
+  } | null;
   createdAt: string;
   updatedAt: string;
   lastMessage?: {

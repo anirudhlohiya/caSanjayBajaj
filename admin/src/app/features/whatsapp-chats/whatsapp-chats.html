@@ -40,11 +40,10 @@
   <!-- Three-Pane Container -->
   <div class="flex-1 min-h-0 flex relative border border-neutral-200 rounded-xl overflow-hidden bg-white shadow-xs">
     
-    <!-- LEFT PANE: Conversation List & Filters (Hidden on mobile if viewing chat) -->
+    <!-- LEFT PANE: Conversation List & Filters (Always visible on desktop md+, toggled on mobile) -->
     <div
-      class="w-full md:w-80 lg:w-96 flex-shrink-0 border-r border-neutral-200 flex flex-col bg-neutral-50/60"
-      [class.hidden]="mobileView() === 'chat'"
-      [class.flex]="mobileView() === 'list'"
+      class="w-full md:w-80 lg:w-96 flex-shrink-0 border-r border-neutral-200 flex-col bg-neutral-50/60"
+      [ngClass]="mobileView() === 'chat' ? 'hidden md:flex' : 'flex'"
     >
       <!-- Search & Filters -->
       <div class="p-3 border-b border-neutral-200 space-y-2 bg-white">
@@ -127,12 +126,18 @@
                       <p class="text-xs font-semibold text-neutral-900 truncate">
                         {{ conv.clientName || conv.phoneNumber }}
                       </p>
-                      @if (conv.verified) {
-                        <span class="material-symbols-outlined text-emerald-600 text-[14px]" title="Verified Client">verified</span>
+                      @if (conv.verified || conv.clientId) {
+                        <span class="material-symbols-outlined text-emerald-600 text-[14px]" title="Verified Portal Client">verified</span>
                       }
                     </div>
                     @if (conv.businessName) {
                       <p class="text-[11px] text-neutral-500 truncate">{{ conv.businessName }}</p>
+                    }
+                    @if (conv.clientId) {
+                      <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mt-0.5">
+                        <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
+                        Portal Client
+                      </span>
                     }
                   </div>
                 </div>
@@ -173,11 +178,10 @@
       </div>
     </div>
 
-    <!-- CENTER PANE: Active Chat Thread -->
+    <!-- CENTER PANE: Active Chat Thread (Always visible on desktop md+, toggled on mobile) -->
     <div
       class="flex-1 flex-col min-w-0 bg-white"
-      [class.hidden]="mobileView() === 'list'"
-      [class.flex]="mobileView() === 'chat'"
+      [ngClass]="mobileView() === 'list' ? 'hidden md:flex' : 'flex'"
     >
       @if (selectedConversation(); as conv) {
         <!-- Thread Header -->
@@ -200,6 +204,9 @@
                 <h2 class="text-xs md:text-sm font-bold text-neutral-900 truncate">
                   {{ conv.clientName || conv.phoneNumber }}
                 </h2>
+                @if (conv.verified || conv.clientId) {
+                  <span class="material-symbols-outlined text-emerald-600 text-[16px]" title="Verified Portal Client">verified</span>
+                }
                 <span
                   class="px-1.5 py-0.5 rounded text-[9px] md:text-[10px] font-medium border"
                   [ngClass]="getStatusClass(conv.status)"
@@ -207,12 +214,22 @@
                   {{ getStatusLabel(conv.status) }}
                 </span>
               </div>
-              <p class="text-[11px] text-neutral-500 truncate">
-                {{ conv.phoneNumber }}
+              <div class="flex items-center gap-2 text-[11px] text-neutral-500 truncate">
+                <span>{{ conv.phoneNumber }}</span>
                 @if (conv.gstin) {
-                  · GST: <span class="font-mono text-neutral-700">{{ conv.gstin }}</span>
+                  <span>· GST: <span class="font-mono text-neutral-700">{{ conv.gstin }}</span></span>
                 }
-              </p>
+                @if (conv.clientId) {
+                  <a
+                    [routerLink]="['/clients', conv.clientId]"
+                    class="text-emerald-700 hover:text-emerald-800 font-semibold inline-flex items-center gap-0.5 hover:underline"
+                    title="Open client profile & documents in portal"
+                  >
+                    <span>View Profile</span>
+                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                  </a>
+                }
+              </div>
             </div>
           </div>
 
@@ -457,6 +474,49 @@
           </div>
           <p class="text-xs text-neutral-500 font-mono">{{ conv.phoneNumber }}</p>
         </div>
+
+        <!-- Portal Client Auto-Linked Card -->
+        @if (conv.clientId) {
+          <div class="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
+                <span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
+                Verified Portal Client
+              </span>
+              <span class="text-[9px] font-semibold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded-full">
+                Auto-Linked
+              </span>
+            </div>
+
+            <div class="text-[11px] space-y-1.5 text-neutral-700">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-neutral-500 flex-shrink-0">Portal Name:</span>
+                <span class="font-semibold text-neutral-900 truncate text-right">{{ conv.client?.name || conv.clientName }}</span>
+              </div>
+              @if (conv.client?.email) {
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-neutral-500 flex-shrink-0">Email:</span>
+                  <span class="font-mono text-neutral-800 text-[10px] truncate text-right">{{ conv.client?.email }}</span>
+                </div>
+              }
+              @if (conv.client?.gstin || conv.gstin) {
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-neutral-500 flex-shrink-0">GSTIN:</span>
+                  <span class="font-mono font-medium text-neutral-900 text-[11px] text-right">{{ conv.client?.gstin || conv.gstin }}</span>
+                </div>
+              }
+            </div>
+
+            <a
+              [routerLink]="['/clients', conv.clientId]"
+              class="w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs transition-colors mt-2"
+            >
+              <span class="material-symbols-outlined text-[16px]">account_box</span>
+              <span>Open Client Profile & Docs</span>
+              <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </a>
+          </div>
+        }
 
         <!-- Editable Metadata Form -->
         <div class="space-y-3">

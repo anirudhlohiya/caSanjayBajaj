@@ -23,11 +23,12 @@ import {
   WhatsappUsageStats,
 } from '../../core/models';
 import { Spinner } from '../../shared/components/spinner';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-whatsapp-chats',
   standalone: true,
-  imports: [CommonModule, FormsModule, Spinner],
+  imports: [CommonModule, FormsModule, Spinner, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './whatsapp-chats.html',
 })
@@ -152,8 +153,10 @@ export class WhatsappChatsPage implements OnInit {
           this.selectedConversation.set(updated);
         }
       } else if (res.items.length > 0) {
-        // Auto-select first conversation
-        void this.selectConversation(res.items[0]);
+        const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+        if (isDesktop) {
+          void this.selectConversation(res.items[0]);
+        }
       }
     } catch {
       this.toast.error('Failed to load WhatsApp conversations');

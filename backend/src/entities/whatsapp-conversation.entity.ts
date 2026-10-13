@@ -6,8 +6,11 @@ import {
   UpdateDateColumn,
   Index,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { WhatsappMessage } from './whatsapp-message.entity';
+import { User } from './user.entity';
 
 export type WhatsappConversationStatus =
   'ai_handling' | 'staff_takeover' | 'escalated' | 'closed';
@@ -37,6 +40,13 @@ export class WhatsappConversation {
 
   @Column({ type: 'boolean', default: false })
   verified: boolean;
+
+  @Column({ type: 'uuid', nullable: true, name: 'client_id' })
+  clientId: string | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'client_id' })
+  client?: User | null;
 
   @Column({
     type: 'enum',

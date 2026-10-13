@@ -14,6 +14,7 @@ import {
   WhatsappMessage,
   WhatsappMessageType,
 } from '../entities/whatsapp-message.entity';
+import { User } from '../entities/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { WhatsappEventsService } from './whatsapp-events.service';
 
@@ -41,33 +42,86 @@ export class WhatsappChatsService {
     private readonly convRepo: Repository<WhatsappConversation>,
     @InjectRepository(WhatsappMessage)
     private readonly msgRepo: Repository<WhatsappMessage>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     private readonly notificationsService: NotificationsService,
     private readonly eventsService: WhatsappEventsService,
   ) {}
 
   /**
+   * Attempts to match a WhatsApp phone number with a registered portal client (users table).
+   * Strips formatting and compares the last 10 digits.
+   */
+  async findMatchingUserByPhone(phoneNumber: string): Promise<User | null> {
+    if (!phoneNumber) return null;
+    const digitsOnly = phoneNumber.replace(/\D/g, '');
+    if (digitsOnly.length < 10) return null;
+    const tenDigit = digitsOnly.slice(-10);
+
+    const users = await this.userRepo
+      .createQueryBuilder('u')
+      .where(
+        "u.phone IS NOT NULL AND RIGHT(REGEXP_REPLACE(u.phone, '[^0-9]', 'g'), 10) = :tenDigit",
+        { tenDigit },
+      )
+      .orderBy('u.created_at', 'DESC')
+      .getMany();
+
+    return users.length > 0 ? users[0] : null;
+  }
+
+  /**
    * Find an existing conversation or create a new one for a given WhatsApp phone number (wa_id).
+   * Automatically matches and links against registered portal clients.
    */
   async findOrCreateConversation(
     phoneNumber: string,
     profileName?: string,
   ): Promise<WhatsappConversation> {
-    let conv = await this.convRepo.findOne({ where: { phoneNumber } });
+    let conv = await this.convRepo.findOne({
+      where: { phoneNumber },
+      relations: { client: true },
+    });
+
+    const matchingUser = await this.findMatchingUserByPhone(phoneNumber);
+
     if (!conv) {
       conv = this.convRepo.create({
         phoneNumber,
-        clientName: profileName || null,
+        clientName: matchingUser ? matchingUser.name : (profileName || null),
+        clientId: matchingUser ? matchingUser.id : null,
+        gstin: matchingUser?.gstin || null,
+        verified: !!matchingUser,
         status: 'ai_handling',
         unreadCount: 0,
       });
       conv = await this.convRepo.save(conv);
+      if (matchingUser) {
+        conv.client = matchingUser;
+      }
       this.eventsService.emit({
         type: 'conversation',
         conversationId: conv.id,
       });
-    } else if (profileName && !conv.clientName) {
-      conv.clientName = profileName;
-      conv = await this.convRepo.save(conv);
+    } else {
+      let needsSave = false;
+      if (matchingUser && (!conv.clientId || !conv.verified)) {
+        conv.clientId = matchingUser.id;
+        conv.client = matchingUser;
+        conv.clientName = matchingUser.name;
+        if (!conv.gstin && matchingUser.gstin) {
+          conv.gstin = matchingUser.gstin;
+        }
+        conv.verified = true;
+        needsSave = true;
+      } else if (profileName && !conv.clientName) {
+        conv.clientName = profileName;
+        needsSave = true;
+      }
+
+      if (needsSave) {
+        conv = await this.convRepo.save(conv);
+      }
     }
     return conv;
   }
@@ -169,13 +223,16 @@ export class WhatsappChatsService {
 
   /**
    * List conversations with search, filter, and pagination.
+   * Auto-links to portal client records if matched by phone.
    */
   async listConversations(query: ConversationListQuery) {
     const page = Math.max(1, query.page || 1);
-    const limit = Math.min(50, Math.max(1, query.limit || 20));
+    const limit = Math.min(100, Math.max(1, query.limit || 50));
     const skip = (page - 1) * limit;
 
-    const qb = this.convRepo.createQueryBuilder('c');
+    const qb = this.convRepo
+      .createQueryBuilder('c')
+      .leftJoinAndSelect('c.client', 'client');
 
     if (query.status) {
       qb.andWhere('c.status = :status', { status: query.status });
@@ -184,7 +241,7 @@ export class WhatsappChatsService {
     if (query.search?.trim()) {
       const term = `%${query.search.trim().toLowerCase()}%`;
       qb.andWhere(
-        "(LOWER(c.phoneNumber) LIKE :term OR LOWER(COALESCE(c.clientName, '')) LIKE :term OR LOWER(COALESCE(c.businessName, '')) LIKE :term OR LOWER(COALESCE(c.gstin, '')) LIKE :term)",
+        "(LOWER(c.phoneNumber) LIKE :term OR LOWER(COALESCE(c.clientName, '')) LIKE :term OR LOWER(COALESCE(c.businessName, '')) LIKE :term OR LOWER(COALESCE(c.gstin, '')) LIKE :term OR LOWER(COALESCE(client.name, '')) LIKE :term OR LOWER(COALESCE(client.email, '')) LIKE :term)",
         { term },
       );
     }
@@ -196,13 +253,33 @@ export class WhatsappChatsService {
 
     const [items, total] = await qb.getManyAndCount();
 
-    // Attach last message preview to each conversation
+    // Attach last message preview and perform on-the-fly auto-link if unlinked
     const enriched = await Promise.all(
       items.map(async (conv) => {
+        if (!conv.clientId) {
+          const matched = await this.findMatchingUserByPhone(conv.phoneNumber);
+          if (matched) {
+            conv.clientId = matched.id;
+            conv.client = matched;
+            conv.clientName = matched.name;
+            if (!conv.gstin && matched.gstin) {
+              conv.gstin = matched.gstin;
+            }
+            conv.verified = true;
+            await this.convRepo.update(conv.id, {
+              clientId: matched.id,
+              clientName: matched.name,
+              gstin: conv.gstin,
+              verified: true,
+            });
+          }
+        }
+
         const lastMsg = await this.msgRepo.findOne({
           where: { conversationId: conv.id },
           order: { createdAt: 'DESC' },
         });
+
         return {
           ...conv,
           lastMessage: lastMsg
@@ -230,7 +307,7 @@ export class WhatsappChatsService {
   /**
    * Fetch thread messages for a conversation.
    */
-  async getMessages(conversationId: string, limit = 50, before?: string) {
+  async getMessages(conversationId: string, limit = 200, before?: string) {
     const qb = this.msgRepo
       .createQueryBuilder('m')
       .where('m.conversationId = :conversationId', { conversationId });
@@ -242,7 +319,7 @@ export class WhatsappChatsService {
       }
     }
 
-    qb.orderBy('m.createdAt', 'ASC').take(Math.min(100, limit));
+    qb.orderBy('m.createdAt', 'ASC').take(Math.min(500, Math.max(1, limit)));
 
     return qb.getMany();
   }

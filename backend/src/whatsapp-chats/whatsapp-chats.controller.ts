@@ -96,7 +96,7 @@ export class WhatsappChatsController {
   ) {
     return this.chatsService.getMessages(
       id,
-      limit ? parseInt(limit, 10) : 50,
+      limit ? parseInt(limit, 10) : 200,
       before,
     );
   }
