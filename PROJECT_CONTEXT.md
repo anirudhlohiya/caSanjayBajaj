@@ -719,10 +719,17 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
   - **Delivery & Verification (Oct 2026)**:
     - Webhook locked via `override_callback_uri: https://api.snbajaj.com/api/v1/notifications/whatsapp-webhook` on WABA `1388702572995225`.
     - Outbound Cloud API messaging verified live from official Indian number `1332098229994767` (`+91 78783 98067`) with zero permission or payment errors.
-  - **Admin Support Desk (`/whatsapp-chats`)**: Three-pane responsive support inbox (Conversation List, Active Thread with AI/Staff badges, Client details panel with editable metadata, internal staff notes, and takeover/release toggle). Mobile-first responsive view switching between inbox list and active thread with back button navigation and drawer toggle. Live updates powered by Server-Sent Events (`/api/v1/whatsapp-chats/stream`) with query-token JWT authentication.
-  - **Storage & Inbound Media**: Conversations (`whatsapp_conversations`) and messages (`whatsapp_messages`) persisted in PostgreSQL with deduplication on Meta message ID (`meta_message_id` unique index). Inbound media downloaded from Meta upon receipt and stored in Cloudflare R2 object storage to prevent expiration with zero egress fees.
+  - **Admin Support Desk (`/whatsapp-chats`)**:
+    - **WhatsApp Web Style Split-View**: Left sidebar always displays all past and active client conversations with search, tab filters, and unread counts, while the middle pane renders the active chat thread. On mobile (`< md`), views toggle smoothly with back-button navigation.
+    - **Portal Client Auto-Linking**: Incoming WhatsApp phone numbers automatically match against registered portal accounts in the `users` table (matching 10-digit mobile number). When matched:
+      - Client's official portal name and registered GSTIN are auto-populated.
+      - Marked with a green "Verified Portal Client" badge and checkmark.
+      - Direct clickable "View Profile" link in the chat header and "Open Client Profile & Docs" button in the right details drawer (`/admin/clients/:id`).
+      - On-the-fly backfill links past and future conversations dynamically.
+    - **Message History**: Increased default thread loading to 200 messages (chronological order) so all past conversations and responses are visible without cutoff.
+  - **Storage & Inbound Media**: Conversations (`whatsapp_conversations`) and messages (`whatsapp_messages`) persisted in PostgreSQL with deduplication on Meta message ID (`meta_message_id` unique index). Inbound media downloaded from Meta upon receipt and stored in Cloudflare R2 object storage to prevent expiration with zero egress fees. Added `client_id` foreign key referencing `users(id)` (migration `1791890000000-AddWhatsappConversationClientId.ts`).
   - **Monthly Budget Guard**: Lightweight tracker monitoring outbound service and utility messages against the 1,000 free monthly tier (`GET /api/v1/whatsapp-chats/usage`).
-  - **Migration**: Migration `1800000000001-AddWhatsappChatTables.ts` located in `backend/src/database/migrations/`.
+  - **Migration**: Migration `1800000000001-AddWhatsappChatTables.ts` and `1791890000000-AddWhatsappConversationClientId.ts` located in `backend/src/database/migrations/` and `backend/src/migrations/`.
 
 
 ## 11. Non-negotiable rules for contributors
