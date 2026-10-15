@@ -76,6 +76,15 @@
           true,
         );
         form.reset();
+
+        // Track lead conversion in Google Analytics
+        if (typeof (window as any).gtag === 'function') {
+          (window as any).gtag('event', 'generate_lead', {
+            event_category: 'engagement',
+            event_label: payload.query_type || 'General Enquiry',
+            value: 1,
+          });
+        }
       } else {
         setStatus('Failed to send. Please call us at +91 99098 31995.', false);
       }

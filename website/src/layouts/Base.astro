@@ -22,6 +22,7 @@ const {
 const site = Astro.site ?? new URL('https://snbajaj.com');
 const canonicalUrl = new URL(canonical, site).href;
 const ogImage = new URL('/images/logo.png', site).href;
+const gaMeasurementId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -99,6 +100,56 @@ const jsonLd = {
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css"
     />
+
+    <!-- Google Analytics (GA4) -->
+    {gaMeasurementId && (
+      <>
+        <script
+          is:inline
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+        />
+        <script is:inline define:vars={{ gaMeasurementId }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          window.gtag = gtag;
+          gtag('js', new Date());
+          gtag('config', gaMeasurementId, {
+            send_page_view: true,
+          });
+        </script>
+      </>
+    )}
+
+    <!-- Global event listeners for phone & email contact tracking -->
+    <script is:inline>
+      document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('click', (e) => {
+          const target = e.target && e.target.closest ? e.target.closest('a') : null;
+          if (!target) return;
+          const href = target.getAttribute('href') || '';
+          if (href.startsWith('tel:')) {
+            const phone = href.replace('tel:', '').trim();
+            if (typeof window.gtag === 'function') {
+              window.gtag('event', 'contact', {
+                method: 'phone',
+                event_category: 'engagement',
+                event_label: phone,
+              });
+            }
+          } else if (href.startsWith('mailto:')) {
+            const email = href.replace('mailto:', '').trim();
+            if (typeof window.gtag === 'function') {
+              window.gtag('event', 'contact', {
+                method: 'email',
+                event_category: 'engagement',
+                event_label: email,
+              });
+            }
+          }
+        });
+      });
+    </script>
   </head>
   <body>
     <slot />
