@@ -160,5 +160,9 @@
 </div>
 
 @if (officeOpenId(); as id) {
-  <app-office-editor [agreementId]="id" (closeEvent)="officeOpenId.set(null)" />
+  <app-office-editor
+    [agreementId]="id"
+    (closeEvent)="officeOpenId.set(null)"
+    (fallbackToBrowser)="onOfficeFallback(id)"
+  />
 }

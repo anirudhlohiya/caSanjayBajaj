@@ -418,10 +418,24 @@ export class RentAgreementsService {
       throw new NotFoundException('OnlyOffice integration is not enabled');
     }
     const agreement = await this.findOne(id);
-    const buffer = this.generateDocxBuffer(
-      agreement.template_id,
-      (agreement.form_data ?? {}) as Record<string, unknown>,
-    );
+    let buffer: Buffer;
+    if (agreement.edited_docx_s3_key) {
+      try {
+        buffer = await this.storage.downloadBuffer(
+          agreement.edited_docx_s3_key,
+        );
+      } catch {
+        buffer = this.generateDocxBuffer(
+          agreement.template_id,
+          (agreement.form_data ?? {}) as Record<string, unknown>,
+        );
+      }
+    } else {
+      buffer = this.generateDocxBuffer(
+        agreement.template_id,
+        (agreement.form_data ?? {}) as Record<string, unknown>,
+      );
+    }
 
     const key = randomUUID();
     this.officeSessions.set(key, {
@@ -430,13 +444,37 @@ export class RentAgreementsService {
       expiresAt: Date.now() + 2 * 60 * 60 * 1000,
     });
 
+    let sourceUrl: string;
+    try {
+      const s3SourceKey = `rent-agreements/${id}/source-${key}.docx`;
+      await this.storage.uploadBuffer(
+        s3SourceKey,
+        buffer,
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      );
+      sourceUrl = await this.storage.createDownloadUrl(s3SourceKey, 7200);
+    } catch (s3Err) {
+      this.logger.warn(
+        `Failed to generate S3 pre-signed URL for OnlyOffice source (${(s3Err as Error).message}); falling back to API proxy`,
+      );
+      let apiBaseFallback = String(
+        this.config.get<string>('onlyOffice.apiBaseUrl') ?? '',
+      ).replace(/\/+$/, '');
+      if (
+        apiBaseFallback.endsWith('/api/v1') ||
+        apiBaseFallback.endsWith('/api/v1/')
+      ) {
+        apiBaseFallback = apiBaseFallback.replace(/\/api\/v1\/?$/, '');
+      }
+      sourceUrl = `${apiBaseFallback}/api/v1/admin/rent-agreements/office/source/${key}`;
+    }
+
     let apiBase = String(
       this.config.get<string>('onlyOffice.apiBaseUrl') ?? '',
     ).replace(/\/+$/, '');
     if (apiBase.endsWith('/api/v1') || apiBase.endsWith('/api/v1/')) {
       apiBase = apiBase.replace(/\/api\/v1\/?$/, '');
     }
-    const sourceUrl = `${apiBase}/api/v1/admin/rent-agreements/office/source/${key}`;
     const callbackUrl = `${apiBase}/api/v1/admin/rent-agreements/office/callback/${key}`;
     const title = agreement.tenant_name
       ? `Rent_Agreement_${agreement.tenant_name}.docx`

@@ -228,5 +228,9 @@
 }
 
 @if (officeOpen()) {
-  <app-office-editor [agreementId]="agreementId() ?? ''" (closeEvent)="officeOpen.set(false)" />
+  <app-office-editor
+    [agreementId]="agreementId() ?? ''"
+    (closeEvent)="officeOpen.set(false)"
+    (fallbackToBrowser)="onOfficeFallback()"
+  />
 }

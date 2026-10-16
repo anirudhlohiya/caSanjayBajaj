@@ -351,6 +351,12 @@ export class RentAgreementsCreate implements OnInit {
     }
   }
 
+  onOfficeFallback(): void {
+    this.officeOpen.set(false);
+    void this.preview();
+    this.toast.info('Switched to built-in browser editor');
+  }
+
   execCommand(cmd: string, value?: string): void {
     this.editableDoc?.nativeElement.focus();
     document.execCommand(cmd, false, value);

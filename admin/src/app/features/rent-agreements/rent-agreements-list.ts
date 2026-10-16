@@ -101,6 +101,12 @@ export class RentAgreementsList implements OnInit {
     this.officeOpenId.set(id);
   }
 
+  onOfficeFallback(id: string): void {
+    this.officeOpenId.set(null);
+    this.editAgreement(id);
+    this.toast.info('Switched to agreement editor');
+  }
+
   createAgreement(): void {
     void this.router.navigate(['/rent-agreements/create']);
   }

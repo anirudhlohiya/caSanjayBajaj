@@ -27,7 +27,7 @@ export const TEMPLATES: TemplateConfig[] = [
     category: 'Residential & Commercial',
     description:
       'Dynamic agreement template supporting multiple licensors, licensees, and auto-calculations.',
-    templateFileName: 'TOWER-1-804-fixed.docx',
+    templateFileName: 'TOWER-1-804.docx',
     fields: [
       {
         key: 'PROPERTY_ADDRESS',

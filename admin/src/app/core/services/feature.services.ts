@@ -437,6 +437,14 @@ export class RentAgreementsService {
     return firstValueFrom(this.api.get<{ data: any[] }>('/admin/rent-agreements/templates'));
   }
 
+  getConfig() {
+    return firstValueFrom(
+      this.api.get<{ data: { onlyOfficeEnabled: boolean; libreOfficeEnabled: boolean } }>(
+        '/admin/rent-agreements/config',
+      ),
+    );
+  }
+
   list(params: { page?: number; limit?: number; template_id?: string } = {}) {
     return firstValueFrom(
       this.api.get<PaginatedResult<any>>('/admin/rent-agreements', params),

@@ -38,6 +38,16 @@ export class RentAgreementsController {
     return { data: TEMPLATES };
   }
 
+  @Get('config')
+  getConfig() {
+    return {
+      data: {
+        onlyOfficeEnabled: this.rentAgreementsService.officeEnabled,
+        libreOfficeEnabled: this.rentAgreementsService.libreOfficeEnabled,
+      },
+    };
+  }
+
   @Get()
   async findAll(
     @Query('page') page = 1,
