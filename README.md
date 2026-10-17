@@ -24,27 +24,34 @@ A modern, full-stack practice management and client communication platform built
 
 ## 📱 Application Screenshots
 
-### Client Portal Overview
+### Client Portal Experience
 
 | Dashboard | Document Management |
 |:---:|:---:|
-| <img src="screenshots/app.snbajaj.com_dashboard.png" alt="Client Dashboard" width="460" /> | <img src="screenshots/app.snbajaj.com_documents.png" alt="Documents & Compliance" width="460" /> |
-| *Real-time filing period status & quick actions* | *Period-based S3 uploads & compliance checklist* |
+| <img src="screenshots/app.snbajaj.com_dashboard.png" alt="Client Dashboard" width="400" /> | <img src="screenshots/app.snbajaj.com_documents.png" alt="Documents & Compliance" width="400" /> |
+| *Home feed with service shortcuts, GST tools & quick actions* | *Period-based filing tracker, status & CA report access* |
 
 | Services Catalog | Reminders & Deadlines |
 |:---:|:---:|
-| <img src="screenshots/app.snbajaj.com_services.png" alt="CA Services Catalog" width="460" /> | <img src="screenshots/app.snbajaj.com_reminders.png" alt="Deadlines & Reminders" width="460" /> |
-| *Browse and request active CA services* | *Urgent action items & upcoming GST due dates* |
+| <img src="screenshots/app.snbajaj.com_services.png" alt="CA Services Catalog" width="400" /> | <img src="screenshots/app.snbajaj.com_reminders.png" alt="Deadlines & Reminders" width="400" /> |
+| *Comprehensive CA catalog (GST, ITR, Mutual Funds)* | *Action tracker for urgent, upcoming & completed filings* |
 
-| Profile & Notification Preferences | Authentication & Sign-in |
+| Profile & Language Preferences | Notification Center |
 |:---:|:---:|
-| <img src="screenshots/app.snbajaj.com_profile.png" alt="Client Profile & Settings" width="460" /> | <img src="screenshots/app.snbajaj.com_login.png" alt="Client Login" width="460" /> |
-| *Profile details, GSTIN, DOB & push toggles* | *Secure OTP / credential-based authentication* |
+| <img src="screenshots/app.snbajaj.com_profile.png" alt="Client Profile & Language Selection" width="400" /> | <img src="screenshots/app.snbajaj.com_notifications.png" alt="Notification Center" width="400" /> |
+| *Client profile details & multilingual options (EN, HI, GU)* | *Centralized in-app updates for documents & filings* |
 
-| Client Registration & Onboarding |
-|:---:|
-| <img src="screenshots/app.snbajaj.com_signup.png" alt="Client Registration" width="460" /> |
-| *Seamless signup with automatic GST vs. ITR categorization* |
+### Onboarding & Security
+
+| Authentication & Sign-In | Password Reset Flow |
+|:---:|:---:|
+| <img src="screenshots/app.snbajaj.com_login.png" alt="Client Login" width="400" /> | <img src="screenshots/app.snbajaj.com_forgot-password.png" alt="Password Reset" width="400" /> |
+| *Secure credential sign-in for registered clients* | *Email OTP verification for seamless password recovery* |
+
+| Registration (Step 1: Email) | Registration (Step 2: Profile & OTP) |
+|:---:|:---:|
+| <img src="screenshots/app.snbajaj.com_signup.png" alt="Client Signup Step 1" width="400" /> | <img src="screenshots/app.snbajaj.com_signup_detial.png" alt="Client Signup Step 2" width="400" /> |
+| *Initial signup with email OTP verification dispatch* | *OTP validation, personal details, and account setup* |
 
 ---
 
@@ -56,6 +63,9 @@ A modern, full-stack practice management and client communication platform built
 - **Filing Periods & Nil Declarations**: Real-time progress monitoring per period, one-tap Nil return declarations, and direct report downloads.
 - **Support Tickets**: Integrated client ticketing system with threaded messaging and document attachments.
 - **Progressive Web App**: Installable to iOS/Android home screens with native-like mobile responsiveness and offline resilience.
+- **Multilingual Support**: Built-in language switching (English, Hindi, Gujarati) for seamless regional accessibility.
+- **Self-Service Onboarding**: Streamlined 2-step OTP registration and automated password recovery flows.
+- **Notification Hub**: Real-time alerts and status updates on submitted documents and published CA reports.
 
 ### 2. Admin Management Panel
 - **Client & Staff Oversight**: Full client directory with bulk Excel import (`import-clients.ts`), pre-registration auto-linking, and granular role-based permissions (`view_clients`, `upload_reports`, `send_reminders`, `manage_services`, `manage_tickets`, etc.).
