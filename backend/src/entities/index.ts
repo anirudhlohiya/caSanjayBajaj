@@ -24,6 +24,11 @@ import { User } from './user.entity';
 import { RentAgreement } from './rent-agreement.entity';
 import { WhatsappConversation } from './whatsapp-conversation.entity';
 import { WhatsappMessage } from './whatsapp-message.entity';
+import {
+  ServiceRequest,
+  ServiceRequestPayload,
+} from './service-request.entity';
+import { ItrReturn } from './itr-return.entity';
 
 export const entities = [
   User,
@@ -52,6 +57,8 @@ export const entities = [
   ClientCertificate,
   WhatsappConversation,
   WhatsappMessage,
+  ServiceRequest,
+  ItrReturn,
 ];
 
 export {
@@ -64,6 +71,7 @@ export {
   DeviceToken,
   Document,
   GstFilingPeriod,
+  ItrReturn,
   Lead,
   OtpVerification,
   Permission,
@@ -74,6 +82,7 @@ export {
   ReportRequest,
   ReportShareLink,
   Service,
+  ServiceRequest,
   Ticket,
   TicketMessage,
   TicketAttachment,
@@ -82,3 +91,5 @@ export {
   WhatsappConversation,
   WhatsappMessage,
 };
+
+export type { ServiceRequestPayload };

@@ -1,7 +1,27 @@
 export enum UserType {
+  GENERAL = 'general',
   GST = 'gst',
   ITR = 'itr',
+  BOTH = 'both',
   NORMAL = 'normal',
+}
+
+export enum DocumentCategory {
+  GST = 'gst',
+  ITR = 'itr',
+  GENERAL = 'general',
+}
+
+export enum ServiceRequestType {
+  GST = 'gst',
+  ITR = 'itr',
+  BOTH = 'both',
+}
+
+export enum ServiceRequestStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
 }
 
 export enum UserStatus {

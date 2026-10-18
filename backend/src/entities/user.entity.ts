@@ -29,10 +29,19 @@ export class User {
   @Column({ type: 'varchar', length: 15, unique: true, nullable: true })
   gstin: string | null;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  business_name: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  industry: string | null;
+
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  pan: string | null;
+
   @Column({ type: 'date', nullable: true })
   dob: Date | string | null;
 
-  @Column({ type: 'enum', enum: UserType, default: UserType.NORMAL })
+  @Column({ type: 'enum', enum: UserType, default: UserType.GENERAL })
   user_type: UserType;
 
   @Column({ type: 'text', nullable: true })

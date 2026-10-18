@@ -28,6 +28,8 @@ import { ReportRequestsModule } from './report-requests/report-requests.module';
 import { ShareLinksModule } from './share-links/share-links.module';
 import { BirthdayNotificationsModule } from './birthday-notifications/birthday-notifications.module';
 import { WhatsappChatsModule } from './whatsapp-chats/whatsapp-chats.module';
+import { ServiceRequestsModule } from './service-requests/service-requests.module';
+import { ItrReturnsModule } from './itr-returns/itr-returns.module';
 
 @Module({
   imports: [
@@ -60,6 +62,8 @@ import { WhatsappChatsModule } from './whatsapp-chats/whatsapp-chats.module';
     ReportRequestsModule,
     BirthdayNotificationsModule,
     WhatsappChatsModule,
+    ServiceRequestsModule,
+    ItrReturnsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
