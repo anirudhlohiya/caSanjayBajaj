@@ -7,12 +7,12 @@ import {
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { PeriodsService } from '../../core/services/feature.services';
 import { UploadService } from '../../core/services/upload.service';
 import { UploadQueueService, QueuedUpload } from '../../core/services/upload-queue.service';
-import { GstFilingPeriod } from '../../core/models';
+import { DocumentCategory, GstFilingPeriod } from '../../core/models';
 import { PageHeader } from '../../shared/components/page-header';
 
 interface UploadItem {
@@ -33,10 +33,15 @@ const MAX_SIZE = 50 * 1024 * 1024;
 })
 export class Upload {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
   private readonly periodsService = inject(PeriodsService);
   private readonly upload = inject(UploadService);
   private readonly queue = inject(UploadQueueService);
+
+  readonly category = signal<DocumentCategory>('gst');
+  readonly assessmentYear = signal<string>('2025-26');
+  readonly assessmentYears = ['2025-26', '2024-25', '2023-24', '2022-23'];
 
   readonly periods = signal<GstFilingPeriod[]>([]);
   readonly selectedPeriodId = signal<string>('');
@@ -45,6 +50,28 @@ export class Upload {
   readonly busy = signal(false);
   readonly error = signal('');
   readonly uploadingCount = signal(0);
+
+  readonly pageTitle = computed(() => {
+    switch (this.category()) {
+      case 'itr':
+        return 'Upload ITR Documents';
+      case 'general':
+        return 'Upload General Documents';
+      default:
+        return 'Upload GST Documents';
+    }
+  });
+
+  readonly pageSubtitle = computed(() => {
+    switch (this.category()) {
+      case 'itr':
+        return 'Share your Income Tax documents securely';
+      case 'general':
+        return 'Share general documents with your CA';
+      default:
+        return 'Share your GST documents securely';
+    }
+  });
 
   readonly selectedPeriod = computed(() =>
     this.periods().find((p) => p.id === this.selectedPeriodId()),
@@ -72,11 +99,25 @@ export class Upload {
   }
 
   async init(): Promise<void> {
+    const qCategory = this.route.snapshot.queryParamMap.get('category');
+    if (qCategory === 'itr' || qCategory === 'general' || qCategory === 'gst') {
+      this.category.set(qCategory);
+    }
+    const qAy = this.route.snapshot.queryParamMap.get('ay');
+    if (qAy) {
+      this.assessmentYear.set(qAy);
+    }
+    const qPeriod = this.route.snapshot.queryParamMap.get('period');
+
     try {
-      const periods = await this.periodsService.open();
-      this.periods.set(periods);
-      if (periods.length > 0) {
-        this.selectedPeriodId.set(periods[0].id);
+      if (this.category() === 'gst') {
+        const periods = await this.periodsService.open();
+        this.periods.set(periods);
+        if (qPeriod) {
+          this.selectedPeriodId.set(qPeriod);
+        } else if (periods.length > 0) {
+          this.selectedPeriodId.set(periods[0].id);
+        }
       }
       this.queuedCount.set((await this.queue.list()).length);
     } catch {
@@ -126,20 +167,27 @@ export class Upload {
   }
 
   async uploadAll(): Promise<void> {
-    if (!this.canUpload() || !this.selectedPeriodId()) {
-      this.toast.error('Select a filing period and add files first.');
+    if (!this.canUpload()) {
+      this.toast.error('Add files to upload first.');
+      return;
+    }
+    if (this.category() === 'gst' && !this.selectedPeriodId()) {
+      this.toast.error('Select a filing period first.');
       return;
     }
     this.busy.set(true);
     this.error.set('');
-    const periodId = this.selectedPeriodId();
 
     for (const item of this.items()) {
       if (item.status === 'pending' || item.status === 'failed') {
         this.setStatus(item.id, 'uploading', 0);
         const outcome = await this.upload.uploadFile(
           item.file,
-          periodId,
+          {
+            periodId: this.category() === 'gst' ? this.selectedPeriodId() : undefined,
+            category: this.category(),
+            assessmentYear: this.category() === 'itr' ? this.assessmentYear() : undefined,
+          },
           (percent) => this.setProgress(item.id, percent),
         );
         if (outcome === 'success') {

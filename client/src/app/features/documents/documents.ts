@@ -17,13 +17,22 @@ import {
   ComplianceTask,
   ReportRequestsService,
   ReportsService,
+  ItrReturnsService,
 } from '../../core/services/feature.services';
 import {
   Document,
+  DocumentCategory,
   GstFilingPeriod,
+  ItrReturn,
   REPORT_TYPE_LABELS,
   Report,
 } from '../../core/models';
+
+export interface TabOption {
+  id: 'gst' | 'itr' | 'general';
+  label: string;
+  icon: string;
+}
 
 const UPLOAD_CATEGORIES = ['gstr_1', 'gstr_3b', 'iff'];
 const NIL_CATEGORIES = ['gstr_1', 'iff'];
@@ -41,11 +50,26 @@ export class Documents {
   private readonly tasksService = inject(ComplianceTasksService);
   private readonly reportReqsService = inject(ReportRequestsService);
   private readonly reportsService = inject(ReportsService);
+  private readonly itrReturnsService = inject(ItrReturnsService);
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly authService = inject(AuthService);
+  readonly authService = inject(AuthService);
 
+  readonly availableTabs = computed<TabOption[]>(() => {
+    const type = this.authService.userProfile()?.user_type ?? 'general';
+    const tabs: TabOption[] = [];
+    if (type === 'gst' || type === 'both') {
+      tabs.push({ id: 'gst', label: 'GST', icon: 'receipt_long' });
+    }
+    if (type === 'itr' || type === 'both') {
+      tabs.push({ id: 'itr', label: 'ITR', icon: 'account_balance' });
+    }
+    tabs.push({ id: 'general', label: 'General', icon: 'folder_open' });
+    return tabs;
+  });
+
+  readonly activeTab = signal<'gst' | 'itr' | 'general'>('general');
   readonly loading = signal(true);
   readonly docs = signal<Document[]>([]);
   readonly total = signal(0);
@@ -54,7 +78,9 @@ export class Documents {
   readonly periodId = signal('');
   readonly tasks = signal<ComplianceTask[]>([]);
   readonly reports = signal<Report[]>([]);
-  readonly selectedDoc = signal<Document | null>(null);
+  readonly itrReturns = signal<ItrReturn[]>([]);
+  readonly selectedAy = signal<string>('2025-26');
+  readonly assessmentYears = ['2025-26', '2024-25', '2023-24', '2022-23'];
   readonly downloading = signal(false);
   readonly page = signal(1);
   readonly pageSize = 20;
@@ -114,18 +140,37 @@ export class Documents {
   });
 
   constructor() {
-    const initial = this.route.snapshot.queryParamMap.get('period');
-    if (initial) this.periodId.set(initial);
+    const initialPeriod = this.route.snapshot.queryParamMap.get('period');
+    if (initialPeriod) this.periodId.set(initialPeriod);
     void this.init();
   }
 
   async init(): Promise<void> {
+    const unlocked = this.availableTabs().map((t) => t.id);
+    const qTab = this.route.snapshot.queryParamMap.get('tab') as
+      | 'gst'
+      | 'itr'
+      | 'general'
+      | null;
+
+    if (qTab && unlocked.includes(qTab)) {
+      this.activeTab.set(qTab);
+    } else if (unlocked.includes('gst')) {
+      this.activeTab.set('gst');
+    } else if (unlocked.includes('itr')) {
+      this.activeTab.set('itr');
+    } else {
+      this.activeTab.set('general');
+    }
+
     try {
-      const periods = await this.periodsService.list();
-      this.periods.set(periods);
-      if (periods.length > 0) {
-        if (!this.periodId()) this.periodId.set(periods[0].id);
-        this.reportPeriodId = periods[0].id;
+      if (unlocked.includes('gst')) {
+        const periods = await this.periodsService.list();
+        this.periods.set(periods);
+        if (periods.length > 0) {
+          if (!this.periodId()) this.periodId.set(periods[0].id);
+          this.reportPeriodId = periods[0].id;
+        }
       }
     } catch {
       /* non-fatal */
@@ -133,23 +178,76 @@ export class Documents {
     await this.load();
   }
 
+  async selectTab(tab: 'gst' | 'itr' | 'general'): Promise<void> {
+    this.activeTab.set(tab);
+    this.page.set(1);
+    await this.load();
+  }
+
+  async setAssessmentYear(ay: string): Promise<void> {
+    this.selectedAy.set(ay);
+    this.page.set(1);
+    await this.load();
+  }
+
   async load(): Promise<void> {
     this.loading.set(true);
+    const tab = this.activeTab();
     try {
-      const pid = this.periodId();
-      const [tasks, reportsRes] = await Promise.all([
-        pid ? this.tasksService.list(pid) : Promise.resolve<ComplianceTask[]>([]),
-        this.reportsService.list({
-          filingPeriodId: pid || undefined,
-          pageSize: 100,
-        }),
-      ]);
-      this.tasks.set(tasks);
-      this.reports.set(reportsRes.items);
+      if (tab === 'gst') {
+        const pid = this.periodId();
+        const [tasks, reportsRes, docsRes] = await Promise.all([
+          pid ? this.tasksService.list(pid) : Promise.resolve<ComplianceTask[]>([]),
+          this.reportsService.list({
+            filingPeriodId: pid || undefined,
+            pageSize: 100,
+          }),
+          this.documentsService.list({
+            category: 'gst',
+            filingPeriodId: pid || undefined,
+            status: this.filter() || undefined,
+            page: this.page(),
+            pageSize: this.pageSize,
+          }),
+        ]);
+        this.tasks.set(tasks);
+        this.reports.set(reportsRes.items);
+        this.docs.set(docsRes.items);
+        this.total.set(docsRes.total);
+      } else if (tab === 'itr') {
+        const [returnsRes, docsRes] = await Promise.all([
+          this.itrReturnsService.listMine().catch(() => []),
+          this.documentsService.list({
+            category: 'itr',
+            assessmentYear: this.selectedAy(),
+            status: this.filter() || undefined,
+            page: this.page(),
+            pageSize: this.pageSize,
+          }),
+        ]);
+        this.itrReturns.set(returnsRes);
+        this.docs.set(docsRes.items);
+        this.total.set(docsRes.total);
+        this.tasks.set([]);
+        this.reports.set([]);
+      } else {
+        // general
+        const docsRes = await this.documentsService.list({
+          category: 'general',
+          status: this.filter() || undefined,
+          page: this.page(),
+          pageSize: this.pageSize,
+        });
+        this.docs.set(docsRes.items);
+        this.total.set(docsRes.total);
+        this.tasks.set([]);
+        this.reports.set([]);
+      }
     } catch {
       this.tasks.set([]);
       this.reports.set([]);
       this.docs.set([]);
+      this.total.set(0);
     } finally {
       this.loading.set(false);
     }
@@ -180,7 +278,28 @@ export class Documents {
   }
 
   goUpload(): void {
-    void this.router.navigate(['/upload']);
+    void this.router.navigate(['/documents/upload'], {
+      queryParams: {
+        category: this.activeTab(),
+        period: this.activeTab() === 'gst' ? this.periodId() : undefined,
+        ay: this.activeTab() === 'itr' ? this.selectedAy() : undefined,
+      },
+    });
+  }
+
+  downloadItrReturn(ret: ItrReturn): void {
+    if (ret.downloadUrl) {
+      window.open(ret.downloadUrl, '_blank');
+    }
+  }
+
+  async downloadDoc(doc: Document): Promise<void> {
+    try {
+      const res = await this.documentsService.downloadUrl(doc.id);
+      window.open(res.download_url, '_blank');
+    } catch {
+      this.toast.error('Failed to download document');
+    }
   }
 
   canFileNil(task: ComplianceTask): boolean {
@@ -244,5 +363,12 @@ export class Documents {
 
   periodLabel(period?: GstFilingPeriod | null): string {
     return period?.period_label ?? '—';
+  }
+
+  formatSize(bytes: string | number): string {
+    const num = typeof bytes === 'string' ? parseInt(bytes, 10) : bytes;
+    if (isNaN(num) || num < 1024) return `${num || 0} B`;
+    if (num < 1024 * 1024) return `${(num / 1024).toFixed(0)} KB`;
+    return `${(num / (1024 * 1024)).toFixed(1)} MB`;
   }
 }

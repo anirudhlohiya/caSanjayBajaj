@@ -109,6 +109,14 @@ export class AuthService {
     await this.router.navigate(['/login'], { replaceUrl: true });
   }
 
+  setSessionFromToken(accessToken: string): void {
+    this.accessToken.set(accessToken);
+    this.refreshToken.set(accessToken);
+    localStorage.setItem(APP.tokens.access, accessToken);
+    localStorage.setItem(APP.tokens.refresh, accessToken);
+    void this.loadProfile();
+  }
+
   private setTokens(tokens: AuthTokens): void {
     this.accessToken.set(tokens.access_token);
     this.refreshToken.set(tokens.refresh_token);

@@ -19,12 +19,45 @@ export const APP = {
   },
 } as const;
 
-export type UserType = 'gst' | 'itr';
+export type UserType = 'general' | 'gst' | 'itr' | 'both';
 export type UserStatus = 'active' | 'inactive';
 export type DocumentStatus = 'pending' | 'received' | 'processed';
 export type DocumentFileType = 'pdf' | 'image' | 'excel';
+export type DocumentCategory = 'gst' | 'itr' | 'general';
 export type ReportType = 'gstr_1' | 'gstr_3b' | 'reconciliation' | 'other';
 export type CertType = 'gst_cert' | 'udyam_cert';
+
+export type ServiceRequestType = 'gst' | 'itr' | 'both';
+export type ServiceRequestStatus = 'pending' | 'approved' | 'rejected';
+
+export interface ServiceRequestPayload {
+  business_name?: string;
+  gstin?: string;
+  filing_frequency?: 'monthly' | 'quarterly';
+  industry?: string;
+  pan?: string;
+}
+
+export interface ServiceRequest {
+  id: string;
+  user_id: string;
+  requested_type: ServiceRequestType;
+  status: ServiceRequestStatus;
+  payload: ServiceRequestPayload;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+export interface ItrReturn {
+  id?: string;
+  assessment_year: string;
+  filename: string;
+  file_size_bytes?: string | number;
+  uploaded_at: string;
+  downloadUrl: string;
+}
 
 export interface ClientCertificate {
   id: string;
@@ -59,6 +92,9 @@ export interface UserProfile {
   email: string;
   phone: string | null;
   gstin: string | null;
+  business_name?: string | null;
+  industry?: string | null;
+  pan?: string | null;
   user_type: UserType;
   status: UserStatus;
   gst_filing_frequency?: 'monthly' | 'quarterly';
@@ -96,14 +132,16 @@ export interface ReportRequest {
 export interface Document {
   id: string;
   user_id: string;
-  filing_period_id: string;
+  category: DocumentCategory;
+  filing_period_id: string | null;
+  assessment_year?: string | null;
   original_filename: string;
   file_type: DocumentFileType;
   file_size_bytes: string;
   status: DocumentStatus;
   uploaded_at: string;
   processed_at: string | null;
-  filing_period?: GstFilingPeriod;
+  filing_period?: GstFilingPeriod | null;
 }
 
 export interface Report {

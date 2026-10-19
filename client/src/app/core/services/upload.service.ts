@@ -1,10 +1,17 @@
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { filter, firstValueFrom, last, tap } from 'rxjs';
+import { DocumentCategory } from '../models';
 import { DocumentsService } from './feature.services';
 import { UploadQueueService } from './upload-queue.service';
 
 export type UploadOutcome = 'success' | 'queued' | 'failed';
+
+export interface UploadOptions {
+  periodId?: string;
+  category?: DocumentCategory;
+  assessmentYear?: string;
+}
 
 export function isNetworkError(err: unknown): boolean {
   const e = err as { status?: number; name?: string };
@@ -22,15 +29,20 @@ export class UploadService {
 
   async uploadFile(
     file: File,
-    periodId: string,
+    periodIdOrOptions?: string | UploadOptions,
     onProgress?: (percent: number) => void,
   ): Promise<UploadOutcome> {
+    const opts: UploadOptions =
+      typeof periodIdOrOptions === 'string'
+        ? { periodId: periodIdOrOptions, category: 'gst' }
+        : periodIdOrOptions ?? { category: 'general' };
+
     const fileType = UploadService.guessFileType(file.name, file.type);
     const contentType = file.type || 'application/octet-stream';
     try {
       await this.performUpload(
         file,
-        periodId,
+        opts,
         contentType,
         fileType,
         onProgress,
@@ -41,7 +53,7 @@ export class UploadService {
       if (isNetworkError(err)) {
         await this.queue.enqueue({
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          periodId,
+          periodId: opts.periodId ?? '',
           filename: file.name,
           contentType,
           fileType,
@@ -57,14 +69,16 @@ export class UploadService {
 
   private async performUpload(
     file: File,
-    periodId: string,
+    opts: UploadOptions,
     contentType: string,
     fileType: 'pdf' | 'image' | 'excel',
     onProgress: ((percent: number) => void) | undefined,
     attempt: number,
   ): Promise<void> {
     const { document_id, upload_url } = await this.documents.requestUploadUrl({
-      filing_period_id: periodId,
+      category: opts.category,
+      filing_period_id: opts.periodId,
+      assessment_year: opts.assessmentYear,
       filename: file.name,
       contentType,
       file_type: fileType,
@@ -98,7 +112,7 @@ export class UploadService {
       if (e.status === 403 && attempt === 0) {
         await this.performUpload(
           file,
-          periodId,
+          opts,
           contentType,
           fileType,
           onProgress,
@@ -123,7 +137,7 @@ export class UploadService {
         });
         await this.performUpload(
           file,
-          item.periodId,
+          { periodId: item.periodId, category: 'gst' },
           item.contentType,
           item.fileType,
           undefined,

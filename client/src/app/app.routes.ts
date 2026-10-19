@@ -15,10 +15,20 @@ export const routes: Routes = [
     canActivate: [guestGuard],
   },
   {
+    path: 'register',
+    redirectTo: 'signup',
+    pathMatch: 'full',
+  },
+  {
     path: 'forgot-password',
     loadComponent: () =>
       import('./features/auth/forgot-password').then((m) => m.ForgotPassword),
     canActivate: [guestGuard],
+  },
+  {
+    path: 'upload',
+    redirectTo: 'documents/upload',
+    pathMatch: 'full',
   },
   {
     path: 'documents/upload',

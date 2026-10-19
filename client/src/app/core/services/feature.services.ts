@@ -4,13 +4,17 @@ import { ApiClient } from './api-client.service';
 import {
   ClientCertificate,
   Document,
+  DocumentCategory,
   DownloadUrlResponse,
   GstFilingPeriod,
+  ItrReturn,
   PaginatedResult,
   Report,
   ReportNotification,
   ReportType,
   Service,
+  ServiceRequest,
+  ServiceRequestType,
   Ticket,
   TicketMessage,
   ReportRequest,
@@ -65,12 +69,16 @@ export class DocumentsService {
   list(opts: {
     filingPeriodId?: string;
     status?: string;
+    category?: DocumentCategory;
+    assessmentYear?: string;
     page?: number;
     pageSize?: number;
-  }): Promise<PaginatedResult<Document>> {
+  } = {}): Promise<PaginatedResult<Document>> {
     const params = new URLSearchParams();
     if (opts.filingPeriodId) params.set('filing_period_id', opts.filingPeriodId);
     if (opts.status) params.set('status', opts.status);
+    if (opts.category) params.set('category', opts.category);
+    if (opts.assessmentYear) params.set('assessment_year', opts.assessmentYear);
     params.set('page', String(opts.page ?? 1));
     params.set('pageSize', String(opts.pageSize ?? 50));
     return firstValueFrom(
@@ -79,7 +87,9 @@ export class DocumentsService {
   }
 
   requestUploadUrl(body: {
-    filing_period_id: string;
+    category?: DocumentCategory;
+    filing_period_id?: string;
+    assessment_year?: string;
     filename: string;
     contentType: string;
     file_type: 'pdf' | 'image' | 'excel';
@@ -337,6 +347,43 @@ export class ReportRequestsService {
     return firstValueFrom(
       this.api.post<ReportRequest>('/me/report-requests', { filing_period_id: periodId })
     );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class ServiceRequestsService {
+  constructor(private readonly api: ApiClient) {}
+
+  create(body: {
+    requested_type: ServiceRequestType;
+    business_name?: string;
+    gstin?: string;
+    filing_frequency?: string;
+    industry?: string;
+    pan?: string;
+  }): Promise<ServiceRequest> {
+    return firstValueFrom(
+      this.api.post<ServiceRequest>('/me/service-requests', body),
+    );
+  }
+
+  myRequests(): Promise<ServiceRequest[]> {
+    return firstValueFrom(
+      this.api.get<ServiceRequest[]>('/me/service-requests'),
+    );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class ItrReturnsService {
+  constructor(private readonly api: ApiClient) {}
+
+  myReturns(): Promise<ItrReturn[]> {
+    return firstValueFrom(this.api.get<ItrReturn[]>('/me/itr-returns'));
+  }
+
+  listMine(): Promise<ItrReturn[]> {
+    return this.myReturns();
   }
 }
 
