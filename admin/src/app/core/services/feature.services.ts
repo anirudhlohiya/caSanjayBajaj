@@ -23,6 +23,9 @@ import type {
   UploadUrl,
   Admin,
   ReportRequest,
+  ServiceRequest,
+  ItrReturn,
+  UserType,
   WhatsappConversation,
   WhatsappMessage,
   WhatsappUsageStats,
@@ -61,6 +64,9 @@ export class ClientsService {
     password: string;
     phone?: string;
     gstin?: string;
+    business_name?: string;
+    industry?: string;
+    pan?: string;
     user_type?: string;
     status?: string;
     gst_filing_frequency?: 'monthly' | 'quarterly';
@@ -74,6 +80,9 @@ export class ClientsService {
       name?: string;
       phone?: string;
       gstin?: string;
+      business_name?: string;
+      industry?: string;
+      pan?: string;
       status?: string;
       gst_filing_frequency?: 'monthly' | 'quarterly';
     },
@@ -81,8 +90,76 @@ export class ClientsService {
     return firstValueFrom(this.api.patch<Client>(`/admin/users/${id}`, body));
   }
 
+  changeType(id: string, user_type: UserType) {
+    return firstValueFrom(
+      this.api.patch<Client>(`/admin/clients/${id}/type`, { user_type }),
+    );
+  }
+
   deactivate(id: string) {
     return firstValueFrom(this.api.delete<{ success: boolean }>(`/admin/users/${id}`));
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class ServiceRequestsAdminService {
+  private readonly api = inject(ApiClient);
+
+  listPending() {
+    return firstValueFrom(
+      this.api.get<ServiceRequest[]>('/admin/service-requests?status=pending'),
+    );
+  }
+
+  review(id: string, action: 'approve' | 'reject', note?: string) {
+    return firstValueFrom(
+      this.api.patch<ServiceRequest>(`/admin/service-requests/${id}`, {
+        action,
+        note,
+      }),
+    );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class ItrReturnsAdminService {
+  private readonly api = inject(ApiClient);
+
+  listForClient(clientId: string) {
+    return firstValueFrom(
+      this.api.get<ItrReturn[]>(`/admin/clients/${clientId}/itr-returns`),
+    );
+  }
+
+  requestUploadUrl(
+    clientId: string,
+    body: {
+      assessment_year: string;
+      filename: string;
+      contentType: string;
+    },
+  ) {
+    return firstValueFrom(
+      this.api.post<{
+        s3_key: string;
+        upload_url: string;
+        expires_in: number;
+      }>(`/admin/clients/${clientId}/itr-returns/upload-url`, body),
+    );
+  }
+
+  confirm(
+    clientId: string,
+    body: {
+      assessment_year: string;
+      s3_key: string;
+      filename: string;
+      size: number;
+    },
+  ) {
+    return firstValueFrom(
+      this.api.post<ItrReturn>(`/admin/clients/${clientId}/itr-returns/confirm`, body),
+    );
   }
 }
 

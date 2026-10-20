@@ -3,79 +3,289 @@
 } @else if (client(); as c) {
   <app-page-header [title]="c.name" [subtitle]="c.email">
     <button
-      class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded font-label-md text-label-md flex items-center hover:bg-surface-container-high transition-colors"
+      class="h-8 px-3.5 rounded-full border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-medium hover:bg-[#fafafa] transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
       (click)="sendReminder()"
     >
-      <span class="material-symbols-outlined mr-1" style="font-size: 18px">mail</span>
+      <span class="material-symbols-outlined text-[16px]">mail</span>
       Send Reminder
     </button>
     <button
-      class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md flex items-center hover:bg-secondary transition-colors"
+      class="h-8 px-3.5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
       (click)="showReport.set(true)"
     >
-      <span class="material-symbols-outlined mr-1" style="font-size: 18px">upload_file</span>
+      <span class="material-symbols-outlined text-[16px]">upload_file</span>
       Send Report
     </button>
   </app-page-header>
 
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-    <div class="lg:col-span-1 bg-surface-container-lowest border border-outline-variant rounded-lg p-5 h-fit">
-      <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Client Profile</h3>
-      <dl class="space-y-3 text-body-md text-body-md">
-        <div class="flex justify-between gap-2">
-          <dt class="text-on-surface-variant">GSTIN</dt>
-          <dd class="text-on-surface tabular-nums font-medium">{{ c.gstin ?? '—' }}</dd>
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 mb-6">
+    <!-- Left Column: Profile & Services -->
+    <div class="lg:col-span-1 space-y-4">
+      <!-- Client Profile Card -->
+      <div class="card p-5">
+        <h3 class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium mb-3">Client Profile</h3>
+        <dl class="space-y-3 text-xs">
+          <div class="flex justify-between gap-2">
+            <dt class="text-neutral-500 dark:text-neutral-400">Phone</dt>
+            <dd class="text-neutral-900 dark:text-white font-medium">{{ c.phone ?? '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-2">
+            <dt class="text-neutral-500 dark:text-neutral-400">Status</dt>
+            <dd><app-status-chip [status]="c.status" /></dd>
+          </div>
+          <div class="flex justify-between gap-2">
+            <dt class="text-neutral-500 dark:text-neutral-400">Joined</dt>
+            <dd class="text-neutral-900 dark:text-white font-mono tabular-nums">{{ fmtDate(c.created_at) }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Services Section Card -->
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3.5">
+          <h3 class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">Client Services</h3>
+          <!-- Current Type Chip -->
+          <span class="px-2.5 py-0.5 rounded-full font-mono text-[11px] font-medium tracking-tight uppercase"
+            [class]="c.user_type === 'both' ? 'bg-[#171717] text-white border border-[#171717] dark:bg-white dark:text-[#171717]' :
+                     c.user_type === 'gst' ? 'bg-[#d3e5ff]/70 text-[#0761d1] border border-[#0070f3]/25 dark:bg-blue-950/50 dark:text-blue-300' :
+                     c.user_type === 'itr' ? 'bg-[#d8ccf1]/70 text-[#4c2889] border border-[#7928ca]/25 dark:bg-purple-950/50 dark:text-purple-300' :
+                     'bg-[#fafafa] text-neutral-700 border border-[#ebebeb] dark:bg-neutral-800 dark:text-neutral-300'">
+            {{ c.user_type === 'both' ? 'GST + ITR' : c.user_type }}
+          </span>
         </div>
-        <div class="flex justify-between gap-2">
-          <dt class="text-on-surface-variant">Phone</dt>
-          <dd class="text-on-surface font-medium">{{ c.phone ?? '—' }}</dd>
-        </div>
-        <div class="flex justify-between gap-2">
-          <dt class="text-on-surface-variant">Type</dt>
-          <dd class="text-on-surface font-medium flex items-center gap-2">
-            {{ c.user_type.toUpperCase() }}
-            @if (c.user_type === 'gst') {
-              @if (!editingCadence()) {
-                <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-medium tracking-wide">
-                  {{ c.gst_filing_frequency === 'quarterly' ? 'Quarterly' : 'Monthly' }}
-                </span>
-                <button
-                  class="p-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"
-                  title="Change filing frequency"
-                  (click)="startCadenceEdit()"
-                >
-                  <span class="material-symbols-outlined" style="font-size: 16px">edit</span>
-                </button>
-              } @else {
-                <select id="cadence-select" [value]="c.gst_filing_frequency"
-                  class="px-2 py-1 text-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                </select>
-                <button class="px-2 py-1 bg-primary text-on-primary rounded text-xs font-label-sm hover:bg-secondary"
-                  [disabled]="cadenceSaving()" (click)="saveCadence()">
-                  {{ cadenceSaving() ? 'Saving…' : 'Save' }}
-                </button>
-                <button class="px-2 py-1 text-on-surface-variant hover:bg-surface-container-high rounded text-xs"
-                  [disabled]="cadenceSaving()" (click)="editingCadence.set(false)">
-                  Cancel
-                </button>
+
+        <!-- Pending Request Banner (if any) -->
+        @if (pendingRequest(); as req) {
+          <div class="mb-4 p-3.5 rounded-xl border border-amber-300/80 bg-[#fffdfa] dark:bg-amber-950/20 text-xs shadow-xs">
+            <div class="flex items-center gap-1.5 font-semibold mb-1 text-amber-800 dark:text-amber-400">
+              <span class="material-symbols-outlined text-[16px]">pending_actions</span>
+              <span class="tracking-tight">Pending Upgrade Request</span>
+            </div>
+            <div class="space-y-1 my-2 text-[11px] bg-white/70 dark:bg-black/20 p-2.5 rounded-lg border border-amber-200/50 dark:border-amber-900/30">
+              <div><strong class="font-mono text-neutral-400">Requested:</strong> <span class="font-semibold text-neutral-900 dark:text-white uppercase">{{ req.requested_type }}</span></div>
+              @if (req.payload.business_name) {
+                <div><strong class="font-mono text-neutral-400">Business:</strong> <span class="text-neutral-800 dark:text-neutral-200">{{ req.payload.business_name }}</span></div>
               }
-            }
-          </dd>
+              @if (req.payload.gstin) {
+                <div><strong class="font-mono text-neutral-400">GSTIN:</strong> <span class="font-mono font-medium text-neutral-900 dark:text-white">{{ req.payload.gstin }}</span></div>
+              }
+              @if (req.payload.industry) {
+                <div><strong class="font-mono text-neutral-400">Industry:</strong> <span class="text-neutral-800 dark:text-neutral-200">{{ req.payload.industry }}</span></div>
+              }
+              @if (req.payload.filing_frequency) {
+                <div><strong class="font-mono text-neutral-400">Cadence:</strong> <span class="font-medium text-neutral-800 dark:text-neutral-200 uppercase">{{ req.payload.filing_frequency }}</span></div>
+              }
+              @if (req.payload.pan) {
+                <div><strong class="font-mono text-neutral-400">PAN:</strong> <span class="font-mono font-medium text-neutral-900 dark:text-white">{{ req.payload.pan }}</span></div>
+              }
+            </div>
+            <div class="flex gap-2 mt-2.5">
+              <button
+                type="button"
+                (click)="approveServiceRequest()"
+                class="flex-1 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full font-medium text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-[14px]">check</span>
+                Approve
+              </button>
+              <button
+                type="button"
+                (click)="rejectServiceRequest()"
+                class="h-7 px-3 border border-neutral-300 dark:border-neutral-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 text-neutral-700 dark:text-neutral-300 rounded-full font-medium text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-[14px]">close</span>
+                Reject
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Direct Type Change Dropdown -->
+        <div class="pt-3 border-t border-[#ebebeb] dark:border-neutral-800">
+          <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 block mb-1.5 font-medium">Direct Type Override</label>
+          <div class="flex items-center gap-2">
+            <select
+              [value]="selectedTypeToChange()"
+              (change)="onTypeSelectChange($event)"
+              class="w-full h-8 px-2.5 text-xs border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-[#fafafa] dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white transition-all cursor-pointer"
+            >
+              <option value="general" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">General (Advisory)</option>
+              <option value="gst" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">GST Client</option>
+              <option value="itr" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">ITR Client</option>
+              <option value="both" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">GST + ITR Client</option>
+            </select>
+          </div>
+          <p class="text-[10px] text-neutral-400 dark:text-neutral-500 mt-1.5 leading-relaxed">
+            Changing client type requires confirmation. Downgrading hides tabs but preserves all records.
+          </p>
         </div>
-        <div class="flex justify-between gap-2">
-          <dt class="text-on-surface-variant">Status</dt>
-          <dd><app-status-chip [status]="c.status" /></dd>
-        </div>
-        <div class="flex justify-between gap-2">
-          <dt class="text-on-surface-variant">Joined</dt>
-          <dd class="text-on-surface tabular-nums">{{ fmtDate(c.created_at) }}</dd>
-        </div>
-      </dl>
+      </div>
     </div>
 
+    <!-- Right Column: Profiles, Compliance, Documents -->
     <div class="lg:col-span-3 space-y-6">
+
+      <!-- GST Profile Card -->
+      <div class="card overflow-hidden">
+        <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-[#0761d1] dark:text-blue-400">receipt_long</span>
+            <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">GST Profile</h3>
+          </div>
+          <button
+            type="button"
+            (click)="saveGstProfile()"
+            [disabled]="gstProfileSaving()"
+            class="h-7 px-3.5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-40 transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            @if (gstProfileSaving()) {
+              <span class="material-symbols-outlined text-[13px] animate-spin">refresh</span>
+            }
+            Save GST Profile
+          </button>
+        </div>
+        <form [formGroup]="gstProfileForm" class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-400" for="gst-bname">Business / Trade Name</label>
+            <input
+              id="gst-bname"
+              type="text"
+              formControlName="business_name"
+              placeholder="e.g. Acme Enterprises"
+              class="h-9 px-3 text-xs border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-400" for="gst-gstin">GSTIN (15 characters)</label>
+            <input
+              id="gst-gstin"
+              type="text"
+              formControlName="gstin"
+              maxlength="15"
+              placeholder="27ABCDE1234F1Z5"
+              class="h-9 px-3 text-xs uppercase font-mono tracking-wider border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-400" for="gst-cadence">Filing Cadence</label>
+            <select
+              id="gst-cadence"
+              formControlName="gst_filing_frequency"
+              class="h-9 px-3 text-xs border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white transition-all cursor-pointer"
+            >
+              <option value="monthly" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">Monthly</option>
+              <option value="quarterly" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">Quarterly</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-400" for="gst-industry">Industry</label>
+            <select
+              id="gst-industry"
+              formControlName="industry"
+              class="h-9 px-3 text-xs border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white transition-all cursor-pointer"
+            >
+              <option value="" class="bg-white dark:bg-neutral-800 text-neutral-400">Select industry...</option>
+              @for (ind of industries; track ind) {
+                <option [value]="ind" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">{{ ind }}</option>
+              }
+            </select>
+          </div>
+        </form>
+      </div>
+
+      <!-- ITR Profile Card -->
+      <div class="card overflow-hidden">
+        <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-[#7928ca] dark:text-purple-400">account_balance</span>
+            <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">ITR Profile</h3>
+          </div>
+          <button
+            type="button"
+            (click)="saveItrProfile()"
+            [disabled]="itrProfileSaving()"
+            class="h-7 px-3.5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-40 transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            @if (itrProfileSaving()) {
+              <span class="material-symbols-outlined text-[13px] animate-spin">refresh</span>
+            }
+            Save ITR Profile
+          </button>
+        </div>
+        <form [formGroup]="itrProfileForm" class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-400" for="itr-pan">Permanent Account Number (PAN)</label>
+            <input
+              id="itr-pan"
+              type="text"
+              formControlName="pan"
+              maxlength="10"
+              placeholder="ABCDE1234F"
+              class="h-9 px-3 text-xs uppercase font-mono tracking-wider border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all"
+            />
+          </div>
+        </form>
+      </div>
+
+      <!-- ITR Returns Section Card -->
+      <div class="card overflow-hidden">
+        <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-rose-600 dark:text-rose-400">description</span>
+            <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">ITR Returns</h3>
+          </div>
+          <button
+            type="button"
+            (click)="openItrUpload()"
+            class="h-7 px-3.5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <span class="material-symbols-outlined text-[15px]">upload_file</span>
+            Upload Return PDF
+          </button>
+        </div>
+        <div class="p-0">
+          @if (itrReturns().length > 0) {
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="border-b border-[#ebebeb] dark:border-neutral-800 text-neutral-400 bg-[#fafafa] dark:bg-neutral-800/50 uppercase text-[11px] font-mono tracking-wider">
+                    <th class="py-2.5 px-4">Assessment Year</th>
+                    <th class="py-2.5 px-4">Filename</th>
+                    <th class="py-2.5 px-4">Size</th>
+                    <th class="py-2.5 px-4">Uploaded Date</th>
+                    <th class="py-2.5 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#ebebeb] dark:divide-neutral-800">
+                  @for (ret of itrReturns(); track ret.id) {
+                    <tr class="hover:bg-[#fafafa] dark:hover:bg-neutral-800/40 transition-colors">
+                      <td class="py-3 px-4 font-mono font-semibold text-neutral-900 dark:text-white">AY {{ ret.assessment_year }}</td>
+                      <td class="py-3 px-4 font-medium text-neutral-900 dark:text-neutral-100">{{ ret.original_filename }}</td>
+                      <td class="py-3 px-4 font-mono tabular-nums text-neutral-500 dark:text-neutral-400">{{ fmtBytes(ret.file_size_bytes) }}</td>
+                      <td class="py-3 px-4 font-mono tabular-nums text-neutral-500 dark:text-neutral-400">{{ fmtDate(ret.uploaded_at) }}</td>
+                      <td class="py-3 px-4 text-right">
+                        <button
+                          type="button"
+                          (click)="downloadItrReturn(ret)"
+                          class="h-7 px-3 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-[11px] font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors cursor-pointer inline-flex items-center gap-1"
+                        >
+                          <span class="material-symbols-outlined text-[13px]">download</span>
+                          Download
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <div class="text-center py-8 text-neutral-400">
+              <span class="material-symbols-outlined text-[32px] text-neutral-300 dark:text-neutral-600 mb-1">picture_as_pdf</span>
+              <p class="text-xs font-mono">No ITR returns uploaded yet for this client.</p>
+            </div>
+          }
+        </div>
+      </div>
       
       <!-- Compliance Checklist -->
       <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
@@ -92,7 +302,7 @@
               }
             </select>
             @if (tasks().length === 0 && selectedPeriod()) {
-              <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary" (click)="generateTasks()">
+              <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="generateTasks()">
                 Generate
               </button>
             }
@@ -119,161 +329,285 @@
                   </div>
                   <div class="flex items-center gap-2">
                     @if (t.nil_declared_at && t.status !== 'completed') {
-                      <span class="text-label-sm text-secondary bg-secondary-container px-2 py-1 rounded">Nil Pending</span>
-                      <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary"
-                        (click)="confirmNil(t)">
+                      <button class="px-2 py-1 bg-secondary text-on-secondary rounded text-label-sm hover:bg-secondary/90 cursor-pointer" (click)="confirmNil(t)">
                         Confirm Nil
                       </button>
                     }
-                    @if (t.category === 'gst_payment') {
-                      @if (!t.paid_at) {
-                        <button class="px-3 py-1 bg-surface-container-high text-on-surface rounded text-label-sm hover:bg-surface-container-highest" 
-                          (click)="updatePayment(t, '5000')"> <!-- Hardcoded for test, should be a prompt -->
-                          Set ₹5000
-                        </button>
-                        <button class="px-3 py-1 bg-primary-container text-on-primary-container rounded text-label-sm hover:bg-primary hover:text-on-primary"
-                          (click)="markTaskPaid(t)">
-                          Mark Paid
-                        </button>
-                      } @else {
-                        <span class="text-label-sm text-primary">Paid</span>
-                      }
+                    @if (t.category === 'gst_payment' && t.status !== 'completed') {
+                      <button class="px-2 py-1 border border-outline-variant rounded text-label-sm hover:bg-surface-container-high cursor-pointer" (click)="markTaskPaid(t)">
+                        Mark Paid
+                      </button>
                     }
                   </div>
                 </li>
               }
             </ul>
           } @else {
-            <app-empty-state icon="fact_check" message="No checklist tasks for this period" />
+            <p class="text-body-md text-on-surface-variant text-center py-4">No tasks found for this period.</p>
           }
         </div>
       </div>
 
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
-        <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
-          <h3 class="font-headline-sm text-headline-sm text-on-surface">Documents</h3>
-          <span class="text-body-sm text-on-surface-variant">{{ docTotal() }} total</span>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-surface-bright border-b border-outline-variant">
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Filename</th>
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Period</th>
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Type</th>
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Size</th>
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Uploaded</th>
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Status</th>
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="text-body-sm">
-              @for (d of docs(); track d.id) {
-                <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
-                  <td class="p-4 font-medium text-on-surface max-w-xs truncate">{{ d.original_filename }}</td>
-                  <td class="p-4 text-on-surface-variant">{{ d.filing_period?.period_label ?? '—' }}</td>
-                  <td class="p-4 text-on-surface-variant uppercase">{{ d.file_type }}</td>
-                  <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtBytes(d.file_size_bytes) }}</td>
-                  <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(d.uploaded_at) }}</td>
-                  <td class="p-4"><app-status-chip [status]="d.status" /></td>
-                  <td class="p-4 text-right whitespace-nowrap">
-                    <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors mr-1" title="Download"
-                      (click)="downloadDocument(d)" [disabled]="isDownloading(d.id)">
-                      <span class="material-symbols-outlined" style="font-size: 20px">download</span>
-                    </button>
-                    @if (d.status === 'received') {
-                      <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors" title="Mark processed"
-                        (click)="markProcessed(d)" [disabled]="isProcessing(d.id)">
-                        <span class="material-symbols-outlined" style="font-size: 20px">check</span>
-                      </button>
-                    }
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="7"><app-empty-state icon="description" message="No documents yet" /></td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        @if (docPages() > 1) {
-          <div class="p-2 border-t border-outline-variant bg-surface-bright">
-            <app-pagination [page]="docPage()" [pageSize]="10" [total]="docTotal()" [totalPages]="docPages()" (pageChange)="docPageChanged($event)" />
-          </div>
-        }
-      </div>
-
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
-        <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
-          <h3 class="font-headline-sm text-headline-sm text-on-surface">Reports</h3>
-          <span class="text-body-sm text-on-surface-variant">{{ reportTotal() }} total</span>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-surface-bright border-b border-outline-variant">
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Report</th>
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Period</th>
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Filename</th>
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Sent</th>
-                <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="text-body-sm">
-              @for (r of reports(); track r.id) {
-                <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
-                  <td class="p-4 font-medium text-on-surface uppercase">{{ r.report_type.replace('_', ' ') }}</td>
-                  <td class="p-4 text-on-surface-variant">{{ r.filing_period?.period_label ?? '—' }}</td>
-                  <td class="p-4 text-on-surface-variant max-w-xs truncate">{{ r.original_filename }}</td>
-                  <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(r.sent_at) }}</td>
-                  <td class="p-4 text-right whitespace-nowrap">
-                    <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors" title="Download"
-                      (click)="downloadReport(r)" [disabled]="isDownloading(r.id)">
-                      <span class="material-symbols-outlined" style="font-size: 20px">download</span>
-                    </button>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="5"><app-empty-state icon="analytics" message="No reports sent yet" /></td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        @if (reportPages() > 1) {
-          <div class="p-2 border-t border-outline-variant bg-surface-bright">
-            <app-pagination [page]="reportPage()" [pageSize]="10" [total]="reportTotal()" [totalPages]="reportPages()" (pageChange)="reportPageChanged($event)" />
-          </div>
-        }
-      </div>
-
-      <!-- Report Requests -->
+      <!-- Pending Report Requests -->
       @if (reportRequests().length > 0) {
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
-          <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
-            <h3 class="font-headline-sm text-headline-sm text-on-surface">Pending Report Requests</h3>
-            <span class="text-body-sm text-on-surface-variant">{{ reportRequests().length }} pending</span>
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Pending Report Requests</h3>
+          <div class="space-y-2">
+            @for (req of reportRequests(); track req.id) {
+              <div class="flex items-center justify-between p-3 border border-outline-variant rounded bg-surface-bright">
+                <div>
+                  <div class="font-medium text-on-surface">Period: {{ req.filing_period?.period_label }}</div>
+                  <div class="text-body-sm text-on-surface-variant">Requested on: {{ fmtDate(req.created_at) }}</div>
+                </div>
+                <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="fulfillRequest(req)">
+                  Fulfill
+                </button>
+              </div>
+            }
           </div>
+        </div>
+      }
+
+      <!-- Certificates Section -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Certificates</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- GST Certificate Card -->
+          <div class="border border-outline-variant rounded-lg p-4 flex flex-col justify-between bg-surface-container-low transition-all hover:border-outline">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[18px] text-primary">verified</span>
+                  GST Certificate
+                </span>
+                @if (hasCert('gst_cert')) {
+                  <span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800 font-medium">Available</span>
+                } @else {
+                  <span class="px-2 py-0.5 rounded text-xs bg-surface-container-high text-on-surface-variant">Not uploaded</span>
+                }
+              </div>
+              @if (certFor('gst_cert'); as cert) {
+                <button
+                  type="button"
+                  (click)="downloadCertificate(cert)"
+                  class="text-left flex items-center gap-1.5 text-body-sm font-medium text-primary hover:underline truncate max-w-full cursor-pointer mt-1"
+                  [title]="'Click to view ' + cert.original_filename"
+                >
+                  <span class="material-symbols-outlined text-[16px] shrink-0 text-primary">description</span>
+                  <span class="truncate">{{ cert.original_filename }}</span>
+                </button>
+                <p class="text-body-xs text-on-surface-variant/70 mt-1">
+                  Uploaded {{ fmtDate(cert.uploaded_at) }}
+                </p>
+              } @else {
+                <p class="text-body-sm text-on-surface-variant mt-1">Upload the registration certificate issued by the GST portal.</p>
+              }
+            </div>
+
+            <!-- Direct File Input for GST Certificate -->
+            <input
+              #gstCertInput
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+              class="hidden"
+              (change)="onDirectCertFileSelected($event, 'gst_cert')"
+            />
+
+            <div class="flex items-center gap-2 mt-4 pt-3 border-t border-outline-variant">
+              @if (certFor('gst_cert'); as cert) {
+                <button
+                  type="button"
+                  class="flex-1 px-3 py-1.5 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-label-sm hover:bg-surface-container-high transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  [disabled]="isDownloading(cert.id)"
+                  (click)="downloadCertificate(cert)"
+                >
+                  <span class="material-symbols-outlined text-[16px] text-primary">visibility</span>
+                  <span>View</span>
+                </button>
+              }
+              <button
+                type="button"
+                class="flex-1 px-3 py-1.5 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 shadow-2xs"
+                [disabled]="uploadingCertType() === 'gst_cert'"
+                (click)="triggerCertFileInput(gstCertInput)"
+              >
+                @if (uploadingCertType() === 'gst_cert') {
+                  <span class="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  <span>Uploading…</span>
+                } @else {
+                  <span class="material-symbols-outlined text-[16px]">upload_file</span>
+                  <span>{{ hasCert('gst_cert') ? 'Replace' : 'Upload' }}</span>
+                }
+              </button>
+            </div>
+          </div>
+
+          <!-- Udyam Certificate Card -->
+          <div class="border border-outline-variant rounded-lg p-4 flex flex-col justify-between bg-surface-container-low transition-all hover:border-outline">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[18px] text-primary">badge</span>
+                  Udyam Certificate
+                </span>
+                @if (hasCert('udyam_cert')) {
+                  <span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800 font-medium">Available</span>
+                } @else {
+                  <span class="px-2 py-0.5 rounded text-xs bg-surface-container-high text-on-surface-variant">Not uploaded</span>
+                }
+              </div>
+              @if (certFor('udyam_cert'); as cert) {
+                <button
+                  type="button"
+                  (click)="downloadCertificate(cert)"
+                  class="text-left flex items-center gap-1.5 text-body-sm font-medium text-primary hover:underline truncate max-w-full cursor-pointer mt-1"
+                  [title]="'Click to view ' + cert.original_filename"
+                >
+                  <span class="material-symbols-outlined text-[16px] shrink-0 text-primary">description</span>
+                  <span class="truncate">{{ cert.original_filename }}</span>
+                </button>
+                <p class="text-body-xs text-on-surface-variant/70 mt-1">
+                  Uploaded {{ fmtDate(cert.uploaded_at) }}
+                </p>
+              } @else {
+                <p class="text-body-sm text-on-surface-variant mt-1">Upload MSME / Udyam registration certificate.</p>
+              }
+            </div>
+
+            <!-- Direct File Input for Udyam Certificate -->
+            <input
+              #udyamCertInput
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+              class="hidden"
+              (change)="onDirectCertFileSelected($event, 'udyam_cert')"
+            />
+
+            <div class="flex items-center gap-2 mt-4 pt-3 border-t border-outline-variant">
+              @if (certFor('udyam_cert'); as cert) {
+                <button
+                  type="button"
+                  class="flex-1 px-3 py-1.5 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-label-sm hover:bg-surface-container-high transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  [disabled]="isDownloading(cert.id)"
+                  (click)="downloadCertificate(cert)"
+                >
+                  <span class="material-symbols-outlined text-[16px] text-primary">visibility</span>
+                  <span>View</span>
+                </button>
+              }
+              <button
+                type="button"
+                class="flex-1 px-3 py-1.5 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 shadow-2xs"
+                [disabled]="uploadingCertType() === 'udyam_cert'"
+                (click)="triggerCertFileInput(udyamCertInput)"
+              >
+                @if (uploadingCertType() === 'udyam_cert') {
+                  <span class="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  <span>Uploading…</span>
+                } @else {
+                  <span class="material-symbols-outlined text-[16px]">upload_file</span>
+                  <span>{{ hasCert('udyam_cert') ? 'Replace' : 'Upload' }}</span>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Uploaded Documents -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Client Documents ({{ docTotal() }})</h3>
+        @if (docs().length === 0) {
+          <app-empty-state message="No documents uploaded yet" />
+        } @else {
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left text-body-md">
               <thead>
-                <tr class="bg-surface-bright border-b border-outline-variant">
-                  <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Period</th>
-                  <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap">Requested On</th>
-                  <th class="p-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+                <tr class="border-b border-outline-variant text-on-surface-variant">
+                  <th class="py-2 px-3">Filename</th>
+                  <th class="py-2 px-3">Category</th>
+                  <th class="py-2 px-3">Period / AY</th>
+                  <th class="py-2 px-3">Status</th>
+                  <th class="py-2 px-3">Uploaded</th>
+                  <th class="py-2 px-3">Size</th>
+                  <th class="py-2 px-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody class="text-body-sm">
-                @for (req of reportRequests(); track req.id) {
-                  <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
-                    <td class="p-4 font-medium text-on-surface">{{ req.filing_period?.period_label ?? '—' }}</td>
-                    <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(req.created_at) }}</td>
-                    <td class="p-4 text-right whitespace-nowrap">
-                      <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary transition-colors"
-                        (click)="fulfillRequest(req)">
-                        Fulfill
+              <tbody class="divide-y divide-outline-variant">
+                @for (d of docs(); track d.id) {
+                  <tr>
+                    <td class="py-3 px-3 font-medium text-on-surface">{{ d.original_filename }}</td>
+                    <td class="py-3 px-3">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-neutral-100 text-neutral-800">
+                        {{ d.category ?? 'GST' }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-3 text-body-sm text-on-surface-variant">
+                      {{ d.filing_period?.period_label ?? (d.assessment_year ? 'AY ' + d.assessment_year : '—') }}
+                    </td>
+                    <td class="py-3 px-3"><app-status-chip [status]="d.status" /></td>
+                    <td class="py-3 px-3 tabular-nums text-body-sm text-on-surface-variant">{{ fmtDate(d.uploaded_at) }}</td>
+                    <td class="py-3 px-3 tabular-nums text-body-sm text-on-surface-variant">{{ fmtBytes(d.file_size_bytes) }}</td>
+                    <td class="py-3 px-3 text-right space-x-2">
+                      <button
+                        class="text-primary hover:underline font-label-md text-label-md cursor-pointer"
+                        [disabled]="isDownloading(d.id)"
+                        (click)="downloadDocument(d)"
+                      >
+                        {{ isDownloading(d.id) ? 'Opening…' : 'Download' }}
+                      </button>
+                      @if (d.status !== 'processed') {
+                        <button
+                          class="text-secondary hover:underline font-label-md text-label-md cursor-pointer"
+                          [disabled]="isProcessing(d.id)"
+                          (click)="markProcessed(d)"
+                        >
+                          {{ isProcessing(d.id) ? 'Saving…' : 'Mark processed' }}
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <app-pagination [page]="docPage()" [totalPages]="docPages()" (pageChange)="docPageChanged($event)" />
+        }
+      </div>
+
+      <!-- Sent Reports -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Sent Reports ({{ reportTotal() }})</h3>
+        @if (reports().length === 0) {
+          <app-empty-state message="No reports sent yet" />
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-body-md">
+              <thead>
+                <tr class="border-b border-outline-variant text-on-surface-variant">
+                  <th class="py-2 px-3">Type</th>
+                  <th class="py-2 px-3">Period</th>
+                  <th class="py-2 px-3">Filename</th>
+                  <th class="py-2 px-3">Sent</th>
+                  <th class="py-2 px-3">Status</th>
+                  <th class="py-2 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant">
+                @for (r of reports(); track r.id) {
+                  <tr>
+                    <td class="py-3 px-3 font-medium text-on-surface uppercase">{{ r.report_type }}</td>
+                    <td class="py-3 px-3 text-body-sm text-on-surface-variant">{{ r.filing_period?.period_label ?? '—' }}</td>
+                    <td class="py-3 px-3 font-medium text-on-surface">{{ r.original_filename }}</td>
+                    <td class="py-3 px-3 tabular-nums text-body-sm text-on-surface-variant">{{ fmtDate(r.sent_at) }}</td>
+                    <td class="py-3 px-3"><app-status-chip [status]="'processed'" /></td>
+                    <td class="py-3 px-3 text-right">
+                      <button
+                        class="text-primary hover:underline font-label-md text-label-md cursor-pointer"
+                        [disabled]="isDownloading(r.id)"
+                        (click)="downloadReport(r)"
+                      >
+                        {{ isDownloading(r.id) ? 'Opening…' : 'Download' }}
                       </button>
                     </td>
                   </tr>
@@ -281,76 +615,19 @@
               </tbody>
             </table>
           </div>
-        </div>
-      }
-
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
-        <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
-          <h3 class="font-headline-sm text-headline-sm text-on-surface">Certificates</h3>
-          <span class="text-body-sm text-on-surface-variant">lifetime</span>
-        </div>
-        <ul class="divide-y divide-outline-variant text-body-sm">
-          <li class="flex items-center justify-between p-4">
-            <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-on-surface-variant">verified_user</span>
-              <div>
-                <div class="font-medium text-on-surface">GST Certificate</div>
-                @if (certFor('gst_cert'); as cert) {
-                  <div class="text-on-surface-variant truncate max-w-xs">{{ cert.original_filename }}</div>
-                } @else {
-                  <div class="text-on-surface-variant">Not uploaded</div>
-                }
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              @if (certFor('gst_cert'); as cert) {
-                <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors" title="Download"
-                  (click)="downloadCertificate(cert)" [disabled]="isDownloading(cert.id)">
-                  <span class="material-symbols-outlined" style="font-size: 20px">download</span>
-                </button>
-              }
-              <button class="px-3 py-1 bg-primary-container text-on-primary-container rounded text-label-sm hover:bg-primary hover:text-on-primary"
-                (click)="openCertUpload('gst_cert')">
-                {{ hasCert('gst_cert') ? 'Replace' : 'Upload' }}
-              </button>
-            </div>
-          </li>
-          <li class="flex items-center justify-between p-4">
-            <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-on-surface-variant">badge</span>
-              <div>
-                <div class="font-medium text-on-surface">Udyam Certificate</div>
-                @if (certFor('udyam_cert'); as cert) {
-                  <div class="text-on-surface-variant truncate max-w-xs">{{ cert.original_filename }}</div>
-                } @else {
-                  <div class="text-on-surface-variant">Not uploaded</div>
-                }
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              @if (certFor('udyam_cert'); as cert) {
-                <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors" title="Download"
-                  (click)="downloadCertificate(cert)" [disabled]="isDownloading(cert.id)">
-                  <span class="material-symbols-outlined" style="font-size: 20px">download</span>
-                </button>
-              }
-              <button class="px-3 py-1 bg-primary-container text-on-primary-container rounded text-label-sm hover:bg-primary hover:text-on-primary"
-                (click)="openCertUpload('udyam_cert')">
-                {{ hasCert('udyam_cert') ? 'Replace' : 'Upload' }}
-              </button>
-            </div>
-          </li>
-        </ul>
+          <app-pagination [page]="reportPage()" [totalPages]="reportPages()" (pageChange)="reportPageChanged($event)" />
+        }
       </div>
     </div>
   </div>
 }
 
+<!-- Send Report Modal -->
 <app-modal [open]="showReport()" (close)="showReport.set(false)">
   <div class="p-6">
     <div class="flex items-center justify-between mb-4">
       <h2 class="font-headline-md text-headline-md text-on-surface">Send Report</h2>
-      <button class="text-on-surface-variant hover:text-on-surface" (click)="showReport.set(false)">
+      <button class="text-on-surface-variant hover:text-on-surface cursor-pointer" (click)="showReport.set(false)">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
@@ -383,9 +660,9 @@
         }
       </div>
       <div class="flex justify-end gap-2 mt-2">
-        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showReport.set(false)">Cancel</button>
+        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded cursor-pointer" (click)="showReport.set(false)">Cancel</button>
         <button type="submit" [disabled]="sending()"
-          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60 cursor-pointer">
           {{ sending() ? 'Uploading…' : 'Send Report' }}
         </button>
       </div>
@@ -393,39 +670,109 @@
   </div>
 </app-modal>
 
-<app-modal [open]="showCertUpload()" (close)="showCertUpload.set(false)">
-  <div class="p-6">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="font-headline-md text-headline-md text-on-surface">
-        {{ hasCert(certForm.controls.cert_type.value) ? 'Replace' : 'Upload' }} Certificate
-      </h2>
-      <button class="text-on-surface-variant hover:text-on-surface" (click)="showCertUpload.set(false)">
-        <span class="material-symbols-outlined">close</span>
+
+<!-- Confirm Direct Client Type Change Modal -->
+<app-modal [open]="showTypeChangeConfirm()" (close)="cancelTypeChange()">
+  <div class="p-6 max-w-md">
+    <div class="flex items-center gap-2.5 mb-3 text-amber-700 dark:text-amber-400">
+      <span class="material-symbols-outlined text-[24px]">warning</span>
+      <h2 class="text-sm font-semibold tracking-tight text-neutral-900 dark:text-white">Confirm Client Type Change</h2>
+    </div>
+    <p class="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed mb-4">
+      Are you sure you want to change this client's type from
+      <strong class="font-mono uppercase">{{ client()?.user_type }}</strong> to
+      <strong class="font-mono uppercase">{{ selectedTypeToChange() }}</strong>?
+    </p>
+    <div class="p-3.5 rounded-xl bg-[#fafafa] dark:bg-neutral-800/60 border border-[#ebebeb] dark:border-neutral-700 text-[11px] text-neutral-600 dark:text-neutral-400 space-y-1.5 mb-5">
+      <p>• <strong>Upgrades</strong> immediately unlock document and filing tabs for the client.</p>
+      <p>• <strong>Downgrades</strong> only hide the locked tabs from client view — <strong>no documents, tasks, or historical records will ever be deleted</strong>.</p>
+      <p>• Any open pending requests for this client will be marked as handled.</p>
+    </div>
+    <div class="flex justify-end gap-2.5">
+      <button
+        type="button"
+        class="h-8 px-4 rounded-full border border-[#ebebeb] dark:border-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-[#fafafa] dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+        (click)="cancelTypeChange()"
+        [disabled]="typeChangeSaving()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        (click)="confirmDirectTypeChange()"
+        [disabled]="typeChangeSaving()"
+        class="h-8 px-4 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-40 transition-colors flex items-center gap-1.5 cursor-pointer"
+      >
+        @if (typeChangeSaving()) {
+          <span class="material-symbols-outlined text-[13px] animate-spin">refresh</span>
+        }
+        Confirm Change
       </button>
     </div>
-    <form class="flex flex-col gap-4" [formGroup]="certForm" (ngSubmit)="submitCertificate()">
-      <div class="flex flex-col gap-1">
-        <label class="font-label-md text-label-md text-on-surface" for="c-type">Certificate Type</label>
-        <select id="c-type" formControlName="cert_type"
-          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
-          <option value="gst_cert">GST Certificate</option>
-          <option value="udyam_cert">Udyam Certificate</option>
+  </div>
+</app-modal>
+
+<!-- Upload ITR Return Modal -->
+<app-modal [open]="showItrUploadModal()" (close)="showItrUploadModal.set(false)">
+  <div class="p-6 max-w-md">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2.5">
+        <div class="size-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/50 flex items-center justify-center font-mono text-[10px] font-bold">
+          PDF
+        </div>
+        <h2 class="text-sm font-semibold tracking-tight text-neutral-900 dark:text-white">Upload ITR Return PDF</h2>
+      </div>
+      <button class="size-7 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer" (click)="showItrUploadModal.set(false)">
+        <span class="material-symbols-outlined text-[16px]">close</span>
+      </button>
+    </div>
+    <p class="text-xs text-neutral-500 dark:text-neutral-400 mb-4 leading-relaxed">
+      Upload the client's official ITR acknowledgement PDF (e.g. ITR-V) per assessment year. If a return already exists for this assessment year, it will be replaced.
+    </p>
+    <form class="flex flex-col gap-4" [formGroup]="itrReturnForm" (ngSubmit)="submitItrReturn()">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="itr-ay">Assessment Year</label>
+        <select
+          id="itr-ay"
+          formControlName="assessment_year"
+          class="h-9 px-3 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-[#fafafa] dark:bg-neutral-800 text-xs font-mono font-medium text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all cursor-pointer"
+        >
+          @for (ay of assessmentYears; track ay) {
+            <option [value]="ay" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">AY {{ ay }}</option>
+          }
         </select>
       </div>
-      <div class="flex flex-col gap-1">
-        <label class="font-label-md text-label-md text-on-surface" for="c-file">Certificate File (PDF / JPG / PNG)</label>
-        <input id="c-file" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-          (change)="onCertFileSelected($event)"
-          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface" />
-        @if (certForm.controls.file.touched && !certForm.controls.file.value) {
-          <span class="text-error text-body-sm">Please choose a file</span>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="itr-file">Return PDF (max 10 MB)</label>
+        <input
+          id="itr-file"
+          type="file"
+          accept="application/pdf,.pdf"
+          (change)="onItrReturnFileSelected($event)"
+          class="h-9 px-3 py-1.5 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-xs text-neutral-800 dark:text-neutral-200 file:mr-2 file:py-0.5 file:px-2 file:rounded-full file:border-0 file:text-[10px] file:font-mono file:bg-neutral-100 file:text-neutral-700 dark:file:bg-neutral-700 dark:file:text-neutral-200"
+        />
+        @if (itrReturnForm.controls.file.touched && !itrReturnForm.controls.file.value) {
+          <span class="text-rose-600 dark:text-rose-400 text-[11px] font-mono">Please select a PDF file</span>
         }
       </div>
-      <div class="flex justify-end gap-2 mt-2">
-        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showCertUpload.set(false)">Cancel</button>
-        <button type="submit" [disabled]="sending()"
-          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
-          {{ sending() ? 'Uploading…' : 'Save Certificate' }}
+      <div class="flex justify-end gap-2.5 mt-3 pt-2 border-t border-[#ebebeb] dark:border-neutral-800">
+        <button
+          type="button"
+          class="h-8 px-4 rounded-full border border-[#ebebeb] dark:border-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-[#fafafa] dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+          (click)="showItrUploadModal.set(false)"
+          [disabled]="itrUploadLoading()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="itrUploadLoading() || !itrReturnForm.controls.file.value"
+          class="h-8 px-4 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-40 transition-colors flex items-center gap-1.5 cursor-pointer"
+        >
+          @if (itrUploadLoading()) {
+            <span class="material-symbols-outlined text-[13px] animate-spin">refresh</span>
+          }
+          Upload & Share
         </button>
       </div>
     </form>

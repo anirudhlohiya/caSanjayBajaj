@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   ClientsService,
@@ -9,22 +9,46 @@ import {
   ReportsService,
   ComplianceTasksService,
   ComplianceTask,
-  ReportRequestsService
+  ReportRequestsService,
+  ServiceRequestsAdminService,
+  ItrReturnsAdminService,
 } from '../../core/services/feature.services';
 import { UploadService } from '../../core/services/upload.service';
 import { ToastService } from '../../core/services/toast.service';
-import { CertType, Client, ClientCertificate, Document, FilingPeriod, Report, ReportRequest } from '../../core/models';
+import {
+  CertType,
+  Client,
+  ClientCertificate,
+  Document,
+  FilingPeriod,
+  ItrReturn,
+  Report,
+  ReportRequest,
+  ServiceRequest,
+  UserType,
+} from '../../core/models';
 import { PageHeader } from '../../shared/components/page-header';
 import { StatusChip } from '../../shared/components/status-chip';
 import { Pagination } from '../../shared/components/pagination';
 import { Modal } from '../../shared/components/modal';
 import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
+import { INDUSTRIES } from '../../../../../shared/constants/industries';
+import { isValidGstin, isValidPan } from '../../../../../shared/constants/tax-validation';
 
 @Component({
   selector: 'app-client-detail',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeader, StatusChip, Pagination, Modal, Spinner, EmptyState],
+  imports: [
+    ReactiveFormsModule,
+    FormsModule,
+    PageHeader,
+    StatusChip,
+    Pagination,
+    Modal,
+    Spinner,
+    EmptyState,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './client-detail.html',
 })
@@ -38,12 +62,31 @@ export class ClientDetail implements OnInit {
   private readonly periodsService = inject(PeriodsService);
   private readonly tasksService = inject(ComplianceTasksService);
   private readonly reportReqsService = inject(ReportRequestsService);
+  private readonly serviceRequestsAdmin = inject(ServiceRequestsAdminService);
+  private readonly itrReturnsAdmin = inject(ItrReturnsAdminService);
   private readonly upload = inject(UploadService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
 
+  readonly industries = INDUSTRIES;
+  readonly assessmentYears = ['2025-26', '2024-25', '2023-24', '2022-23'];
+
   readonly loading = signal(true);
   readonly client = signal<Client | null>(null);
+
+  readonly pendingRequest = signal<ServiceRequest | null>(null);
+  readonly itrReturns = signal<ItrReturn[]>([]);
+
+  // Type change
+  readonly showTypeChangeConfirm = signal(false);
+  readonly selectedTypeToChange = signal<UserType>('general');
+  readonly typeChangeSaving = signal(false);
+
+  // Forms saving state
+  readonly gstProfileSaving = signal(false);
+  readonly itrProfileSaving = signal(false);
+  readonly showItrUploadModal = signal(false);
+  readonly itrUploadLoading = signal(false);
 
   readonly docs = signal<Document[]>([]);
   readonly docTotal = signal(0);
@@ -84,6 +127,22 @@ export class ClientDetail implements OnInit {
     file: [null as File | null, Validators.required],
   });
 
+  readonly gstProfileForm = this.fb.group({
+    business_name: [''],
+    gstin: [''],
+    gst_filing_frequency: ['monthly' as 'monthly' | 'quarterly'],
+    industry: [''],
+  });
+
+  readonly itrProfileForm = this.fb.group({
+    pan: [''],
+  });
+
+  readonly itrReturnForm = this.fb.group({
+    assessment_year: ['2025-26', Validators.required],
+    file: [null as File | null, Validators.required],
+  });
+
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id') ?? '';
@@ -95,17 +154,49 @@ export class ClientDetail implements OnInit {
   async load(): Promise<void> {
     this.loading.set(true);
     try {
-      const [client, docsRes, reportsRes, periods, certs, reqsRes] = await Promise.all([
+      const [
+        client,
+        docsRes,
+        reportsRes,
+        periods,
+        certs,
+        reqsRes,
+        pendingReqs,
+        itrReturns,
+      ] = await Promise.all([
         this.clientsService.get(this.id()),
-        this.documentsService.listForUser(this.id(), { page: this.docPage(), pageSize: 10 }),
-        this.reportsService.listForUser(this.id(), { page: this.reportPage(), pageSize: 10 }),
+        this.documentsService.listForUser(this.id(), {
+          page: this.docPage(),
+          pageSize: 10,
+        }),
+        this.reportsService.listForUser(this.id(), {
+          page: this.reportPage(),
+          pageSize: 10,
+        }),
         this.periodsService.open(),
         this.certificatesService.listForClient(this.id()),
-        this.reportReqsService.adminList({ status: 'pending' }) // Fetching only pending for now, or all if we want. Wait, adminList doesn't take user_id yet.
+        this.reportReqsService.adminList({ status: 'pending' }),
+        this.serviceRequestsAdmin.listPending().catch(() => []),
+        this.itrReturnsAdmin.listForClient(this.id()).catch(() => []),
       ]);
-      // Note: We'll filter the reqs on the frontend if the endpoint doesn't support user_id yet
-      this.reportRequests.set(reqsRes.items.filter((r) => r.user_id === this.id()));
+
       this.client.set(client);
+      this.selectedTypeToChange.set(client.user_type);
+      this.gstProfileForm.patchValue({
+        business_name: client.business_name ?? '',
+        gstin: client.gstin ?? '',
+        gst_filing_frequency: client.gst_filing_frequency ?? 'monthly',
+        industry: client.industry ?? '',
+      });
+      this.itrProfileForm.patchValue({
+        pan: client.pan ?? '',
+      });
+
+      const userPending = pendingReqs.find((r) => r.user_id === this.id()) ?? null;
+      this.pendingRequest.set(userPending);
+      this.itrReturns.set(itrReturns);
+
+      this.reportRequests.set(reqsRes.items.filter((r) => r.user_id === this.id()));
       this.docs.set(docsRes.items);
       this.docTotal.set(docsRes.total);
       this.docPages.set(docsRes.totalPages);
@@ -125,6 +216,184 @@ export class ClientDetail implements OnInit {
       this.loading.set(false);
     }
   }
+
+  // --- Services and Client Type Management ---
+
+  onTypeSelectChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const val = select.value as UserType;
+    if (val !== this.client()?.user_type) {
+      this.selectedTypeToChange.set(val);
+      this.showTypeChangeConfirm.set(true);
+    }
+  }
+
+  cancelTypeChange(): void {
+    this.showTypeChangeConfirm.set(false);
+    if (this.client()) {
+      this.selectedTypeToChange.set(this.client()!.user_type);
+    }
+  }
+
+  async confirmDirectTypeChange(): Promise<void> {
+    const newType = this.selectedTypeToChange();
+    this.typeChangeSaving.set(true);
+    try {
+      await this.clientsService.changeType(this.id(), newType);
+      this.toast.success(`Client type changed to ${newType.toUpperCase()}`);
+      this.showTypeChangeConfirm.set(false);
+      await this.load();
+    } catch (e: any) {
+      this.toast.error(e?.error?.message ?? 'Failed to change client type');
+    } finally {
+      this.typeChangeSaving.set(false);
+    }
+  }
+
+  async approveServiceRequest(): Promise<void> {
+    const req = this.pendingRequest();
+    if (!req) return;
+    try {
+      await this.serviceRequestsAdmin.review(req.id, 'approve');
+      this.toast.success('Service request approved successfully');
+      await this.load();
+    } catch (e: any) {
+      this.toast.error(e?.error?.message ?? 'Failed to approve service request');
+    }
+  }
+
+  async rejectServiceRequest(): Promise<void> {
+    const req = this.pendingRequest();
+    if (!req) return;
+    const note = prompt('Reason for rejection (optional):') ?? undefined;
+    try {
+      await this.serviceRequestsAdmin.review(req.id, 'reject', note);
+      this.toast.success('Service request rejected');
+      await this.load();
+    } catch (e: any) {
+      this.toast.error(e?.error?.message ?? 'Failed to reject service request');
+    }
+  }
+
+  // --- Profile Edits ---
+
+  async saveGstProfile(): Promise<void> {
+    const val = this.gstProfileForm.value;
+    const gstin = val.gstin?.trim().toUpperCase() || undefined;
+    if (gstin && !isValidGstin(gstin)) {
+      this.toast.error('Invalid GSTIN format or checksum');
+      return;
+    }
+
+    this.gstProfileSaving.set(true);
+    try {
+      await this.clientsService.update(this.id(), {
+        business_name: val.business_name?.trim() || undefined,
+        gstin: gstin || undefined,
+        gst_filing_frequency: val.gst_filing_frequency ?? 'monthly',
+        industry: val.industry?.trim() || undefined,
+      });
+      this.toast.success('GST profile saved successfully');
+      await this.load();
+    } catch (e: any) {
+      this.toast.error(e?.error?.message ?? 'Failed to save GST profile');
+    } finally {
+      this.gstProfileSaving.set(false);
+    }
+  }
+
+  async saveItrProfile(): Promise<void> {
+    const val = this.itrProfileForm.value;
+    const pan = val.pan?.trim().toUpperCase() || undefined;
+    if (pan && !isValidPan(pan)) {
+      this.toast.error('Invalid PAN format (expected ABCDE1234F)');
+      return;
+    }
+
+    this.itrProfileSaving.set(true);
+    try {
+      await this.clientsService.update(this.id(), {
+        pan: pan || undefined,
+      });
+      this.toast.success('ITR profile saved successfully');
+      await this.load();
+    } catch (e: any) {
+      this.toast.error(e?.error?.message ?? 'Failed to save ITR profile');
+    } finally {
+      this.itrProfileSaving.set(false);
+    }
+  }
+
+  // --- ITR Returns Upload ---
+
+  openItrUpload(): void {
+    this.itrReturnForm.reset({
+      assessment_year: '2025-26',
+      file: null,
+    });
+    this.showItrUploadModal.set(true);
+  }
+
+  onItrReturnFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (file) {
+      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+        this.toast.error('Only PDF files are accepted for ITR returns.');
+        input.value = '';
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        this.toast.error('File size must not exceed 10 MB.');
+        input.value = '';
+        return;
+      }
+    }
+    this.itrReturnForm.patchValue({ file });
+  }
+
+  async submitItrReturn(): Promise<void> {
+    const form = this.itrReturnForm;
+    if (form.invalid) {
+      form.markAllAsTouched();
+      return;
+    }
+    const file = form.controls.file.value;
+    const ay = form.controls.assessment_year.value;
+    if (!file || !ay) return;
+
+    this.itrUploadLoading.set(true);
+    try {
+      const res = await this.itrReturnsAdmin.requestUploadUrl(this.id(), {
+        assessment_year: ay,
+        filename: file.name,
+        contentType: 'application/pdf',
+      });
+      await this.upload.upload(res.upload_url, file, 'application/pdf');
+      await this.itrReturnsAdmin.confirm(this.id(), {
+        assessment_year: ay,
+        s3_key: res.s3_key,
+        filename: file.name,
+        size: file.size,
+      });
+      this.toast.success(`ITR return for AY ${ay} uploaded`);
+      this.showItrUploadModal.set(false);
+      const returns = await this.itrReturnsAdmin.listForClient(this.id());
+      this.itrReturns.set(returns);
+    } catch (e: any) {
+      this.toast.error(e?.error?.message ?? 'Failed to upload ITR return');
+    } finally {
+      this.itrUploadLoading.set(false);
+    }
+  }
+
+  downloadItrReturn(ret: ItrReturn): void {
+    if (ret.downloadUrl) {
+      window.open(ret.downloadUrl, '_blank');
+    }
+  }
+
+  // --- Existing checklist, reports, certificates methods ---
 
   async loadTasks(periodId: string): Promise<void> {
     try {
@@ -247,12 +516,48 @@ export class ClientDetail implements OnInit {
     this.certForm.controls.file.setValue(input.files?.[0] ?? null);
   }
 
+  readonly uploadingCertType = signal<CertType | null>(null);
+
   certFor(certType: CertType): ClientCertificate | undefined {
     return this.certificates().find((c) => c.cert_type === certType);
   }
 
   hasCert(certType: CertType): boolean {
     return !!this.certFor(certType);
+  }
+
+  triggerCertFileInput(input: HTMLInputElement): void {
+    input.value = '';
+    input.click();
+  }
+
+  async onDirectCertFileSelected(event: Event, certType: CertType): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.uploadingCertType.set(certType);
+    const certName = certType === 'gst_cert' ? 'GST Certificate' : 'Udyam Certificate';
+    try {
+      const { certificate_id, upload_url } = await this.certificatesService.uploadUrl(
+        this.id(),
+        {
+          cert_type: certType,
+          filename: file.name,
+          contentType: file.type || 'application/pdf',
+        },
+      );
+      await this.upload.upload(upload_url, file, file.type || 'application/pdf');
+      await this.certificatesService.confirm(this.id(), certificate_id);
+      this.toast.success(`${certName} uploaded successfully`);
+      await this.load();
+    } catch (e) {
+      console.error(e);
+      this.toast.error(`Failed to upload ${certName}`);
+    } finally {
+      this.uploadingCertType.set(null);
+      input.value = '';
+    }
   }
 
   openCertUpload(certType: CertType): void {
@@ -353,39 +658,6 @@ export class ClientDetail implements OnInit {
     void this.router.navigate(['/reminders'], { queryParams: { client: this.id() } });
   }
 
-  startCadenceEdit(): void {
-    this.editingCadence.set(true);
-  }
-
-  async saveCadence(): Promise<void> {
-    const c = this.client();
-    if (!c || c.user_type !== 'gst') return;
-    const select = document.getElementById('cadence-select') as HTMLSelectElement | null;
-    const value = select?.value === 'quarterly' ? 'quarterly' : 'monthly';
-    if (value === c.gst_filing_frequency) {
-      this.editingCadence.set(false);
-      return;
-    }
-    this.cadenceSaving.set(true);
-    try {
-      await this.clientsService.update(this.id(), { gst_filing_frequency: value });
-      this.client.update((cur) =>
-        cur ? { ...cur, gst_filing_frequency: value } : cur,
-      );
-      this.toast.success(
-        value === 'quarterly'
-          ? 'Client is now quarterly — the next scheduled period will use the quarterly calendar'
-          : 'Client is now monthly',
-      );
-      this.editingCadence.set(false);
-    } catch (e) {
-      console.error(e);
-      this.toast.error('Failed to update filing frequency');
-    } finally {
-      this.cadenceSaving.set(false);
-    }
-  }
-
   fmtDate(iso: string | null): string {
     if (!iso) return '—';
     return new Date(iso).toLocaleDateString('en-IN', {
@@ -395,7 +667,7 @@ export class ClientDetail implements OnInit {
     });
   }
 
-  fmtBytes(size: string): string {
+  fmtBytes(size: string | number): string {
     const n = Number(size);
     if (!n) return '0 B';
     const units = ['B', 'KB', 'MB', 'GB'];
