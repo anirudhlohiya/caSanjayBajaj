@@ -1,0 +1,72 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-10-23",
+  "sections": {
+    "1_services": {
+      "title": "Practice Services & Scope",
+      "description": "Comprehensive list of services offered by S N Bajaj And Co (Chartered Accountants).",
+      "content": "S N Bajaj And Co provides end-to-end chartered accountancy and tax compliance services:\n• GST Compliance: New registration, amendment, cancellation, monthly GSTR-1 and GSTR-3B filings, quarterly QRMP filing, annual GSTR-9 and GSTR-9C reconciliation, departmental notice replies, and GST refund claims.\n• Income Tax (ITR): Return filing for individuals (salaried, business, capital gains), partnership firms, LLPs, and private limited companies (ITR-1 through ITR-7), advance tax estimation, tax audit under Section 44AB, and scrutiny assessment representation.\n• Corporate & Business Registrations: Company incorporation (Private Limited, OPC), LLP agreement drafting, MSME / Udyam registration, Import-Export Code (IEC), Trademark filing, and Class-3 Digital Signature Certificates (DSC).\n• Accounting & Auditing: Outsourced bookkeeping, statutory audit, internal audit, CMA data preparation, and project reports for bank financing.",
+      "client_interview_placeholder": "[CLIENT_INTERVIEW_PLACEHOLDER: Add any firm-specific specialty services, e.g. textile market GST handling, export merchant advisory, or specific regional audit packages.]"
+    },
+    "2_fees": {
+      "title": "Fees, Quotations & Billing Policy",
+      "description": "Standard fee structures, quotation rules, and invoice terms.",
+      "content": "• GST Regular Monthly Retainer: Standard monthly compliance plans based on monthly invoice volume.\n• Annual ITR Filing: Tiered pricing based on source of income (salaried, capital gains, presumptive business 44AD/44ADA, audited balance sheet).\n• Company / LLP Formation: Fixed all-inclusive packages covering name approval, DSC, DIN, MOA/AOA, PAN, TAN, and Certificate of Incorporation.\n• Quotation Policy: Custom quotations are provided after reviewing transaction volume or prior year returns. Detailed fee proposals are sent via official email from casnbajaj2015@gmail.com.\n• Payment Modes: Bank transfer (NEFT/RTGS/IMPS) and official UPI QR code. Cash payments above statutory limits are not accepted.",
+      "client_interview_placeholder": "[CLIENT_INTERVIEW_PLACEHOLDER: Specify exact starting prices, e.g. ITR-1 starts at ₹1,500, monthly GST retainer starts at ₹3,000/month, or retain custom quote only.]"
+    },
+    "3_deadlines": {
+      "title": "Statutory Deadlines & Filing Calendar",
+      "description": "Key recurrent compliance deadlines under Indian tax laws.",
+      "content": "• GSTR-1 (Monthly outward supplies): 11th of every month.\n• GSTR-1 (Quarterly QRMP IFF/Return): 13th of the month following quarter.\n• GSTR-3B (Monthly summary & tax payment): 20th of every month.\n• GSTR-3B (Quarterly QRMP): 22nd or 24th depending on state category.\n• Income Tax Return (Non-audit individuals/entities): 31st July of the Assessment Year.\n• Tax Audit & Corporate ITR: 30th September for audit reports, 31st October for audited ITR.\n• Advance Tax Installments: 15th June (15%), 15th September (45%), 15th December (75%), and 15th March (100%).\n• TDS Payment: 7th of every month (April 30th for March TDS).\n• Quarterly TDS Return: 31st July (Q1), 31st October (Q2), 31st January (Q3), 31st May (Q4).",
+      "client_interview_placeholder": "[CLIENT_INTERVIEW_PLACEHOLDER: Note any firm-internal cut-off dates, e.g. clients must provide sales/purchase data by the 7th of the month.]"
+    },
+    "4_document_rules": {
+      "title": "Document Requirements & Format Rules",
+      "description": "Accepted file formats, size limits, and required document checklist.",
+      "content": "• Accepted Formats: PDF documents, high-resolution photos/images (JPEG, PNG), and Excel spreadsheets (XLSX, XLS, CSV).\n• Maximum Size: Up to 50 MB per file.\n• Legibility Rule: Invoices must have clearly readable GSTIN, invoice number, date, taxable value, and tax breakdown (CGST/SGST/IGST).\n• Monthly GST Checklist: Sales invoice register/Excel, purchase bills summary, and monthly bank account statements.\n• Annual ITR Checklist: Form 16/16A, bank statements for all active accounts for the financial year (1st April to 31st March), Annual Information Statement (AIS), Taxpayer Information Summary (TIS), Form 26AS, capital gains broker statements, and proof of 80C/80D tax savings.",
+      "client_interview_placeholder": "[CLIENT_INTERVIEW_PLACEHOLDER: Add any proprietary Excel format or specific software export required from clients, e.g. Tally export, Busy export.]"
+    },
+    "5_verification_protocol": {
+      "title": "Document Verification & Send-Back Protocol",
+      "description": "How our audit team verifies submitted records and handles discrepancies.",
+      "content": "• Intake Review: Every document received on WhatsApp or portal is verified by our compliance team within 24 working hours.\n• ITC Reconciliation: Purchase invoices are cross-checked against GSTR-2B before finalizing monthly credit. If a supplier has not reported the bill, the client is alerted.\n• Discrepancy & Re-send: If an invoice is blurry, cropped, missing tax details, or disputed, our staff flags the specific document with clear instructions on what needs re-submission.\n• Confirmation: Returns are prepared and shared with the client for approval before final submission with EVC/DSC.",
+      "client_interview_placeholder": "[CLIENT_INTERVIEW_PLACEHOLDER: Detail the exact turnaround time policy and staff sign-off stages before filing.]"
+    },
+    "6_reminder_policy": {
+      "title": "Client Reminder & Alert Policy",
+      "description": "Cadence of automated and manual WhatsApp/email reminders.",
+      "content": "• Early Alert: 1st week of the month reminding clients to compile bills and statements.\n• Mid-Month Reminder: 8th of the month (ahead of GSTR-1 deadline on 11th).\n• Tax Payment Alert: 16th to 18th of the month (ahead of GSTR-3B on 20th) with challan details.\n• Final Due-Day Alert: On the due date morning for any pending return.\n• Nil Returns: Clients with zero transactions can declare Nil filing directly through the portal with one tap.\n• Opt-out: Clients can adjust notification preferences inside the client portal.",
+      "client_interview_placeholder": "[CLIENT_INTERVIEW_PLACEHOLDER: Note specific reminder intervals or preferred calling protocol for critical delays.]"
+    },
+    "7_persona_tone": {
+      "title": "WhatsApp Persona & Tone Guidelines",
+      "description": "How the assistant should speak on WhatsApp.",
+      "content": "• Role: You are a friendly, competent office staff member at S N Bajaj And Co (not a robot).\n• Reply Length: Strictly 2–3 short sentences per message. Never send long essays or unasked explanations.\n• Language Style: Plain, warm, everyday Indian business English. Mirror Hinglish if the client chats in Hindi/Hinglish (e.g. 'Ji bilkul', 'Aapka document mil gaya hai').\n• Formatting: One message = one point. Use WhatsApp *bold* only for key numbers and dates (e.g. *20th October*, *₹14,500*).\n• BANNED Clichés: Never use 'Certainly!', 'Great question!', 'I hope this helps', 'As an AI', 'Please do not hesitate to contact us', or corporate bullet lists unless specifically listing pending documents.\n• Transparency: Never claim to be the partner/founder CA Sanjay Bajaj personally. If asked if you are an AI, honestly say you are the firm's digital assistant.",
+      "client_interview_placeholder": "[CLIENT_INTERVIEW_PLACEHOLDER: Custom voice notes, Gujarati phrases, or specific regional honorifics preferred by the firm.]"
+    },
+    "8_disclaimers": {
+      "title": "Disclaimers & Tax Advisory Guardrails",
+      "description": "Boundaries of chat-based guidance and legal disclaimers.",
+      "content": "• Chat Information Only: WhatsApp messages provide general compliance status, statutory due dates, and document submission guidance. They do not constitute formal legal or tax audit opinions.\n• Final Review: Formal tax computations and representations are issued only after CA review and documentation on official stationery.\n• No Liability for Late Submissions: Penalties or interest arising from client delays in providing books/statements before statutory cut-offs remain the client's responsibility.\n• Sensitive Decisions: Any disputed notice, tax demand, search/seizure matter, or litigation requires in-person or direct phone consultation with CA Sanjay Bajaj.",
+      "client_interview_placeholder": "[CLIENT_INTERVIEW_PLACEHOLDER: Add specific legal disclaimer language mandated by the firm's counsel.]"
+    },
+    "9_urgency_triage": {
+      "title": "Urgency Triage & High-Priority Protocol",
+      "description": "Rules for flagging urgent matters to CA Sanjay Bajaj and senior staff.",
+      "content": "• High Urgency Triggers: Summons under Section 70, Show Cause Notices (SCN) with impending expiry (< 7 days), bank attachment orders, GST registration cancellation notices, or search & seizure inquiries.\n• Action: Immediately acknowledge receipt calmly, do NOT provide ad-hoc legal interpretation in chat, set status to human takeover / escalation, and notify senior staff with the document copy.\n• Standard Inquiries: General return filing and certificate downloads follow normal business hour turnaround.",
+      "client_interview_placeholder": "[CLIENT_INTERVIEW_PLACEHOLDER: Dedicated emergency phone extension or escalation WhatsApp number for priority notices.]"
+    },
+    "10_onboarding": {
+      "title": "New Client Onboarding Steps",
+      "description": "How a new client registers and gets activated on our platform.",
+      "content": "• Step 1 — Online Registration: Visit https://app.snbajaj.com/register (or https://app.snbajaj.com/signup) and create an account with mobile number and email.\n• Step 2 — Business / Tax Profile: Provide trade name, GSTIN (if registered for GST), and PAN. The system performs real-time Mod-36 checksum verification.\n• Step 3 — Service Selection: Choose GST compliance, Income Tax (ITR), or Both.\n• Step 4 — Verification & Vault Activation: Our office team confirms the credentials and unlocks the secure document upload vault and filing reports archive.\n• Mobile App: Clients can also download our Android application 'SN Bajaj And Co - GST Client Portal' from Google Play Store.",
+      "client_interview_placeholder": "[CLIENT_INTERVIEW_PLACEHOLDER: Note any onboarding documentation fee or KYC checklist required prior to acceptance.]"
+    },
+    "11_office_info": {
+      "title": "Office, Contact & Portal Details",
+      "description": "Firm contact coordinates, working hours, and digital portal links.",
+      "content": "• Firm Name: S N Bajaj And Co (Chartered Accountants)\n• Founder & Head: CA Sanjay Bajaj\n• Office Address: 2007, Trade House, Opp. Man Darwaja Fire Station, Ring Road, Surat, Gujarat 395002, India\n• Office Timings: Monday to Saturday, 10:00 AM – 7:00 PM (Closed on Sundays & National Holidays)\n• Official Email: casnbajaj2015@gmail.com\n• Office Telephone: +91 99098 31995\n• Client Web Portal: https://app.snbajaj.com\n• Firm Website: https://snbajaj.com\n• Android App: SN Bajaj And Co - GST Client Portal (Google Play Store)",
+      "client_interview_placeholder": "[CLIENT_INTERVIEW_PLACEHOLDER: Add any secondary branch office locations, festival holiday schedule, or direct staff desk numbers.]"
+    }
+  }
+}

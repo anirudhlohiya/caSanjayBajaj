@@ -10,7 +10,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
-import { DocumentFileType, DocumentStatus } from '../../common/enums';
+import { DocumentCategory, DocumentFileType, DocumentStatus } from '../../common/enums';
 import { PaginationQueryDto } from '../../common/dto/pagination';
 
 // MIME types the firm accepts for client documents/reports.
@@ -35,9 +35,20 @@ export class CreateUploadUrlDto {
   @IsUUID()
   user_id?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ enum: DocumentCategory, default: DocumentCategory.GST })
+  @IsOptional()
+  @IsEnum(DocumentCategory)
+  category?: DocumentCategory;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsUUID()
-  filing_period_id: string;
+  filing_period_id?: string;
+
+  @ApiPropertyOptional({ example: '2025-26' })
+  @IsOptional()
+  @IsString()
+  assessment_year?: string;
 
   @ApiProperty()
   @IsString()
@@ -71,10 +82,20 @@ export class ConfirmUploadDto {
 }
 
 export class DocumentStatusQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ enum: DocumentCategory })
+  @IsOptional()
+  @IsEnum(DocumentCategory)
+  category?: DocumentCategory;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
   filing_period_id?: string;
+
+  @ApiPropertyOptional({ example: '2025-26' })
+  @IsOptional()
+  @IsString()
+  assessment_year?: string;
 
   @ApiPropertyOptional({ enum: DocumentStatus })
   @IsOptional()

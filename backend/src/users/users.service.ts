@@ -142,6 +142,15 @@ export class UsersService {
       const g = dto.gstin?.trim().toUpperCase() || null;
       user.gstin = g && g.length === 15 ? g : g || null;
     }
+    if (dto.business_name !== undefined) {
+      user.business_name = dto.business_name?.trim() || null;
+    }
+    if (dto.industry !== undefined) {
+      user.industry = dto.industry?.trim() || null;
+    }
+    if (dto.pan !== undefined) {
+      user.pan = dto.pan?.trim().toUpperCase() || null;
+    }
     if (dto.dob !== undefined) {
       user.dob = this.parseDateDDMMYYYY(dto.dob);
     }

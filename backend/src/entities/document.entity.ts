@@ -7,12 +7,17 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { DocumentFileType, DocumentStatus } from '../common/enums';
+import {
+  DocumentCategory,
+  DocumentFileType,
+  DocumentStatus,
+} from '../common/enums';
 import { GstFilingPeriod } from './gst-filing-period.entity';
 import { User } from './user.entity';
 
 @Entity('documents')
 @Index(['user_id', 'filing_period_id'])
+@Index(['user_id', 'category'])
 export class Document {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -21,8 +26,19 @@ export class Document {
   @Column({ type: 'uuid' })
   user_id: string;
 
-  @Column({ type: 'uuid' })
-  filing_period_id: string;
+  @Index()
+  @Column({
+    type: 'enum',
+    enum: DocumentCategory,
+    default: DocumentCategory.GST,
+  })
+  category: DocumentCategory;
+
+  @Column({ type: 'uuid', nullable: true })
+  filing_period_id: string | null;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  assessment_year: string | null;
 
   @Column({ type: 'varchar', length: 500 })
   s3_key: string;
@@ -54,7 +70,7 @@ export class Document {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => GstFilingPeriod)
+  @ManyToOne(() => GstFilingPeriod, { nullable: true })
   @JoinColumn({ name: 'filing_period_id' })
-  filing_period: GstFilingPeriod;
+  filing_period: GstFilingPeriod | null;
 }

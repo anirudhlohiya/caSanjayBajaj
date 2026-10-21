@@ -85,6 +85,28 @@ export class StorageService {
     return { uploadUrl, s3Key };
   }
 
+  async createItrReturnUploadUrl(
+    userId: string,
+    assessmentYear: string,
+    filename: string,
+    contentType: string,
+  ): Promise<UploadTarget> {
+    const ext = filename.split('.').pop()?.toLowerCase() ?? 'pdf';
+    const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
+    const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const safeAy = assessmentYear.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const s3Key = `itr-returns/${userId}/${safeAy}/${unique}_${safe}.${ext}`;
+    const command = new PutObjectCommand({
+      Bucket: this.docsBucket,
+      Key: s3Key,
+      ContentType: contentType,
+    });
+    const uploadUrl = await getSignedUrl(this.client, command, {
+      expiresIn: 300,
+    });
+    return { uploadUrl, s3Key };
+  }
+
   async createDownloadUrl(s3Key: string, expiresIn = 300): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: this.docsBucket,

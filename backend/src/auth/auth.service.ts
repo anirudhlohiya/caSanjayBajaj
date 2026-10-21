@@ -392,7 +392,7 @@ export class AuthService {
         password_hash: passwordHash,
         phone: dto.phone ?? null,
         gstin: null,
-        user_type: UserType.NORMAL,
+        user_type: UserType.GENERAL,
         status: UserStatus.ACTIVE,
         dob: this.parseDateDDMMYYYY(dto.dob),
       }),

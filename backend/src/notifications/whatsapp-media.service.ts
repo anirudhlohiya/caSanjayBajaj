@@ -1,21 +1,33 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { StorageService } from '../storage/storage.service';
+
+export interface StoredWhatsappMedia {
+  s3Key: string;
+  publicUrl?: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+}
 
 @Injectable()
 export class WhatsappMediaService {
   private readonly logger = new Logger(WhatsappMediaService.name);
   private readonly r2Client: S3Client | null = null;
-  private readonly bucketName: string;
-  private readonly publicBaseUrl: string;
+  private readonly r2BucketName: string;
+  private readonly r2PublicBaseUrl: string;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    private readonly storage: StorageService,
+  ) {
     const accountId = this.config.get<string>('r2.accountId');
     const accessKeyId = this.config.get<string>('r2.accessKeyId');
     const secretAccessKey = this.config.get<string>('r2.secretAccessKey');
-    this.bucketName =
+    this.r2BucketName =
       this.config.get<string>('r2.bucketName') || 'snbajaj-whatsapp-media';
-    this.publicBaseUrl = this.config.get<string>('r2.publicUrl') || '';
+    this.r2PublicBaseUrl = this.config.get<string>('r2.publicUrl') || '';
 
     if (accountId && accessKeyId && secretAccessKey) {
       this.r2Client = new S3Client({
@@ -26,23 +38,21 @@ export class WhatsappMediaService {
           secretAccessKey,
         },
       });
-      this.logger.log('Cloudflare R2 storage initialized for WhatsApp media');
-    } else {
-      this.logger.warn(
-        'Cloudflare R2 credentials not fully set; media storage will fallback or skip upload',
-      );
+      this.logger.log('Cloudflare R2 storage initialized as secondary media backup');
     }
   }
 
   /**
    * Fetches inbound media from Meta Graph API using the temporary mediaId and stores
-   * it in Cloudflare R2 object storage to preserve access permanently.
+   * it directly to AWS S3 at:
+   * whatsapp-uploads/{clientId-or-phone}/{YYYY-MM}/{filename}
    */
   async processAndStoreMedia(
     mediaId: string,
     mimeType?: string,
     filenameHint?: string,
-  ): Promise<string | null> {
+    clientFolder: string = 'general',
+  ): Promise<StoredWhatsappMedia | null> {
     const accessToken = this.config.get<string>('whatsapp.accessToken');
     if (!accessToken) {
       this.logger.warn('WhatsApp accessToken missing; cannot download media');
@@ -75,7 +85,7 @@ export class WhatsappMediaService {
         return null;
       }
 
-      // 2. Download the actual binary file
+      // 2. Download the binary payload from Meta
       const downloadRes = await fetch(metaData.url, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -93,28 +103,46 @@ export class WhatsappMediaService {
       const effectiveMime =
         mimeType || metaData.mime_type || 'application/octet-stream';
       const extension = this.getExtension(effectiveMime, filenameHint);
-      const key = `whatsapp/${Date.now()}_${mediaId.slice(-8)}${extension}`;
 
-      // 3. Upload to Cloudflare R2 if configured
+      const ym = new Date().toISOString().slice(0, 7); // e.g. 2026-10
+      const safeFolder = clientFolder.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const baseFilename = (filenameHint || `doc_${Date.now()}${extension}`).replace(/[^a-zA-Z0-9._-]/g, '_');
+      const uniquePrefix = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const s3Key = `whatsapp-uploads/${safeFolder}/${ym}/${uniquePrefix}_${baseFilename}`;
+
+      // 3. Upload to primary S3 object storage
+      await this.storage.uploadBuffer(s3Key, buffer, effectiveMime);
+      this.logger.log(`Successfully stored WhatsApp media to S3: ${s3Key}`);
+
+      let publicUrl: string | undefined = undefined;
+
+      // 4. Also store in R2 if configured
       if (this.r2Client) {
-        await this.r2Client.send(
-          new PutObjectCommand({
-            Bucket: this.bucketName,
-            Key: key,
-            Body: buffer,
-            ContentType: effectiveMime,
-          }),
-        );
-
-        if (this.publicBaseUrl) {
-          const cleanBase = this.publicBaseUrl.replace(/\/$/, '');
-          return `${cleanBase}/${key}`;
+        try {
+          await this.r2Client.send(
+            new PutObjectCommand({
+              Bucket: this.r2BucketName,
+              Key: s3Key,
+              Body: buffer,
+              ContentType: effectiveMime,
+            }),
+          );
+          if (this.r2PublicBaseUrl) {
+            const cleanBase = this.r2PublicBaseUrl.replace(/\/$/, '');
+            publicUrl = `${cleanBase}/${s3Key}`;
+          }
+        } catch (r2Err) {
+          this.logger.warn(`R2 upload warning: ${(r2Err as Error).message}`);
         }
-        return `https://${this.bucketName}.r2.cloudflarestorage.com/${key}`;
       }
 
-      // Fallback: return data URI or temporary url if R2 is not enabled yet
-      return metaData.url;
+      return {
+        s3Key,
+        publicUrl,
+        filename: baseFilename,
+        mimeType: effectiveMime,
+        sizeBytes: buffer.length,
+      };
     } catch (err) {
       this.logger.error(
         `Error downloading/storing WhatsApp media: ${(err as Error).message}`,
@@ -130,9 +158,13 @@ export class WhatsappMediaService {
     }
     const map: Record<string, string> = {
       'image/jpeg': '.jpg',
+      'image/jpg': '.jpg',
       'image/png': '.png',
       'image/webp': '.webp',
       'application/pdf': '.pdf',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+      'application/vnd.ms-excel': '.xls',
+      'text/csv': '.csv',
       'audio/ogg': '.ogg',
       'audio/mpeg': '.mp3',
       'audio/mp4': '.m4a',

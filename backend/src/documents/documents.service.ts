@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { ComplianceTasksService } from '../compliance-tasks/compliance-tasks.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { paginate, PaginatedResult } from '../common/dto/pagination';
-import { DocumentStatus } from '../common/enums';
+import { DocumentCategory, DocumentStatus, UserType } from '../common/enums';
 import { Document } from '../entities/document.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { UsersService } from '../users/users.service';
@@ -32,6 +32,24 @@ export class DocumentsService {
     private readonly tasksService: ComplianceTasksService,
   ) {}
 
+  private getUnlockedCategories(userType: UserType): DocumentCategory[] {
+    switch (userType) {
+      case UserType.GST:
+        return [DocumentCategory.GENERAL, DocumentCategory.GST];
+      case UserType.ITR:
+        return [DocumentCategory.GENERAL, DocumentCategory.ITR];
+      case UserType.BOTH:
+        return [
+          DocumentCategory.GENERAL,
+          DocumentCategory.GST,
+          DocumentCategory.ITR,
+        ];
+      case UserType.GENERAL:
+      default:
+        return [DocumentCategory.GENERAL];
+    }
+  }
+
   async requestUploadUrl(auth: AuthUser, dto: CreateUploadUrlDto) {
     // Admin may specify a target user; a client only ever targets themselves
     let targetUserId: string;
@@ -46,24 +64,82 @@ export class DocumentsService {
       targetUserId = auth.sub;
     }
 
-    const period = await this.periods.findOneBy({ id: dto.filing_period_id });
-    if (!period) throw new NotFoundException('Filing period not found');
-    if (auth.type === 'user' && !period.is_open) {
-      throw new ForbiddenException('This filing period is closed for uploads');
+    const targetUser = await this.usersService.findOne(targetUserId);
+    const category = dto.category ?? DocumentCategory.GST;
+
+    if (auth.type === 'user') {
+      const unlocked = this.getUnlockedCategories(targetUser.user_type);
+      if (!unlocked.includes(category)) {
+        throw new ForbiddenException(
+          `You do not have access to ${category} documents`,
+        );
+      }
     }
 
-    const { uploadUrl, s3Key } = await this.storage.createUploadUrl(
-      'docs',
-      targetUserId,
-      period.period_code,
-      dto.filename,
-      dto.contentType,
-    );
+    let uploadUrl: string;
+    let s3Key: string;
+    let filingPeriodId: string | null = null;
+    let assessmentYear: string | null = null;
+
+    if (category === DocumentCategory.GST) {
+      if (!dto.filing_period_id) {
+        throw new BadRequestException(
+          'filing_period_id is required for GST documents',
+        );
+      }
+      const period = await this.periods.findOneBy({ id: dto.filing_period_id });
+      if (!period) throw new NotFoundException('Filing period not found');
+      if (auth.type === 'user' && !period.is_open) {
+        throw new ForbiddenException(
+          'This filing period is closed for uploads',
+        );
+      }
+      filingPeriodId = period.id;
+      const res = await this.storage.createUploadUrl(
+        'docs',
+        targetUserId,
+        period.period_code,
+        dto.filename,
+        dto.contentType,
+      );
+      uploadUrl = res.uploadUrl;
+      s3Key = res.s3Key;
+    } else if (category === DocumentCategory.ITR) {
+      if (!dto.assessment_year?.trim()) {
+        throw new BadRequestException(
+          'assessment_year is required for ITR documents',
+        );
+      }
+      assessmentYear = dto.assessment_year.trim();
+      const safeAY = assessmentYear.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const res = await this.storage.createUploadUrl(
+        'docs',
+        targetUserId,
+        `ITR-${safeAY}`,
+        dto.filename,
+        dto.contentType,
+      );
+      uploadUrl = res.uploadUrl;
+      s3Key = res.s3Key;
+    } else {
+      // General
+      const res = await this.storage.createUploadUrl(
+        'docs',
+        targetUserId,
+        'general',
+        dto.filename,
+        dto.contentType,
+      );
+      uploadUrl = res.uploadUrl;
+      s3Key = res.s3Key;
+    }
 
     const doc = await this.documents.save(
       this.documents.create({
         user_id: targetUserId,
-        filing_period_id: period.id,
+        category,
+        filing_period_id: filingPeriodId,
+        assessment_year: assessmentYear,
         s3_key: s3Key,
         original_filename: dto.filename,
         file_type: dto.file_type,
@@ -92,9 +168,12 @@ export class DocumentsService {
     doc.file_size_bytes = String(dto.file_size_bytes);
     const saved = await this.documents.save(doc);
 
-    // Evidence is now on file: advance the first pending filing task for this
-    // user+period so slack reminders skip it (docs/13 §5.2).
-    if (doc.status === DocumentStatus.RECEIVED) {
+    // If GST document with filing period, advance the first pending filing task
+    if (
+      doc.status === DocumentStatus.RECEIVED &&
+      doc.category === DocumentCategory.GST &&
+      doc.filing_period_id
+    ) {
       await this.tasksService.markUploadedForDocumentConfirm(
         doc.user_id,
         doc.filing_period_id,
@@ -117,6 +196,9 @@ export class DocumentsService {
       throw new ForbiddenException('Permission required');
     }
 
+    const targetUser = await this.usersService.findOne(targetUserId);
+    const unlocked = this.getUnlockedCategories(targetUser.user_type);
+
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
     const qb = this.documents
@@ -125,9 +207,24 @@ export class DocumentsService {
       .where('doc.user_id = :uid', { uid: targetUserId })
       .orderBy('doc.uploaded_at', 'DESC');
 
+    if (query.category) {
+      if (auth.type === 'user' && !unlocked.includes(query.category)) {
+        throw new ForbiddenException(
+          'You do not have access to this document category',
+        );
+      }
+      qb.andWhere('doc.category = :category', { category: query.category });
+    } else if (auth.type === 'user') {
+      qb.andWhere('doc.category IN (:...unlocked)', { unlocked });
+    }
+
     if (query.filing_period_id)
       qb.andWhere('doc.filing_period_id = :pid', {
         pid: query.filing_period_id,
+      });
+    if (query.assessment_year)
+      qb.andWhere('doc.assessment_year = :ay', {
+        ay: query.assessment_year,
       });
     if (query.status)
       qb.andWhere('doc.status = :status', { status: query.status });
@@ -151,9 +248,16 @@ export class DocumentsService {
       .leftJoinAndSelect('doc.filing_period', 'period')
       .orderBy('doc.uploaded_at', 'DESC');
 
+    if (query.category) {
+      qb.andWhere('doc.category = :category', { category: query.category });
+    }
     if (query.filing_period_id)
       qb.andWhere('doc.filing_period_id = :pid', {
         pid: query.filing_period_id,
+      });
+    if (query.assessment_year)
+      qb.andWhere('doc.assessment_year = :ay', {
+        ay: query.assessment_year,
       });
     if (query.status)
       qb.andWhere('doc.status = :status', { status: query.status });

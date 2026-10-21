@@ -83,6 +83,21 @@ export class UpdateUserDto {
   @Length(15, 15)
   gstin?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  business_name?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  industry?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  pan?: string;
+
   @ApiPropertyOptional({ enum: UserStatus })
   @IsOptional()
   @IsEnum(UserStatus)
@@ -112,6 +127,21 @@ export class UpdateProfileDto {
   @IsString()
   @Length(15, 15)
   gstin?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  business_name?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  industry?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  pan?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

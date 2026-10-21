@@ -262,6 +262,143 @@ export class NotificationsService {
     }
   }
 
+  async sendWhatsappDocument(
+    toPhoneNumber: string,
+    documentUrl: string,
+    filename: string,
+    caption?: string,
+    senderPhoneNumberId?: string,
+  ): Promise<boolean> {
+    const phoneNumberId =
+      senderPhoneNumberId || this.config.get<string>('whatsapp.phoneNumberId');
+    const accessToken = this.config.get<string>('whatsapp.accessToken');
+
+    if (!phoneNumberId || !accessToken) {
+      this.logger.warn(
+        'WhatsApp configuration missing; skipping WhatsApp document',
+      );
+      return false;
+    }
+
+    try {
+      let cleanNumber = toPhoneNumber.replace(/\D/g, '');
+      if (cleanNumber.length === 10) {
+        cleanNumber = '91' + cleanNumber;
+      }
+      const response = await fetch(
+        `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: cleanNumber,
+            type: 'document',
+            document: {
+              link: documentUrl,
+              filename,
+              caption: caption || undefined,
+            },
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = (await response.json()) as Record<string, unknown>;
+        this.logger.error(
+          `WhatsApp document send failed for ${toPhoneNumber}: ${JSON.stringify(errorData)}`,
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `WhatsApp document send failed for ${toPhoneNumber}: ${(error as Error).message}`,
+      );
+      return false;
+    }
+  }
+
+  async sendWhatsappInteractiveList(
+    toPhoneNumber: string,
+    headerText: string,
+    bodyText: string,
+    buttonText: string,
+    sections: Array<{
+      title: string;
+      rows: Array<{ id: string; title: string; description?: string }>;
+    }>,
+    senderPhoneNumberId?: string,
+  ): Promise<boolean> {
+    const phoneNumberId =
+      senderPhoneNumberId || this.config.get<string>('whatsapp.phoneNumberId');
+    const accessToken = this.config.get<string>('whatsapp.accessToken');
+
+    if (!phoneNumberId || !accessToken) {
+      this.logger.warn(
+        'WhatsApp configuration missing; skipping WhatsApp interactive list',
+      );
+      return false;
+    }
+
+    try {
+      let cleanNumber = toPhoneNumber.replace(/\D/g, '');
+      if (cleanNumber.length === 10) {
+        cleanNumber = '91' + cleanNumber;
+      }
+      const response = await fetch(
+        `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: cleanNumber,
+            type: 'interactive',
+            interactive: {
+              type: 'list',
+              header: {
+                type: 'text',
+                text: headerText,
+              },
+              body: {
+                text: bodyText,
+              },
+              action: {
+                button: buttonText,
+                sections,
+              },
+            },
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = (await response.json()) as Record<string, unknown>;
+        this.logger.warn(
+          `WhatsApp interactive list send failed: ${JSON.stringify(errorData)}`,
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.warn(
+        `WhatsApp interactive list send error: ${(error as Error).message}`,
+      );
+      return false;
+    }
+  }
+
   health(): { ses: boolean; push: boolean; whatsapp: boolean } {
     return {
       ses: Boolean(this.sourceEmail),

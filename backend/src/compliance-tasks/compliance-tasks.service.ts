@@ -107,7 +107,7 @@ export class ComplianceTasksService {
    */
   async generateAllForPeriod(periodId: string): Promise<number> {
     const clients = await this.usersRepository.find({
-      where: { user_type: UserType.GST, status: UserStatus.ACTIVE },
+      where: { user_type: In([UserType.GST, UserType.BOTH]), status: UserStatus.ACTIVE },
     });
     for (const client of clients) {
       await this.ensureTasksForPeriod(client.id, periodId);
