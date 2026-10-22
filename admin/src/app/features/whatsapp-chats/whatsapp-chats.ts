@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   WhatsappChatsService,
 } from '../../core/services/feature.services';
@@ -36,6 +37,7 @@ export class WhatsappChatsPage implements OnInit {
   private readonly chatsService = inject(WhatsappChatsService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild('messagesContainer') private messagesContainer?: ElementRef<HTMLDivElement>;
@@ -96,6 +98,18 @@ export class WhatsappChatsPage implements OnInit {
 
       return phoneMatch || nameMatch || bizMatch || gstinMatch || lastMsgMatch;
     });
+  });
+
+  // Tab counts for badge pills
+  readonly tabCounts = computed(() => {
+    const list = this.conversations();
+    return {
+      all: list.length,
+      needs_attention: list.filter((c) => c.status === 'staff_takeover' || c.status === 'escalated').length,
+      ai_handling: list.filter((c) => c.status === 'ai_handling').length,
+      staff_takeover: list.filter((c) => c.status === 'staff_takeover').length,
+      closed: list.filter((c) => c.status === 'closed').length,
+    };
   });
 
   // 24-hour service window calculation
@@ -238,6 +252,17 @@ export class WhatsappChatsPage implements OnInit {
     } finally {
       this.sending.set(false);
     }
+  }
+
+  onComposerKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      void this.sendMessage();
+    }
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
   }
 
   async takeover(): Promise<void> {
@@ -409,6 +434,131 @@ export class WhatsappChatsPage implements OnInit {
     });
   }
 
+  isDifferentDay(msg1?: WhatsappMessage, msg2?: WhatsappMessage): boolean {
+    if (!msg1 || !msg2) return true;
+    const d1 = new Date(msg1.createdAt).toDateString();
+    const d2 = new Date(msg2.createdAt).toDateString();
+    return d1 !== d2;
+  }
+
+  getDateDividerLabel(isoDate: string): string {
+    const date = new Date(isoDate);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+    });
+  }
+
+  formatWhatsappMessage(text?: string | null): SafeHtml {
+    if (!text) return '';
+
+    // 1. Sanitize text by escaping raw HTML entities to prevent XSS
+    let escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+    // 2. Multi-line code blocks: ```code```
+    escaped = escaped.replace(/```([\s\S]*?)```/g, (_m, code) => {
+      return `<pre class="bg-black/5 dark:bg-white/10 text-neutral-800 dark:text-neutral-200 p-2 rounded-lg font-mono text-[11px] my-1.5 overflow-x-auto border border-black/5 dark:border-white/5">${code.trim()}</pre>`;
+    });
+
+    // 3. Inline code: `code`
+    escaped = escaped.replace(/`([^`]+)`/g, (_m, code) => {
+      return `<code class="bg-black/5 dark:bg-white/10 text-emerald-800 dark:text-emerald-300 px-1 py-0.5 rounded font-mono text-[11px]">${code}</code>`;
+    });
+
+    // 4. URLs to clickable links: https://... or http://...
+    escaped = escaped.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+      const cleanUrl = url.replace(/[.,;!?]+$/, '');
+      const trailing = url.slice(cleanUrl.length);
+      return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="underline font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300 break-all">${cleanUrl}</a>${trailing}`;
+    });
+
+    // 5. Bold: **text** or *text* or ++text++
+    escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    escaped = escaped.replace(/\+\+(.+?)\+\+/g, '<strong>$1</strong>');
+    escaped = escaped.replace(/(?<=^|[\s(])\*([^*\n]+?)\*(?=[\s).,!?]|$)/g, '<strong>$1</strong>');
+
+    // 6. Italic: _text_
+    escaped = escaped.replace(/(?<=^|[\s(])_([^_\n]+?)_(?=[\s).,!?]|$)/g, '<em>$1</em>');
+
+    // 7. Strikethrough: ~text~
+    escaped = escaped.replace(/(?<=^|[\s(])~([^~\n]+?)~(?=[\s).,!?]|$)/g, '<del class="opacity-70">$1</del>');
+
+    // 8. Bullet points
+    escaped = escaped.replace(/^[ \t]*[*\-•][ \t]+(.+)$/gm, '• $1');
+
+    return this.sanitizer.bypassSecurityTrustHtml(escaped);
+  }
+
+  getAvatarColor(key?: string | null): { bg: string; text: string; border: string } {
+    if (!key) {
+      return {
+        bg: 'bg-neutral-100 dark:bg-neutral-800',
+        text: 'text-neutral-700 dark:text-neutral-300',
+        border: 'border-neutral-200 dark:border-neutral-700',
+      };
+    }
+
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      hash = (hash << 5) - hash + key.charCodeAt(i);
+      hash |= 0;
+    }
+
+    const palettes = [
+      {
+        bg: 'bg-emerald-100 dark:bg-emerald-950/60',
+        text: 'text-emerald-800 dark:text-emerald-300',
+        border: 'border-emerald-300/70 dark:border-emerald-800',
+      },
+      {
+        bg: 'bg-sky-100 dark:bg-sky-950/60',
+        text: 'text-sky-800 dark:text-sky-300',
+        border: 'border-sky-300/70 dark:border-sky-800',
+      },
+      {
+        bg: 'bg-indigo-100 dark:bg-indigo-950/60',
+        text: 'text-indigo-800 dark:text-indigo-300',
+        border: 'border-indigo-300/70 dark:border-indigo-800',
+      },
+      {
+        bg: 'bg-purple-100 dark:bg-purple-950/60',
+        text: 'text-purple-800 dark:text-purple-300',
+        border: 'border-purple-300/70 dark:border-purple-800',
+      },
+      {
+        bg: 'bg-amber-100 dark:bg-amber-950/60',
+        text: 'text-amber-800 dark:text-amber-300',
+        border: 'border-amber-300/70 dark:border-amber-800',
+      },
+      {
+        bg: 'bg-rose-100 dark:bg-rose-950/60',
+        text: 'text-rose-800 dark:text-rose-300',
+        border: 'border-rose-300/70 dark:border-rose-800',
+      },
+      {
+        bg: 'bg-teal-100 dark:bg-teal-950/60',
+        text: 'text-teal-800 dark:text-teal-300',
+        border: 'border-teal-300/70 dark:border-teal-800',
+      },
+    ];
+
+    const idx = Math.abs(hash) % palettes.length;
+    return palettes[idx];
+  }
+
   getStatusClass(status: WhatsappConversationStatus): string {
     switch (status) {
       case 'ai_handling':
@@ -435,3 +585,4 @@ export class WhatsappChatsPage implements OnInit {
     }
   }
 }
+

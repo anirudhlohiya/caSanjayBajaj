@@ -42,13 +42,13 @@
   <!-- Three-Pane Container -->
   <div class="flex-1 min-h-0 flex relative border border-neutral-200/80 dark:border-neutral-800 rounded-2xl overflow-hidden bg-white dark:bg-neutral-950 shadow-xs">
     
-    <!-- LEFT PANE: Conversation List & Filters (Always visible on desktop md+, toggled on mobile) -->
+    <!-- LEFT PANE: Conversation List & Filters (Responsive on Mobile) -->
     <div
-      class="w-full md:w-80 lg:w-[340px] flex-shrink-0 border-r border-neutral-200/80 dark:border-neutral-800 flex-col bg-neutral-50/40 dark:bg-neutral-950"
+      class="w-full md:w-80 lg:w-[340px] flex-shrink-0 border-r border-neutral-200/80 dark:border-neutral-800 flex flex-col bg-neutral-50/50 dark:bg-neutral-950"
       [ngClass]="mobileView() === 'chat' ? 'hidden md:flex' : 'flex'"
     >
       <!-- Search & Filters -->
-      <div class="p-3 border-b border-neutral-200/80 dark:border-neutral-800 space-y-2 bg-white dark:bg-neutral-950">
+      <div class="p-3 border-b border-neutral-200/80 dark:border-neutral-800 space-y-2.5 bg-white dark:bg-neutral-950">
         <div class="relative">
           <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-neutral-400 dark:text-neutral-500 text-[18px]">search</span>
           <input
@@ -56,46 +56,63 @@
             [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
             placeholder="Search by name, phone, GSTIN..."
-            class="w-full pl-8 pr-3 py-1.5 text-xs bg-neutral-100/70 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-neutral-900 focus:border-neutral-900 dark:focus:border-neutral-100 focus:ring-1 focus:ring-neutral-900 dark:focus:ring-neutral-100 transition-all"
+            class="w-full pl-8 pr-8 py-1.5 text-xs bg-neutral-100/70 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-neutral-900 focus:border-neutral-900 dark:focus:border-neutral-100 focus:ring-1 focus:ring-neutral-900 dark:focus:ring-neutral-100 transition-all"
           />
+          @if (searchQuery()) {
+            <button
+              (click)="clearSearch()"
+              class="absolute right-2.5 top-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+              title="Clear search"
+            >
+              <span class="material-symbols-outlined text-[16px]">close</span>
+            </button>
+          }
         </div>
 
-        <!-- Filter Tabs (Vercel Segmented Control) -->
+        <!-- Filter Tabs (Vercel Segmented Control with Count Badges) -->
         <div class="flex items-center gap-1 overflow-x-auto no-scrollbar p-1 rounded-lg bg-neutral-100/80 dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 text-[11px]">
           <button
             (click)="activeTab.set('all')"
             [class]="activeTab() === 'all' ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium shadow-2xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'"
-            class="px-2.5 py-1 rounded-md transition-all whitespace-nowrap"
+            class="px-2 py-1 rounded-md transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer"
           >
-            All
+            <span>All</span>
+            <span class="text-[10px] opacity-70 font-mono">({{ tabCounts().all }})</span>
           </button>
           <button
             (click)="activeTab.set('needs_attention')"
             [class]="activeTab() === 'needs_attention' ? 'bg-white dark:bg-neutral-800 text-amber-700 dark:text-amber-400 font-medium shadow-2xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'"
-            class="px-2.5 py-1 rounded-md transition-all whitespace-nowrap"
+            class="px-2 py-1 rounded-md transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer"
           >
-            Attention
+            <span>Attention</span>
+            @if (tabCounts().needs_attention > 0) {
+              <span class="px-1 rounded-full text-[9px] bg-amber-500/20 text-amber-800 dark:text-amber-300 font-mono font-semibold">
+                {{ tabCounts().needs_attention }}
+              </span>
+            }
           </button>
           <button
             (click)="activeTab.set('ai_handling')"
             [class]="activeTab() === 'ai_handling' ? 'bg-white dark:bg-neutral-800 text-emerald-700 dark:text-emerald-400 font-medium shadow-2xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'"
-            class="px-2.5 py-1 rounded-md transition-all whitespace-nowrap"
+            class="px-2 py-1 rounded-md transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer"
           >
-            AI Active
+            <span>AI Active</span>
+            <span class="text-[10px] opacity-70 font-mono">({{ tabCounts().ai_handling }})</span>
           </button>
           <button
             (click)="activeTab.set('staff_takeover')"
             [class]="activeTab() === 'staff_takeover' ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium shadow-2xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'"
-            class="px-2.5 py-1 rounded-md transition-all whitespace-nowrap"
+            class="px-2 py-1 rounded-md transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer"
           >
-            Takeover
+            <span>Takeover</span>
+            <span class="text-[10px] opacity-70 font-mono">({{ tabCounts().staff_takeover }})</span>
           </button>
           <button
             (click)="activeTab.set('closed')"
             [class]="activeTab() === 'closed' ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium shadow-2xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'"
-            class="px-2.5 py-1 rounded-md transition-all whitespace-nowrap"
+            class="px-2 py-1 rounded-md transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer"
           >
-            Closed
+            <span>Closed</span>
           </button>
         </div>
       </div>
@@ -115,12 +132,16 @@
           @for (conv of filteredConversations(); track conv.id) {
             <div
               (click)="selectConversation(conv)"
-              [class]="selectedConversation()?.id === conv.id ? 'bg-neutral-100/90 dark:bg-neutral-900 border-l-2 border-l-neutral-900 dark:border-l-neutral-100' : 'hover:bg-neutral-100/60 dark:hover:bg-neutral-900/50 bg-white dark:bg-neutral-950'"
+              [class]="selectedConversation()?.id === conv.id ? 'bg-emerald-500/[0.08] dark:bg-emerald-500/[0.12] border-l-4 border-l-emerald-600 dark:border-l-emerald-400' : 'hover:bg-neutral-100/70 dark:hover:bg-neutral-900/60 bg-white dark:bg-neutral-950 border-l-4 border-l-transparent'"
               class="p-3.5 cursor-pointer transition-all duration-150 relative"
             >
-              <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start justify-between gap-2.5">
                 <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700/80 flex items-center justify-center text-neutral-800 dark:text-neutral-200 font-semibold text-xs shrink-0 tracking-tight">
+                  <!-- Contact Avatar with dynamic palette -->
+                  <div
+                    class="w-9 h-9 rounded-full border flex items-center justify-center font-bold text-xs shrink-0 tracking-tight"
+                    [ngClass]="[getAvatarColor(conv.phoneNumber).bg, getAvatarColor(conv.phoneNumber).text, getAvatarColor(conv.phoneNumber).border]"
+                  >
                     {{ (conv.clientName || conv.phoneNumber).slice(0, 2).toUpperCase() }}
                   </div>
                   <div class="min-w-0">
@@ -129,7 +150,7 @@
                         {{ conv.clientName || conv.phoneNumber }}
                       </p>
                       @if (conv.verified || conv.clientId) {
-                        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[15px]" title="Verified Portal Client">verified</span>
+                        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[15px] shrink-0" title="Verified Portal Client">verified</span>
                       }
                     </div>
                     @if (conv.businessName) {
@@ -149,7 +170,7 @@
                     {{ fmtTime(conv.lastMessageAt || conv.createdAt) }}
                   </span>
                   @if (conv.unreadCount > 0) {
-                    <span class="mt-1 px-1.5 py-0.2 rounded-full font-mono text-[10px] font-bold bg-neutral-900 dark:bg-white text-white dark:text-neutral-950">
+                    <span class="mt-1 px-1.5 py-0.2 rounded-full font-mono text-[10px] font-bold bg-emerald-600 text-white shadow-2xs">
                       {{ conv.unreadCount }}
                     </span>
                   }
@@ -180,67 +201,133 @@
       </div>
     </div>
 
-    <!-- CENTER PANE: Active Chat Thread (Always visible on desktop md+, toggled on mobile) -->
+    <!-- CENTER PANE: Active Chat Thread (Responsive on Mobile) -->
     <div
-      class="flex-1 flex-col min-w-0 bg-white dark:bg-neutral-950"
+      class="flex-1 flex flex-col min-w-0 bg-white dark:bg-neutral-950"
       [ngClass]="mobileView() === 'list' ? 'hidden md:flex' : 'flex'"
     >
       @if (selectedConversation(); as conv) {
-        <!-- Thread Header -->
-        <div class="p-3 border-b border-neutral-200/80 dark:border-neutral-800 flex items-center justify-between gap-2 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-xs">
-          <div class="flex items-center gap-2 min-w-0">
-            <!-- Mobile back button to conversation list -->
-            <button
-              (click)="mobileView.set('list')"
-              class="md:hidden p-1.5 -ml-1 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shrink-0"
-              title="Back to inbox"
-            >
-              <span class="material-symbols-outlined text-[20px]">arrow_back</span>
-            </button>
+        <!-- Thread Header (Two-Tier Clean Hierarchy) -->
+        <div class="border-b border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-950">
+          <!-- Tier 1: Main Bar -->
+          <div class="px-3 py-2.5 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <!-- Mobile Back Button -->
+              <button
+                (click)="mobileView.set('list')"
+                class="md:hidden p-1.5 -ml-1 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shrink-0"
+                title="Back to conversation list"
+              >
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+              </button>
 
-            <div class="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 flex items-center justify-center font-semibold text-xs shrink-0 tracking-tight">
-              {{ (conv.clientName || conv.phoneNumber).slice(0, 2).toUpperCase() }}
-            </div>
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5">
-                <h2 class="text-xs md:text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 truncate">
-                  {{ conv.clientName || conv.phoneNumber }}
-                </h2>
-                @if (conv.verified || conv.clientId) {
-                  <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[16px]" title="Verified Portal Client">verified</span>
-                }
-                <span
-                  class="px-1.5 py-0.5 rounded text-[9px] md:text-[10px] font-medium border"
-                  [ngClass]="getStatusClass(conv.status)"
-                >
-                  {{ getStatusLabel(conv.status) }}
-                </span>
+              <!-- Contact Avatar -->
+              <div
+                class="w-9 h-9 rounded-full border flex items-center justify-center font-bold text-xs shrink-0 tracking-tight"
+                [ngClass]="[getAvatarColor(conv.phoneNumber).bg, getAvatarColor(conv.phoneNumber).text, getAvatarColor(conv.phoneNumber).border]"
+              >
+                {{ (conv.clientName || conv.phoneNumber).slice(0, 2).toUpperCase() }}
               </div>
-              <div class="flex items-center gap-2 text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
-                <span class="font-mono">{{ conv.phoneNumber }}</span>
-                @if (conv.gstin) {
-                  <span>· GST: <span class="font-mono text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 px-1 py-0.2 rounded">{{ conv.gstin }}</span></span>
-                }
-                @if (conv.clientId) {
-                  <a
-                    [routerLink]="['/clients', conv.clientId]"
-                    class="text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-semibold inline-flex items-center gap-0.5 hover:underline"
-                    title="Open client profile & documents in portal"
+
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <h2 class="text-xs md:text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 truncate">
+                    {{ conv.clientName || conv.phoneNumber }}
+                  </h2>
+                  @if (conv.verified || conv.clientId) {
+                    <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[16px] shrink-0" title="Verified Portal Client">verified</span>
+                  }
+                  <span
+                    class="px-1.5 py-0.5 rounded text-[9px] md:text-[10px] font-medium border shrink-0"
+                    [ngClass]="getStatusClass(conv.status)"
                   >
-                    <span>View Profile</span>
-                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
-                  </a>
+                    {{ getStatusLabel(conv.status) }}
+                  </span>
+                </div>
+                @if (conv.businessName) {
+                  <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">{{ conv.businessName }}</p>
                 }
               </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="flex items-center gap-1.5 shrink-0">
+              <!-- Takeover / Return to AI -->
+              @if (conv.status === 'ai_handling') {
+                <button
+                  (click)="takeover()"
+                  class="px-2.5 py-1 text-xs font-medium rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/20 dark:border-amber-500/30 transition-all flex items-center gap-1 cursor-pointer"
+                  title="Pause AI and take over manually"
+                >
+                  <span class="material-symbols-outlined text-[16px]">front_hand</span>
+                  <span class="hidden sm:inline">Take Over</span>
+                </button>
+              } @else if (conv.status === 'staff_takeover') {
+                <button
+                  (click)="release()"
+                  class="px-2.5 py-1 text-xs font-medium rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 transition-all flex items-center gap-1 cursor-pointer"
+                  title="Return handling back to AI assistant"
+                >
+                  <span class="material-symbols-outlined text-[16px]">smart_toy</span>
+                  <span class="hidden sm:inline">Return to AI</span>
+                </button>
+              }
+
+              @if (conv.status !== 'closed') {
+                <button
+                  (click)="changeStatus('closed')"
+                  class="px-2.5 py-1 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all cursor-pointer"
+                  title="Mark conversation as resolved and closed"
+                >
+                  Close
+                </button>
+              } @else {
+                <button
+                  (click)="release()"
+                  class="px-2.5 py-1 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all cursor-pointer"
+                >
+                  Reopen
+                </button>
+              }
+
+              <!-- Details Drawer Toggle -->
+              <button
+                (click)="showDetailsDrawer.set(!showDetailsDrawer())"
+                class="lg:hidden p-1.5 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-800 transition-colors cursor-pointer"
+                title="Toggle Client Details"
+              >
+                <span class="material-symbols-outlined text-[18px]">info</span>
+              </button>
             </div>
           </div>
 
-          <!-- 24h Service Window & Quick Actions -->
-          <div class="flex items-center gap-1.5 shrink-0">
-            <!-- 24h Window Indicator -->
+          <!-- Tier 2: Sub-Metadata Bar (Phone, GSTIN, Portal Link, 24h Window) -->
+          <div class="px-3 py-1.5 bg-neutral-50/70 dark:bg-neutral-900/60 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between gap-2 text-[11px] overflow-x-auto no-scrollbar">
+            <div class="flex items-center gap-2.5 text-neutral-500 dark:text-neutral-400 shrink-0">
+              <span class="font-mono text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px] text-emerald-600 dark:text-emerald-400">chat</span>
+                {{ conv.phoneNumber }}
+              </span>
+              @if (conv.gstin) {
+                <span class="hidden sm:inline">· GSTIN: <span class="font-mono text-neutral-800 dark:text-neutral-200 bg-white dark:bg-neutral-800 px-1.5 py-0.5 rounded border border-neutral-200 dark:border-neutral-700">{{ conv.gstin }}</span></span>
+              }
+              @if (conv.clientId) {
+                <a
+                  [routerLink]="['/clients', conv.clientId]"
+                  class="text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-semibold inline-flex items-center gap-0.5 hover:underline"
+                  title="Open client profile & documents in portal"
+                >
+                  <span>Open Portal Profile</span>
+                  <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                </a>
+              }
+            </div>
+
+            <!-- 24h Window Badge -->
             <div
-              class="hidden sm:flex px-2 py-1 rounded-md text-[11px] font-mono font-medium items-center gap-1.5 border border-neutral-200/80 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300"
-              [title]="windowStatus().isActive ? 'Free-form replies allowed within 24 hours of client message' : 'Window expired; client must message first'"
+              class="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium flex items-center gap-1.5 border shrink-0"
+              [ngClass]="windowStatus().isActive ? 'border-emerald-500/25 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300' : 'border-amber-500/25 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300'"
+              [title]="windowStatus().isActive ? 'Free-form replies allowed within 24 hours of client message' : '24h service window expired; client must message first or use template'"
             >
               <span class="w-1.5 h-1.5 rounded-full" [ngClass]="windowStatus().isActive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
               @if (windowStatus().isActive) {
@@ -249,75 +336,43 @@
                 <span>24h Window Expired</span>
               }
             </div>
-
-            <!-- Takeover / Return to AI Buttons -->
-            @if (conv.status === 'ai_handling') {
-              <button
-                (click)="takeover()"
-                class="px-2.5 py-1 text-xs font-medium rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/20 dark:border-amber-500/30 transition-all flex items-center gap-1"
-                title="Pause AI and take over manually"
-              >
-                <span class="material-symbols-outlined text-[16px]">front_hand</span>
-                <span class="hidden sm:inline">Take Over</span>
-              </button>
-            } @else if (conv.status === 'staff_takeover') {
-              <button
-                (click)="release()"
-                class="px-2.5 py-1 text-xs font-medium rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 transition-all flex items-center gap-1"
-                title="Return handling back to AI assistant"
-              >
-                <span class="material-symbols-outlined text-[16px]">smart_toy</span>
-                <span class="hidden sm:inline">Return to AI</span>
-              </button>
-            }
-
-            @if (conv.status !== 'closed') {
-              <button
-                (click)="changeStatus('closed')"
-                class="px-2.5 py-1 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all"
-                title="Mark conversation as resolved and closed"
-              >
-                Close
-              </button>
-            } @else {
-              <button
-                (click)="release()"
-                class="px-2.5 py-1 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all"
-              >
-                Reopen
-              </button>
-            }
-
-            <!-- Mobile Info Drawer Toggle -->
-            <button
-              (click)="showDetailsDrawer.set(!showDetailsDrawer())"
-              class="lg:hidden p-1.5 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-800 transition-colors"
-              title="Toggle Client Details"
-            >
-              <span class="material-symbols-outlined text-[18px]">info</span>
-            </button>
           </div>
         </div>
 
-        <!-- Thread Messages List -->
+        <!-- Thread Messages List (Authentic WhatsApp Web Canvas) -->
         <div
           #messagesContainer
-          class="flex-1 overflow-y-auto p-4 space-y-3.5 bg-neutral-50/50 dark:bg-neutral-950"
+          class="flex-1 overflow-y-auto p-4 space-y-3 relative bg-[#efeae2]/45 dark:bg-[#0b141a]"
         >
+          <!-- Subtle WhatsApp dot grid background pattern -->
+          <div
+            class="absolute inset-0 pointer-events-none opacity-[0.035] dark:opacity-[0.02]"
+            style="background-image: radial-gradient(#128C7E 1px, transparent 1px); background-size: 20px 20px;"
+          ></div>
+
           @if (loadingMessages()) {
-            <div class="p-8 flex justify-center">
+            <div class="p-8 flex justify-center relative z-10">
               <app-spinner />
             </div>
           } @else if (messages().length === 0) {
-            <div class="p-8 text-center text-xs text-neutral-400 dark:text-neutral-500">
+            <div class="p-8 text-center text-xs text-neutral-400 dark:text-neutral-500 relative z-10">
               No messages in this conversation thread yet.
             </div>
           } @else {
             @for (msg of messages(); track msg.id) {
+              <!-- Date Divider Badge -->
+              @if (isDifferentDay(msg, messages()[$index - 1])) {
+                <div class="flex justify-center my-3 relative z-10">
+                  <span class="px-3 py-0.5 rounded-full text-[11px] font-medium bg-white/80 dark:bg-neutral-800/80 backdrop-blur-xs text-neutral-600 dark:text-neutral-300 shadow-2xs border border-neutral-200/60 dark:border-neutral-700/60 font-mono">
+                    {{ getDateDividerLabel(msg.createdAt) }}
+                  </span>
+                </div>
+              }
+
               <!-- Inbound Client Message (Left) -->
               @if (msg.direction === 'inbound') {
-                <div class="flex flex-col items-start max-w-[85%] sm:max-w-[78%]">
-                  <div class="bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl rounded-tl-xs px-3.5 py-2.5 shadow-2xs">
+                <div class="flex flex-col items-start max-w-[88%] sm:max-w-[76%] relative z-10">
+                  <div class="bg-white dark:bg-[#202c33] text-neutral-900 dark:text-[#e9edef] border border-neutral-200/70 dark:border-neutral-800/80 rounded-2xl rounded-tl-xs px-3.5 py-2.5 shadow-[0_1px_1.5px_rgba(0,0,0,0.06)]">
                     <!-- Media Renderer if present -->
                     @if (msg.mediaUrl) {
                       <div class="mb-2">
@@ -349,37 +404,69 @@
                       </div>
                     }
 
-                    <p class="text-xs text-neutral-900 dark:text-neutral-100 whitespace-pre-wrap leading-relaxed">{{ msg.body }}</p>
+                    <!-- Formatted Message Body -->
+                    <div
+                      class="text-[12.5px] leading-relaxed whitespace-pre-wrap select-text break-words"
+                      [innerHTML]="formatWhatsappMessage(msg.body)"
+                    ></div>
+
+                    <!-- Timestamp -->
+                    <div class="flex justify-end mt-1">
+                      <span class="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 tabular-nums">
+                        {{ fmtTime(msg.createdAt) }}
+                      </span>
+                    </div>
                   </div>
-                  <span class="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 mt-1 ml-1">{{ fmtDateTime(msg.createdAt) }}</span>
                 </div>
               }
 
-              <!-- Outbound Message (Right: AI or Staff) -->
-              @if (msg.direction === 'outbound') {
-                <div class="flex flex-col items-end max-w-[85%] sm:max-w-[78%] ml-auto">
-                  <div
-                    class="rounded-2xl rounded-tr-xs px-3.5 py-2.5 shadow-2xs border"
-                    [ngClass]="msg.sender === 'ai' ? 'bg-emerald-500/[0.05] dark:bg-emerald-500/[0.1] border-emerald-500/20 dark:border-emerald-500/30 text-neutral-900 dark:text-neutral-100' : 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-950 border-neutral-900 dark:border-neutral-100'"
-                  >
-                    <!-- Sender badge -->
-                    <div class="flex items-center gap-1 mb-1 text-[10px] font-semibold tracking-tight">
-                      @if (msg.sender === 'ai') {
-                        <span class="text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                          <span class="material-symbols-outlined text-[14px]">smart_toy</span>
-                          AI Assistant
-                        </span>
-                      } @else {
-                        <span class="text-neutral-300 dark:text-neutral-600 flex items-center gap-1">
-                          <span class="material-symbols-outlined text-[14px]">person</span>
-                          Staff Reply
-                        </span>
-                      }
+              <!-- Outbound Staff Reply (Right: Emerald Authentic WhatsApp Bubble) -->
+              @if (msg.direction === 'outbound' && msg.sender === 'staff') {
+                <div class="flex flex-col items-end max-w-[88%] sm:max-w-[76%] ml-auto relative z-10">
+                  <div class="bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] border border-[#c1e8ba]/80 dark:border-[#005c4b] rounded-2xl rounded-tr-xs px-3.5 py-2.5 shadow-[0_1px_1.5px_rgba(0,0,0,0.05)]">
+                    <!-- Staff Chip -->
+                    <div class="flex items-center gap-1 mb-1 text-[10px] font-semibold text-emerald-800 dark:text-emerald-200 tracking-tight">
+                      <span class="material-symbols-outlined text-[14px]">support_agent</span>
+                      <span>Staff Reply</span>
                     </div>
 
-                    <p class="text-xs whitespace-pre-wrap leading-relaxed" [ngClass]="msg.sender === 'ai' ? 'text-neutral-900 dark:text-neutral-100' : 'text-white dark:text-neutral-950'">{{ msg.body }}</p>
+                    <!-- Formatted Message Body -->
+                    <div
+                      class="text-[12.5px] leading-relaxed whitespace-pre-wrap select-text break-words text-[#111b21] dark:text-[#e9edef]"
+                      [innerHTML]="formatWhatsappMessage(msg.body)"
+                    ></div>
+
+                    <!-- Timestamp & Blue Double Checkmarks -->
+                    <div class="flex items-center justify-end gap-1 mt-1 font-mono text-[10px] tabular-nums">
+                      <span class="text-neutral-500 dark:text-neutral-400">{{ fmtTime(msg.createdAt) }}</span>
+                      <span class="material-symbols-outlined text-[15px] text-[#53bdeb] font-bold" title="Delivered">done_all</span>
+                    </div>
                   </div>
-                  <span class="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 mt-1 mr-1">{{ fmtDateTime(msg.createdAt) }}</span>
+                </div>
+              }
+
+              <!-- Outbound AI Assistant Reply (Right: Mint Distinguished Bubble) -->
+              @if (msg.direction === 'outbound' && msg.sender !== 'staff') {
+                <div class="flex flex-col items-end max-w-[88%] sm:max-w-[76%] ml-auto relative z-10">
+                  <div class="bg-[#e7f7ed] dark:bg-[#0b3328] text-[#111b21] dark:text-[#e9edef] border border-emerald-300/60 dark:border-emerald-700/60 rounded-2xl rounded-tr-xs px-3.5 py-2.5 shadow-[0_1px_1.5px_rgba(0,0,0,0.05)]">
+                    <!-- AI Chip -->
+                    <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-600/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 mb-1">
+                      <span class="material-symbols-outlined text-[13px]">smart_toy</span>
+                      <span>AI Assistant</span>
+                    </div>
+
+                    <!-- Formatted Message Body -->
+                    <div
+                      class="text-[12.5px] leading-relaxed whitespace-pre-wrap select-text break-words text-[#111b21] dark:text-[#e9edef]"
+                      [innerHTML]="formatWhatsappMessage(msg.body)"
+                    ></div>
+
+                    <!-- Timestamp & Blue Double Checkmarks -->
+                    <div class="flex items-center justify-end gap-1 mt-1 font-mono text-[10px] tabular-nums">
+                      <span class="text-neutral-500 dark:text-neutral-400">{{ fmtTime(msg.createdAt) }}</span>
+                      <span class="material-symbols-outlined text-[15px] text-[#53bdeb] font-bold" title="Delivered">done_all</span>
+                    </div>
+                  </div>
                 </div>
               }
             }
@@ -407,8 +494,8 @@
             <textarea
               [ngModel]="replyText()"
               (ngModelChange)="replyText.set($event)"
-              (keydown.control.enter)="sendMessage()"
-              placeholder="Type staff WhatsApp reply (Ctrl+Enter to send)..."
+              (keydown)="onComposerKeyDown($event)"
+              placeholder="Type staff WhatsApp reply (Enter to send, Shift+Enter for new line)..."
               rows="2"
               [disabled]="!windowStatus().isActive || sending()"
               class="flex-1 p-2.5 text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded-xl focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-100 focus:bg-white dark:focus:bg-neutral-900 focus:ring-1 focus:ring-neutral-900 dark:focus:ring-neutral-100 resize-none disabled:opacity-50 transition-all"
@@ -417,7 +504,7 @@
             <button
               (click)="sendMessage()"
               [disabled]="!replyText().trim() || !windowStatus().isActive || sending()"
-              class="px-4 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-medium text-xs hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-40 flex items-center gap-1.5 h-[42px] transition-all shadow-2xs active:scale-[0.98]"
+              class="px-4 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-medium text-xs hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-40 flex items-center gap-1.5 h-[42px] transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
             >
               @if (sending()) {
                 <span class="w-4 h-4 border-2 border-white/30 dark:border-neutral-950/30 border-t-white dark:border-t-neutral-950 rounded-full animate-spin"></span>
@@ -427,6 +514,9 @@
               }
             </button>
           </div>
+          <p class="text-[10px] text-neutral-400 dark:text-neutral-500 mt-1 pl-1">
+            Press <kbd class="px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 font-mono text-[9px]">Enter</kbd> to send · <kbd class="px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 font-mono text-[9px]">Shift+Enter</kbd> for new line
+          </p>
         </div>
       } @else {
         <div class="flex-1 flex flex-col items-center justify-center text-center p-8 text-neutral-400 dark:text-neutral-500">
@@ -453,7 +543,7 @@
 
       <div
         class="w-full sm:w-88 flex-shrink-0 border-l border-neutral-200/80 dark:border-neutral-800 p-4 bg-white dark:bg-neutral-950 flex-col overflow-y-auto space-y-4"
-        [ngClass]="showDetailsDrawer() ? 'fixed inset-y-0 right-0 z-40 max-w-[85vw] shadow-2xl flex' : 'hidden lg:flex lg:static lg:inset-auto lg:z-auto lg:shadow-none lg:w-80'"
+        [ngClass]="showDetailsDrawer() ? 'fixed inset-y-0 right-0 z-40 max-w-[88vw] shadow-2xl flex' : 'hidden lg:flex lg:static lg:inset-auto lg:z-auto lg:shadow-none lg:w-80'"
       >
         <!-- Client Profile Header -->
         <div class="space-y-1 pb-3 border-b border-neutral-100 dark:border-neutral-800">
@@ -475,7 +565,10 @@
               </button>
             </div>
           </div>
-          <p class="font-mono text-xs text-neutral-500 dark:text-neutral-400">{{ conv.phoneNumber }}</p>
+          <p class="font-mono text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px] text-emerald-600 dark:text-emerald-400">phone</span>
+            {{ conv.phoneNumber }}
+          </p>
         </div>
 
         <!-- Portal Client Auto-Linked Card -->
@@ -512,7 +605,7 @@
 
             <a
               [routerLink]="['/clients', conv.clientId]"
-              class="w-full py-2 px-3 rounded-lg bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-neutral-950 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs transition-all mt-2"
+              class="w-full py-2 px-3 rounded-lg bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-neutral-950 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs transition-all mt-2 cursor-pointer"
             >
               <span class="material-symbols-outlined text-[16px]">account_box</span>
               <span>Open Client Profile & Docs</span>
@@ -565,7 +658,7 @@
               (ngModelChange)="verifiedEdit.set($event)"
               class="rounded border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-neutral-900"
             />
-            <label for="verifiedCheck" class="text-xs text-neutral-700 dark:text-neutral-300 select-none">
+            <label for="verifiedCheck" class="text-xs text-neutral-700 dark:text-neutral-300 select-none cursor-pointer">
               Mark as Verified Client
             </label>
           </div>
@@ -584,7 +677,7 @@
           <button
             (click)="saveMetadata()"
             [disabled]="savingMetadata()"
-            class="w-full py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-xs font-medium text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-50 transition-all shadow-2xs"
+            class="w-full py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-xs font-medium text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-50 transition-all shadow-2xs cursor-pointer"
           >
             @if (savingMetadata()) {
               <span>Saving...</span>
@@ -601,28 +694,28 @@
             <button
               (click)="changeStatus('staff_takeover')"
               [disabled]="conv.status === 'staff_takeover'"
-              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-amber-500/20 dark:border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 disabled:opacity-40 transition-all"
+              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-amber-500/20 dark:border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 disabled:opacity-40 transition-all cursor-pointer"
             >
               Take Over
             </button>
             <button
               (click)="changeStatus('ai_handling')"
               [disabled]="conv.status === 'ai_handling'"
-              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-emerald-500/20 dark:border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 disabled:opacity-40 transition-all"
+              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-emerald-500/20 dark:border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 disabled:opacity-40 transition-all cursor-pointer"
             >
               Hand to AI
             </button>
             <button
               (click)="changeStatus('escalated')"
               [disabled]="conv.status === 'escalated'"
-              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-rose-500/20 dark:border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-800 dark:text-rose-300 disabled:opacity-40 transition-all"
+              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-rose-500/20 dark:border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-800 dark:text-rose-300 disabled:opacity-40 transition-all cursor-pointer"
             >
               Escalate
             </button>
             <button
               (click)="changeStatus('closed')"
               [disabled]="conv.status === 'closed'"
-              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200/70 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 disabled:opacity-40 transition-all"
+              class="px-2 py-1.5 rounded-lg text-xs font-medium border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200/70 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 disabled:opacity-40 transition-all cursor-pointer"
             >
               Close
             </button>
