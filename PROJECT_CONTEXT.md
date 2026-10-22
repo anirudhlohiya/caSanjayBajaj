@@ -244,6 +244,29 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - **Dark Theme Ready**: Configured with Tailwind CSS v4 `@custom-variant dark` in `styles.css` and explicit `dark:...` styling tokens across all cards, inputs, and conversation bubbles.
   - **Local Testing & Documentation**: Created `docs/14-whatsapp-local-testing-guide.md` and `documents/WHATSAPP_LOCAL_TESTING_GUIDE.md` detailing instant script simulation and Cloudflare Tunnel / ngrok live webhook debugging.
 
+- **Phase 14 (Oct 2026) — Client Type System, WhatsApp AI Humanization & Support Desk UI Overhaul — DONE**:
+  - **Client Type System & Service Requests (`users.user_type`)**:
+    - Expanded client classification: `general` (new signup / standard portal member), `gst` (dedicated GST compliance client), `itr` (dedicated income tax client), and `both` (full practice client).
+    - Database migration `1800000000002-AddClientTypesAndItrReturns.ts` added `service_requests` table (`id, user_id, requested_type, status, payload, reviewed_by, reviewed_at`) and `itr_returns` table (`id, user_id, assessment_year, s3_key, original_filename, file_size_bytes, uploaded_by, uploaded_at`).
+    - Backend endpoints: `POST /service-requests` (client submits application with metadata), `GET /admin/service-requests` (admin reviews requests), `PATCH /admin/service-requests/:id/approve` (approves request and auto-upgrades `users.user_type`), and `PATCH /admin/service-requests/:id/reject`.
+    - Client PWA Profile: interactive service cards for GST and ITR application with client-side Luhn GSTIN and PAN checksum verification. Replaced raw "General Client" badge with clean "Standard Client" pill (`whitespace-nowrap`).
+  - **Admin Direct Certificate Management**:
+    - One-click certificate upload: clicking "Upload" or "Replace" triggers the native OS file picker directly, uploads file straight to S3, and calls `POST /admin/clients/:id/certificates/confirm` without any redundant dropdown modals.
+    - Direct Certificate Viewing: added View action button (`visibility` icon) and clickable filename that opens the certificate directly in a new tab via pre-signed URL.
+  - **WhatsApp AI Brain Humanization & Practice Knowledge Base**:
+    - System prompt overhaul in `whatsapp-ai.service.ts`: 2–3 short sentences, zero AI clichés, Hinglish mirroring, bold only for figures/dates.
+    - 11-Section Hot-Reloadable Practice Knowledge Base (`backend/data/whatsapp-knowledge-base.json`) covering firm identity, GST & ITR service offerings, filing cadences, mandatory document checklists, and office hours.
+    - Strict free-tier Groq model optimization (`qwen/qwen3.8-27b`) with zero-cost fallback chain.
+    - Registered client flows: 5-option interactive menu, magic auth link, scoped document vault fetching, and exact compliance task dues lookups.
+    - Unregistered sender flow: practice introduction, instant assistance, portal onboarding links.
+  - **Admin WhatsApp Support Desk UI Overhaul**:
+    - DomSanitizer-powered WhatsApp text parser (`formatWhatsappMessage`): eliminates raw markdown asterisks and converts `*bold*`, `_italic_`, `~strike~`, code, and URLs into clean formatted HTML with clickable links.
+    - Authentic WhatsApp Web chat bubbles: soft white inbound, WhatsApp emerald staff reply (`#d9fdd3` / `#005c4b`), mint AI assistant reply (`#e7f7ed` / `#0b3328`), and double blue checkmarks.
+    - WhatsApp doodle canvas background with floating date divider badges ("Today", "Yesterday").
+    - Two-tier responsive header with mobile back navigation, dynamic contact avatar palettes, and live 24h window monitor.
+    - Segmented filter controls with live badge counters (`All`, `Attention`, `AI Active`, `Takeover`, `Closed`).
+    - Mobile PWA card responsiveness: switched service cards to `grid-cols-1 md:grid-cols-2` and removed all stray dots.
+
 ## 6. Functional notes (implemented)
 
 
@@ -738,6 +761,50 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
   - **Storage & Inbound Media**: Conversations (`whatsapp_conversations`) and messages (`whatsapp_messages`) persisted in PostgreSQL with deduplication on Meta message ID (`meta_message_id` unique index). Inbound media downloaded from Meta upon receipt and stored in Cloudflare R2 object storage to prevent expiration with zero egress fees. Added `client_id` foreign key referencing `users(id)` (migration `1791890000000-AddWhatsappConversationClientId.ts`).
   - **Monthly Budget Guard**: Lightweight tracker monitoring outbound service and utility messages against the 1,000 free monthly tier (`GET /api/v1/whatsapp-chats/usage`).
   - **Migration**: Migration `1800000000001-AddWhatsappChatTables.ts` and `1791890000000-AddWhatsappConversationClientId.ts` located in `backend/src/database/migrations/` and `backend/src/migrations/`.
+  - **WhatsApp AI Brain Humanization & 11-Section Knowledge Base (Oct 2026)**:
+    - **Human WhatsApp Persona**: System prompt completely overhauled so responses read like a real office staff member typing on WhatsApp:
+      - Strictly max 2–3 short sentences per reply, enforced via prompt and regex sentence clipping (`sentences.slice(0, 3)`).
+      - Plain, warm, everyday Indian business English with natural contractions ("we'll", "can't").
+      - Natural Hinglish mirroring when client writes in Hindi/Hinglish (e.g., *"Bhaiya, GSTR‑3B ki filing deadline har mahine ka \*20th\* hai."*).
+      - Banned clichés stripped programmatically: *"Certainly!"*, *"Great question!"*, *"I hope this helps"*, *"As an AI"*, *"Please don't hesitate"*, *"Best regards"*, and greetings/sign-offs.
+      - WhatsApp `*bold*` reserved only for key dates and rupee amounts (e.g. `*11th*`, `*₹14,500*`). No markdown headings or bullet lists (bullets only permitted for pending document lists).
+      - Never claims to be an AI unless directly asked.
+    - **11-Section Hot-Reloadable Practice Knowledge Base**:
+      - Stored in single editable file `backend/data/whatsapp-knowledge-base.json` with clearly-marked `client_interview_placeholder` fields editable directly on disk without touching code:
+        1. Services & scope (GST, ITR, audit, ROC, company registration)
+        2. Fees, quotations & billing policy
+        3. Statutory deadlines & filing calendar (GSTR-1, GSTR-3B, ITR, Advance Tax, TDS)
+        4. Document requirements & format rules (PDF, JPEG, XLSX up to 50MB)
+        5. Verification & send-back protocol (ITC reconciliation against GSTR-2B)
+        6. Client reminder & alert policy
+        7. WhatsApp persona & tone guidelines
+        8. Disclaimers & statutory tax advisory guardrails
+        9. Urgency triage & high-priority notice protocol
+        10. New client onboarding steps
+        11. Office, contact & portal details
+      - Hot-reloaded via `WhatsappKnowledgeBaseService` using `mtimeMs` cache invalidation. Brain answers general queries ONLY from this KB; anything outside triggers escalation: *"Let me check with our team and get back to you."*
+    - **Unregistered Number Flow**:
+      - Evaluates sender phone via 10-digit matching against portal `users` table.
+      - Unregistered numbers receive a brief greeting stating this service is for registered clients of S N Bajaj & Co and directing them to register at `https://app.snbajaj.com/register` (redirects to `/signup`).
+      - Zero client or tax data is ever disclosed to unregistered numbers.
+      - Automatically logs conversation with `[Unknown Lead]` note in `internal_notes` for staff follow-up.
+    - **Registered Client Interactive Flows**:
+      - **Interactive 5-Option Menu**: On `"hi"`, `"menu"`, etc., sends Meta Cloud API interactive list with fallback to numbered text menu:
+        `1️⃣ Upload documents`, `2️⃣ Check pending documents`, `3️⃣ Request a document`, `4️⃣ Payment status`, `5️⃣ Talk to our team`.
+      - **Upload Documents Magic Link**: Generates a 7-day signed JWT deep link (`https://app.snbajaj.com/documents/upload?token=...`). Client Angular PWA (`AuthGuard` + `AuthService.setSessionFromToken`) intercepts `?token=`, sets authentication, and opens the upload screen without manual login.
+      - **In-Chat Direct Media Ingestion**: Photos and PDFs sent directly in WhatsApp are downloaded immediately via Meta Graph API, saved to AWS S3 under `whatsapp-uploads/{clientId}/{YYYY-MM}/{filename}`, recorded in `documents` table, and acknowledged with a short human confirmation.
+      - **Document Vault Retrieval**: Client queries like "Send my GST certificate" strictly scope search by `user_id` across `ClientCertificate`, `ItrReturn`, and `Report`. Dispatches document PDF directly via WhatsApp document API with fallback to presigned S3 download link. If not found in vault, politely informs client that staff will send it shortly and sets `escalated` status.
+      - **Strict DB Payment Lookups**: Queries like "How much do I owe?" or "mera tax kitna banta hai" look up exact pending figures from `compliance_tasks` (`category = 'gst_payment'`). Never invents figures; reports exact rupees (e.g. `*₹14,500*`) or confirmed status.
+      - **Human Takeover Option**: Option 5 ("Talk to our team") switches conversation status to `staff_takeover`, alerts staff in admin chat inbox, and suppresses AI automated replies.
+    - **Security & Privacy Rules**:
+      - Strict client scoping: Every lookup is hard-scoped to `user.id` derived from sender phone.
+      - Cross-client inquiries refused with: *"Sorry, I can only help with your own account details."* and flagged as a security escalation.
+      - Data changes (phone, email, bank details) over chat are strictly refused and flagged for staff.
+      - Input treated strictly as conversational data, neutralizing prompt injection attacks.
+    - **Free Groq Tier Optimization**:
+      - Primary model: `qwen/qwen3.8-27b` — zero reasoning token overhead, sub-100ms response time, high quality natural Hindi/Hinglish/English mirroring.
+      - Fallback chain: `qwen/qwen3.8-27b` → `openai/gpt-oss-20b` → `openai/gpt-oss-120b`.
+      - Compact prompt representation to stay well below the 8,000 Tokens Per Minute (TPM) free-tier limit.
 
 
 ## 11. Non-negotiable rules for contributors

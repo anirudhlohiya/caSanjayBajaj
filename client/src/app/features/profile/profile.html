@@ -41,43 +41,270 @@
     </div>
   </div>
 
-  <!-- GST & Business Details -->
-  @if (auth.userProfile()?.gstin || auth.userProfile()?.gstin === '') {
-    @if (auth.userProfile()?.gstin) {
-      <section class="card overflow-hidden">
-        <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-          <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">GST Details</h2>
-        </div>
-        <div class="divide-y divide-neutral-50 px-4 dark:divide-neutral-800">
-          <div class="flex items-center justify-between py-3">
-            <span class="text-xs font-medium text-neutral-500 dark:text-neutral-400">GSTIN</span>
-            <span class="text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200">{{ auth.userProfile()?.gstin }}</span>
+  <!-- My Services Card -->
+  <section class="card overflow-hidden">
+    <div class="border-b border-[#ebebeb] bg-[#fafafa] dark:bg-neutral-800 px-4 py-3 flex items-center justify-between gap-3 dark:border-neutral-800">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="material-symbols-outlined text-neutral-600 dark:text-neutral-400 text-[18px] shrink-0">verified</span>
+        <h2 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase truncate">My Services</h2>
+      </div>
+      <!-- Type Chip -->
+      <span
+        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium tracking-tight whitespace-nowrap shrink-0"
+        [class]="
+          auth.userProfile()?.user_type === 'both'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 border border-neutral-900 dark:border-white'
+            : auth.userProfile()?.user_type === 'gst'
+            ? 'bg-[#d3e5ff]/70 text-[#0761d1] border border-[#0070f3]/25 dark:bg-blue-950/50 dark:text-blue-300'
+            : auth.userProfile()?.user_type === 'itr'
+            ? 'bg-[#d8ccf1]/70 text-[#4c2889] border border-[#7928ca]/25 dark:bg-purple-950/50 dark:text-purple-300'
+            : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700'
+        "
+      >
+        {{ userTypeLabel(auth.userProfile()?.user_type) }}
+      </span>
+    </div>
+
+    <div class="p-5 flex flex-col gap-4">
+      <!-- Pending Request State -->
+      @if (pendingRequest(); as req) {
+        <div class="rounded-xl border border-amber-300/80 bg-[#fffdfa] p-4.5 dark:border-amber-800/60 dark:bg-amber-950/20 shadow-xs">
+          <div class="flex items-start gap-3">
+            <div class="size-8 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[18px]">hourglass_top</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[10px] font-mono font-medium uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                  Verification In Progress
+                </span>
+                <span class="text-[11px] font-mono text-amber-600 dark:text-amber-400">
+                  {{ req.created_at | date: 'dd MMM yyyy' }}
+                </span>
+              </div>
+              <p class="text-sm font-semibold text-neutral-900 dark:text-white mt-1 tracking-tight">
+                Upgrade to {{ req.requested_type | uppercase }} Service
+              </p>
+              <div class="text-xs text-neutral-600 dark:text-neutral-400 mt-2 space-y-1 bg-white/70 dark:bg-black/20 p-2.5 rounded-lg border border-amber-200/50 dark:border-amber-900/30">
+                @if (req.payload.business_name) {
+                  <div class="flex justify-between gap-2">
+                    <span class="text-neutral-400 font-mono text-[11px]">Business:</span>
+                    <span class="font-medium text-neutral-900 dark:text-white">{{ req.payload.business_name }}</span>
+                  </div>
+                }
+                @if (req.payload.gstin) {
+                  <div class="flex justify-between gap-2">
+                    <span class="text-neutral-400 font-mono text-[11px]">GSTIN:</span>
+                    <span class="font-mono font-medium text-neutral-900 dark:text-white">{{ req.payload.gstin }}</span>
+                  </div>
+                }
+                @if (req.payload.industry) {
+                  <div class="flex justify-between gap-2">
+                    <span class="text-neutral-400 font-mono text-[11px]">Industry:</span>
+                    <span class="font-medium text-neutral-900 dark:text-white">{{ req.payload.industry }}</span>
+                  </div>
+                }
+                @if (req.payload.pan) {
+                  <div class="flex justify-between gap-2">
+                    <span class="text-neutral-400 font-mono text-[11px]">PAN:</span>
+                    <span class="font-mono font-medium text-neutral-900 dark:text-white">{{ req.payload.pan }}</span>
+                  </div>
+                }
+              </div>
+              <p class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2">
+                Our office will review your credentials and confirm access shortly.
+              </p>
+            </div>
           </div>
         </div>
-      </section>
-    }
+      } @else {
+        <!-- General User: Prompt to become GST or ITR client -->
+        @if (auth.userProfile()?.user_type === 'general') {
+          <div class="flex flex-col gap-3">
+            <p class="text-xs text-neutral-500 dark:text-neutral-400">
+              Activate dedicated chartered accountancy services with S N Bajaj & Co:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <!-- GST Card -->
+              <div
+                (click)="openServiceModal('gst')"
+                class="flex flex-col justify-between p-4.5 rounded-xl border border-[#ebebeb] dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-400 dark:hover:border-neutral-600 transition-all hover:shadow-xs group cursor-pointer overflow-hidden"
+              >
+                <div>
+                  <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-[#0070f3] bg-[#d3e5ff]/50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md font-medium">
+                      GST Compliance
+                    </span>
+                    <span class="material-symbols-outlined text-[18px] text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all">
+                      arrow_forward
+                    </span>
+                  </div>
+                  <h3 class="text-sm font-semibold text-neutral-900 dark:text-white tracking-tight">Become a GST Client</h3>
+                  <p class="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed mt-1">
+                    Monthly/quarterly GSTR-1, GSTR-3B filings, tax computation & ITC reconciliation.
+                  </p>
+                  <div class="mt-2.5">
+                    <span class="inline-flex items-center gap-1 text-[11px] font-mono text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800/80 px-2 py-0.5 rounded">
+                      <span class="material-symbols-outlined text-[13px] text-[#0070f3]">badge</span>
+                      15-char GSTIN required
+                    </span>
+                  </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-[#ebebeb] dark:border-neutral-800 flex items-center justify-end">
+                  <button
+                    type="button"
+                    class="w-full sm:w-auto h-8 px-4 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-semibold whitespace-nowrap inline-flex items-center justify-center gap-1.5 shadow-2xs group-hover:bg-neutral-800 dark:group-hover:bg-neutral-100 transition-all pointer-events-none"
+                  >
+                    <span>Apply Now</span>
+                    <span class="material-symbols-outlined text-[14px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- ITR Card -->
+              <div
+                (click)="openServiceModal('itr')"
+                class="flex flex-col justify-between p-4.5 rounded-xl border border-[#ebebeb] dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-400 dark:hover:border-neutral-600 transition-all hover:shadow-xs group cursor-pointer overflow-hidden"
+              >
+                <div>
+                  <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-[#7928ca] bg-[#d8ccf1]/40 dark:bg-purple-950/40 px-2 py-0.5 rounded-md font-medium">
+                      Income Tax
+                    </span>
+                    <span class="material-symbols-outlined text-[18px] text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all">
+                      arrow_forward
+                    </span>
+                  </div>
+                  <h3 class="text-sm font-semibold text-neutral-900 dark:text-white tracking-tight">Become an ITR Client</h3>
+                  <p class="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed mt-1">
+                    Individual and business Income Tax returns, computation of income & tax advisory.
+                  </p>
+                  <div class="mt-2.5">
+                    <span class="inline-flex items-center gap-1 text-[11px] font-mono text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800/80 px-2 py-0.5 rounded">
+                      <span class="material-symbols-outlined text-[13px] text-[#7928ca]">credit_card</span>
+                      10-char PAN required
+                    </span>
+                  </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-[#ebebeb] dark:border-neutral-800 flex items-center justify-end">
+                  <button
+                    type="button"
+                    class="w-full sm:w-auto h-8 px-4 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-semibold whitespace-nowrap inline-flex items-center justify-center gap-1.5 shadow-2xs group-hover:bg-neutral-800 dark:group-hover:bg-neutral-100 transition-all pointer-events-none"
+                  >
+                    <span>Apply Now</span>
+                    <span class="material-symbols-outlined text-[14px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- GST Client: Prompt to add ITR -->
+        @if (auth.userProfile()?.user_type === 'gst') {
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-[#fafafa] dark:bg-neutral-800/40 border border-[#ebebeb] dark:border-neutral-800">
+            <div>
+              <p class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight">Need Personal or Corporate Tax Advisory?</p>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Add annual Income Tax return filing (ITR) to your active services.</p>
+            </div>
+            <button
+              (click)="openServiceModal('itr')"
+              class="self-start sm:self-auto shrink-0 h-8 px-4 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 text-xs font-medium whitespace-nowrap hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors cursor-pointer shadow-2xs"
+            >
+              Request ITR Service
+            </button>
+          </div>
+        }
+
+        <!-- ITR Client: Prompt to add GST -->
+        @if (auth.userProfile()?.user_type === 'itr') {
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-[#fafafa] dark:bg-neutral-800/40 border border-[#ebebeb] dark:border-neutral-800">
+            <div>
+              <p class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight">Need Business GST Filing?</p>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Add monthly/quarterly GST compliance and reconciliation.</p>
+            </div>
+            <button
+              (click)="openServiceModal('gst')"
+              class="self-start sm:self-auto shrink-0 h-8 px-4 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 text-xs font-medium whitespace-nowrap hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors cursor-pointer shadow-2xs"
+            >
+              Request GST Service
+            </button>
+          </div>
+        }
+
+        <!-- Both Services Active -->
+        @if (auth.userProfile()?.user_type === 'both') {
+          <div class="rounded-xl bg-[#fafafa] dark:bg-neutral-800/40 border border-[#ebebeb] dark:border-neutral-800 p-3.5 flex items-center gap-3">
+            <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-xl">verified</span>
+            <div>
+              <p class="text-xs font-semibold text-neutral-900 dark:text-white">Full Practice Services Active</p>
+              <p class="text-[11px] text-neutral-500 dark:text-neutral-400">All GST and Income Tax compliance features are fully unlocked.</p>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </section>
+
+  <!-- Business & Tax Profile Details -->
+  @if (auth.userProfile()?.gstin || auth.userProfile()?.pan || auth.userProfile()?.business_name) {
+    <section class="card overflow-hidden">
+      <div class="border-b border-[#ebebeb] bg-[#fafafa] dark:bg-neutral-800 px-4 py-3 dark:border-neutral-800">
+        <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">Business & Tax Details</h2>
+      </div>
+      <div class="divide-y divide-[#ebebeb] px-4 dark:divide-neutral-800 text-xs">
+        @if (auth.userProfile()?.business_name) {
+          <div class="flex items-center justify-between py-3">
+            <span class="font-medium text-neutral-500 dark:text-neutral-400">Business Name</span>
+            <span class="font-semibold text-neutral-900 dark:text-neutral-100">{{ auth.userProfile()?.business_name }}</span>
+          </div>
+        }
+        @if (auth.userProfile()?.industry) {
+          <div class="flex items-center justify-between py-3">
+            <span class="font-medium text-neutral-500 dark:text-neutral-400">Industry</span>
+            <span class="font-medium text-neutral-800 dark:text-neutral-200">{{ auth.userProfile()?.industry }}</span>
+          </div>
+        }
+        @if (auth.userProfile()?.gstin) {
+          <div class="flex items-center justify-between py-3">
+            <span class="font-medium text-neutral-500 dark:text-neutral-400">GSTIN</span>
+            <span class="font-mono font-semibold text-neutral-900 dark:text-neutral-100">{{ auth.userProfile()?.gstin }}</span>
+          </div>
+          <div class="flex items-center justify-between py-3">
+            <span class="font-medium text-neutral-500 dark:text-neutral-400">Filing Cadence</span>
+            <span class="capitalize font-medium text-neutral-800 dark:text-neutral-200">{{ auth.userProfile()?.gst_filing_frequency || 'monthly' }}</span>
+          </div>
+        }
+        @if (auth.userProfile()?.pan) {
+          <div class="flex items-center justify-between py-3">
+            <span class="font-medium text-neutral-500 dark:text-neutral-400">PAN</span>
+            <span class="font-mono font-semibold text-neutral-900 dark:text-neutral-100">{{ auth.userProfile()?.pan }}</span>
+          </div>
+        }
+      </div>
+    </section>
   }
 
   <!-- Your Documents -->
   <section class="card overflow-hidden">
-    <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Your Documents</h2>
+    <div class="border-b border-[#ebebeb] bg-[#fafafa] dark:bg-neutral-800 px-4 py-3 dark:border-neutral-800">
+      <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">Your Documents</h2>
     </div>
-    @if (auth.userProfile()?.user_type === 'gst') {
-      <div class="divide-y divide-neutral-50 px-4 dark:divide-neutral-800">
+    @if (auth.userProfile()?.user_type === 'gst' || auth.userProfile()?.user_type === 'both') {
+      <div class="divide-y divide-[#ebebeb] px-4 dark:divide-neutral-800">
         <div class="flex items-center justify-between py-3 gap-3">
           <div class="min-w-0">
             <p class="text-xs font-medium text-neutral-500 dark:text-neutral-400">GST Certificate</p>
             @if (certFor('gst_cert'); as cert) {
-              <p class="text-xs text-neutral-700 truncate dark:text-neutral-200">{{ cert.original_filename }}</p>
+              <p class="text-xs text-neutral-900 truncate dark:text-neutral-200 font-medium">{{ cert.original_filename }}</p>
             } @else {
-              <p class="text-xs text-neutral-300 dark:text-neutral-600">Not uploaded yet</p>
+              <p class="text-[11px] font-mono text-neutral-400">Not uploaded yet</p>
             }
           </div>
           <button
             (click)="downloadCertificate(certFor('gst_cert')!)"
             [disabled]="!certFor('gst_cert') || downloading().includes(certFor('gst_cert')!.id)"
-            class="flex items-center gap-1 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            class="h-7 px-3 rounded-full border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-[#fafafa] dark:hover:bg-neutral-700 transition-colors inline-flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span class="material-symbols-outlined text-[14px]">download</span>
             Download
@@ -87,15 +314,15 @@
           <div class="min-w-0">
             <p class="text-xs font-medium text-neutral-500 dark:text-neutral-400">Udyam Certificate</p>
             @if (certFor('udyam_cert'); as cert) {
-              <p class="text-xs text-neutral-700 truncate dark:text-neutral-200">{{ cert.original_filename }}</p>
+              <p class="text-xs text-neutral-900 truncate dark:text-neutral-200 font-medium">{{ cert.original_filename }}</p>
             } @else {
-              <p class="text-xs text-neutral-300 dark:text-neutral-600">Not uploaded yet</p>
+              <p class="text-[11px] font-mono text-neutral-400">Not uploaded yet</p>
             }
           </div>
           <button
             (click)="downloadCertificate(certFor('udyam_cert')!)"
             [disabled]="!certFor('udyam_cert') || downloading().includes(certFor('udyam_cert')!.id)"
-            class="flex items-center gap-1 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            class="h-7 px-3 rounded-full border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-[#fafafa] dark:hover:bg-neutral-700 transition-colors inline-flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span class="material-symbols-outlined text-[14px]">download</span>
             Download
@@ -103,9 +330,10 @@
         </div>
       </div>
     } @else {
-      <div class="flex flex-col items-center gap-2 px-4 py-6 text-center">
+      <div class="flex flex-col items-center gap-2 px-4 py-8 text-center">
         <span class="material-symbols-outlined text-[28px] text-neutral-300 dark:text-neutral-600">folder_off</span>
-        <p class="text-xs text-neutral-500 dark:text-neutral-400">You don't currently have any documents.</p>
+        <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">No registered certificates</p>
+        <p class="text-[11px] font-mono text-neutral-400">Certificates uploaded by your CA will appear here.</p>
       </div>
     }
   </section>
@@ -311,6 +539,228 @@
         <div class="h-px w-full bg-neutral-200 dark:bg-neutral-700 my-1"></div>
         <p class="font-mono text-xs font-semibold">{{ 'PAYMENT.UPI' | translate }}</p>
       </div>
+    </div>
+  </div>
+}
+
+<!-- GST Request Modal -->
+@if (showServiceModal() === 'gst') {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md px-4">
+    <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-neutral-900 border border-[#ebebeb] dark:border-neutral-800 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col max-h-[90vh] overflow-y-auto">
+      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+
+      <div class="flex items-center gap-3 mb-5">
+        <div class="size-10 rounded-xl bg-[#d3e5ff]/50 dark:bg-blue-950/40 text-[#0761d1] dark:text-blue-400 border border-[#0070f3]/20 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+        </div>
+        <div>
+          <span class="text-[10px] font-mono uppercase tracking-wider text-[#0070f3] dark:text-blue-400 font-medium">Practice Application</span>
+          <h2 class="text-base font-semibold text-neutral-900 dark:text-white tracking-tight">Become a GST Client</h2>
+        </div>
+      </div>
+
+      <form [formGroup]="gstServiceForm" (ngSubmit)="submitGstRequest()" class="flex flex-col gap-4">
+        <!-- Business Name -->
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+            Business / Trade Name <span class="text-red-500">*</span>
+          </span>
+          <input
+            formControlName="business_name"
+            type="text"
+            placeholder="e.g. SN Enterprises Pvt Ltd"
+            class="h-10 rounded-md border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm text-[#171717] dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:border-[#171717] focus:ring-1 focus:ring-[#171717] dark:focus:border-white dark:focus:ring-white transition-all"
+          />
+        </label>
+
+        <!-- GSTIN -->
+        <label class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+              GSTIN (15 characters) <span class="text-red-500">*</span>
+            </span>
+            @if (gstServiceForm.get('gstin')?.value?.length === 15) {
+              @if (isGstinChecksumValid(gstServiceForm.get('gstin')?.value)) {
+                <span class="text-[11px] font-mono font-medium text-[#0070f3] bg-[#d3e5ff]/50 dark:bg-blue-950/40 px-2 py-0.5 rounded flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[13px]">check_circle</span> Valid checksum
+                </span>
+              } @else {
+                <span class="text-[11px] font-mono font-medium text-[#ee0000] bg-[#f7d4d6]/60 dark:bg-red-950/40 px-2 py-0.5 rounded flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[13px]">error</span> Invalid checksum
+                </span>
+              }
+            }
+          </div>
+          <input
+            formControlName="gstin"
+            type="text"
+            maxlength="15"
+            placeholder="e.g. 27AAPFU0939F1ZV"
+            class="h-10 rounded-md border uppercase font-mono tracking-wider bg-white dark:bg-neutral-800 px-3 text-sm text-[#171717] dark:text-neutral-100 outline-none focus:border-[#171717] focus:ring-1 focus:ring-[#171717] dark:focus:border-white dark:focus:ring-white transition-all"
+            [class.border-[#ebebeb]]="gstServiceForm.get('gstin')?.value?.length !== 15"
+            [class.dark:border-neutral-700]="gstServiceForm.get('gstin')?.value?.length !== 15"
+            [class.border-[#0070f3]]="gstServiceForm.get('gstin')?.value?.length === 15 && isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
+            [class.border-[#ee0000]]="gstServiceForm.get('gstin')?.value?.length === 15 && !isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
+          />
+          <p class="text-[11px] font-mono text-neutral-400 dark:text-neutral-500">
+            2 state digits + 10 PAN characters + 1 entity code + Z + 1 check digit.
+          </p>
+        </label>
+
+        <!-- Filing Frequency -->
+        <div class="flex flex-col gap-1.5">
+          <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+            Filing Frequency <span class="text-red-500">*</span>
+          </span>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="flex items-center gap-2.5 p-3 rounded-md border cursor-pointer transition-all"
+              [class.border-[#171717]]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
+              [class.dark:border-white]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
+              [class.bg-[#fafafa]]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
+              [class.dark:bg-neutral-800]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
+              [class.border-[#ebebeb]]="gstServiceForm.get('filing_frequency')?.value !== 'monthly'"
+              [class.dark:border-neutral-700]="gstServiceForm.get('filing_frequency')?.value !== 'monthly'"
+            >
+              <input type="radio" value="monthly" formControlName="filing_frequency" class="accent-[#171717] dark:accent-white" />
+              <div>
+                <p class="text-xs font-semibold text-neutral-900 dark:text-white">Monthly</p>
+                <p class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">Regular filers</p>
+              </div>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 rounded-md border cursor-pointer transition-all"
+              [class.border-[#171717]]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
+              [class.dark:border-white]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
+              [class.bg-[#fafafa]]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
+              [class.dark:bg-neutral-800]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
+              [class.border-[#ebebeb]]="gstServiceForm.get('filing_frequency')?.value !== 'quarterly'"
+              [class.dark:border-neutral-700]="gstServiceForm.get('filing_frequency')?.value !== 'quarterly'"
+            >
+              <input type="radio" value="quarterly" formControlName="filing_frequency" class="accent-[#171717] dark:accent-white" />
+              <div>
+                <p class="text-xs font-semibold text-neutral-900 dark:text-white">Quarterly</p>
+                <p class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">QRMP scheme</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Industry -->
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+            Industry / Sector <span class="text-red-500">*</span>
+          </span>
+          <select
+            formControlName="industry"
+            class="h-10 rounded-md border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm text-[#171717] dark:text-neutral-100 outline-none focus:border-[#171717] focus:ring-1 focus:ring-[#171717] dark:focus:border-white dark:focus:ring-white transition-all cursor-pointer"
+          >
+            <option value="" disabled selected class="bg-white dark:bg-neutral-800 text-neutral-400">Select your industry</option>
+            @for (ind of industries; track ind) {
+              <option [value]="ind" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">{{ ind }}</option>
+            }
+          </select>
+        </label>
+
+        <!-- Action buttons -->
+        <div class="flex items-center justify-end gap-2.5 mt-2 pt-3 border-t border-[#ebebeb] dark:border-neutral-800">
+          <button
+            type="button"
+            (click)="closeServiceModal()"
+            class="h-9 px-4 rounded-full border border-[#ebebeb] dark:border-neutral-700 text-xs font-medium text-[#171717] dark:text-neutral-300 hover:bg-[#fafafa] dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            [disabled]="gstServiceForm.invalid || !isGstinChecksumValid(gstServiceForm.get('gstin')?.value) || serviceBusy()"
+            class="h-9 px-5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5"
+          >
+            @if (serviceBusy()) {
+              <span class="size-3 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            }
+            Submit Application
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ITR Request Modal -->
+@if (showServiceModal() === 'itr') {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md px-4">
+    <div class="w-full max-w-md rounded-2xl bg-white dark:bg-neutral-900 border border-[#ebebeb] dark:border-neutral-800 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col">
+      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+
+      <div class="flex items-center gap-3 mb-5">
+        <div class="size-10 rounded-xl bg-[#d8ccf1]/40 dark:bg-purple-950/40 text-[#4c2889] dark:text-purple-400 border border-[#7928ca]/20 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[20px]">account_balance</span>
+        </div>
+        <div>
+          <span class="text-[10px] font-mono uppercase tracking-wider text-[#7928ca] dark:text-purple-400 font-medium">Practice Application</span>
+          <h2 class="text-base font-semibold text-neutral-900 dark:text-white tracking-tight">Become an ITR Client</h2>
+        </div>
+      </div>
+
+      <form [formGroup]="itrServiceForm" (ngSubmit)="submitItrRequest()" class="flex flex-col gap-4">
+        <!-- PAN -->
+        <label class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+              PAN (10 characters) <span class="text-red-500">*</span>
+            </span>
+            @if (itrServiceForm.get('pan')?.value?.length === 10) {
+              @if (isPanValid(itrServiceForm.get('pan')?.value)) {
+                <span class="text-[11px] font-mono font-medium text-[#0070f3] bg-[#d3e5ff]/50 dark:bg-blue-950/40 px-2 py-0.5 rounded flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[13px]">check_circle</span> Valid PAN
+                </span>
+              } @else {
+                <span class="text-[11px] font-mono font-medium text-[#ee0000] bg-[#f7d4d6]/60 dark:bg-red-950/40 px-2 py-0.5 rounded flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[13px]">error</span> Invalid PAN
+                </span>
+              }
+            }
+          </div>
+          <input
+            formControlName="pan"
+            type="text"
+            maxlength="10"
+            placeholder="e.g. ABCDE1234F"
+            class="h-10 rounded-md border uppercase font-mono tracking-wider bg-white dark:bg-neutral-800 px-3 text-sm text-[#171717] dark:text-neutral-100 outline-none focus:border-[#171717] focus:ring-1 focus:ring-[#171717] dark:focus:border-white dark:focus:ring-white transition-all"
+            [class.border-[#ebebeb]]="itrServiceForm.get('pan')?.value?.length !== 10"
+            [class.dark:border-neutral-700]="itrServiceForm.get('pan')?.value?.length !== 10"
+            [class.border-[#0070f3]]="itrServiceForm.get('pan')?.value?.length === 10 && isPanValid(itrServiceForm.get('pan')?.value)"
+            [class.border-[#ee0000]]="itrServiceForm.get('pan')?.value?.length === 10 && !isPanValid(itrServiceForm.get('pan')?.value)"
+          />
+          <p class="text-[11px] font-mono text-neutral-400 dark:text-neutral-500">
+            5 letters + 4 digits + 1 letter (e.g. ABCDE1234F).
+          </p>
+        </label>
+
+        <!-- Action buttons -->
+        <div class="flex items-center justify-end gap-2.5 mt-2 pt-3 border-t border-[#ebebeb] dark:border-neutral-800">
+          <button
+            type="button"
+            (click)="closeServiceModal()"
+            class="h-9 px-4 rounded-full border border-[#ebebeb] dark:border-neutral-700 text-xs font-medium text-[#171717] dark:text-neutral-300 hover:bg-[#fafafa] dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            [disabled]="itrServiceForm.invalid || !isPanValid(itrServiceForm.get('pan')?.value) || serviceBusy()"
+            class="h-9 px-5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5"
+          >
+            @if (serviceBusy()) {
+              <span class="size-3 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            }
+            Submit Application
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 }

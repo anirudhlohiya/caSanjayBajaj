@@ -14,12 +14,15 @@ import { AuthService } from '../../core/services/auth.service';
 import {
   CertificatesService,
   ProfileService,
+  ServiceRequestsService,
 } from '../../core/services/feature.services';
-import { CertType, ClientCertificate } from '../../core/models';
+import { CertType, ClientCertificate, ServiceRequest } from '../../core/models';
 import { ThemeService, ThemeMode } from '../../core/services/theme.service';
 import { PushService } from '../../core/services/push.service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, TitleCasePipe, UpperCasePipe } from '@angular/common';
+import { INDUSTRIES } from '../../../../../shared/constants/industries';
+import { isValidGstin, isValidPan } from '../../../../../shared/constants/tax-validation';
 
 const PHOTO_KEY = 'fp_profile_photo';
 const LANG_PREF_KEY = 'fp_language';
@@ -27,7 +30,7 @@ const LANG_PREF_KEY = 'fp_language';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, TranslatePipe, DatePipe],
+  imports: [ReactiveFormsModule, TranslatePipe, DatePipe, UpperCasePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.html',
 })
@@ -38,6 +41,7 @@ export class Profile {
   readonly router = inject(Router);
   private readonly profileService = inject(ProfileService);
   private readonly certificatesService = inject(CertificatesService);
+  private readonly serviceRequestsService = inject(ServiceRequestsService);
   readonly theme = inject(ThemeService);
   private readonly push = inject(PushService);
   readonly translate = inject(TranslateService);
@@ -46,6 +50,13 @@ export class Profile {
 
   readonly certificates = signal<ClientCertificate[]>([]);
   readonly downloading = signal<string[]>([]);
+  readonly serviceRequests = signal<ServiceRequest[]>([]);
+  readonly pendingRequest = computed(() =>
+    this.serviceRequests().find((r) => r.status === 'pending'),
+  );
+  readonly showServiceModal = signal<'gst' | 'itr' | null>(null);
+  readonly serviceBusy = signal(false);
+  readonly industries = INDUSTRIES;
 
   readonly pushEnabled = signal(false);
   readonly pushSupported = signal(this.push.supported());
@@ -73,6 +84,17 @@ export class Profile {
     dob: ['', [Validators.pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d{2}$/)]],
   });
 
+  readonly gstServiceForm = this.fb.nonNullable.group({
+    business_name: ['', [Validators.required, Validators.minLength(2)]],
+    gstin: ['', [Validators.required, Validators.minLength(15), Validators.maxLength(15)]],
+    filing_frequency: ['monthly' as 'monthly' | 'quarterly', [Validators.required]],
+    industry: ['', [Validators.required]],
+  });
+
+  readonly itrServiceForm = this.fb.nonNullable.group({
+    pan: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(10)]],
+  });
+
   readonly passwordForm = this.fb.nonNullable.group({
     current_password: ['', [Validators.required, Validators.minLength(8)]],
     new_password: ['', [Validators.required, Validators.minLength(8)]],
@@ -92,12 +114,120 @@ export class Profile {
       await this.auth.loadProfile();
       this.populateProfileForm();
       void this.loadCertificates();
+      void this.loadServiceRequests();
     } catch {
       /* auth guard handles redirect */
     }
     
     if (this.push.supported()) {
       this.pushEnabled.set(await this.push.isSubscribed());
+    }
+  }
+
+  async loadServiceRequests(): Promise<void> {
+    try {
+      this.serviceRequests.set(await this.serviceRequestsService.myRequests());
+    } catch {
+      /* ignore */
+    }
+  }
+
+  openServiceModal(type: 'gst' | 'itr'): void {
+    if (type === 'gst') {
+      this.gstServiceForm.reset({
+        business_name: '',
+        gstin: '',
+        filing_frequency: 'monthly',
+        industry: '',
+      });
+    } else {
+      this.itrServiceForm.reset({
+        pan: '',
+      });
+    }
+    this.showServiceModal.set(type);
+  }
+
+  closeServiceModal(): void {
+    this.showServiceModal.set(null);
+  }
+
+  isGstinChecksumValid(gstin?: string | null): boolean {
+    if (!gstin) return false;
+    return isValidGstin(gstin);
+  }
+
+  isPanValid(pan?: string | null): boolean {
+    if (!pan) return false;
+    return isValidPan(pan);
+  }
+
+  async submitGstRequest(): Promise<void> {
+    if (this.gstServiceForm.invalid) {
+      this.gstServiceForm.markAllAsTouched();
+      return;
+    }
+    const val = this.gstServiceForm.getRawValue();
+    if (!isValidGstin(val.gstin)) {
+      this.toast.error('Invalid GSTIN checksum or format (15 characters expected).');
+      return;
+    }
+    this.serviceBusy.set(true);
+    try {
+      await this.serviceRequestsService.create({
+        requested_type: 'gst',
+        business_name: val.business_name.trim(),
+        gstin: val.gstin.trim().toUpperCase(),
+        filing_frequency: val.filing_frequency,
+        industry: val.industry,
+      });
+      this.toast.success('GST service request submitted! Under review by your CA.');
+      this.closeServiceModal();
+      await this.loadServiceRequests();
+    } catch (err: any) {
+      this.toast.error(err?.error?.message || 'Failed to submit service request.');
+    } finally {
+      this.serviceBusy.set(false);
+    }
+  }
+
+  async submitItrRequest(): Promise<void> {
+    if (this.itrServiceForm.invalid) {
+      this.itrServiceForm.markAllAsTouched();
+      return;
+    }
+    const val = this.itrServiceForm.getRawValue();
+    if (!isValidPan(val.pan)) {
+      this.toast.error('Invalid PAN format (e.g. ABCDE1234F).');
+      return;
+    }
+    this.serviceBusy.set(true);
+    try {
+      await this.serviceRequestsService.create({
+        requested_type: 'itr',
+        pan: val.pan.trim().toUpperCase(),
+      });
+      this.toast.success('ITR service request submitted! Under review by your CA.');
+      this.closeServiceModal();
+      await this.loadServiceRequests();
+    } catch (err: any) {
+      this.toast.error(err?.error?.message || 'Failed to submit service request.');
+    } finally {
+      this.serviceBusy.set(false);
+    }
+  }
+
+  userTypeLabel(type?: string): string {
+    switch (type) {
+      case 'gst':
+        return 'GST Client';
+      case 'itr':
+        return 'ITR Client';
+      case 'both':
+        return 'GST & ITR Client';
+      case 'general':
+      default:
+        return 'Standard Client';
     }
   }
 
