@@ -60,7 +60,9 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
 
   const mockDocRepo = {
     create: jest.fn().mockImplementation((dto) => dto),
-    save: jest.fn().mockImplementation(async (doc) => ({ id: 'mock-doc-id', ...doc })),
+    save: jest
+      .fn()
+      .mockImplementation(async (doc) => ({ id: 'mock-doc-id', ...doc })),
   };
 
   const mockPeriodRepo = {
@@ -71,30 +73,42 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
     findOne: jest.fn(),
   };
 
-  const sentMessages: Array<{ to: string; text?: string; caption?: string; fileUrl?: string }> = [];
+  const sentMessages: Array<{
+    to: string;
+    text?: string;
+    caption?: string;
+    fileUrl?: string;
+  }> = [];
 
   const mockNotificationsService = {
     sendWhatsapp: jest.fn().mockImplementation(async (to, text) => {
       sentMessages.push({ to, text });
       return true;
     }),
-    sendWhatsappDocument: jest.fn().mockImplementation(async (to, fileUrl, filename, caption) => {
-      sentMessages.push({ to, fileUrl, text: caption, caption });
-      return true;
-    }),
-    sendWhatsappInteractiveList: jest.fn().mockImplementation(async (to, title, body) => {
-      sentMessages.push({ to, text: `[Interactive List] ${body}` });
-      return true;
-    }),
+    sendWhatsappDocument: jest
+      .fn()
+      .mockImplementation(async (to, fileUrl, filename, caption) => {
+        sentMessages.push({ to, fileUrl, text: caption, caption });
+        return true;
+      }),
+    sendWhatsappInteractiveList: jest
+      .fn()
+      .mockImplementation(async (to, title, body) => {
+        sentMessages.push({ to, text: `[Interactive List] ${body}` });
+        return true;
+      }),
   };
 
   const mockStorageService = {
-    createAttachmentDownloadUrl: jest.fn().mockResolvedValue('https://s3.mock.aws/download/cert.pdf'),
+    createAttachmentDownloadUrl: jest
+      .fn()
+      .mockResolvedValue('https://s3.mock.aws/download/cert.pdf'),
   };
 
   const mockMediaService = {
     processAndStoreMedia: jest.fn().mockResolvedValue({
-      s3Key: 'whatsapp-uploads/f4fd4030-c91e-4cf7-917a-05eedf44d4a0/2026-10/invoice_01.jpg',
+      s3Key:
+        'whatsapp-uploads/f4fd4030-c91e-4cf7-917a-05eedf44d4a0/2026-10/invoice_01.jpg',
       publicUrl: 'https://s3.mock.aws/whatsapp-uploads/invoice_01.jpg',
       filename: 'invoice_01.jpg',
     }),
@@ -110,19 +124,23 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
   };
 
   const mockChatsService = {
-    findMatchingUserByPhone: jest.fn().mockImplementation(async (phone: string) => {
-      const clean = phone.replace(/\D/g, '');
-      if (clean.endsWith('9316527283')) return mockRegisteredUser;
-      return null;
-    }),
+    findMatchingUserByPhone: jest
+      .fn()
+      .mockImplementation(async (phone: string) => {
+        const clean = phone.replace(/\D/g, '');
+        if (clean.endsWith('9316527283')) return mockRegisteredUser;
+        return null;
+      }),
     recordInboundMessage: jest.fn().mockImplementation(async () => ({
       conversation: mockConversation,
       message: { id: 'msg-1' },
       isDuplicate: false,
     })),
-    recordOutboundAiMessage: jest.fn().mockImplementation(async (convId, text) => {
-      return { id: 'msg-out-1', text };
-    }),
+    recordOutboundAiMessage: jest
+      .fn()
+      .mockImplementation(async (convId, text) => {
+        return { id: 'msg-out-1', text };
+      }),
     updateConversation: jest.fn().mockImplementation(async (id, dto) => {
       Object.assign(mockConversation, dto);
       return mockConversation;
@@ -166,19 +184,29 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
             sign: jest.fn().mockReturnValue('mock-signed-jwt-token'),
           },
         },
-        { provide: getRepositoryToken(ClientCertificate), useValue: mockCertRepo },
+        {
+          provide: getRepositoryToken(ClientCertificate),
+          useValue: mockCertRepo,
+        },
         { provide: getRepositoryToken(ItrReturn), useValue: mockItrRepo },
         { provide: getRepositoryToken(Report), useValue: mockReportRepo },
         { provide: getRepositoryToken(ComplianceTask), useValue: mockTaskRepo },
         { provide: getRepositoryToken(Document), useValue: mockDocRepo },
-        { provide: getRepositoryToken(GstFilingPeriod), useValue: mockPeriodRepo },
+        {
+          provide: getRepositoryToken(GstFilingPeriod),
+          useValue: mockPeriodRepo,
+        },
         { provide: getRepositoryToken(User), useValue: mockUserRepo },
       ],
     }).compile();
 
-    kbService = moduleRef.get<WhatsappKnowledgeBaseService>(WhatsappKnowledgeBaseService);
+    kbService = moduleRef.get<WhatsappKnowledgeBaseService>(
+      WhatsappKnowledgeBaseService,
+    );
     aiService = moduleRef.get<WhatsappAiService>(WhatsappAiService);
-    controller = moduleRef.get<WhatsappWebhookController>(WhatsappWebhookController);
+    controller = moduleRef.get<WhatsappWebhookController>(
+      WhatsappWebhookController,
+    );
   });
 
   beforeEach(() => {
@@ -219,7 +247,9 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
       for (const secKey of requiredSections) {
         expect(data!.sections[secKey]).toBeDefined();
         expect(data!.sections[secKey].title).toBeDefined();
-        expect(data!.sections[secKey].client_interview_placeholder).toBeDefined();
+        expect(
+          data!.sections[secKey].client_interview_placeholder,
+        ).toBeDefined();
       }
     });
 
@@ -246,7 +276,9 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
       expect(processed).not.toMatch(/best regards/i);
 
       // Max 2-3 sentences
-      const sentences = processed.split(/[.!?]+/).filter((s: string) => s.trim().length > 0);
+      const sentences = processed
+        .split(/[.!?]+/)
+        .filter((s: string) => s.trim().length > 0);
       expect(sentences.length).toBeLessThanOrEqual(3);
     });
   });
@@ -307,7 +339,9 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         'msg-due-2',
       );
 
-      const sent = sentMessages.find((m) => m.text?.includes('no pending tax dues'));
+      const sent = sentMessages.find((m) =>
+        m.text?.includes('no pending tax dues'),
+      );
       expect(sent).toBeDefined();
     });
   });
@@ -325,7 +359,12 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
                 value: {
                   messaging_product: 'whatsapp',
                   metadata: { phone_number_id: '1332098229994767' },
-                  contacts: [{ profile: { name: 'Anirudh Lohiya' }, wa_id: '919316527283' }],
+                  contacts: [
+                    {
+                      profile: { name: 'Anirudh Lohiya' },
+                      wa_id: '919316527283',
+                    },
+                  ],
                   messages: [
                     {
                       from: '919316527283',
@@ -347,7 +386,11 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
       };
 
       const req = { body: webhookPayload } as any;
-      const res = { sendStatus: jest.fn(), status: jest.fn().mockReturnThis(), send: jest.fn() } as any;
+      const res = {
+        sendStatus: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      } as any;
       controller.handleWebhook(req, res);
       await new Promise((r) => setTimeout(r, 50));
 
@@ -363,7 +406,9 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
       expect(mockDocRepo.save).toHaveBeenCalled();
 
       // Verify short acknowledgment sent
-      const ackMsg = sentMessages.find((m) => m.text?.includes('Received your document'));
+      const ackMsg = sentMessages.find((m) =>
+        m.text?.includes('Received your document'),
+      );
       expect(ackMsg).toBeDefined();
       expect(ackMsg?.text).toContain('*invoice_01.jpg*');
     });
@@ -391,17 +436,24 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
 
       expect(mockCertRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { user_id: mockRegisteredUser.id, cert_type: CertType.GST_CERT },
+          where: {
+            user_id: mockRegisteredUser.id,
+            cert_type: CertType.GST_CERT,
+          },
         }),
       );
 
-      expect(mockStorageService.createAttachmentDownloadUrl).toHaveBeenCalledWith(
+      expect(
+        mockStorageService.createAttachmentDownloadUrl,
+      ).toHaveBeenCalledWith(
         'certificates/user1/gst_cert.pdf',
         'GST_Registration_Certificate.pdf',
         300,
       );
 
-      expect(mockNotificationsService.sendWhatsappDocument).toHaveBeenCalledWith(
+      expect(
+        mockNotificationsService.sendWhatsappDocument,
+      ).toHaveBeenCalledWith(
         '919316527283',
         'https://s3.mock.aws/download/cert.pdf',
         'GST_Registration_Certificate.pdf',
@@ -423,8 +475,13 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         'msg-doc-2',
       );
 
-      expect(mockChatsService.setStatus).toHaveBeenCalledWith(mockConversation.id, 'escalated');
-      const sent = sentMessages.find((m) => m.text?.includes("couldn't find a filed copy"));
+      expect(mockChatsService.setStatus).toHaveBeenCalledWith(
+        mockConversation.id,
+        'escalated',
+      );
+      const sent = sentMessages.find((m) =>
+        m.text?.includes("couldn't find a filed copy"),
+      );
       expect(sent).toBeDefined();
     });
   });
@@ -456,14 +513,18 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
                 field: 'messages',
                 value: {
                   messaging_product: 'whatsapp',
-                  contacts: [{ profile: { name: 'Stranger' }, wa_id: unknownFrom }],
+                  contacts: [
+                    { profile: { name: 'Stranger' }, wa_id: unknownFrom },
+                  ],
                   messages: [
                     {
                       from: unknownFrom,
                       id: 'wamid.unk1',
                       timestamp: '1729600000',
                       type: 'text',
-                      text: { body: 'Hello, what is my GST filing status and dues?' },
+                      text: {
+                        body: 'Hello, what is my GST filing status and dues?',
+                      },
                     },
                   ],
                 },
@@ -474,7 +535,11 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
       };
 
       const req = { body: webhookPayload } as any;
-      const res = { sendStatus: jest.fn(), status: jest.fn().mockReturnThis(), send: jest.fn() } as any;
+      const res = {
+        sendStatus: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      } as any;
       controller.handleWebhook(req, res);
       await new Promise((r) => setTimeout(r, 50));
 
@@ -484,7 +549,9 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
       expect(reply?.text).toContain('https://app.snbajaj.com/register');
       expect(reply?.text).not.toContain('14500');
       expect(reply?.text).not.toContain('Anirudh');
-      expect(reply?.text).toContain('for registered clients of *S N Bajaj & Co*');
+      expect(reply?.text).toContain(
+        'for registered clients of *S N Bajaj & Co*',
+      );
     });
   });
 
@@ -492,12 +559,14 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
     it('should flag conversation and notify client when topic requires human tax professional', async () => {
       // Test AI response escalation flag
       const outOfScopeAnswer = {
-        reply: "Let me check with our team and get back to you shortly.",
+        reply: 'Let me check with our team and get back to you shortly.',
         shouldEscalate: true,
-        escalationReason: "Question requires human staff follow-up",
+        escalationReason: 'Question requires human staff follow-up',
       };
 
-      jest.spyOn(aiService, 'generateReply').mockResolvedValueOnce(outOfScopeAnswer);
+      jest
+        .spyOn(aiService, 'generateReply')
+        .mockResolvedValueOnce(outOfScopeAnswer);
 
       await (controller as any).handleGeneralAiInquiry(
         mockConversation.id,
@@ -507,7 +576,10 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         'msg-ai-1',
       );
 
-      expect(mockChatsService.setStatus).toHaveBeenCalledWith(mockConversation.id, 'escalated');
+      expect(mockChatsService.setStatus).toHaveBeenCalledWith(
+        mockConversation.id,
+        'escalated',
+      );
       expect(mockChatsService.updateConversation).toHaveBeenCalledWith(
         mockConversation.id,
         expect.objectContaining({
@@ -515,7 +587,9 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         }),
       );
 
-      const sent = sentMessages.find((m) => m.text?.includes('check with our team'));
+      const sent = sentMessages.find((m) =>
+        m.text?.includes('check with our team'),
+      );
       expect(sent).toBeDefined();
     });
   });
@@ -532,16 +606,23 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         'msg-sec-1',
       );
 
-      expect(mockChatsService.setStatus).toHaveBeenCalledWith(mockConversation.id, 'escalated');
+      expect(mockChatsService.setStatus).toHaveBeenCalledWith(
+        mockConversation.id,
+        'escalated',
+      );
       expect(mockChatsService.updateConversation).toHaveBeenCalledWith(
         mockConversation.id,
         expect.objectContaining({
-          internalNotes: expect.stringContaining('[Security Flag] Cross-client data query attempt'),
+          internalNotes: expect.stringContaining(
+            '[Security Flag] Cross-client data query attempt',
+          ),
         }),
       );
 
       const refusal = sentMessages.find((m) =>
-        m.text?.includes('Sorry, I can only help with your own account details.'),
+        m.text?.includes(
+          'Sorry, I can only help with your own account details.',
+        ),
       );
       expect(refusal).toBeDefined();
     });
@@ -557,7 +638,10 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         'msg-sec-2',
       );
 
-      expect(mockChatsService.setStatus).toHaveBeenCalledWith(mockConversation.id, 'escalated');
+      expect(mockChatsService.setStatus).toHaveBeenCalledWith(
+        mockConversation.id,
+        'escalated',
+      );
       expect(mockChatsService.updateConversation).toHaveBeenCalledWith(
         mockConversation.id,
         expect.objectContaining({
@@ -566,7 +650,9 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
       );
 
       const refusal = sentMessages.find((m) =>
-        m.text?.includes("For security, account changes can't be made via chat"),
+        m.text?.includes(
+          "For security, account changes can't be made via chat",
+        ),
       );
       expect(refusal).toBeDefined();
     });
@@ -582,10 +668,15 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         'msg-opt5',
       );
 
-      expect(mockChatsService.takeover).toHaveBeenCalledWith(mockConversation.id, 'system-takeover');
+      expect(mockChatsService.takeover).toHaveBeenCalledWith(
+        mockConversation.id,
+        'system-takeover',
+      );
       expect(mockConversation.status).toBe('staff_takeover');
 
-      const reply = sentMessages.find((m) => m.text?.includes("I've connected you to our team"));
+      const reply = sentMessages.find((m) =>
+        m.text?.includes("I've connected you to our team"),
+      );
       expect(reply).toBeDefined();
     });
 
@@ -600,7 +691,9 @@ describe('WhatsApp Agent Acceptance Tests (11-Section KB, Human Voice, Scoped DB
         'msg-opt1',
       );
 
-      const reply = sentMessages.find((m) => m.text?.includes('https://app.snbajaj.com/documents/upload?token='));
+      const reply = sentMessages.find((m) =>
+        m.text?.includes('https://app.snbajaj.com/documents/upload?token='),
+      );
       expect(reply).toBeDefined();
       expect(reply?.text).toContain('token=mock-signed-jwt-token');
     });

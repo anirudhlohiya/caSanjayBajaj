@@ -7,7 +7,11 @@ import { ItrReturnsController } from './itr-returns.controller';
 import { ItrReturnsService } from './itr-returns.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ItrReturn, User]), StorageModule, AuditModule],
+  imports: [
+    TypeOrmModule.forFeature([ItrReturn, User]),
+    StorageModule,
+    AuditModule,
+  ],
   controllers: [ItrReturnsController],
   providers: [ItrReturnsService],
   exports: [ItrReturnsService],

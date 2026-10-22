@@ -108,7 +108,10 @@ ${kbText}`;
     messageId: string,
     userText: string,
     clientContext?: ClientContext,
-    recentHistory: Array<{ sender: 'client' | 'ai' | 'staff'; body: string }> = [],
+    recentHistory: Array<{
+      sender: 'client' | 'ai' | 'staff';
+      body: string;
+    }> = [],
   ): Promise<GenerateReplyResult> {
     this.cleanExpiredCache();
 
@@ -149,7 +152,8 @@ ${kbText}`;
       lowerInput.includes('delete my data')
     ) {
       return {
-        reply: "For security, account changes can't be made via chat. I've flagged this for our team to contact you.",
+        reply:
+          "For security, account changes can't be made via chat. I've flagged this for our team to contact you.",
         shouldEscalate: true,
         escalationReason: 'Account alteration request over WhatsApp',
       };
@@ -196,7 +200,9 @@ ${kbText}`;
       'qwen/qwen3.8-27b',
       'openai/gpt-oss-20b',
       'openai/gpt-oss-120b',
-    ].filter(Boolean).filter((m, idx, arr) => arr.indexOf(m) === idx);
+    ]
+      .filter(Boolean)
+      .filter((m, idx, arr) => arr.indexOf(m) === idx);
 
     try {
       let rawContent = '';
@@ -239,7 +245,9 @@ ${kbText}`;
       }
 
       if (!rawContent) {
-        this.logger.error(`All Groq candidate models failed. Last error: ${lastError}`);
+        this.logger.error(
+          `All Groq candidate models failed. Last error: ${lastError}`,
+        );
         return {
           reply:
             'Thank you for messaging *S N Bajaj & Co*. We have received your note and our team will get back to you shortly.',
@@ -257,7 +265,9 @@ ${kbText}`;
       return {
         reply: cleaned,
         shouldEscalate: isEscalation,
-        escalationReason: isEscalation ? 'Question requires human staff follow-up' : undefined,
+        escalationReason: isEscalation
+          ? 'Question requires human staff follow-up'
+          : undefined,
       };
     } catch (err) {
       this.logger.error(`Groq AI exception: ${(err as Error).message}`);

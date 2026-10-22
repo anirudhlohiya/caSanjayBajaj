@@ -1,10 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsEnum,
-  IsIn,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEnum, IsIn, IsOptional, IsString } from 'class-validator';
 import {
   GstFilingFrequency,
   ServiceRequestType,
@@ -54,7 +49,9 @@ export class ReviewServiceRequestDto {
 }
 
 export class ChangeClientTypeDto {
-  @ApiProperty({ enum: [UserType.GENERAL, UserType.GST, UserType.ITR, UserType.BOTH] })
+  @ApiProperty({
+    enum: [UserType.GENERAL, UserType.GST, UserType.ITR, UserType.BOTH],
+  })
   @IsIn([UserType.GENERAL, UserType.GST, UserType.ITR, UserType.BOTH])
   user_type: UserType;
 }

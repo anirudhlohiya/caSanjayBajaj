@@ -12,10 +12,7 @@ import {
   ServiceRequestType,
   UserType,
 } from '../common/enums';
-import {
-  isValidGstin,
-  isValidPan,
-} from '../common/utils/tax-identifiers.util';
+import { isValidGstin, isValidPan } from '../common/utils/tax-identifiers.util';
 import { ServiceRequest, ServiceRequestPayload, User } from '../entities';
 import {
   ChangeClientTypeDto,
@@ -37,7 +34,10 @@ export class ServiceRequestsService {
    * Client creates a new service upgrade request.
    * Enforces at most 1 pending request at a time and strict field validation.
    */
-  async create(userId: string, dto: CreateServiceRequestDto): Promise<ServiceRequest> {
+  async create(
+    userId: string,
+    dto: CreateServiceRequestDto,
+  ): Promise<ServiceRequest> {
     const pending = await this.serviceRequests.findOne({
       where: { user_id: userId, status: ServiceRequestStatus.PENDING },
     });
@@ -211,8 +211,8 @@ export class ServiceRequestsService {
       user.gstin = request.payload.gstin;
     }
     if (request.payload.filing_frequency) {
-      user.gst_filing_frequency =
-        request.payload.filing_frequency as GstFilingFrequency;
+      user.gst_filing_frequency = request.payload
+        .filing_frequency as GstFilingFrequency;
     }
     if (request.payload.industry) {
       user.industry = request.payload.industry;

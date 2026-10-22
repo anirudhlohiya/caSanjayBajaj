@@ -22,6 +22,7 @@ import {
   ComplianceTask,
   Document,
   GstFilingPeriod,
+  WhatsappConversation,
 } from '../entities';
 import {
   CertType,
@@ -174,7 +175,13 @@ export class WhatsappWebhookController {
             }
 
             // Process message asynchronously
-            void this.processMessageAsync(message, from, messageId, contactName, phoneNumberId);
+            void this.processMessageAsync(
+              message,
+              from,
+              messageId,
+              contactName,
+              phoneNumberId,
+            );
           }
         }
       }
@@ -274,9 +281,13 @@ export class WhatsappWebhookController {
                 uploaded_at: new Date(),
               });
               await this.docRepo.save(doc);
-              this.logger.log(`Created Document record for client ${user.id} (${stored.filename})`);
+              this.logger.log(
+                `Created Document record for client ${user.id} (${stored.filename})`,
+              );
             } catch (docErr) {
-              this.logger.error(`Failed to create Document record: ${(docErr as Error).message}`);
+              this.logger.error(
+                `Failed to create Document record: ${(docErr as Error).message}`,
+              );
             }
           }
         }
@@ -293,7 +304,9 @@ export class WhatsappWebhookController {
       });
 
       if (recordResult.isDuplicate) {
-        this.logger.debug(`Inbound message ${messageId} is duplicate; skipping.`);
+        this.logger.debug(
+          `Inbound message ${messageId} is duplicate; skipping.`,
+        );
         return;
       }
 
@@ -301,13 +314,20 @@ export class WhatsappWebhookController {
 
       // 4. Check conversation status - AI SUPPRESSION RULE
       if (conversation.status === 'staff_takeover') {
-        this.logger.log(`Conversation ${conversation.id} is in staff_takeover status. AI reply suppressed.`);
+        this.logger.log(
+          `Conversation ${conversation.id} is in staff_takeover status. AI reply suppressed.`,
+        );
         return;
       }
 
       // 5. FLOW — UNREGISTERED NUMBER
       if (!user) {
-        await this.handleUnregisteredSender(from, msgBody || '', conversation, phoneNumberId);
+        await this.handleUnregisteredSender(
+          from,
+          msgBody || '',
+          conversation,
+          phoneNumberId,
+        );
         return;
       }
 
@@ -337,7 +357,7 @@ export class WhatsappWebhookController {
   private async handleUnregisteredSender(
     from: string,
     rawText: string,
-    conversation: any,
+    conversation: WhatsappConversation,
     phoneNumberId?: string,
   ): Promise<void> {
     const textLower = rawText.toLowerCase().trim();
@@ -352,7 +372,12 @@ export class WhatsappWebhookController {
     ) {
       const refusalMsg =
         'Namaste. This WhatsApp service is for registered clients of *S N Bajaj & Co*. For security, account and tax details are only accessible to registered numbers. Please register your account here: https://app.snbajaj.com/register';
-      await this.sendAndRecordReply(conversation.id, from, refusalMsg, phoneNumberId);
+      await this.sendAndRecordReply(
+        conversation.id,
+        from,
+        refusalMsg,
+        phoneNumberId,
+      );
       return;
     }
 
@@ -364,11 +389,18 @@ export class WhatsappWebhookController {
     const note = `[Unknown Lead] Inquired on ${new Date().toLocaleDateString('en-IN')}`;
     if (!conversation.internalNotes?.includes('[Unknown Lead]')) {
       await this.chatsService.updateConversation(conversation.id, {
-        internalNotes: conversation.internalNotes ? `${conversation.internalNotes}\n${note}` : note,
+        internalNotes: conversation.internalNotes
+          ? `${conversation.internalNotes}\n${note}`
+          : note,
       });
     }
 
-    await this.sendAndRecordReply(conversation.id, from, replyText, phoneNumberId);
+    await this.sendAndRecordReply(
+      conversation.id,
+      from,
+      replyText,
+      phoneNumberId,
+    );
   }
 
   /**
@@ -381,7 +413,7 @@ export class WhatsappWebhookController {
     msgType: WhatsappMessageType,
     msgBody: string,
     uploadedFilename: string | undefined,
-    conversation: any,
+    conversation: WhatsappConversation,
     messageId: string,
     phoneNumberId?: string,
   ): Promise<void> {
@@ -392,7 +424,12 @@ export class WhatsappWebhookController {
     if (msgType === 'image' || msgType === 'document' || msgType === 'audio') {
       const fileNameDisplay = uploadedFilename || 'file';
       const ackMsg = `Received your document *${fileNameDisplay}*. Our team will verify and process it.`;
-      await this.sendAndRecordReply(conversation.id, from, ackMsg, phoneNumberId);
+      await this.sendAndRecordReply(
+        conversation.id,
+        from,
+        ackMsg,
+        phoneNumberId,
+      );
       return;
     }
 
@@ -408,7 +445,12 @@ export class WhatsappWebhookController {
       await this.chatsService.updateConversation(conversation.id, {
         internalNotes: `[Security Flag] Cross-client data query attempt: "${text}"`,
       });
-      await this.sendAndRecordReply(conversation.id, from, refusal, phoneNumberId);
+      await this.sendAndRecordReply(
+        conversation.id,
+        from,
+        refusal,
+        phoneNumberId,
+      );
       return;
     }
 
@@ -425,7 +467,12 @@ export class WhatsappWebhookController {
       await this.chatsService.updateConversation(conversation.id, {
         internalNotes: `[Account Update Request] Client requested: "${text}"`,
       });
-      await this.sendAndRecordReply(conversation.id, from, changeRefusal, phoneNumberId);
+      await this.sendAndRecordReply(
+        conversation.id,
+        from,
+        changeRefusal,
+        phoneNumberId,
+      );
       return;
     }
 
@@ -449,7 +496,12 @@ export class WhatsappWebhookController {
       );
       const uploadUrl = `https://app.snbajaj.com/documents/upload?token=${uploadToken}`;
       const reply = `You can securely upload your documents directly here:\n${uploadUrl}\n\nOr you can simply send the photos or PDFs right here in this chat.`;
-      await this.sendAndRecordReply(conversation.id, from, reply, phoneNumberId);
+      await this.sendAndRecordReply(
+        conversation.id,
+        from,
+        reply,
+        phoneNumberId,
+      );
       return;
     }
 
@@ -461,7 +513,12 @@ export class WhatsappWebhookController {
       lower.includes('pending doc') ||
       lower.includes('due doc')
     ) {
-      await this.handlePendingDocuments(conversation.id, from, user, phoneNumberId);
+      await this.handlePendingDocuments(
+        conversation.id,
+        from,
+        user,
+        phoneNumberId,
+      );
       return;
     }
 
@@ -476,7 +533,14 @@ export class WhatsappWebhookController {
       lower.includes('send return') ||
       lower.includes('request doc')
     ) {
-      await this.handleDocumentRequest(conversation.id, from, user, text, lower, phoneNumberId);
+      await this.handleDocumentRequest(
+        conversation.id,
+        from,
+        user,
+        text,
+        lower,
+        phoneNumberId,
+      );
       return;
     }
 
@@ -490,7 +554,12 @@ export class WhatsappWebhookController {
       lower.includes('kitna baki') ||
       lower.includes('tax due')
     ) {
-      await this.handlePaymentStatus(conversation.id, from, user, phoneNumberId);
+      await this.handlePaymentStatus(
+        conversation.id,
+        from,
+        user,
+        phoneNumberId,
+      );
       return;
     }
 
@@ -511,7 +580,12 @@ export class WhatsappWebhookController {
       });
       const takeoverReply =
         "I've connected you to our team. An executive from S N Bajaj & Co will message you here shortly.";
-      await this.sendAndRecordReply(conversation.id, from, takeoverReply, phoneNumberId);
+      await this.sendAndRecordReply(
+        conversation.id,
+        from,
+        takeoverReply,
+        phoneNumberId,
+      );
       return;
     }
 
@@ -527,7 +601,17 @@ export class WhatsappWebhookController {
   }
 
   private isMenuTrigger(text: string): boolean {
-    const triggers = ['hi', 'hello', 'hey', 'namaste', 'menu', 'options', 'start', 'help', 'helo'];
+    const triggers = [
+      'hi',
+      'hello',
+      'hey',
+      'namaste',
+      'menu',
+      'options',
+      'start',
+      'help',
+      'helo',
+    ];
     return triggers.includes(text) || text === '0';
   }
 
@@ -550,30 +634,59 @@ export class WhatsappWebhookController {
       `Reply with the number (e.g. *1*) or type your question.`;
 
     // Try interactive list first
-    const interactiveSent = await this.notificationsService.sendWhatsappInteractiveList(
-      from,
-      'S N Bajaj & Co',
-      `Namaste ${user.name ? user.name.split(' ')[0] : ''}! How can we assist you today?`,
-      'Select Option',
-      [
-        {
-          title: 'Client Services',
-          rows: [
-            { id: 'upload_docs', title: 'Upload documents', description: 'Send bills & bank statements' },
-            { id: 'check_pending', title: 'Check pending docs', description: 'See required documents' },
-            { id: 'request_doc', title: 'Request a document', description: 'GST cert, ITR, filed returns' },
-            { id: 'payment_status', title: 'Payment status', description: 'Check tax dues & payment' },
-            { id: 'talk_to_team', title: 'Talk to our team', description: 'Connect with staff' },
-          ],
-        },
-      ],
-      phoneNumberId,
-    );
+    const interactiveSent =
+      await this.notificationsService.sendWhatsappInteractiveList(
+        from,
+        'S N Bajaj & Co',
+        `Namaste ${user.name ? user.name.split(' ')[0] : ''}! How can we assist you today?`,
+        'Select Option',
+        [
+          {
+            title: 'Client Services',
+            rows: [
+              {
+                id: 'upload_docs',
+                title: 'Upload documents',
+                description: 'Send bills & bank statements',
+              },
+              {
+                id: 'check_pending',
+                title: 'Check pending docs',
+                description: 'See required documents',
+              },
+              {
+                id: 'request_doc',
+                title: 'Request a document',
+                description: 'GST cert, ITR, filed returns',
+              },
+              {
+                id: 'payment_status',
+                title: 'Payment status',
+                description: 'Check tax dues & payment',
+              },
+              {
+                id: 'talk_to_team',
+                title: 'Talk to our team',
+                description: 'Connect with staff',
+              },
+            ],
+          },
+        ],
+        phoneNumberId,
+      );
 
     if (interactiveSent) {
-      await this.chatsService.recordOutboundAiMessage(conversationId, '[Interactive Menu Sent]');
+      await this.chatsService.recordOutboundAiMessage(
+        conversationId,
+        '[Interactive Menu Sent]',
+      );
     } else {
-      await this.sendAndRecordReply(conversationId, from, textMenu, phoneNumberId);
+      await this.sendAndRecordReply(
+        conversationId,
+        from,
+        textMenu,
+        phoneNumberId,
+      );
     }
   }
 
@@ -597,7 +710,8 @@ export class WhatsappWebhookController {
     );
 
     if (docTasks.length === 0) {
-      const msg = 'All documents for your active filing period have been received. Thank you!';
+      const msg =
+        'All documents for your active filing period have been received. Thank you!';
       await this.sendAndRecordReply(conversationId, from, msg, phoneNumberId);
       return;
     }
@@ -630,14 +744,19 @@ export class WhatsappWebhookController {
     phoneNumberId?: string,
   ): Promise<void> {
     // 1. Generic trigger ("3", "request_doc", "request a document")
-    if (lower === '3' || lower === 'request_doc' || lower === 'request a document') {
+    if (
+      lower === '3' ||
+      lower === 'request_doc' ||
+      lower === 'request a document'
+    ) {
       const reply =
         'Which document do you need? You can ask for your *GST Certificate*, *Udyam Certificate*, *ITR Return*, or *Filed Report*.';
       await this.sendAndRecordReply(conversationId, from, reply, phoneNumberId);
       return;
     }
 
-    let foundDoc: { s3Key: string; filename: string; title: string } | null = null;
+    let foundDoc: { s3Key: string; filename: string; title: string } | null =
+      null;
 
     // 2. GST Certificate request
     if (lower.includes('gst cert') || lower.includes('gst certificate')) {
@@ -674,7 +793,8 @@ export class WhatsappWebhookController {
       if (ret) {
         foundDoc = {
           s3Key: ret.s3_key,
-          filename: ret.original_filename || `ITR_Return_AY_${ret.assessment_year}.pdf`,
+          filename:
+            ret.original_filename || `ITR_Return_AY_${ret.assessment_year}.pdf`,
           title: `ITR Return (AY ${ret.assessment_year})`,
         };
       }
@@ -718,7 +838,12 @@ export class WhatsappWebhookController {
       } else {
         // Fallback to sending download link directly in text message
         const linkMsg = `Here is your *${foundDoc.title}*:\n${downloadUrl}\n\n(Link is valid for 5 minutes).`;
-        await this.sendAndRecordReply(conversationId, from, linkMsg, phoneNumberId);
+        await this.sendAndRecordReply(
+          conversationId,
+          from,
+          linkMsg,
+          phoneNumberId,
+        );
       }
       return;
     }
@@ -731,7 +856,12 @@ export class WhatsappWebhookController {
 
     const notFoundReply =
       "I couldn't find a filed copy of that document on your account. I've flagged this for our team, and someone will send it to you shortly.";
-    await this.sendAndRecordReply(conversationId, from, notFoundReply, phoneNumberId);
+    await this.sendAndRecordReply(
+      conversationId,
+      from,
+      notFoundReply,
+      phoneNumberId,
+    );
   }
 
   /**
@@ -772,8 +902,14 @@ export class WhatsappWebhookController {
       }
     }
 
-    const noDuesMsg = 'There are no pending tax dues recorded on your account for this period.';
-    await this.sendAndRecordReply(conversationId, from, noDuesMsg, phoneNumberId);
+    const noDuesMsg =
+      'There are no pending tax dues recorded on your account for this period.';
+    await this.sendAndRecordReply(
+      conversationId,
+      from,
+      noDuesMsg,
+      phoneNumberId,
+    );
   }
 
   /**
@@ -788,9 +924,12 @@ export class WhatsappWebhookController {
     phoneNumberId?: string,
   ): Promise<void> {
     // 1. Fetch recent conversation memory for context
-    const recentDbMessages = await this.chatsService.getMessages(conversationId, 6);
+    const recentDbMessages = await this.chatsService.getMessages(
+      conversationId,
+      6,
+    );
     const history = recentDbMessages.map((m) => ({
-      sender: m.sender as 'client' | 'ai' | 'staff',
+      sender: m.sender,
       body: m.body || '',
     }));
 
@@ -844,7 +983,12 @@ export class WhatsappWebhookController {
         });
       }
 
-      await this.sendAndRecordReply(conversationId, from, result.reply, phoneNumberId);
+      await this.sendAndRecordReply(
+        conversationId,
+        from,
+        result.reply,
+        phoneNumberId,
+      );
     }
   }
 
@@ -857,7 +1001,11 @@ export class WhatsappWebhookController {
     message: string,
     phoneNumberId?: string,
   ): Promise<void> {
-    const sent = await this.notificationsService.sendWhatsapp(to, message, phoneNumberId);
+    const sent = await this.notificationsService.sendWhatsapp(
+      to,
+      message,
+      phoneNumberId,
+    );
     if (sent) {
       await this.chatsService.recordOutboundAiMessage(conversationId, message);
     } else {

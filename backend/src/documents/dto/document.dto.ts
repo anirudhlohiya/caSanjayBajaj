@@ -10,7 +10,11 @@ import {
   Max,
   Min,
 } from 'class-validator';
-import { DocumentCategory, DocumentFileType, DocumentStatus } from '../../common/enums';
+import {
+  DocumentCategory,
+  DocumentFileType,
+  DocumentStatus,
+} from '../../common/enums';
 import { PaginationQueryDto } from '../../common/dto/pagination';
 
 // MIME types the firm accepts for client documents/reports.
@@ -35,7 +39,10 @@ export class CreateUploadUrlDto {
   @IsUUID()
   user_id?: string;
 
-  @ApiPropertyOptional({ enum: DocumentCategory, default: DocumentCategory.GST })
+  @ApiPropertyOptional({
+    enum: DocumentCategory,
+    default: DocumentCategory.GST,
+  })
   @IsOptional()
   @IsEnum(DocumentCategory)
   category?: DocumentCategory;

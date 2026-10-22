@@ -116,7 +116,7 @@ export class WhatsappKnowledgeBaseService {
     lines.push('');
 
     const sections = kb.sections || {};
-    for (const [key, section] of Object.entries(sections)) {
+    for (const [, section] of Object.entries(sections)) {
       lines.push(`#### [${section.title.toUpperCase()}]`);
       if (section.content) {
         lines.push(section.content.trim());

@@ -38,7 +38,9 @@ export class WhatsappMediaService {
           secretAccessKey,
         },
       });
-      this.logger.log('Cloudflare R2 storage initialized as secondary media backup');
+      this.logger.log(
+        'Cloudflare R2 storage initialized as secondary media backup',
+      );
     }
   }
 
@@ -106,7 +108,9 @@ export class WhatsappMediaService {
 
       const ym = new Date().toISOString().slice(0, 7); // e.g. 2026-10
       const safeFolder = clientFolder.replace(/[^a-zA-Z0-9_-]/g, '_');
-      const baseFilename = (filenameHint || `doc_${Date.now()}${extension}`).replace(/[^a-zA-Z0-9._-]/g, '_');
+      const baseFilename = (
+        filenameHint || `doc_${Date.now()}${extension}`
+      ).replace(/[^a-zA-Z0-9._-]/g, '_');
       const uniquePrefix = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const s3Key = `whatsapp-uploads/${safeFolder}/${ym}/${uniquePrefix}_${baseFilename}`;
 
@@ -162,7 +166,8 @@ export class WhatsappMediaService {
       'image/png': '.png',
       'image/webp': '.webp',
       'application/pdf': '.pdf',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        '.xlsx',
       'application/vnd.ms-excel': '.xls',
       'text/csv': '.csv',
       'audio/ogg': '.ogg',
