@@ -10,6 +10,10 @@ import { ComplianceTasksService } from '../compliance-tasks/compliance-tasks.ser
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { paginate, PaginatedResult } from '../common/dto/pagination';
 import { DocumentCategory, DocumentStatus, UserType } from '../common/enums';
+import {
+  assertGstClient,
+  assertItrClient,
+} from '../common/utils/client-type.util';
 import { Document } from '../entities/document.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { UsersService } from '../users/users.service';
@@ -224,7 +228,9 @@ export class DocumentsService {
         );
       }
       qb.andWhere('doc.category = :category', { category: query.category });
-    } else if (auth.type === 'user') {
+    } else {
+      // Clients and the admin client page both see only the categories of
+      // services the client has (downgrades hide, never delete).
       qb.andWhere('doc.category IN (:...unlocked)', { unlocked });
     }
 
@@ -331,6 +337,9 @@ export class DocumentsService {
   async assign(documentId: string, dto: AssignDocumentDto) {
     const doc = await this.documents.findOneBy({ id: documentId });
     if (!doc) throw new NotFoundException('Document not found');
+    const owner = await this.usersService.findOne(doc.user_id);
+    if (dto.category === DocumentCategory.GST) assertGstClient(owner);
+    if (dto.category === DocumentCategory.ITR) assertItrClient(owner);
 
     doc.category = dto.category;
     doc.filing_period_id = null;

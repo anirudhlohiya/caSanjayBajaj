@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Not, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
+import { assertGstClient } from '../common/utils/client-type.util';
 import { ClientCertificate, User } from '../entities';
 import { StorageService } from '../storage/storage.service';
 import { CreateCertificateUploadUrlDto } from './dto/certificate.dto';
@@ -42,6 +43,8 @@ export class CertificatesService {
   async requestUploadUrl(userId: string, dto: CreateCertificateUploadUrlDto) {
     const user = await this.users.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
+    // GST and Udyam certificates belong to the GST service
+    assertGstClient(user);
 
     const { uploadUrl, s3Key } = await this.storage.createCertificateUploadUrl(
       userId,
@@ -73,6 +76,9 @@ export class CertificatesService {
   async confirm(auth: AuthUser, certId: string): Promise<ClientCertificate> {
     const cert = await this.certificates.findOne({ where: { id: certId } });
     if (!cert) throw new NotFoundException('Certificate not found');
+    const owner = await this.users.findOneBy({ id: cert.user_id });
+    if (!owner) throw new NotFoundException('User not found');
+    assertGstClient(owner);
 
     cert.uploaded_at = new Date();
     const saved = await this.certificates.save(cert);

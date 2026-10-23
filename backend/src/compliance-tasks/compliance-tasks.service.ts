@@ -33,6 +33,7 @@ import {
 import { NotificationsService } from '../notifications/notifications.service';
 import { SchedulingService } from '../schedule/scheduling.service';
 import { ShareLinksService } from '../share-links/share-links.service';
+import { assertGstClient } from '../common/utils/client-type.util';
 import { advanceFilingTaskOnUpload } from './task-upload.util';
 
 interface DesiredTask {
@@ -88,6 +89,7 @@ export class ComplianceTasksService {
   ): Promise<ComplianceTask[]> {
     const user = await this.usersRepository.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
+    assertGstClient(user);
     const period = await this.periodsRepository.findOneBy({ id: periodId });
     if (!period) throw new NotFoundException('Filing period not found');
 
@@ -205,13 +207,23 @@ export class ComplianceTasksService {
     return new Date(`${date}T00:00:00.000Z`);
   }
 
+  /** A task of a client who has the GST service, or 404/403. */
+  private async findGstTask(id: string): Promise<ComplianceTask> {
+    const task = await this.tasksRepository.findOne({
+      where: { id },
+      relations: { user: true, filing_period: true },
+    });
+    if (!task) throw new NotFoundException('Task not found');
+    if (task.user) assertGstClient(task.user);
+    return task;
+  }
+
   async updatePayment(
     id: string,
     amount: string | null,
     paidAt: Date | null,
   ): Promise<ComplianceTask> {
-    const task = await this.tasksRepository.findOne({ where: { id } });
-    if (!task) throw new NotFoundException('Task not found');
+    const task = await this.findGstTask(id);
 
     task.amount = amount;
     if (paidAt) {
@@ -225,8 +237,7 @@ export class ComplianceTasksService {
   }
 
   async updateStatus(id: string, status: TaskStatus): Promise<ComplianceTask> {
-    const task = await this.tasksRepository.findOne({ where: { id } });
-    if (!task) throw new NotFoundException('Task not found');
+    const task = await this.findGstTask(id);
     task.status = status;
     return this.tasksRepository.save(task);
   }
@@ -259,11 +270,7 @@ export class ComplianceTasksService {
    * the admin is emailed so they can confirm against the portal queue.
    */
   async markNil(id: string, userId: string): Promise<ComplianceTask> {
-    const task = await this.tasksRepository.findOne({
-      where: { id },
-      relations: { user: true, filing_period: true },
-    });
-    if (!task) throw new NotFoundException('Task not found');
+    const task = await this.findGstTask(id);
     if (task.user_id !== userId) {
       throw new ForbiddenException('Not your compliance task');
     }
@@ -300,11 +307,7 @@ export class ComplianceTasksService {
    * is recorded in the audit log.
    */
   async confirmNil(id: string, adminId: string): Promise<ComplianceTask> {
-    const task = await this.tasksRepository.findOne({
-      where: { id },
-      relations: { user: true, filing_period: true },
-    });
-    if (!task) throw new NotFoundException('Task not found');
+    const task = await this.findGstTask(id);
     if (task.status !== TaskStatus.NIL_DECLARED) {
       throw new BadRequestException('Task is not pending nil confirmation');
     }
@@ -335,11 +338,7 @@ export class ComplianceTasksService {
     adminId: string,
     dto: { arn?: string; report_id?: string },
   ): Promise<ComplianceTask> {
-    const task = await this.tasksRepository.findOne({
-      where: { id },
-      relations: { user: true, filing_period: true },
-    });
-    if (!task) throw new NotFoundException('Task not found');
+    const task = await this.findGstTask(id);
     if (!ComplianceTasksService.nilEligible(task.category)) {
       throw new BadRequestException(
         'Only GSTR-1, IFF and GSTR-3B tasks can be marked as filed',
@@ -438,11 +437,7 @@ export class ComplianceTasksService {
     id: string,
     adminId: string,
   ): Promise<{ task: ComplianceTask; channels: ClientAlertResult }> {
-    const task = await this.tasksRepository.findOne({
-      where: { id },
-      relations: { user: true, filing_period: true },
-    });
-    if (!task) throw new NotFoundException('Task not found');
+    const task = await this.findGstTask(id);
     if (task.category !== ComplianceCategory.GST_PAYMENT) {
       throw new BadRequestException(
         'Payment reminders can only be sent for GST payment tasks',

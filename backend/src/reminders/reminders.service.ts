@@ -17,6 +17,10 @@ import { Document } from '../entities/document.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { Reminder } from '../entities/reminder.entity';
 import { User } from '../entities/user.entity';
+import {
+  assertGstClient,
+  hasGstService,
+} from '../common/utils/client-type.util';
 import { ClientAlertsService } from '../notifications/client-alerts.service';
 import {
   NotificationsService,
@@ -104,10 +108,13 @@ export class RemindersService implements OnModuleInit {
       });
       const uploadedUserIds = new Set(uploaded.map((d) => d.user_id));
       const allUsers = await this.usersService.listActiveUsers();
+      // GST document reminders only go to clients with the GST service
       targets = allUsers
+        .filter((u) => hasGstService(u.user_type))
         .filter((u) => !uploadedUserIds.has(u.id))
         .map((u) => u.id);
     } else if (dto.user_id) {
+      assertGstClient(await this.usersService.findOne(dto.user_id));
       targets = [dto.user_id];
     } else {
       throw new NotFoundException('Provide user_id or all_unfiled');

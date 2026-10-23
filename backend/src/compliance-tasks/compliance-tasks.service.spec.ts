@@ -319,7 +319,12 @@ describe('ComplianceTasksService', () => {
         filing_period_id: 'p1',
         category: ComplianceCategory.GSTR_1,
         status: TaskStatus.PENDING,
-        user: { id: 'u1', name: 'Amit', email: 'amit@example.com' },
+        user: {
+          id: 'u1',
+          name: 'Amit',
+          email: 'amit@example.com',
+          user_type: UserType.GST,
+        },
         filing_period: periodRow(),
         ...overrides,
       }) as ComplianceTask;
@@ -497,6 +502,7 @@ describe('ComplianceTasksService', () => {
       name: 'Amit Shah',
       email: 'amit@example.com',
       phone: '9876543210',
+      user_type: UserType.GST,
     } as User;
     const filingTask = (overrides: Partial<ComplianceTask> = {}) =>
       ({
@@ -575,6 +581,21 @@ describe('ComplianceTasksService', () => {
       expect(alerts.send).not.toHaveBeenCalled();
     });
 
+    it('refuses GST actions for a client without the GST service', async () => {
+      findOneMock.mockResolvedValue(
+        filingTask({
+          user: { ...client, user_type: UserType.ITR },
+        }),
+      );
+      await expect(tasksService.markFiled('t1', 'admin1', {})).rejects.toThrow(
+        ForbiddenException,
+      );
+      await expect(
+        tasksService.updateStatus('t1', TaskStatus.COMPLETED),
+      ).rejects.toThrow(ForbiddenException);
+      expect(alerts.send).not.toHaveBeenCalled();
+    });
+
     it('refuses to file a payment task or an already-filed return', async () => {
       findOneMock.mockResolvedValueOnce(
         filingTask({ category: ComplianceCategory.GST_PAYMENT }),
@@ -597,6 +618,7 @@ describe('ComplianceTasksService', () => {
       name: 'Amit Shah',
       email: 'amit@example.com',
       phone: '9876543210',
+      user_type: UserType.GST,
     } as User;
     const paymentTask = (overrides: Partial<ComplianceTask> = {}) =>
       ({

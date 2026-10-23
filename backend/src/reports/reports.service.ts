@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { paginate, PaginatedResult } from '../common/dto/pagination';
+import { assertGstClient } from '../common/utils/client-type.util';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { Report } from '../entities/report.entity';
 import {
@@ -37,6 +38,8 @@ export class ReportsService {
   async upload(auth: AuthUser, dto: CreateReportDto) {
     const period = await this.periods.findOneBy({ id: dto.filing_period_id });
     if (!period) throw new NotFoundException('Filing period not found');
+    // GST reports only go to clients with the GST service
+    assertGstClient(await this.usersService.findOne(dto.user_id));
 
     const { uploadUrl, s3Key } = await this.storage.createUploadUrl(
       'reports',

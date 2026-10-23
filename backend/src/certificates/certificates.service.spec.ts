@@ -159,7 +159,10 @@ describe('CertificatesService', () => {
 
   describe('requestUploadUrl', () => {
     it('creates a pending row and returns the presigned URL', async () => {
-      (usersRepo.findOneBy as jest.Mock).mockResolvedValue({ id: 'u1' });
+      (usersRepo.findOneBy as jest.Mock).mockResolvedValue({
+        id: 'u1',
+        user_type: 'gst',
+      });
       const dto: CreateCertificateUploadUrlDto = {
         cert_type: CertType.GST_CERT,
         filename: 'gst_cert.pdf',
@@ -200,6 +203,10 @@ describe('CertificatesService', () => {
         certRow({ id: 'old', uploaded_at: new Date() }),
         certRow({ id: 'new', uploaded_at: null }),
       ];
+      (usersRepo.findOneBy as jest.Mock).mockResolvedValue({
+        id: 'u1',
+        user_type: 'gst',
+      });
 
       const res = await service.confirm(userAuth, 'new');
 

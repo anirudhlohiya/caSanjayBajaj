@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { assertItrClient } from '../common/utils/client-type.util';
 import { FamilyMember } from '../entities/family-member.entity';
 import { User } from '../entities/user.entity';
 import {
@@ -33,9 +34,10 @@ export class FamilyMembersService {
     userId: string,
     dto: CreateFamilyMemberDto,
   ): Promise<FamilyMember> {
-    if (!(await this.users.exists({ where: { id: userId } }))) {
-      throw new NotFoundException('Client not found');
-    }
+    const client = await this.users.findOneBy({ id: userId });
+    if (!client) throw new NotFoundException('Client not found');
+    // Family members exist to file their ITR from this account
+    assertItrClient(client);
     const count = await this.members.count({ where: { user_id: userId } });
     if (count >= MAX_FAMILY_MEMBERS) {
       throw new BadRequestException(
@@ -59,6 +61,9 @@ export class FamilyMembersService {
     dto: UpdateFamilyMemberDto,
   ): Promise<FamilyMember> {
     const member = await this.get(userId, id);
+    const client = await this.users.findOneBy({ id: userId });
+    if (!client) throw new NotFoundException('Client not found');
+    assertItrClient(client);
     if (dto.pan !== undefined && dto.pan !== member.pan) {
       await this.assertPanFree(userId, dto.pan, id);
       member.pan = dto.pan || null;

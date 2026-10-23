@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { UserType } from '../common/enums';
+import { assertItrClient } from '../common/utils/client-type.util';
 import { ItrReturn, User } from '../entities';
 import { FamilyMembersService } from '../family-members/family-members.service';
 import { StorageService } from '../storage/storage.service';
@@ -36,6 +37,7 @@ export class ItrReturnsService {
   ): Promise<{ upload_url: string; s3_key: string; expires_in: number }> {
     const client = await this.users.findOneBy({ id: clientId });
     if (!client) throw new NotFoundException('Client not found');
+    assertItrClient(client);
 
     const { uploadUrl, s3Key } = await this.storage.createItrReturnUploadUrl(
       clientId,
@@ -62,6 +64,7 @@ export class ItrReturnsService {
   ): Promise<ItrReturn> {
     const client = await this.users.findOneBy({ id: clientId });
     if (!client) throw new NotFoundException('Client not found');
+    assertItrClient(client);
     const memberId = dto.family_member_id ?? null;
     if (memberId) await this.familyMembers.get(clientId, memberId);
 

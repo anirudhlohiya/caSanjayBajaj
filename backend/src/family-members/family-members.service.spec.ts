@@ -36,7 +36,10 @@ describe('FamilyMembersService', () => {
         return Promise.resolve(v);
       }),
     };
-    const users = { exists: jest.fn().mockResolvedValue(true) };
+    const users = {
+      exists: jest.fn().mockResolvedValue(true),
+      findOneBy: jest.fn().mockResolvedValue({ id: 'u1', user_type: 'itr' }),
+    };
     service = new FamilyMembersService(
       members as unknown as Repository<FamilyMember>,
       users as unknown as Repository<User>,
@@ -54,6 +57,19 @@ describe('FamilyMembersService', () => {
     await expect(
       service.create('u2', { name: 'A', relation: 'spouse' }),
     ).resolves.toBeDefined();
+  });
+
+  it('refuses family members for clients without the ITR service', async () => {
+    const users = {
+      findOneBy: jest.fn().mockResolvedValue({ id: 'u1', user_type: 'gst' }),
+    };
+    const gstOnly = new FamilyMembersService(
+      {} as unknown as Repository<FamilyMember>,
+      users as unknown as Repository<User>,
+    );
+    await expect(
+      gstOnly.create('u1', { name: 'Asha', relation: 'spouse' }),
+    ).rejects.toThrow('ITR services are not active for this client');
   });
 
   it('rejects a duplicate PAN within the same family', async () => {
