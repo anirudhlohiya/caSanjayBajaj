@@ -195,6 +195,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleExternalOrGatedUrl(url: Uri): Boolean {
         val scheme = url.scheme ?: return false
+        // Call / WhatsApp / email buttons: hand off to the dialer or app
+        // instead of letting the WebView fail with ERR_UNKNOWN_URL_SCHEME.
+        if (scheme in EXTERNAL_SCHEMES) {
+            return try {
+                startActivity(Intent(Intent.ACTION_VIEW, url))
+                true
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(this, "No app can open this link", Toast.LENGTH_SHORT).show()
+                true
+            }
+        }
         if (scheme != "https" && scheme != "http") return false
 
         val appHost = Uri.parse(BuildConfig.APP_URL).host
@@ -320,6 +331,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val FILE_CHOOSER_REQUEST = 1001
+        private val EXTERNAL_SCHEMES = setOf("tel", "mailto", "sms", "whatsapp")
     }
 }
 

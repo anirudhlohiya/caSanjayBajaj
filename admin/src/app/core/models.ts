@@ -46,14 +46,22 @@ export interface ServiceRequest {
 
 export interface ItrReturn {
   id: string;
-  user_id: string;
+  /** Null = the account holder. */
+  family_member_id: string | null;
   assessment_year: string;
-  s3_key: string;
-  original_filename: string;
+  filename: string;
   file_size_bytes: string | number;
-  uploaded_by: string | null;
   uploaded_at: string;
   downloadUrl?: string;
+}
+
+export interface FamilyMember {
+  id: string;
+  user_id: string;
+  name: string;
+  relation: string;
+  pan: string | null;
+  created_at: string;
 }
 
 export interface ClientCertificate {
@@ -288,14 +296,44 @@ export interface Lead {
 
 export interface Service {
   id: string;
+  slug: string;
   title: string;
+  /** Short summary shown on the card. */
   description: string;
+  tags: string[];
+  /** Detail page, markdown. */
+  body_md: string;
   price: string | null;
   icon: string | null;
+  icon_color: string | null;
+  contact_phone: string | null;
   display_order: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface DueDate {
+  id: string;
+  title: string;
+  form: string | null;
+  category: DueDateCategory;
+  /** YYYY-MM-DD */
+  due_date: string;
+  /** Set when extended: the date before the extension. */
+  original_due_date: string | null;
+  period_label: string | null;
+  description: string;
+  audiences: string[];
+  fy: string;
+  is_active: boolean;
+}
+
+export type DueDateCategory = 'gst' | 'income_tax' | 'tds';
+
+export interface ServiceContact {
+  phone: string | null;
+  whatsapp: string | null;
 }
 
 export type TicketStatus = 'open' | 'replied' | 'closed';

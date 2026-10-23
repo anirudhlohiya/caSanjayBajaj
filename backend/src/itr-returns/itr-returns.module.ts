@@ -1,3 +1,4 @@
+import { FamilyMembersModule } from '../family-members/family-members.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditModule } from '../audit/audit.module';
@@ -8,6 +9,7 @@ import { ItrReturnsService } from './itr-returns.service';
 
 @Module({
   imports: [
+    FamilyMembersModule,
     TypeOrmModule.forFeature([ItrReturn, User]),
     StorageModule,
     AuditModule,

@@ -13,6 +13,7 @@ import { DocumentCategory, DocumentStatus, UserType } from '../common/enums';
 import { Document } from '../entities/document.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { UsersService } from '../users/users.service';
+import { FamilyMembersService } from '../family-members/family-members.service';
 import { StorageService } from '../storage/storage.service';
 import { currentAssessmentYear } from '../compliance-tasks/task-upload.util';
 import {
@@ -32,6 +33,7 @@ export class DocumentsService {
     private readonly storage: StorageService,
     private readonly usersService: UsersService,
     private readonly tasksService: ComplianceTasksService,
+    private readonly familyMembers: FamilyMembersService,
   ) {}
 
   private getUnlockedCategories(userType: UserType): DocumentCategory[] {
@@ -82,6 +84,7 @@ export class DocumentsService {
     let s3Key: string;
     let filingPeriodId: string | null = null;
     let assessmentYear: string | null = null;
+    let familyMemberId: string | null = null;
 
     if (category === DocumentCategory.GST) {
       if (!dto.filing_period_id) {
@@ -113,6 +116,10 @@ export class DocumentsService {
         );
       }
       assessmentYear = dto.assessment_year.trim();
+      if (dto.family_member_id) {
+        await this.familyMembers.get(targetUserId, dto.family_member_id);
+        familyMemberId = dto.family_member_id;
+      }
       const safeAY = assessmentYear.replace(/[^a-zA-Z0-9_-]/g, '_');
       const res = await this.storage.createUploadUrl(
         'docs',
@@ -142,6 +149,7 @@ export class DocumentsService {
         category,
         filing_period_id: filingPeriodId,
         assessment_year: assessmentYear,
+        family_member_id: familyMemberId,
         s3_key: s3Key,
         original_filename: dto.filename,
         file_type: dto.file_type,
@@ -228,6 +236,13 @@ export class DocumentsService {
       qb.andWhere('doc.assessment_year = :ay', {
         ay: query.assessment_year,
       });
+    if (query.family_member_id === 'self') {
+      qb.andWhere('doc.family_member_id IS NULL');
+    } else if (query.family_member_id) {
+      qb.andWhere('doc.family_member_id = :fm', {
+        fm: query.family_member_id,
+      });
+    }
     if (query.status)
       qb.andWhere('doc.status = :status', { status: query.status });
 
@@ -261,6 +276,13 @@ export class DocumentsService {
       qb.andWhere('doc.assessment_year = :ay', {
         ay: query.assessment_year,
       });
+    if (query.family_member_id === 'self') {
+      qb.andWhere('doc.family_member_id IS NULL');
+    } else if (query.family_member_id) {
+      qb.andWhere('doc.family_member_id = :fm', {
+        fm: query.family_member_id,
+      });
+    }
     if (query.status)
       qb.andWhere('doc.status = :status', { status: query.status });
     if (query.unassigned) {

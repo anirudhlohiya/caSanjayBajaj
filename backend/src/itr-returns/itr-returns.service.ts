@@ -4,10 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { UserType } from '../common/enums';
 import { ItrReturn, User } from '../entities';
+import { FamilyMembersService } from '../family-members/family-members.service';
 import { StorageService } from '../storage/storage.service';
 import {
   ConfirmItrReturnDto,
@@ -23,6 +24,7 @@ export class ItrReturnsService {
     private readonly users: Repository<User>,
     private readonly storage: StorageService,
     private readonly audit: AuditService,
+    private readonly familyMembers: FamilyMembersService,
   ) {}
 
   /**
@@ -50,7 +52,8 @@ export class ItrReturnsService {
   }
 
   /**
-   * Admin confirms upload of an ITR return PDF. Replaces existing return for the same AY.
+   * Admin confirms upload of an ITR return PDF. Replaces the existing return
+   * for the same person (holder or family member) and AY.
    */
   async confirm(
     adminId: string,
@@ -59,9 +62,15 @@ export class ItrReturnsService {
   ): Promise<ItrReturn> {
     const client = await this.users.findOneBy({ id: clientId });
     if (!client) throw new NotFoundException('Client not found');
+    const memberId = dto.family_member_id ?? null;
+    if (memberId) await this.familyMembers.get(clientId, memberId);
 
     let ret = await this.itrReturns.findOne({
-      where: { user_id: clientId, assessment_year: dto.assessment_year },
+      where: {
+        user_id: clientId,
+        family_member_id: memberId ?? IsNull(),
+        assessment_year: dto.assessment_year,
+      },
     });
 
     if (ret) {
@@ -73,6 +82,7 @@ export class ItrReturnsService {
     } else {
       ret = this.itrReturns.create({
         user_id: clientId,
+        family_member_id: memberId,
         assessment_year: dto.assessment_year,
         s3_key: dto.s3_key,
         original_filename: dto.filename,
@@ -89,6 +99,7 @@ export class ItrReturnsService {
       'itr_return.uploaded',
       {
         assessment_year: dto.assessment_year,
+        family_member_id: memberId,
         filename: dto.filename,
         size: dto.size,
       },
@@ -116,6 +127,7 @@ export class ItrReturnsService {
         );
         return {
           id: r.id,
+          family_member_id: r.family_member_id,
           assessment_year: r.assessment_year,
           filename: r.original_filename,
           file_size_bytes: r.file_size_bytes,
@@ -150,6 +162,7 @@ export class ItrReturnsService {
         );
         return {
           id: r.id,
+          family_member_id: r.family_member_id,
           assessment_year: r.assessment_year,
           filename: r.original_filename,
           file_size_bytes: r.file_size_bytes,

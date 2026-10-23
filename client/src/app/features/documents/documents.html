@@ -269,75 +269,96 @@
 
   <!-- ==================== ITR TAB ==================== -->
   @if (activeTab() === 'itr') {
-    <!-- Assessment Year Selector Card -->
-    <div class="card p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white dark:bg-neutral-900 border border-[#ebebeb] dark:border-neutral-800">
+    <!-- Person switcher: the account holder and their family members -->
+    <div class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4">
+      <button (click)="selectPerson('self')"
+        class="shrink-0 inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full border text-xs font-medium transition-colors cursor-pointer"
+        [class]="selectedPerson() === 'self' ? 'bg-[#171717] dark:bg-white text-white dark:text-[#171717] border-transparent' : 'bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-[#ebebeb] dark:border-neutral-700'">
+        <span class="material-symbols-outlined text-[16px]">person</span>
+        Me
+      </button>
+      @for (m of members(); track m.id) {
+        <button (click)="selectPerson(m.id)"
+          class="shrink-0 inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full border text-xs font-medium transition-colors cursor-pointer"
+          [class]="selectedPerson() === m.id ? 'bg-[#171717] dark:bg-white text-white dark:text-[#171717] border-transparent' : 'bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-[#ebebeb] dark:border-neutral-700'">
+          {{ m.name.split(' ')[0] }}
+          <span class="opacity-60">· {{ relationLabel(m.relation) }}</span>
+        </button>
+      }
+      @if (members().length < maxMembers) {
+        <button routerLink="/profile" [queryParams]="{ section: 'family' }"
+          class="shrink-0 inline-flex items-center gap-1 h-8 px-3.5 rounded-full border border-dashed border-neutral-300 dark:border-neutral-600 text-xs font-medium text-neutral-500 dark:text-neutral-400 cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">add</span>
+          Add family member
+        </button>
+      }
+    </div>
+
+    <!-- Current ITR year (fixed; rolls over on 1 April) -->
+    <div class="card p-4 flex flex-col gap-3 bg-white dark:bg-neutral-900 border border-[#ebebeb] dark:border-neutral-800">
       <div class="flex items-center gap-3">
         <div class="size-10 rounded-xl bg-[#d8ccf1]/40 dark:bg-purple-950/40 text-[#4c2889] dark:text-purple-300 border border-[#7928ca]/20 dark:border-purple-800/40 flex items-center justify-center shrink-0">
           <span class="material-symbols-outlined text-[20px]">account_balance</span>
         </div>
-        <div>
-          <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 block font-medium">Income Tax Assessment Year</label>
-          <div class="text-sm font-semibold text-neutral-900 dark:text-white tracking-tight">AY {{ selectedAy() }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-base font-semibold text-neutral-900 dark:text-white tracking-tight">{{ itrYearLabel(currentAy) }}</div>
+          @if (selectedPerson() !== 'self') {
+            <div class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">for {{ selectedPersonName() }}</div>
+          }
         </div>
       </div>
-      <div class="flex items-center gap-2 w-full sm:w-auto">
-        <select
-          [ngModel]="selectedAy()"
-          (ngModelChange)="setAssessmentYear($event)"
-          class="flex-1 sm:w-40 bg-[#fafafa] dark:bg-neutral-800 border border-[#ebebeb] dark:border-neutral-700 rounded-md p-2 text-xs font-mono font-medium text-neutral-900 dark:text-neutral-100 cursor-pointer outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all"
-        >
-          @for (ay of assessmentYears; track ay) {
-            <option [value]="ay" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">AY {{ ay }}</option>
-          }
-        </select>
-        <button
-          (click)="goUpload()"
-          class="h-8 px-3.5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors inline-flex items-center gap-1.5 cursor-pointer shrink-0"
-        >
-          <span class="material-symbols-outlined text-[16px]">upload</span>
-          Upload Docs
-        </button>
-      </div>
+      <button
+        (click)="goUpload()"
+        class="h-10 w-full rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[18px]">upload</span>
+        Upload Docs
+      </button>
     </div>
 
-    <!-- MY ITR RETURNS Section -->
+    <!-- ITR returns: current year and the three before it -->
     <div>
-      <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2.5 ml-1 font-medium">MY ITR RETURNS</div>
+      <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2.5 ml-1 font-medium">
+        {{ selectedPerson() === 'self' ? 'MY ITR RETURNS' : 'ITR RETURNS · ' + selectedPersonName().toUpperCase() }}
+      </div>
       <div class="card overflow-hidden divide-y divide-[#ebebeb] dark:divide-neutral-800 bg-white dark:bg-neutral-900 border border-[#ebebeb] dark:border-neutral-800">
-        @for (ret of itrReturns(); track ret.id) {
-          <div class="p-3.5 flex items-center justify-between hover:bg-[#fafafa] dark:hover:bg-neutral-800/40 transition-colors">
-            <div class="flex items-center gap-3">
-              <div class="size-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center font-mono font-bold text-[10px] border border-rose-200/50 dark:border-rose-900/30 shrink-0">
+        @for (row of personReturns(); track row.ay) {
+          <div class="p-3.5 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="size-9 rounded-lg flex items-center justify-center font-mono font-bold text-[10px] shrink-0"
+                [class]="row.ret ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-900/30' : 'bg-[#fafafa] dark:bg-neutral-800 text-neutral-300 dark:text-neutral-600 border border-[#ebebeb] dark:border-neutral-700'">
                 PDF
               </div>
-              <div>
-                <div class="font-medium text-neutral-900 dark:text-neutral-100 text-xs tracking-tight">ITR Return · AY {{ ret.assessment_year }}</div>
+              <div class="min-w-0">
+                <div class="font-medium text-neutral-900 dark:text-neutral-100 text-xs tracking-tight">{{ itrYearLabel(row.ay) }}</div>
                 <div class="text-[11px] font-mono text-neutral-400 dark:text-neutral-500 mt-0.5">
-                  Uploaded {{ ret.uploaded_at | date: 'd MMM yyyy' }}
+                  @if (row.ret) {
+                    Uploaded {{ row.ret.uploaded_at | date: 'd MMM yyyy' }}
+                  } @else if (row.ay === currentAy) {
+                    Will appear here once filed
+                  } @else {
+                    Not available
+                  }
                 </div>
               </div>
             </div>
-            <button
-              (click)="downloadItrReturn(ret)"
-              class="h-7 px-3 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-[11px] font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors inline-flex items-center gap-1 cursor-pointer"
-            >
-              <span class="material-symbols-outlined text-[14px]">download</span>
-              Download
-            </button>
-          </div>
-        } @empty {
-          <div class="p-8 text-center flex flex-col items-center">
-            <span class="material-symbols-outlined text-neutral-300 dark:text-neutral-600 text-[32px] mb-1.5">description</span>
-            <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">No ITR returns uploaded yet</p>
-            <p class="text-[11px] font-mono text-neutral-400 dark:text-neutral-500 mt-0.5">Your CA will upload your filed ITR acknowledgements here.</p>
+            @if (row.ret; as ret) {
+              <button
+                (click)="downloadItrReturn(ret)"
+                class="h-7 px-3 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-[11px] font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors inline-flex items-center gap-1 cursor-pointer shrink-0"
+              >
+                <span class="material-symbols-outlined text-[14px]">download</span>
+                Download
+              </button>
+            }
           </div>
         }
       </div>
     </div>
 
-    <!-- Uploaded ITR Documents -->
+    <!-- Documents submitted for the current year -->
     <div>
-      <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2.5 ml-1 font-medium">SUBMITTED ITR DOCUMENTS (AY {{ selectedAy() }})</div>
+      <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2.5 ml-1 font-medium">SUBMITTED DOCUMENTS · {{ itrYearLabel(currentAy) }}</div>
       <div class="card overflow-hidden divide-y divide-[#ebebeb] dark:divide-neutral-800 bg-white dark:bg-neutral-900 border border-[#ebebeb] dark:border-neutral-800">
         @for (doc of docs(); track doc.id) {
           <div class="p-3.5 flex items-center justify-between hover:bg-[#fafafa] dark:hover:bg-neutral-800/40 transition-colors">
@@ -367,10 +388,10 @@
         } @empty {
           <div class="p-8 text-center flex flex-col items-center">
             <span class="material-symbols-outlined text-neutral-300 dark:text-neutral-600 text-[32px] mb-1.5">upload_file</span>
-            <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">No documents submitted for AY {{ selectedAy() }}</p>
+            <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">No documents submitted for {{ itrYearLabel(currentAy) }}</p>
             <p class="text-[11px] font-mono text-neutral-400 dark:text-neutral-500 mt-0.5">Upload Form 16, bank statements, or capital gains proofs.</p>
             <button (click)="goUpload()" class="mt-3.5 h-8 px-4 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors cursor-pointer">
-              Upload for AY {{ selectedAy() }}
+              Upload documents
             </button>
           </div>
         }

@@ -6,6 +6,8 @@ import {
   Document,
   DocumentCategory,
   DownloadUrlResponse,
+  DueDate,
+  FamilyMember,
   GstFilingPeriod,
   ItrReturn,
   PaginatedResult,
@@ -13,6 +15,7 @@ import {
   ReportNotification,
   ReportType,
   Service,
+  ServiceDetail,
   ServiceRequest,
   ServiceRequestType,
   Ticket,
@@ -71,6 +74,8 @@ export class DocumentsService {
     status?: string;
     category?: DocumentCategory;
     assessmentYear?: string;
+    /** A family member id, or 'self' for the account holder's own documents. */
+    familyMemberId?: string;
     page?: number;
     pageSize?: number;
   } = {}): Promise<PaginatedResult<Document>> {
@@ -79,6 +84,7 @@ export class DocumentsService {
     if (opts.status) params.set('status', opts.status);
     if (opts.category) params.set('category', opts.category);
     if (opts.assessmentYear) params.set('assessment_year', opts.assessmentYear);
+    if (opts.familyMemberId) params.set('family_member_id', opts.familyMemberId);
     params.set('page', String(opts.page ?? 1));
     params.set('pageSize', String(opts.pageSize ?? 50));
     return firstValueFrom(
@@ -90,6 +96,7 @@ export class DocumentsService {
     category?: DocumentCategory;
     filing_period_id?: string;
     assessment_year?: string;
+    family_member_id?: string;
     filename: string;
     contentType: string;
     file_type: 'pdf' | 'image' | 'excel';
@@ -199,6 +206,45 @@ export class NotificationsService {
 }
 
 @Injectable({ providedIn: 'root' })
+export class DueDatesService {
+  constructor(private readonly api: ApiClient) {}
+
+  list(fy: string): Promise<DueDate[]> {
+    return firstValueFrom(
+      this.api.get<DueDate[]>(`/due-dates?fy=${encodeURIComponent(fy)}`),
+    );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class FamilyMembersService {
+  constructor(private readonly api: ApiClient) {}
+
+  list(): Promise<FamilyMember[]> {
+    return firstValueFrom(this.api.get<FamilyMember[]>('/me/family-members'));
+  }
+
+  create(body: { name: string; relation: string; pan: string }): Promise<FamilyMember> {
+    return firstValueFrom(this.api.post<FamilyMember>('/me/family-members', body));
+  }
+
+  update(
+    id: string,
+    body: { name: string; relation: string; pan: string },
+  ): Promise<FamilyMember> {
+    return firstValueFrom(
+      this.api.patch<FamilyMember>(`/me/family-members/${id}`, body),
+    );
+  }
+
+  remove(id: string): Promise<{ success: boolean }> {
+    return firstValueFrom(
+      this.api.delete<{ success: boolean }>(`/me/family-members/${id}`),
+    );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
 export class ProfileService {
   constructor(private readonly api: ApiClient) {}
 
@@ -304,6 +350,22 @@ export class ServicesOfferedService {
 
   listActive(): Promise<Service[]> {
     return firstValueFrom(this.api.get<Service[]>('/services'));
+  }
+
+  get(slug: string): Promise<ServiceDetail> {
+    return firstValueFrom(
+      this.api.get<ServiceDetail>(`/services/${encodeURIComponent(slug)}`),
+    );
+  }
+
+  /** "Request this service" — opens a support ticket for the firm. */
+  enquire(slug: string, message: string): Promise<Ticket> {
+    return firstValueFrom(
+      this.api.post<Ticket>(
+        `/services/${encodeURIComponent(slug)}/enquiry`,
+        { message },
+      ),
+    );
   }
 }
 

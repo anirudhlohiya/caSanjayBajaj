@@ -11,8 +11,12 @@ import { CurrencyPipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 
 import { Spinner } from '../../shared/components/spinner';
-import { ReportsService } from '../../core/services/feature.services';
-import { Report } from '../../core/models';
+import {
+  ReportsService,
+  ServicesOfferedService,
+} from '../../core/services/feature.services';
+import { Report, Service } from '../../core/models';
+import { serviceTileClass } from '../../core/service-palette';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,6 +32,12 @@ export class Dashboard implements OnInit, OnDestroy {
 
   readonly loading = signal(false);
   readonly latestReport = signal<Report | null>(null);
+
+  /** First six visible services, in the order set in the admin panel. */
+  readonly homeServices = signal<Service[]>([]);
+  readonly servicesLoading = signal(true);
+  readonly tileClass = serviceTileClass;
+  private readonly servicesService = inject(ServicesOfferedService);
 
   // Banner logic
   banners = [
@@ -64,6 +74,18 @@ export class Dashboard implements OnInit, OnDestroy {
     this.bannerInterval = setInterval(() => {
       this.currentBannerIndex.update(i => (i + 1) % this.banners.length);
     }, 4000);
+    void this.loadServices();
+  }
+
+  private async loadServices(): Promise<void> {
+    try {
+      const services = await this.servicesService.listActive();
+      this.homeServices.set(services.slice(0, 6));
+    } catch {
+      this.homeServices.set([]);
+    } finally {
+      this.servicesLoading.set(false);
+    }
   }
 
   ngOnDestroy() {

@@ -11,6 +11,8 @@ export interface UploadOptions {
   periodId?: string;
   category?: DocumentCategory;
   assessmentYear?: string;
+  /** ITR only: the family member the document is for (omit for self). */
+  familyMemberId?: string;
 }
 
 export function isNetworkError(err: unknown): boolean {
@@ -54,6 +56,9 @@ export class UploadService {
         await this.queue.enqueue({
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           periodId: opts.periodId ?? '',
+          category: opts.category,
+          assessmentYear: opts.assessmentYear,
+          familyMemberId: opts.familyMemberId,
           filename: file.name,
           contentType,
           fileType,
@@ -79,6 +84,7 @@ export class UploadService {
       category: opts.category,
       filing_period_id: opts.periodId,
       assessment_year: opts.assessmentYear,
+      family_member_id: opts.familyMemberId,
       filename: file.name,
       contentType,
       file_type: fileType,
@@ -137,7 +143,12 @@ export class UploadService {
         });
         await this.performUpload(
           file,
-          { periodId: item.periodId, category: 'gst' },
+          {
+            periodId: item.periodId || undefined,
+            category: item.category ?? 'gst',
+            assessmentYear: item.assessmentYear,
+            familyMemberId: item.familyMemberId,
+          },
           item.contentType,
           item.fileType,
           undefined,

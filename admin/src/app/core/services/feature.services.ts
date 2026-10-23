@@ -18,6 +18,8 @@ import type {
   ReportUploadUrl,
   SendReminderResult,
   Service,
+  ServiceContact,
+  DueDate,
   Ticket,
   TicketMessage,
   UploadUrl,
@@ -25,6 +27,7 @@ import type {
   ReportRequest,
   ServiceRequest,
   ItrReturn,
+  FamilyMember,
   UserType,
   WhatsappConversation,
   WhatsappMessage,
@@ -129,6 +132,27 @@ export class ServiceRequestsAdminService {
 }
 
 @Injectable({ providedIn: 'root' })
+export class FamilyMembersAdminService {
+  private readonly api = inject(ApiClient);
+
+  list(clientId: string) {
+    return firstValueFrom(this.api.get<FamilyMember[]>(`/admin/clients/${clientId}/family-members`));
+  }
+
+  create(clientId: string, body: { name: string; relation: string; pan: string }) {
+    return firstValueFrom(this.api.post<FamilyMember>(`/admin/clients/${clientId}/family-members`, body));
+  }
+
+  update(clientId: string, id: string, body: { name: string; relation: string; pan: string }) {
+    return firstValueFrom(this.api.patch<FamilyMember>(`/admin/clients/${clientId}/family-members/${id}`, body));
+  }
+
+  remove(clientId: string, id: string) {
+    return firstValueFrom(this.api.delete<{ success: boolean }>(`/admin/clients/${clientId}/family-members/${id}`));
+  }
+}
+
+@Injectable({ providedIn: 'root' })
 export class ItrReturnsAdminService {
   private readonly api = inject(ApiClient);
 
@@ -159,6 +183,7 @@ export class ItrReturnsAdminService {
     clientId: string,
     body: {
       assessment_year: string;
+      family_member_id?: string;
       s3_key: string;
       filename: string;
       size: number;
@@ -481,17 +506,80 @@ export class ServicesOfferedService {
     return firstValueFrom(this.api.get<Service>(`/admin/services/${id}`));
   }
 
-  create(body: { title: string; description: string; price?: string; icon?: string; display_order?: number; is_active?: boolean }) {
+  create(body: ServiceInput) {
     return firstValueFrom(this.api.post<Service>('/admin/services', body));
   }
 
-  update(id: string, body: { title?: string; description?: string; price?: string; icon?: string; display_order?: number; is_active?: boolean }) {
+  update(id: string, body: Partial<ServiceInput>) {
     return firstValueFrom(this.api.patch<Service>(`/admin/services/${id}`, body));
   }
 
   deactivate(id: string) {
     return firstValueFrom(this.api.delete<{ success: boolean }>(`/admin/services/${id}`));
   }
+
+  reorder(ids: string[]) {
+    return firstValueFrom(this.api.post<Service[]>('/admin/services/reorder', { ids }));
+  }
+
+  getContact() {
+    return firstValueFrom(this.api.get<ServiceContact>('/admin/services/settings/contact'));
+  }
+
+  setContact(body: { phone: string; whatsapp: string }) {
+    return firstValueFrom(this.api.put<ServiceContact>('/admin/services/settings/contact', body));
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class DueDatesAdminService {
+  private readonly api = inject(ApiClient);
+
+  list(fy: string) {
+    return firstValueFrom(this.api.get<DueDate[]>('/admin/due-dates', { fy }));
+  }
+
+  years() {
+    return firstValueFrom(this.api.get<string[]>('/admin/due-dates/years'));
+  }
+
+  create(body: DueDateInput) {
+    return firstValueFrom(this.api.post<DueDate>('/admin/due-dates', body));
+  }
+
+  update(id: string, body: Partial<DueDateInput>) {
+    return firstValueFrom(this.api.patch<DueDate>(`/admin/due-dates/${id}`, body));
+  }
+
+  remove(id: string) {
+    return firstValueFrom(this.api.delete<{ success: boolean }>(`/admin/due-dates/${id}`));
+  }
+}
+
+export interface DueDateInput {
+  title: string;
+  form: string;
+  category: string;
+  due_date: string;
+  original_due_date: string;
+  period_label: string;
+  description: string;
+  audiences: string[];
+  fy: string;
+  is_active: boolean;
+}
+
+export interface ServiceInput {
+  title: string;
+  slug?: string;
+  description: string;
+  tags: string[];
+  body_md: string;
+  price: string;
+  icon: string;
+  icon_color: string;
+  contact_phone: string;
+  is_active: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

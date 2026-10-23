@@ -2,7 +2,8 @@
 
 > This file is the single source of truth for any AI coding tool (Claude Code, Cursor,
 > Copilot, etc.) working on this project. It reflects the project's CURRENT state after
-> Phases 0–5 + Phases 6–8 (GST/ITR types, services, tickets). Treat everything below as
+> Phases 0–5 + Phases 6–18 (GST/ITR types, services, tickets, WhatsApp desk, filing loop,
+> service catalogue, due date calendar, family members — see §5 phase log). Treat everything below as
 > fixed requirements unless explicitly told otherwise. Companion docs (read in this
 > order): `docs/08-project-handbook.md` (deep context + gotchas),
 > `docs/09-run-and-test-guide.md` (run/test locally), `docs/10-phase5-deploy-runbook.md`
@@ -272,7 +273,7 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
     - Segmented filter controls with live badge counters (`All`, `Attention`, `AI Active`, `Takeover`, `Closed`).
     - Mobile PWA card responsiveness: switched service cards to `grid-cols-1 md:grid-cols-2` and removed all stray dots.
 
-- **Phase 15 (Oct 23 2026) — Core GST loop closed: "Return filed" + manual payment reminder on 4 channels, WhatsApp media handling, staff-initiated templates, Android Play-ready — CODE DONE, NOT YET COMMITTED/DEPLOYED (user is testing locally)**:
+- **Phase 15 (Oct 23 2026) — Core GST loop closed: "Return filed" + manual payment reminder on 4 channels, WhatsApp media handling, staff-initiated templates, Android Play-ready — DEPLOYED (pushed to main Oct 23 2026)**:
   - **Business flow (as told by the user)**: client uploads a month's data → CA sees it (admin Documents / client-detail; "acknowledge" = in-app status only, no alert) → CA files the return and clicks **Mark filed** → client is told on **in-app inbox + web push + email + WhatsApp**. GST **payment reminders are MANUAL only** (CA clicks a button; never automatic). Monthly **document reminders stay automatic** and now really go out on WhatsApp.
   - **Migration `1800000000003-AddFilingAndWhatsappUploads`**: `compliance_tasks.filed_at, arn (varchar 30), filed_report_id (FK reports ON DELETE SET NULL), filed_by, payment_reminder_sent_at`; `whatsapp_conversations.pending_upload jsonb`; `whatsapp_messages.media_filename`.
   - **Mark filed**: `PATCH /compliance-tasks/admin/:id/filed` `{arn?, report_id?}` (`view_clients`). Only GSTR-1/IFF/GSTR-3B; one-shot (already-filed → 400, so no duplicate alerts). Optional filed-return PDF uses the normal report upload with `POST /admin/reports/:id/confirm?notify=false` (skips the generic "report ready" alert); the email then carries a 30-day share link. Audit `compliance_task.filed`.
@@ -286,6 +287,36 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - **Tests**: backend 13 suites / 132 tests green (new: markFiled, payment reminder, uploads batching/classification, template start, media signing, voice/caption/failed-download acceptance); lint 0 errors; admin, client, backend builds green; Android `assembleDebug` + `bundleRelease` + `lintRelease` (0 errors) green.
   - **In-app inbox = everything sent to the client**: the Notifications page (`report_notifications`, `GET /me/notifications`) previously only got report-ready, ticket-reply, filed and payment alerts. Document reminders (manual + automatic) and birthday wishes now also write an inbox entry via `ClientAlertsService.recordInApp` (once per send, not once per channel). Client header bell shows an unread-count badge (`NotificationsService.unreadCount`, refreshed on navigation / app refocus, decremented on read).
   - **Known issue found, NOT fixed**: `POST /api/v1/notifications/test-whatsapp` is unauthenticated — anyone can send WhatsApp messages from the firm number. Lock it to admins or remove.
+
+- **Phase 16 (Oct 23 2026) — Admin-managed service catalogue — PUSHED TO MAIN Oct 24 2026 (auto-deploy)**:
+  - Client **Services** tab no longer hard-coded / "coming soon": list comes from `GET /services`, each card opens `/services/:slug` (markdown page + **Request this service**, **WhatsApp**, **Call us**).
+  - Migration `1800000000004-ServiceCatalogue`: `services.slug` (unique, NOT NULL), `tags jsonb`, `body_md text`, `icon_color`, `contact_phone` (per-service override); new `app_settings` key/value table. Seeds the 8 standard services with draft markdown from `backend/src/services-offered/default-services.ts` (adopts existing rows with the same title, never overwrites staff content).
+  - API: public `GET /services/:slug` (contact numbers resolved: service override → firm-wide; WhatsApp falls back to call number); `POST /services/:slug/enquiry` (JWT) creates a **support ticket** "Service enquiry: <title>" (category general) — staff handle it in the Support inbox. Admin (`manage_website`): `GET/PUT /admin/services/settings/contact`, `POST /admin/services/reorder`, CRUD with new fields.
+  - Admin **Services** redesigned: card grid (Visible/Hidden filter, search, move up/down, show/hide toggle, "No page content" warning), firm-wide contact numbers card; editor at `/services/new` and `/services/:id` with icon picker (curated Material Symbols + any name) + 10 colour swatches, tag chips, price, visibility, advanced (URL slug, contact override), markdown editor with toolbar, Write/Split/Preview and a phone-style preview. Icon palette mirrored in `admin|client/src/app/core/service-palette.ts`. Markdown rendered with `marked` + Angular sanitiser, styled by `.md-content` in both apps' `styles.css`.
+  - Android wrapper: `tel:`, `mailto:`, `sms:`, `whatsapp:` links now open the dialer/app (needs a new app release to take effect).
+
+- **Phase 17 (Oct 23 2026) — Due date calendar + app-wide back behaviour — PUSHED TO MAIN Oct 24 2026 (auto-deploy)**:
+  - Client **/due-dates** (Home → "Due Date Calendar"): "For you / All due dates" toggle (from `user_type` + `gst_filing_frequency`; hidden when the profile doesn't say), category chips (GST / Income Tax / TDS-TCS), "Coming up" countdown cards, month grid (FY Apr–Mar) with category dots, tap a day to filter, list with days-left badges, "Extended from <old date>" badge.
+  - Migration `1800000000005-DueDates`: `due_dates` table (title, form, category gst|income_tax|tds, due_date, original_due_date = extension, period_label, description, audiences jsonb, fy, is_active). Seeded with 91 FY 2026-27 deadlines from `backend/src/due-dates/default-due-dates.ts` (researched Oct 2026; includes CBDT Circular 07/2026 extensions and the Income-tax Act 2025 TDS form numbers 138/140/144/143/131). Audiences: all, gst_all, gst_monthly, gst_quarterly, gst_composition, tds, itr_individual, itr_business, itr_audit.
+  - API: public `GET /due-dates?fy=` (active only); admin (`manage_website`) `GET /admin/due-dates?fy=`, `GET /admin/due-dates/years`, POST/PATCH/DELETE.
+  - Admin **Due Dates** page (sidebar): FY picker, stats, category filter, search, "show past", month-grouped list, add/edit modal with "Deadline extended" (original date), applies-to checkboxes, show/hide, delete.
+  - Client back arrows now go to the **previous page** (`NavHistoryService`, registered via `provideAppInitializer`); nav-map `backTo` is only the fallback when there is no in-app history (deep link / reload). Sign-in pages are never a back target.
+  - Service request ticket view simplified (summary + 3 steps + "Explore more services" → /services); normal tickets show the full chat with reply box.
+
+- **Phase 18 (Oct 24 2026) — Fixed ITR year + family members — PUSHED TO MAIN Oct 24 2026 (auto-deploy)**:
+  - **ITR year rule** (`shared/constants/itr-year.ts`, used by admin + client; backend `currentAssessmentYear` agrees): returns are stored by AY but labelled by FY — AY 2026-27 → "ITR 25-26". The year being filed is the previous FY and rolls over on 1 April. Client ITR tab and upload page are fixed to that year (no dropdown); "My ITR returns" shows the current + 3 previous years ("Not available" when missing). Admin upload picker = last 4 years, labelled "ITR 25-26 (AY 2026-27)". Docs uploaded earlier as AY 2025-26 now correctly show as ITR 24-25.
+  - **Family members**: migration `1800000000006-FamilyMembers` — `family_members` (user_id, name, relation, pan), max 5 per account (+ holder); `itr_returns.family_member_id` and `documents.family_member_id` (null = holder, ON DELETE CASCADE). Old `UQ_itr_returns_user_ay` replaced by expression index `UQ_itr_returns_person_ay` (user, COALESCE(member, zero-uuid), AY).
+  - API: `/me/family-members` (client CRUD) and `/admin/clients/:id/family-members` (`view_clients`); ITR return confirm takes `family_member_id`; documents upload-url takes `family_member_id`, list filter `family_member_id=<id>|self`.
+  - Client: Profile → Family Members (add/edit/remove, PAN validated); ITR tab person switcher (Me + members + "Add family member" → `/profile?section=family`); upload passes `member`. Offline upload queue now stores category / AY / member (previously every queued file was retried as GST).
+  - Admin client page: Family Members card (add/edit/remove), ITR returns table with Person column, upload modal "For" picker. Fixed blank Filename column (API sends `filename`).
+
+- **Release checklist for Phases 16–18 (Oct 24 2026 push)**:
+  - Deploy runs migrations `1800000000004-ServiceCatalogue`, `-0005-DueDates`, `-0006-FamilyMembers` automatically (`release-on-server.sh` → `npm run migration:run`, ts-node from `src/`, so the seed files `services-offered/default-services.ts` and `due-dates/default-due-dates.ts` must stay in `src/`).
+  - After deploy, staff must set the firm's **Call / WhatsApp numbers** in Admin → Services (until then service pages show only "Request this service").
+  - CA to review the seeded service page drafts and the FY 2026-27 due dates; **revised-return due date** deliberately not seeded (sources conflict) — add it in Admin → Due Dates once confirmed.
+  - Android: `tel:` / `whatsapp:` link handling needs a new app release (web/PWA works immediately).
+  - Local CI dry-run before push: backend lint (0 errors) / 147 tests / build, admin prod build (`--base-href=/admin/`), client prod build, client 17 Karma tests, built API boots and `/health` OK.
+  - Deploy does NOT wait for CI (both trigger on push to main) — always run the CI steps locally before pushing.
 
 ## 6. Functional notes (implemented)
 

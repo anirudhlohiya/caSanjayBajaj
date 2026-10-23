@@ -55,6 +55,22 @@ export const routes: Routes = [
         loadComponent: () => import('./features/services/services').then((m) => m.ServicesPage),
       },
       {
+        path: 'due-dates',
+        canActivate: [permissionGuard('manage_website')],
+        loadComponent: () => import('./features/due-dates/due-dates').then((m) => m.DueDatesPage),
+      },
+      {
+        path: 'services/new',
+        canActivate: [permissionGuard('manage_website')],
+        data: { id: 'new' },
+        loadComponent: () => import('./features/services/service-editor').then((m) => m.ServiceEditorPage),
+      },
+      {
+        path: 'services/:id',
+        canActivate: [permissionGuard('manage_website')],
+        loadComponent: () => import('./features/services/service-editor').then((m) => m.ServiceEditorPage),
+      },
+      {
         path: 'tickets',
         canActivate: [permissionGuard('view_clients')],
         loadComponent: () => import('./features/tickets/tickets').then((m) => m.TicketsPage),

@@ -285,6 +285,78 @@
     </section>
   }
 
+  <!-- Family Members (ITR clients) -->
+  @if (showFamily()) {
+    <section id="family-members" class="card overflow-hidden scroll-mt-24">
+      <div class="border-b border-[#ebebeb] bg-[#fafafa] dark:bg-neutral-800 px-4 py-3 dark:border-neutral-800 flex items-center justify-between">
+        <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">Family Members</h2>
+        <span class="text-[11px] font-mono text-neutral-400 tabular-nums">{{ familyMembers().length }}/{{ maxFamilyMembers }}</span>
+      </div>
+      <p class="px-4 pt-3 text-xs text-neutral-500 dark:text-neutral-400">
+        Add family members to manage their ITR from your account: upload their documents and download their returns.
+      </p>
+      <ul class="divide-y divide-[#ebebeb] dark:divide-neutral-800">
+        @for (m of familyMembers(); track m.id) {
+          <li class="flex items-center gap-3 px-4 py-3">
+            <div class="size-9 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 flex items-center justify-center text-sm font-semibold shrink-0">
+              {{ m.name.charAt(0).toUpperCase() }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">{{ m.name }}</p>
+              <p class="text-[11px] text-neutral-500 dark:text-neutral-400">{{ relationLabel(m.relation) }} · <span class="font-mono">{{ m.pan || 'PAN not added' }}</span></p>
+            </div>
+            <button type="button" (click)="editMember(m)" class="size-8 rounded-full flex items-center justify-center text-neutral-500 hover:bg-[#fafafa] dark:hover:bg-neutral-800" aria-label="Edit">
+              <span class="material-symbols-outlined text-[18px]">edit</span>
+            </button>
+            <button type="button" (click)="removeMember(m)" class="size-8 rounded-full flex items-center justify-center text-neutral-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40" aria-label="Remove">
+              <span class="material-symbols-outlined text-[18px]">delete</span>
+            </button>
+          </li>
+        }
+      </ul>
+
+      @if (memberEditing()) {
+        <div class="m-4 mt-2 rounded-xl border border-[#ebebeb] dark:border-neutral-700 p-3 flex flex-col gap-3">
+          <p class="text-xs font-semibold text-neutral-900 dark:text-white">{{ memberEditing() === 'new' ? 'Add family member' : 'Edit family member' }}</p>
+          <input maxlength="120" placeholder="Full name as per PAN"
+            class="h-10 rounded-lg border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-sm text-neutral-900 dark:text-white outline-none focus:border-[#171717] dark:focus:border-white"
+            [ngModel]="memberForm().name" (ngModelChange)="setMemberField('name', $event)" />
+          <div class="grid grid-cols-2 gap-2">
+            <select class="h-10 rounded-lg border border-[#ebebeb] dark:border-neutral-700 bg-[#fafafa] dark:bg-neutral-800 px-3 text-sm text-neutral-900 dark:text-white outline-none"
+              [ngModel]="memberForm().relation" (ngModelChange)="setMemberField('relation', $event)" aria-label="Relation">
+              @for (r of relations; track r.key) {
+                <option [value]="r.key">{{ r.label }}</option>
+              }
+            </select>
+            <input maxlength="10" placeholder="PAN (optional)"
+              class="h-10 rounded-lg border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-sm font-mono uppercase text-neutral-900 dark:text-white outline-none focus:border-[#171717] dark:focus:border-white"
+              [ngModel]="memberForm().pan" (ngModelChange)="setMemberField('pan', $event)" />
+          </div>
+          @if (memberPanInvalid()) {
+            <p class="text-[11px] text-rose-600 dark:text-rose-400">PAN must look like ABCDE1234F</p>
+          }
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" (click)="memberEditing.set(null)" class="h-10 rounded-full border border-[#ebebeb] dark:border-neutral-700 text-sm font-medium text-neutral-700 dark:text-neutral-300">Cancel</button>
+            <button type="button" (click)="saveMember()" [disabled]="!memberForm().name.trim() || memberPanInvalid() || memberSaving()"
+              class="h-10 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-sm font-medium disabled:opacity-40">
+              {{ memberSaving() ? 'Saving…' : (memberEditing() === 'new' ? 'Add' : 'Save') }}
+            </button>
+          </div>
+        </div>
+      } @else if (familyMembers().length < maxFamilyMembers) {
+        <div class="p-4 pt-2">
+          <button type="button" (click)="editMember()"
+            class="w-full h-10 rounded-full border border-dashed border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 inline-flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px]">person_add</span>
+            Add family member
+          </button>
+        </div>
+      } @else {
+        <p class="px-4 pb-4 pt-2 text-[11px] text-neutral-500 dark:text-neutral-400">You've added the maximum of {{ maxFamilyMembers }} family members.</p>
+      }
+    </section>
+  }
+
   <!-- Your Documents -->
   <section class="card overflow-hidden">
     <div class="border-b border-[#ebebeb] bg-[#fafafa] dark:bg-neutral-800 px-4 py-3 dark:border-neutral-800">

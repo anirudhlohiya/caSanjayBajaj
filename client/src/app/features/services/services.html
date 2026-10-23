@@ -5,37 +5,53 @@
     <input
       type="text"
       placeholder="Find a service (e.g., GST, ITR, Audit)"
-      [(ngModel)]="searchQuery"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event)"
       class="w-full bg-surface-container border border-outline-variant rounded-xl py-3 pl-10 pr-4 text-sm text-primary placeholder:text-on-surface-variant focus:outline-none focus:border-outline focus:ring-1 focus:ring-outline"
     />
   </div>
 
-  <!-- Services List -->
-  <div class="flex flex-col gap-4">
-    @for (service of filteredServices; track service.id) {
-      <!-- Card -->
-      <div (click)="onServiceClick()" class="bg-surface rounded-2xl p-4 shadow-card cursor-pointer hover:bg-surface-container transition-colors border border-card-border">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center">
-            <span class="material-symbols-outlined text-[20px] text-primary">{{ service.icon }}</span>
+  @if (loading()) {
+    <app-spinner />
+  } @else if (failed()) {
+    <div class="rounded-2xl border border-card-border bg-surface-container-lowest">
+      <app-empty-state icon="cloud_off" title="Couldn't load services" message="Check your connection and try again." />
+      <div class="flex justify-center pb-6">
+        <button (click)="load()" class="rounded-full bg-surface-variant px-4 py-2 text-body-md font-semibold text-on-surface-variant">Retry</button>
+      </div>
+    </div>
+  } @else {
+    <!-- Services List -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      @for (service of filteredServices(); track service.id) {
+        <a [routerLink]="['/services', service.slug]" class="block bg-surface rounded-2xl p-4 shadow-card hover:bg-surface-container active:scale-[0.99] transition-all border border-card-border">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" [class]="tileClass(service.icon_color)">
+              <span class="material-symbols-outlined text-[20px]">{{ service.icon || 'home_repair_service' }}</span>
+            </div>
+            <h3 class="font-bold text-primary text-base flex-1 min-w-0">{{ service.title }}</h3>
+            <span class="material-symbols-outlined text-[20px] text-on-surface-variant">chevron_right</span>
           </div>
-          <h3 class="font-bold text-primary text-base">{{ service.title }}</h3>
-        </div>
-        <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
-          {{ service.description }}
-        </p>
-        <div class="flex flex-wrap gap-2">
-          @for (tag of service.tags; track tag) {
-            <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">{{ tag }}</span>
-          }
-        </div>
-      </div>
-    }
+          <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
+            {{ service.description }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            @for (tag of service.tags; track tag) {
+              <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">{{ tag }}</span>
+            }
+          </div>
+        </a>
+      }
+    </div>
 
-    @if (filteredServices.length === 0) {
+    @if (filteredServices().length === 0) {
       <div class="text-center py-8 text-on-surface-variant">
-        No services found for "{{ searchQuery }}".
+        @if (searchQuery()) {
+          No services found for "{{ searchQuery() }}".
+        } @else {
+          No services available right now.
+        }
       </div>
     }
-  </div>
+  }
 </div>

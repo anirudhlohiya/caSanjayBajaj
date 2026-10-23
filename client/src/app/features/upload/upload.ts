@@ -9,11 +9,18 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
-import { PeriodsService } from '../../core/services/feature.services';
+import {
+  FamilyMembersService,
+  PeriodsService,
+} from '../../core/services/feature.services';
 import { UploadService } from '../../core/services/upload.service';
 import { UploadQueueService, QueuedUpload } from '../../core/services/upload-queue.service';
 import { DocumentCategory, GstFilingPeriod } from '../../core/models';
 import { PageHeader } from '../../shared/components/page-header';
+import {
+  currentAssessmentYear,
+  itrYearLabel,
+} from '../../../../../shared/constants/itr-year';
 
 interface UploadItem {
   id: string;
@@ -38,10 +45,15 @@ export class Upload {
   private readonly periodsService = inject(PeriodsService);
   private readonly upload = inject(UploadService);
   private readonly queue = inject(UploadQueueService);
+  private readonly familyMembers = inject(FamilyMembersService);
 
   readonly category = signal<DocumentCategory>('gst');
-  readonly assessmentYear = signal<string>('2025-26');
-  readonly assessmentYears = ['2025-26', '2024-25', '2023-24', '2022-23'];
+  /** ITR uploads always go to the year being filed now (rolls over on 1 April). */
+  readonly assessmentYear = currentAssessmentYear();
+  readonly itrYearLabel = itrYearLabel;
+  /** ITR only: family member the documents are for (null = the account holder). */
+  readonly memberId = signal<string | null>(null);
+  readonly memberName = signal<string | null>(null);
 
   readonly periods = signal<GstFilingPeriod[]>([]);
   readonly selectedPeriodId = signal<string>('');
@@ -103,9 +115,17 @@ export class Upload {
     if (qCategory === 'itr' || qCategory === 'general' || qCategory === 'gst') {
       this.category.set(qCategory);
     }
-    const qAy = this.route.snapshot.queryParamMap.get('ay');
-    if (qAy) {
-      this.assessmentYear.set(qAy);
+    const qMember = this.route.snapshot.queryParamMap.get('member');
+    if (this.category() === 'itr' && qMember) {
+      try {
+        const member = (await this.familyMembers.list()).find((m) => m.id === qMember);
+        if (member) {
+          this.memberId.set(member.id);
+          this.memberName.set(member.name);
+        }
+      } catch {
+        /* falls back to the account holder */
+      }
     }
     const qPeriod = this.route.snapshot.queryParamMap.get('period');
 
@@ -186,7 +206,9 @@ export class Upload {
           {
             periodId: this.category() === 'gst' ? this.selectedPeriodId() : undefined,
             category: this.category(),
-            assessmentYear: this.category() === 'itr' ? this.assessmentYear() : undefined,
+            assessmentYear: this.category() === 'itr' ? this.assessmentYear : undefined,
+            familyMemberId:
+              this.category() === 'itr' ? (this.memberId() ?? undefined) : undefined,
           },
           (percent) => this.setProgress(item.id, percent),
         );

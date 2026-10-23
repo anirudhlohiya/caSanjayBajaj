@@ -12,6 +12,7 @@ import {
   ReportRequestsService,
   ServiceRequestsAdminService,
   ItrReturnsAdminService,
+  FamilyMembersAdminService,
 } from '../../core/services/feature.services';
 import { UploadService } from '../../core/services/upload.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -21,6 +22,7 @@ import {
   ClientCertificate,
   Document,
   FilingPeriod,
+  FamilyMember,
   ItrReturn,
   Report,
   ReportRequest,
@@ -35,6 +37,13 @@ import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
 import { INDUSTRIES } from '../../../../../shared/constants/industries';
 import { isValidGstin, isValidPan } from '../../../../../shared/constants/tax-validation';
+import {
+  FAMILY_RELATIONS,
+  MAX_FAMILY_MEMBERS,
+  currentAssessmentYear,
+  itrYearLabel,
+  recentAssessmentYears,
+} from '../../../../../shared/constants/itr-year';
 
 @Component({
   selector: 'app-client-detail',
@@ -64,12 +73,24 @@ export class ClientDetail implements OnInit {
   private readonly reportReqsService = inject(ReportRequestsService);
   private readonly serviceRequestsAdmin = inject(ServiceRequestsAdminService);
   private readonly itrReturnsAdmin = inject(ItrReturnsAdminService);
+  private readonly familyAdmin = inject(FamilyMembersAdminService);
   private readonly upload = inject(UploadService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
 
   readonly industries = INDUSTRIES;
-  readonly assessmentYears = ['2025-26', '2024-25', '2023-24', '2022-23'];
+  /** Current ITR year and the three before it (rolls over on 1 April). */
+  readonly assessmentYears = recentAssessmentYears(4);
+  readonly itrYearLabel = itrYearLabel;
+
+  // --- Family members ---
+  readonly familyMembers = signal<FamilyMember[]>([]);
+  readonly relations = FAMILY_RELATIONS;
+  readonly maxFamilyMembers = MAX_FAMILY_MEMBERS;
+  readonly showMemberModal = signal(false);
+  readonly memberSaving = signal(false);
+  readonly editingMemberId = signal<string | null>(null);
+  readonly memberForm = signal({ name: '', relation: 'spouse', pan: '' });
 
   readonly loading = signal(true);
   readonly client = signal<Client | null>(null);
@@ -139,7 +160,9 @@ export class ClientDetail implements OnInit {
   });
 
   readonly itrReturnForm = this.fb.group({
-    assessment_year: ['2025-26', Validators.required],
+    assessment_year: [currentAssessmentYear(), Validators.required],
+    /** '' = the account holder */
+    family_member_id: [''],
     file: [null as File | null, Validators.required],
   });
 
@@ -179,6 +202,7 @@ export class ClientDetail implements OnInit {
         this.serviceRequestsAdmin.listPending().catch(() => []),
         this.itrReturnsAdmin.listForClient(this.id()).catch(() => []),
       ]);
+      this.familyMembers.set(await this.familyAdmin.list(this.id()).catch(() => []));
 
       this.client.set(client);
       this.selectedTypeToChange.set(client.user_type);
@@ -328,7 +352,8 @@ export class ClientDetail implements OnInit {
 
   openItrUpload(): void {
     this.itrReturnForm.reset({
-      assessment_year: '2025-26',
+      assessment_year: currentAssessmentYear(),
+      family_member_id: '',
       file: null,
     });
     this.showItrUploadModal.set(true);
@@ -360,6 +385,7 @@ export class ClientDetail implements OnInit {
     }
     const file = form.controls.file.value;
     const ay = form.controls.assessment_year.value;
+    const memberId = form.controls.family_member_id.value || undefined;
     if (!file || !ay) return;
 
     this.itrUploadLoading.set(true);
@@ -372,11 +398,12 @@ export class ClientDetail implements OnInit {
       await this.upload.upload(res.upload_url, file, 'application/pdf');
       await this.itrReturnsAdmin.confirm(this.id(), {
         assessment_year: ay,
+        family_member_id: memberId,
         s3_key: res.s3_key,
         filename: file.name,
         size: file.size,
       });
-      this.toast.success(`ITR return for AY ${ay} uploaded`);
+      this.toast.success(`${itrYearLabel(ay)} return uploaded for ${this.personName(memberId ?? null)}`);
       this.showItrUploadModal.set(false);
       const returns = await this.itrReturnsAdmin.listForClient(this.id());
       this.itrReturns.set(returns);
@@ -385,6 +412,81 @@ export class ClientDetail implements OnInit {
     } finally {
       this.itrUploadLoading.set(false);
     }
+  }
+
+  /** Returns sorted holder first, then members, newest year first. */
+  sortedItrReturns(): ItrReturn[] {
+    const order = new Map(this.familyMembers().map((m, i) => [m.id, i + 1]));
+    return [...this.itrReturns()].sort(
+      (a, b) =>
+        (order.get(a.family_member_id ?? '') ?? 0) - (order.get(b.family_member_id ?? '') ?? 0) ||
+        b.assessment_year.localeCompare(a.assessment_year),
+    );
+  }
+
+  personName(memberId: string | null): string {
+    if (!memberId) return this.client()?.name ?? 'Account holder';
+    return this.familyMembers().find((m) => m.id === memberId)?.name ?? 'Family member';
+  }
+
+  relationLabel(key: string): string {
+    return FAMILY_RELATIONS.find((r) => r.key === key)?.label ?? key;
+  }
+
+  // --- Family members ---
+
+  openMemberModal(member?: FamilyMember): void {
+    this.editingMemberId.set(member?.id ?? null);
+    this.memberForm.set({
+      name: member?.name ?? '',
+      relation: member?.relation ?? 'spouse',
+      pan: member?.pan ?? '',
+    });
+    this.showMemberModal.set(true);
+  }
+
+  setMemberField(key: 'name' | 'relation' | 'pan', value: string): void {
+    this.memberForm.update((f) => ({ ...f, [key]: key === 'pan' ? value.toUpperCase() : value }));
+  }
+
+  memberPanInvalid(): boolean {
+    const pan = this.memberForm().pan.trim();
+    return !!pan && !isValidPan(pan);
+  }
+
+  async saveMember(): Promise<void> {
+    const f = this.memberForm();
+    if (!f.name.trim() || this.memberPanInvalid() || this.memberSaving()) return;
+    this.memberSaving.set(true);
+    try {
+      const body = { name: f.name.trim(), relation: f.relation, pan: f.pan.trim() };
+      const id = this.editingMemberId();
+      if (id) {
+        await this.familyAdmin.update(this.id(), id, body);
+        this.toast.success('Family member updated');
+      } else {
+        await this.familyAdmin.create(this.id(), body);
+        this.toast.success('Family member added');
+      }
+      this.familyMembers.set(await this.familyAdmin.list(this.id()));
+      this.showMemberModal.set(false);
+    } catch (e: any) {
+      this.toast.error(e?.error?.message ?? 'Could not save family member');
+    } finally {
+      this.memberSaving.set(false);
+    }
+  }
+
+  async removeMember(member: FamilyMember): Promise<void> {
+    const count = this.itrReturns().filter((r) => r.family_member_id === member.id).length;
+    const extra = count
+      ? ` Their ${count} ITR return${count > 1 ? 's' : ''} and uploaded documents will also be deleted.`
+      : ' Their uploaded documents will also be deleted.';
+    if (!confirm(`Remove ${member.name}?${extra}`)) return;
+    await this.familyAdmin.remove(this.id(), member.id);
+    this.familyMembers.update((list) => list.filter((m) => m.id !== member.id));
+    this.itrReturns.update((list) => list.filter((r) => r.family_member_id !== member.id));
+    this.toast.success(`${member.name} removed`);
   }
 
   downloadItrReturn(ret: ItrReturn): void {

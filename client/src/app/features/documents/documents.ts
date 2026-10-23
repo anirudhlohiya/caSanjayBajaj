@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
 import {
@@ -18,15 +18,25 @@ import {
   ReportRequestsService,
   ReportsService,
   ItrReturnsService,
+  FamilyMembersService,
 } from '../../core/services/feature.services';
 import {
   Document,
   DocumentCategory,
   GstFilingPeriod,
+  FamilyMember,
   ItrReturn,
   REPORT_TYPE_LABELS,
   Report,
 } from '../../core/models';
+
+import {
+  FAMILY_RELATIONS,
+  MAX_FAMILY_MEMBERS,
+  currentAssessmentYear,
+  itrYearLabel,
+  recentAssessmentYears,
+} from '../../../../../shared/constants/itr-year';
 
 export interface TabOption {
   id: 'gst' | 'itr' | 'general';
@@ -40,7 +50,7 @@ const NIL_CATEGORIES = ['gstr_1', 'iff'];
 @Component({
   selector: 'app-documents',
   standalone: true,
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './documents.html',
 })
@@ -51,6 +61,7 @@ export class Documents {
   private readonly reportReqsService = inject(ReportRequestsService);
   private readonly reportsService = inject(ReportsService);
   private readonly itrReturnsService = inject(ItrReturnsService);
+  private readonly familyMembersService = inject(FamilyMembersService);
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -79,8 +90,35 @@ export class Documents {
   readonly tasks = signal<ComplianceTask[]>([]);
   readonly reports = signal<Report[]>([]);
   readonly itrReturns = signal<ItrReturn[]>([]);
-  readonly selectedAy = signal<string>('2025-26');
-  readonly assessmentYears = ['2025-26', '2024-25', '2023-24', '2022-23'];
+  /** The ITR year being filed now (previous FY); rolls over on 1 April. */
+  readonly currentAy = currentAssessmentYear();
+  /** Returns are shown for the current year and the three before it. */
+  readonly recentAys = recentAssessmentYears(4);
+  readonly itrYearLabel = itrYearLabel;
+
+  /** Family members on this account; the ITR tab switches between people. */
+  readonly members = signal<FamilyMember[]>([]);
+  readonly maxMembers = MAX_FAMILY_MEMBERS;
+  /** 'self' = the account holder, otherwise a family member id. */
+  readonly selectedPerson = signal<string>('self');
+
+  readonly selectedPersonName = computed(() => {
+    const id = this.selectedPerson();
+    if (id === 'self') return 'You';
+    return this.members().find((m) => m.id === id)?.name ?? 'Family member';
+  });
+
+  /** One row per recent year for the selected person, with the return if filed. */
+  readonly personReturns = computed(() => {
+    const person = this.selectedPerson();
+    return this.recentAys.map((ay) => ({
+      ay,
+      ret:
+        this.itrReturns().find(
+          (r) => r.assessment_year === ay && (r.family_member_id ?? 'self') === person,
+        ) ?? null,
+    }));
+  });
   readonly downloading = signal(false);
   readonly page = signal(1);
   readonly pageSize = 20;
@@ -184,10 +222,15 @@ export class Documents {
     await this.load();
   }
 
-  async setAssessmentYear(ay: string): Promise<void> {
-    this.selectedAy.set(ay);
+  async selectPerson(id: string): Promise<void> {
+    if (this.selectedPerson() === id) return;
+    this.selectedPerson.set(id);
     this.page.set(1);
     await this.load();
+  }
+
+  relationLabel(key: string): string {
+    return FAMILY_RELATIONS.find((r) => r.key === key)?.label ?? key;
   }
 
   async load(): Promise<void> {
@@ -215,17 +258,26 @@ export class Documents {
         this.docs.set(docsRes.items);
         this.total.set(docsRes.total);
       } else if (tab === 'itr') {
-        const [returnsRes, docsRes] = await Promise.all([
+        const [returnsRes, docsRes, members] = await Promise.all([
           this.itrReturnsService.listMine().catch(() => []),
           this.documentsService.list({
             category: 'itr',
-            assessmentYear: this.selectedAy(),
+            assessmentYear: this.currentAy,
+            familyMemberId: this.selectedPerson(),
             status: this.filter() || undefined,
             page: this.page(),
             pageSize: this.pageSize,
           }),
+          this.familyMembersService.list().catch(() => [] as FamilyMember[]),
         ]);
         this.itrReturns.set(returnsRes);
+        this.members.set(members);
+        if (
+          this.selectedPerson() !== 'self' &&
+          !members.some((m) => m.id === this.selectedPerson())
+        ) {
+          this.selectedPerson.set('self');
+        }
         this.docs.set(docsRes.items);
         this.total.set(docsRes.total);
         this.tasks.set([]);
@@ -282,7 +334,11 @@ export class Documents {
       queryParams: {
         category: this.activeTab(),
         period: this.activeTab() === 'gst' ? this.periodId() : undefined,
-        ay: this.activeTab() === 'itr' ? this.selectedAy() : undefined,
+        ay: this.activeTab() === 'itr' ? this.currentAy : undefined,
+        member:
+          this.activeTab() === 'itr' && this.selectedPerson() !== 'self'
+            ? this.selectedPerson()
+            : undefined,
       },
     });
   }

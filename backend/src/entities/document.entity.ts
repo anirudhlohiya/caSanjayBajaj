@@ -14,6 +14,7 @@ import {
 } from '../common/enums';
 import { GstFilingPeriod } from './gst-filing-period.entity';
 import { User } from './user.entity';
+import { FamilyMember } from './family-member.entity';
 
 @Entity('documents')
 @Index(['user_id', 'filing_period_id'])
@@ -36,6 +37,10 @@ export class Document {
 
   @Column({ type: 'uuid', nullable: true })
   filing_period_id: string | null;
+
+  /** ITR documents only: null = the account holder, else the family member. */
+  @Column({ type: 'uuid', nullable: true })
+  family_member_id: string | null;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   assessment_year: string | null;
@@ -69,6 +74,10 @@ export class Document {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @ManyToOne(() => FamilyMember, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'family_member_id' })
+  family_member: FamilyMember | null;
 
   @ManyToOne(() => GstFilingPeriod, { nullable: true })
   @JoinColumn({ name: 'filing_period_id' })

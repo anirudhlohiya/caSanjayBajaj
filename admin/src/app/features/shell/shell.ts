@@ -34,6 +34,7 @@ export class Shell {
     { label: 'Staff', route: '/staff', icon: 'badge', show: () => this.auth.isSuperAdmin() },
     { label: 'Website', route: '/website', icon: 'language', show: () => this.auth.hasPermission('manage_website') },
     { label: 'Services', route: '/services', icon: 'home_repair_service', show: () => this.auth.hasPermission('manage_website') },
+    { label: 'Due Dates', route: '/due-dates', icon: 'event', show: () => this.auth.hasPermission('manage_website') },
     { label: 'Tickets', route: '/tickets', icon: 'support_agent', show: () => this.auth.hasPermission('view_clients') },
     { label: 'WhatsApp Chats', route: '/whatsapp-chats', icon: 'chat', show: () => this.auth.hasPermission('view_clients') },
     { label: 'Audit Logs', route: '/audit', icon: 'history', show: () => this.auth.hasPermission('view_audit_logs') },

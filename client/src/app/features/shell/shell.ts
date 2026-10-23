@@ -18,6 +18,7 @@ import { Subscription, filter } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationsService } from '../../core/services/feature.services';
 import { NavEntry, resolveNav } from '../../core/services/nav-map';
+import { NavHistoryService } from '../../core/services/nav-history.service';
 import { PushService } from '../../core/services/push.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { UploadQueueService } from '../../core/services/upload-queue.service';
@@ -47,6 +48,7 @@ export class Shell implements OnInit, OnDestroy {
   }));
 
   private readonly navSub = new Subscription();
+  private readonly navHistory = inject(NavHistoryService);
 
   // Inject ThemeService to initialize theming on shell load
   private readonly themeService = inject(ThemeService);
@@ -111,15 +113,9 @@ export class Shell implements OnInit, OnDestroy {
     this.navSub.unsubscribe();
   }
 
-  /**
-   * Back action for the top bar. Always `replaceUrl` so the parent is not left
-   * in the history stack twice — otherwise the browser (or the Android WebView's
-   * own back handling) would return the user here on the next back press.
-   */
+  /** Back action for the top bar: the previous page, else the logical parent. */
   goBack(): void {
-    const parent = this.navEntry().backTo;
-    if (!parent) return;
-    void this.router.navigateByUrl(parent, { replaceUrl: true });
+    this.navHistory.back();
   }
 
   firstName(): string {

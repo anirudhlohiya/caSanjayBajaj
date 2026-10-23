@@ -1,8 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsIn,
   IsNumber,
+  IsOptional,
   IsString,
+  IsUUID,
   Length,
   Matches,
   Max,
@@ -39,6 +41,13 @@ export class ConfirmItrReturnDto {
     message: 'assessment_year must be in YYYY-YY format, e.g. 2025-26',
   })
   assessment_year: string;
+
+  @ApiPropertyOptional({
+    description: 'Family member the return is for; omit for the account holder',
+  })
+  @IsOptional()
+  @IsUUID()
+  family_member_id?: string;
 
   @ApiProperty()
   @IsString()

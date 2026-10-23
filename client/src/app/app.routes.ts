@@ -81,6 +81,18 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/services/services').then((m) => m.Services),
       },
+      {
+        path: 'due-dates',
+        loadComponent: () =>
+          import('./features/due-dates/due-dates').then((m) => m.DueDates),
+      },
+      {
+        path: 'services/:slug',
+        loadComponent: () =>
+          import('./features/services/service-detail').then(
+            (m) => m.ServiceDetailPage,
+          ),
+      },
 
       {
         path: 'support',

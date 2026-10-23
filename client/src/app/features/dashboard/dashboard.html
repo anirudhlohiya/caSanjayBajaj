@@ -102,7 +102,7 @@
 
   <!-- Quick Actions -->
   <section class="grid grid-cols-4 gap-2 mb-8">
-    <button class="flex flex-col items-center gap-2 text-center group cursor-pointer">
+    <button routerLink="/due-dates" class="flex flex-col items-center gap-2 text-center group cursor-pointer">
       <div
         class="w-14 h-14 rounded-2xl bg-surface border border-card-border shadow-sm flex items-center justify-center group-hover:bg-surface-container transition-colors">
         <span class="material-symbols-outlined text-[24px] text-primary">calendar_month</span>
@@ -162,107 +162,29 @@
     </div>
 
     <div class="grid grid-cols-2 gap-4">
-      <!-- Service 1 -->
-      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined text-[20px] text-primary">receipt_long</span>
-        </div>
-        <h4 class="font-semibold text-primary mb-1">GST Services</h4>
-        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-          GST Registration, Return Filing, Refund & more
-        </p>
-        <div class="mt-4 flex justify-end">
-          <button
-            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Service 2 -->
-      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined text-[20px] text-primary">account_balance_wallet</span>
-        </div>
-        <h4 class="font-semibold text-primary mb-1">Income Tax</h4>
-        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-          ITR Filing, Tax Planning, TDS & more
-        </p>
-        <div class="mt-4 flex justify-end">
-          <button
-            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Service 3 -->
-      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined text-[20px] text-primary">trending_up</span>
-        </div>
-        <h4 class="font-semibold text-primary mb-1">Mutual Fund</h4>
-        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-          SIP, Lump Sum, Goal Planning & more
-        </p>
-        <div class="mt-4 flex justify-end">
-          <button
-            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Service 4 -->
-      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined text-[20px] text-primary">real_estate_agent</span>
-        </div>
-        <h4 class="font-semibold text-primary mb-1">Loan Services</h4>
-        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-          Home Loan, Personal Loan, Business Loan
-        </p>
-        <div class="mt-4 flex justify-end">
-          <button
-            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Service 5 -->
-      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined text-[20px] text-primary">health_and_safety</span>
-        </div>
-        <h4 class="font-semibold text-primary mb-1">Insurance</h4>
-        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-          Life, Health, General Insurance
-        </p>
-        <div class="mt-4 flex justify-end">
-          <button
-            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Service 6 -->
-      <div class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card">
-        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined text-[20px] text-primary">pie_chart</span>
-        </div>
-        <h4 class="font-semibold text-primary mb-1">Financial Planning</h4>
-        <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow">
-          Wealth Creation, Retirement Planning & more
-        </p>
-        <div class="mt-4 flex justify-end">
-          <button
-            class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
-          </button>
-        </div>
-      </div>
+      @for (service of homeServices(); track service.id) {
+        <a [routerLink]="['/services', service.slug]"
+          class="bg-surface border border-card-border rounded-2xl p-4 flex flex-col shadow-card hover:bg-surface-container active:scale-[0.98] transition-all">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" [class]="tileClass(service.icon_color)">
+            <span class="material-symbols-outlined text-[20px]">{{ service.icon || 'home_repair_service' }}</span>
+          </div>
+          <h4 class="font-semibold text-primary mb-1">{{ service.title }}</h4>
+          <p class="text-[10px] text-on-surface-variant leading-relaxed flex-grow line-clamp-2">
+            {{ service.tags.length ? service.tags.join(', ') + ' & more' : service.description }}
+          </p>
+          <div class="mt-4 flex justify-end">
+            <span class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center">
+              <span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
+            </span>
+          </div>
+        </a>
+      } @empty {
+        @if (servicesLoading()) {
+          @for (i of [1, 2, 3, 4]; track i) {
+            <div class="h-[150px] rounded-2xl border border-card-border bg-surface-container animate-pulse"></div>
+          }
+        }
+      }
     </div>
   </section>
 

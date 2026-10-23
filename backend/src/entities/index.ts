@@ -17,6 +17,9 @@ import { ReportNotification } from './report-notification.entity';
 import { ReportRequest } from './report-request.entity';
 import { ReportShareLink } from './report-share-link.entity';
 import { Service } from './service.entity';
+import { AppSetting } from './app-setting.entity';
+import { DueDate } from './due-date.entity';
+import { FamilyMember } from './family-member.entity';
 import { Ticket } from './ticket.entity';
 import { TicketMessage } from './ticket-message.entity';
 import { TicketAttachment } from './ticket-attachment.entity';
@@ -49,6 +52,9 @@ export const entities = [
   Lead,
   ClientPreRegistration,
   Service,
+  AppSetting,
+  DueDate,
+  FamilyMember,
   Ticket,
   TicketMessage,
   TicketAttachment,
@@ -82,6 +88,9 @@ export {
   ReportRequest,
   ReportShareLink,
   Service,
+  AppSetting,
+  DueDate,
+  FamilyMember,
   ServiceRequest,
   Ticket,
   TicketMessage,

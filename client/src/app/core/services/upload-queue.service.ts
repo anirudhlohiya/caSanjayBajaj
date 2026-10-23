@@ -3,6 +3,10 @@ import { Injectable } from '@angular/core';
 export interface QueuedUpload {
   id: string;
   periodId: string;
+  /** Absent on items queued by older app versions (those were always GST). */
+  category?: 'gst' | 'itr' | 'general';
+  assessmentYear?: string;
+  familyMemberId?: string;
   filename: string;
   contentType: string;
   fileType: 'pdf' | 'image' | 'excel';

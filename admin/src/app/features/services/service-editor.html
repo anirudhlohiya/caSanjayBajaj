@@ -1,0 +1,266 @@
+@if (loading()) {
+  <app-spinner />
+} @else {
+  <!-- Header -->
+  <div class="flex flex-wrap items-center gap-3 mb-6">
+    <a routerLink="/services" class="btn-icon" title="Back to services">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+    <div class="size-10 rounded-xl flex items-center justify-center shrink-0" [class]="tileClass(draft().icon_color)">
+      <span class="material-symbols-outlined text-[22px]">{{ draft().icon || 'home_repair_service' }}</span>
+    </div>
+    <div class="min-w-0 flex-1">
+      <h1 class="font-headline-md text-headline-md font-bold text-on-surface dark:text-white truncate">
+        {{ draft().title || (isNew() ? 'New service' : 'Untitled service') }}
+      </h1>
+      <p class="text-xs text-on-surface-variant dark:text-neutral-400">
+        @if (isNew()) {
+          Fill in the card details and write the page clients will read.
+        } @else {
+          Shown in the app at <span class="font-mono">/services/{{ existing()?.slug }}</span>
+        }
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      @if (dirty()) {
+        <span class="hidden sm:inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400">
+          <span class="size-1.5 rounded-full bg-amber-500"></span> Unsaved changes
+        </span>
+        <button class="btn-outline" (click)="discard()">{{ isNew() ? 'Cancel' : 'Discard' }}</button>
+      }
+      <button class="btn-primary" [disabled]="!canSave() || saving() || (!dirty() && !isNew())" (click)="save()">
+        <span class="material-symbols-outlined" style="font-size: 18px">save</span>
+        {{ saving() ? 'Saving…' : (isNew() ? 'Create service' : 'Save') }}
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-6 items-start">
+    <!-- Left: card details -->
+    <div class="flex flex-col gap-4">
+      <div class="card p-5 flex flex-col gap-4 dark:bg-neutral-900 dark:border-neutral-800">
+        <h2 class="text-sm font-semibold text-on-surface dark:text-white">Card details</h2>
+
+        <div>
+          <label class="label" for="f-title">Title</label>
+          <input id="f-title" class="input" maxlength="200" placeholder="e.g. GST Services"
+            [ngModel]="draft().title" (ngModelChange)="set('title', $event)" />
+        </div>
+
+        <div>
+          <div class="flex items-baseline justify-between">
+            <label class="label" for="f-desc">Short description</label>
+            <span class="text-[11px] tabular-nums text-on-surface-variant">{{ draft().description.length }}/500</span>
+          </div>
+          <textarea id="f-desc" class="input resize-none" rows="3" maxlength="500"
+            placeholder="One or two lines shown on the service card"
+            [ngModel]="draft().description" (ngModelChange)="set('description', $event)"></textarea>
+        </div>
+
+        <div>
+          <label class="label" for="f-tags">Tags</label>
+          <div class="input flex flex-wrap items-center gap-1.5 !py-1.5 min-h-[40px]">
+            @for (tag of draft().tags; track tag) {
+              <span class="inline-flex items-center gap-1 rounded-md bg-surface-container dark:bg-neutral-800 px-2 py-0.5 text-xs text-on-surface dark:text-neutral-200">
+                {{ tag }}
+                <button type="button" class="text-on-surface-variant hover:text-on-surface" [attr.aria-label]="'Remove ' + tag" (click)="removeTag(tag)">
+                  <span class="material-symbols-outlined text-[14px] leading-none">close</span>
+                </button>
+              </span>
+            }
+            <input id="f-tags" class="flex-1 min-w-[90px] bg-transparent text-sm outline-none py-0.5"
+              [placeholder]="draft().tags.length ? '' : 'Registration, Return Filing…'"
+              [ngModel]="tagInput()" (ngModelChange)="tagInput.set($event)"
+              (keydown)="onTagKey($event)" (blur)="addTag()" />
+          </div>
+          <p class="text-[11px] text-on-surface-variant mt-1">Press Enter or comma to add. Shown as chips on the card.</p>
+        </div>
+
+        <div>
+          <label class="label" for="f-price">Price <span class="normal-case tracking-normal font-normal">(optional)</span></label>
+          <input id="f-price" class="input" maxlength="100" placeholder="e.g. Starting at ₹999/month"
+            [ngModel]="draft().price" (ngModelChange)="set('price', $event)" />
+        </div>
+
+        <label class="flex items-center justify-between gap-3 rounded-lg border border-outline-variant dark:border-neutral-700 px-3 py-2.5 cursor-pointer">
+          <span>
+            <span class="block text-sm font-medium text-on-surface dark:text-white">Visible to clients</span>
+            <span class="block text-xs text-on-surface-variant dark:text-neutral-400">Hidden services don't appear in the app</span>
+          </span>
+          <input type="checkbox" class="sr-only peer" [ngModel]="draft().is_active" (ngModelChange)="set('is_active', $event)" />
+          <span class="relative h-5 w-9 shrink-0 rounded-full bg-neutral-300 dark:bg-neutral-600 transition-colors peer-checked:bg-emerald-500
+            after:absolute after:left-0.5 after:top-0.5 after:size-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-4"></span>
+        </label>
+      </div>
+
+      <!-- Appearance -->
+      <div class="card p-5 flex flex-col gap-4 dark:bg-neutral-900 dark:border-neutral-800">
+        <h2 class="text-sm font-semibold text-on-surface dark:text-white">Logo</h2>
+        <div class="flex items-center gap-3">
+          <div class="size-14 rounded-2xl flex items-center justify-center shrink-0" [class]="tileClass(draft().icon_color)">
+            <span class="material-symbols-outlined text-[28px]">{{ draft().icon || 'home_repair_service' }}</span>
+          </div>
+          <div class="flex-1">
+            <button class="btn-outline w-full" (click)="showIconPicker.set(!showIconPicker())">
+              <span class="material-symbols-outlined" style="font-size: 18px">apps</span>
+              {{ showIconPicker() ? 'Close icons' : 'Change icon' }}
+            </button>
+          </div>
+        </div>
+
+        @if (showIconPicker()) {
+          <div class="rounded-lg border border-outline-variant dark:border-neutral-700 p-3">
+            <input class="input mb-3" placeholder="Search icons (e.g. tax, home)"
+              [ngModel]="iconSearch()" (ngModelChange)="iconSearch.set($event)" />
+            <div class="grid grid-cols-7 gap-1 max-h-56 overflow-y-auto">
+              @for (icon of icons(); track icon) {
+                <button type="button" [title]="icon" (click)="pickIcon(icon)"
+                  class="aspect-square rounded-md flex items-center justify-center transition-colors"
+                  [class]="icon === draft().icon
+                    ? 'bg-primary text-on-primary dark:bg-white dark:text-neutral-900'
+                    : 'text-on-surface-variant dark:text-neutral-300 hover:bg-surface-container dark:hover:bg-neutral-800'">
+                  <span class="material-symbols-outlined text-[20px]">{{ icon }}</span>
+                </button>
+              } @empty {
+                <p class="col-span-7 text-xs text-on-surface-variant py-2">
+                  No match. Any <a class="underline" href="https://fonts.google.com/icons" target="_blank" rel="noopener">Material Symbols</a> name works:
+                </p>
+                <button type="button" class="col-span-7 btn-outline" (click)="pickIcon(iconSearch().trim().toLowerCase().replace(' ', '_'))">
+                  Use "{{ iconSearch().trim().toLowerCase().replace(' ', '_') }}"
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <div>
+          <span class="label">Colour</span>
+          <div class="flex flex-wrap gap-2">
+            @for (key of colorKeys; track key) {
+              <button type="button" [title]="key" (click)="set('icon_color', key)"
+                class="size-7 rounded-full ring-offset-2 ring-offset-white dark:ring-offset-neutral-900 transition-all"
+                [class]="colors[key].swatch + (draft().icon_color === key ? ' ring-2 ring-neutral-900 dark:ring-white' : ' hover:scale-110')">
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced -->
+      <div class="card dark:bg-neutral-900 dark:border-neutral-800">
+        <button class="w-full flex items-center justify-between p-5 text-sm font-semibold text-on-surface dark:text-white" (click)="showAdvanced.set(!showAdvanced())">
+          Advanced
+          <span class="material-symbols-outlined text-[20px] transition-transform" [class.rotate-180]="showAdvanced()">expand_more</span>
+        </button>
+        @if (showAdvanced()) {
+          <div class="px-5 pb-5 flex flex-col gap-4">
+            <div>
+              <label class="label" for="f-slug">Page URL</label>
+              <div class="flex items-center rounded-md border border-outline-variant dark:border-neutral-700 overflow-hidden">
+                <span class="px-2.5 py-2 text-xs font-mono bg-surface-container-low dark:bg-neutral-800 text-on-surface-variant border-r border-outline-variant dark:border-neutral-700">/services/</span>
+                <input id="f-slug" class="flex-1 min-w-0 bg-transparent px-2.5 py-2 text-sm font-mono outline-none text-on-surface dark:text-white"
+                  [placeholder]="isNew() ? 'auto from title' : ''"
+                  [ngModel]="draft().slug" (ngModelChange)="set('slug', $event.toLowerCase())" />
+              </div>
+              <p class="text-[11px] text-on-surface-variant mt-1">Lowercase letters, numbers and dashes. Changing it breaks old shared links.</p>
+            </div>
+            <div>
+              <label class="label" for="f-phone">Contact number for this service</label>
+              <input id="f-phone" class="input" inputmode="tel" placeholder="Uses the firm-wide number"
+                [ngModel]="draft().contact_phone" (ngModelChange)="set('contact_phone', $event)" />
+              <p class="text-[11px] text-on-surface-variant mt-1">Overrides both the Call and WhatsApp buttons on this page only.</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Right: page content -->
+    <div class="card overflow-hidden dark:bg-neutral-900 dark:border-neutral-800 xl:sticky xl:top-4">
+      <div class="flex flex-wrap items-center gap-2 border-b border-outline-variant dark:border-neutral-800 px-3 py-2">
+        <h2 class="text-sm font-semibold text-on-surface dark:text-white pl-1 mr-auto flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[18px]">article</span>
+          Page content
+          <span class="text-[11px] font-normal text-on-surface-variant tabular-nums">· {{ wordCount() }} words · Markdown</span>
+        </h2>
+        <div class="inline-flex rounded-lg border border-outline-variant dark:border-neutral-700 p-0.5">
+          @for (v of ['write', 'split', 'preview']; track v) {
+            <button class="px-2.5 py-1 rounded-md text-xs font-medium capitalize"
+              [class]="view() === v ? 'bg-surface-container dark:bg-neutral-700 text-on-surface dark:text-white' : 'text-on-surface-variant dark:text-neutral-400'"
+              [class.split-toggle]="v === 'split'"
+              (click)="view.set($any(v))">{{ v }}</button>
+          }
+        </div>
+      </div>
+
+      @if (view() !== 'preview') {
+        <div class="flex flex-wrap items-center gap-0.5 border-b border-outline-variant dark:border-neutral-800 px-2 py-1 bg-surface-container-low dark:bg-neutral-900/60">
+          <button class="btn-icon" title="Heading" (click)="prefixLines('## ')"><span class="material-symbols-outlined text-[18px]">title</span></button>
+          <button class="btn-icon" title="Sub-heading" (click)="prefixLines('### ')"><span class="material-symbols-outlined text-[18px]">format_size</span></button>
+          <button class="btn-icon" title="Bold (Ctrl+B)" (click)="wrap('**')"><span class="material-symbols-outlined text-[18px]">format_bold</span></button>
+          <button class="btn-icon" title="Italic (Ctrl+I)" (click)="wrap('_')"><span class="material-symbols-outlined text-[18px]">format_italic</span></button>
+          <span class="w-px h-5 bg-outline-variant dark:bg-neutral-700 mx-1"></span>
+          <button class="btn-icon" title="Bullet list" (click)="prefixLines('- ')"><span class="material-symbols-outlined text-[18px]">format_list_bulleted</span></button>
+          <button class="btn-icon" title="Numbered list" (click)="prefixLines(numbered)"><span class="material-symbols-outlined text-[18px]">format_list_numbered</span></button>
+          <button class="btn-icon" title="Quote / note" (click)="prefixLines('> ')"><span class="material-symbols-outlined text-[18px]">format_quote</span></button>
+          <span class="w-px h-5 bg-outline-variant dark:bg-neutral-700 mx-1"></span>
+          <button class="btn-icon" title="Link" (click)="insertLink()"><span class="material-symbols-outlined text-[18px]">link</span></button>
+          <button class="btn-icon" title="Table" (click)="insertTable()"><span class="material-symbols-outlined text-[18px]">table</span></button>
+          <button class="btn-icon" title="Divider" (click)="insertBlock('---')"><span class="material-symbols-outlined text-[18px]">horizontal_rule</span></button>
+        </div>
+      }
+
+      <div class="grid" [class]="view() === 'split' ? 'lg:grid-cols-2' : ''">
+        @if (view() !== 'preview') {
+          <textarea #bodyArea
+            class="w-full min-h-[560px] h-[calc(100vh-260px)] resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed text-on-surface dark:text-neutral-100 outline-none border-outline-variant dark:border-neutral-800"
+            [class]="view() === 'split' ? 'lg:border-r' : ''"
+            spellcheck="true"
+            placeholder="Write the service page in markdown…"
+            [ngModel]="draft().body_md" (ngModelChange)="set('body_md', $event)"
+            (keydown)="onBodyKey($event)"></textarea>
+        }
+        @if (view() !== 'write') {
+          <!-- Preview mirrors the client app's service page -->
+          <div class="min-h-[560px] h-[calc(100vh-260px)] overflow-y-auto bg-surface-container-low dark:bg-neutral-950 p-4"
+            [class]="view() === 'split' ? 'hidden lg:block' : ''">
+            <div class="mx-auto max-w-md rounded-2xl border border-outline-variant dark:border-neutral-800 bg-surface-container-lowest dark:bg-neutral-900 p-5">
+              <div class="flex items-center gap-3">
+                <div class="size-12 rounded-2xl flex items-center justify-center shrink-0" [class]="tileClass(draft().icon_color)">
+                  <span class="material-symbols-outlined text-[24px]">{{ draft().icon || 'home_repair_service' }}</span>
+                </div>
+                <div class="min-w-0">
+                  <h3 class="font-bold text-lg text-on-surface dark:text-white leading-tight">{{ draft().title || 'Service title' }}</h3>
+                  @if (draft().price) {
+                    <p class="text-xs font-medium text-emerald-700 dark:text-emerald-400 mt-0.5">{{ draft().price }}</p>
+                  }
+                </div>
+              </div>
+              <p class="text-sm text-on-surface-variant dark:text-neutral-400 mt-3">{{ draft().description || 'Short description' }}</p>
+              @if (draft().tags.length) {
+                <div class="flex flex-wrap gap-1.5 mt-3">
+                  @for (tag of draft().tags; track tag) {
+                    <span class="text-[11px] px-2 py-0.5 rounded-md bg-surface-container dark:bg-neutral-800 text-on-surface-variant dark:text-neutral-300">{{ tag }}</span>
+                  }
+                </div>
+              }
+              <hr class="my-4 border-outline-variant dark:border-neutral-800" />
+              @if (draft().body_md.trim()) {
+                <div class="md-content" [innerHTML]="previewHtml()"></div>
+              } @else {
+                <p class="text-sm text-on-surface-variant italic">Nothing written yet.</p>
+              }
+              <div class="mt-5 flex flex-col gap-2 pointer-events-none select-none">
+                <span class="rounded-xl bg-primary text-on-primary dark:bg-white dark:text-neutral-900 py-2.5 text-center text-sm font-semibold">Request this service</span>
+                <div class="grid grid-cols-2 gap-2">
+                  <span class="rounded-xl border border-outline-variant dark:border-neutral-700 py-2 text-center text-sm text-on-surface dark:text-neutral-200">WhatsApp</span>
+                  <span class="rounded-xl border border-outline-variant dark:border-neutral-700 py-2 text-center text-sm text-on-surface dark:text-neutral-200">Call</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

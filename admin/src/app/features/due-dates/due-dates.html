@@ -1,0 +1,229 @@
+<app-page-header title="Due Dates" subtitle="The compliance calendar clients see in the app. Edit a date, mark an extension or add a new deadline.">
+  <select class="input !w-auto !py-2 text-sm" [ngModel]="fy()" (ngModelChange)="setFy($event)" aria-label="Financial year">
+    @for (y of yearOptions(); track y) {
+      <option [value]="y">FY {{ y }}</option>
+    }
+  </select>
+  <button class="btn-primary" (click)="openAdd()">
+    <span class="material-symbols-outlined" style="font-size: 18px">add</span>
+    Add due date
+  </button>
+</app-page-header>
+
+<!-- Summary -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+  <div class="card p-4 dark:bg-neutral-900 dark:border-neutral-800">
+    <p class="label !mb-1">Total</p>
+    <p class="text-2xl font-bold tabular-nums text-on-surface dark:text-white">{{ counts()['all'] }}</p>
+  </div>
+  <div class="card p-4 dark:bg-neutral-900 dark:border-neutral-800">
+    <p class="label !mb-1">Upcoming</p>
+    <p class="text-2xl font-bold tabular-nums text-on-surface dark:text-white">{{ stats().upcoming }}</p>
+  </div>
+  <div class="card p-4 dark:bg-neutral-900 dark:border-neutral-800">
+    <p class="label !mb-1">Extended</p>
+    <p class="text-2xl font-bold tabular-nums text-violet-700 dark:text-violet-300">{{ stats().extended }}</p>
+  </div>
+  <div class="card p-4 dark:bg-neutral-900 dark:border-neutral-800">
+    <p class="label !mb-1">Hidden</p>
+    <p class="text-2xl font-bold tabular-nums text-on-surface-variant">{{ stats().hidden }}</p>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
+  <div class="inline-flex flex-wrap rounded-lg border border-outline-variant dark:border-neutral-700 p-0.5 bg-surface-container-low dark:bg-neutral-900 self-start">
+    <button class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+      [class]="category() === 'all' ? 'bg-surface-container-lowest dark:bg-neutral-700 text-on-surface dark:text-white shadow-sm' : 'text-on-surface-variant dark:text-neutral-400'"
+      (click)="category.set('all')">
+      All <span class="ml-1 tabular-nums opacity-60">{{ counts()['all'] }}</span>
+    </button>
+    @for (k of categoryKeys; track k) {
+      <button class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors inline-flex items-center gap-1.5"
+        [class]="category() === k ? 'bg-surface-container-lowest dark:bg-neutral-700 text-on-surface dark:text-white shadow-sm' : 'text-on-surface-variant dark:text-neutral-400'"
+        (click)="category.set(k)">
+        <span class="size-2 rounded-full" [class]="categories[k].dot"></span>
+        {{ categories[k].label }} <span class="tabular-nums opacity-60">{{ counts()[k] }}</span>
+      </button>
+    }
+  </div>
+  <label class="inline-flex items-center gap-2 text-xs text-on-surface-variant dark:text-neutral-400 cursor-pointer select-none">
+    <input type="checkbox" class="accent-neutral-900" [ngModel]="showPast()" (ngModelChange)="showPast.set($event)" />
+    Show past ({{ pastCount() }})
+  </label>
+  <div class="relative lg:ml-auto lg:w-72">
+    <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span>
+    <input class="input pl-9" placeholder="Search title, form, period" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+  </div>
+</div>
+
+@if (loading()) {
+  <app-spinner />
+} @else if (groups().length === 0) {
+  <div class="card p-8">
+    <app-empty-state icon="event_busy"
+      [message]="rows().length ? 'Nothing matches' : 'No due dates for FY ' + fy()"
+      [hint]="rows().length ? 'Try another filter, or tick “Show past”' : 'Add the first deadline for this year'" />
+  </div>
+} @else {
+  <div class="flex flex-col gap-5">
+    @for (g of groups(); track g.key) {
+      <section class="card overflow-hidden dark:bg-neutral-900 dark:border-neutral-800">
+        <header class="flex items-center justify-between px-4 py-2.5 border-b border-outline-variant dark:border-neutral-800 bg-surface-container-low dark:bg-neutral-900/60">
+          <h2 class="text-sm font-semibold text-on-surface dark:text-white">{{ g.label }}</h2>
+          <span class="text-xs tabular-nums text-on-surface-variant">{{ g.items.length }} due</span>
+        </header>
+        <ul class="divide-y divide-outline-variant dark:divide-neutral-800">
+          @for (r of g.items; track r.id) {
+            <li class="flex items-center gap-4 px-4 py-3 hover:bg-surface-container-low dark:hover:bg-neutral-800/50 cursor-pointer"
+              [class.opacity-50]="!r.is_active" (click)="openEdit(r)">
+              <div class="w-12 shrink-0 text-center">
+                <p class="text-xl font-bold leading-none tabular-nums text-on-surface dark:text-white">{{ day(r.due_date) }}</p>
+                <p class="text-[10px] uppercase tracking-wide text-on-surface-variant mt-1">{{ weekday(r.due_date) }}</p>
+              </div>
+              <span class="w-1 self-stretch rounded-full shrink-0" [class]="categories[r.category]?.dot"></span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <p class="text-sm font-semibold text-on-surface dark:text-white">{{ r.title }}</p>
+                  @if (r.form) {
+                    <span class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-surface-container dark:bg-neutral-800 text-on-surface-variant dark:text-neutral-300">{{ r.form }}</span>
+                  }
+                  @if (r.original_due_date) {
+                    <span class="text-[11px] font-medium px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
+                      Extended · was {{ fmt(r.original_due_date) }}
+                    </span>
+                  }
+                  @if (!r.is_active) {
+                    <span class="text-[11px] px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500">Hidden</span>
+                  }
+                </div>
+                <p class="text-xs text-on-surface-variant dark:text-neutral-400 mt-0.5 truncate">
+                  @if (r.period_label) { {{ r.period_label }} · }
+                  @for (a of r.audiences; track a; let last = $last) { {{ audienceLabels[a] || a }}{{ last ? '' : ', ' }} }
+                </p>
+              </div>
+              @let left = daysLeft(r.due_date);
+              <span class="hidden sm:inline text-xs tabular-nums shrink-0"
+                [class]="left < 0 ? 'text-on-surface-variant' : left <= 7 ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-on-surface-variant'">
+                {{ left < 0 ? 'Passed' : left === 0 ? 'Today' : left + ' days' }}
+              </span>
+              <div class="flex items-center gap-0.5 shrink-0" (click)="$event.stopPropagation()">
+                <button class="btn-icon" title="Extend deadline" (click)="openEdit(r, true)">
+                  <span class="material-symbols-outlined text-[18px]">more_time</span>
+                </button>
+                <button class="btn-icon" [title]="r.is_active ? 'Hide from clients' : 'Show to clients'" (click)="toggleActive(r)">
+                  <span class="material-symbols-outlined text-[18px]">{{ r.is_active ? 'visibility' : 'visibility_off' }}</span>
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+}
+
+<!-- Add / edit -->
+<app-modal [open]="modalOpen()" (close)="modalOpen.set(false)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="font-headline-md text-headline-md text-on-surface">{{ editingId() ? 'Edit due date' : 'Add due date' }}</h2>
+      <button class="btn-icon" (click)="modalOpen.set(false)" aria-label="Close">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="flex flex-col gap-4">
+      <div>
+        <label class="label" for="d-title">Title</label>
+        <input id="d-title" class="input" maxlength="200" placeholder="e.g. GSTR-3B (monthly)"
+          [ngModel]="form().title" (ngModelChange)="set('title', $event)" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="label" for="d-cat">Category</label>
+          <select id="d-cat" class="input" [ngModel]="form().category" (ngModelChange)="set('category', $event)">
+            @for (k of categoryKeys; track k) {
+              <option [value]="k">{{ categories[k].label }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="label" for="d-form">Form / return</label>
+          <input id="d-form" class="input" maxlength="60" placeholder="e.g. GSTR-3B"
+            [ngModel]="form().form" (ngModelChange)="set('form', $event)" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="label" for="d-date">{{ extended() ? 'New due date' : 'Due date' }}</label>
+          <input id="d-date" type="date" class="input" [ngModel]="form().due_date" (ngModelChange)="set('due_date', $event)" />
+        </div>
+        <div>
+          <label class="label" for="d-period">Period</label>
+          <input id="d-period" class="input" maxlength="60" placeholder="e.g. October 2026"
+            [ngModel]="form().period_label" (ngModelChange)="set('period_label', $event)" />
+        </div>
+      </div>
+
+      <div class="rounded-lg border border-outline-variant p-3" [class]="extended() ? 'border-violet-300 bg-violet-50/50 dark:bg-violet-500/5 dark:border-violet-500/40' : ''">
+        <label class="flex items-center gap-2 text-sm font-medium text-on-surface cursor-pointer">
+          <input type="checkbox" class="accent-violet-600" [ngModel]="extended()" (ngModelChange)="toggleExtended($event)" />
+          Deadline extended by the government
+        </label>
+        @if (extended()) {
+          <div class="mt-3">
+            <label class="label" for="d-orig">Original due date</label>
+            <input id="d-orig" type="date" class="input" [ngModel]="form().original_due_date" (ngModelChange)="set('original_due_date', $event)" />
+            <p class="text-[11px] text-on-surface-variant mt-1">Clients see the new date with an "Extended" badge and this date struck through. Mention the notification / circular in the description.</p>
+          </div>
+        }
+      </div>
+
+      <div>
+        <label class="label" for="d-desc">Description</label>
+        <textarea id="d-desc" class="input resize-none" rows="3" maxlength="2000"
+          placeholder="What is due and who it applies to"
+          [ngModel]="form().description" (ngModelChange)="set('description', $event)"></textarea>
+      </div>
+
+      <div>
+        <span class="label">Applies to</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+          @for (a of audiences; track a.key) {
+            <label class="flex items-start gap-2 rounded-md border border-outline-variant px-2.5 py-2 cursor-pointer hover:bg-surface-container-low"
+              [class.border-neutral-900]="form().audiences.includes(a.key)">
+              <input type="checkbox" class="mt-0.5 accent-neutral-900" [ngModel]="form().audiences.includes(a.key)" (ngModelChange)="toggleAudience(a.key, $event)" />
+              <span>
+                <span class="block text-xs font-medium text-on-surface">{{ a.label }}</span>
+                @if (a.hint) {
+                  <span class="block text-[10px] text-on-surface-variant">{{ a.hint }}</span>
+                }
+              </span>
+            </label>
+          }
+        </div>
+        @if (!form().audiences.length) {
+          <p class="text-error text-xs mt-1">Pick at least one group</p>
+        }
+      </div>
+
+      <label class="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+        <input type="checkbox" class="accent-neutral-900" [ngModel]="form().is_active" (ngModelChange)="set('is_active', $event)" />
+        Visible to clients
+      </label>
+    </div>
+
+    <div class="flex items-center gap-2 mt-6">
+      @if (editingId()) {
+        <button class="px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-md" (click)="remove()">Delete</button>
+      }
+      <button class="btn-outline ml-auto" (click)="modalOpen.set(false)">Cancel</button>
+      <button class="btn-primary" [disabled]="!formValid() || saving()" (click)="save()">
+        {{ saving() ? 'Saving…' : (editingId() ? 'Save' : 'Add') }}
+      </button>
+    </div>
+  </div>
+</app-modal>

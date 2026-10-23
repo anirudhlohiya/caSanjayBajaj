@@ -1,41 +1,69 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { ServicesOfferedService } from '../../core/services/feature.services';
 import { ToastService } from '../../core/services/toast.service';
 import { Service } from '../../core/models';
+import { serviceTileClass } from '../../core/service-palette';
 import { PageHeader } from '../../shared/components/page-header';
-import { Modal } from '../../shared/components/modal';
 import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
+
+type Filter = 'all' | 'active' | 'hidden';
 
 @Component({
   selector: 'app-services',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeader, Modal, Spinner, EmptyState],
+  imports: [FormsModule, RouterLink, PageHeader, Spinner, EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './services.html',
 })
 export class ServicesPage implements OnInit {
   private readonly servicesService = inject(ServicesOfferedService);
   private readonly toast = inject(ToastService);
-  private readonly fb = inject(FormBuilder);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
   readonly loading = signal(true);
   readonly services = signal<Service[]>([]);
-  readonly showModal = signal(false);
-  readonly saving = signal(false);
-  readonly editingId = signal<string | null>(null);
+  readonly filter = signal<Filter>('all');
+  readonly search = signal('');
+  readonly busyId = signal<string | null>(null);
 
-  readonly form = this.fb.nonNullable.group({
-    title: ['', [Validators.required, Validators.maxLength(200)]],
-    description: ['', [Validators.required]],
-    price: [''],
-    icon: [''],
-    display_order: [0],
-    is_active: [true],
+  // Firm-wide contact numbers for the client app's Call / WhatsApp buttons
+  readonly contactPhone = signal('');
+  readonly contactWhatsapp = signal('');
+  readonly savingContact = signal(false);
+  private savedContact = { phone: '', whatsapp: '' };
+  readonly contactDirty = computed(
+    () =>
+      this.contactPhone().trim() !== this.savedContact.phone ||
+      this.contactWhatsapp().trim() !== this.savedContact.whatsapp,
+  );
+
+  readonly counts = computed(() => {
+    const all = this.services();
+    const active = all.filter((s) => s.is_active).length;
+    return { all: all.length, active, hidden: all.length - active };
   });
+
+  readonly visible = computed(() => {
+    const q = this.search().trim().toLowerCase();
+    return this.services().filter((s) => {
+      if (this.filter() === 'active' && !s.is_active) return false;
+      if (this.filter() === 'hidden' && s.is_active) return false;
+      if (!q) return true;
+      return (
+        s.title.toLowerCase().includes(q) ||
+        s.description.toLowerCase().includes(q) ||
+        s.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    });
+  });
+
+  /** Reordering only makes sense on the full, unfiltered list. */
+  readonly canReorder = computed(() => this.filter() === 'all' && !this.search().trim());
+
+  readonly tileClass = serviceTileClass;
 
   ngOnInit(): void {
     void this.load();
@@ -44,65 +72,62 @@ export class ServicesPage implements OnInit {
   async load(): Promise<void> {
     this.loading.set(true);
     try {
-      this.services.set(await this.servicesService.list());
+      const [services, contact] = await Promise.all([
+        this.servicesService.list(),
+        this.servicesService.getContact(),
+      ]);
+      this.services.set(services);
+      this.savedContact = { phone: contact.phone ?? '', whatsapp: contact.whatsapp ?? '' };
+      this.contactPhone.set(this.savedContact.phone);
+      this.contactWhatsapp.set(this.savedContact.whatsapp);
     } finally {
       this.loading.set(false);
     }
   }
 
-  openAdd(): void {
-    this.form.reset({ title: '', description: '', price: '', icon: '', display_order: 0, is_active: true });
-    this.editingId.set(null);
-    this.showModal.set(true);
+  open(s: Service): void {
+    void this.router.navigate(['/services', s.id]);
   }
 
-  openEdit(s: Service): void {
-    this.form.patchValue({
-      title: s.title,
-      description: s.description,
-      price: s.price ?? '',
-      icon: s.icon ?? '',
-      display_order: s.display_order,
-      is_active: s.is_active,
-    });
-    this.editingId.set(s.id);
-    this.showModal.set(true);
-  }
-
-  async submit(): Promise<void> {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    this.saving.set(true);
+  async toggleActive(s: Service, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.busyId.set(s.id);
     try {
-      const f = this.form.value;
-      const body = {
-        title: f.title ?? '',
-        description: f.description ?? '',
-        price: f.price || undefined,
-        icon: f.icon || undefined,
-        display_order: f.display_order ?? 0,
-        is_active: f.is_active ?? true,
-      };
-      if (this.editingId()) {
-        await this.servicesService.update(this.editingId()!, body);
-        this.toast.success('Service updated');
-      } else {
-        await this.servicesService.create(body);
-        this.toast.success('Service created');
-      }
-      this.showModal.set(false);
-      await this.load();
+      const updated = await this.servicesService.update(s.id, { is_active: !s.is_active });
+      this.services.update((list) => list.map((x) => (x.id === s.id ? updated : x)));
+      this.toast.success(updated.is_active ? `${s.title} is visible to clients` : `${s.title} is hidden`);
     } finally {
-      this.saving.set(false);
+      this.busyId.set(null);
     }
   }
 
-  async deactivate(id: string): Promise<void> {
-    if (!confirm('Deactivate this service?')) return;
-    await this.servicesService.deactivate(id);
-    this.toast.success('Service deactivated');
-    await this.load();
+  async move(index: number, delta: -1 | 1, event: Event): Promise<void> {
+    event.stopPropagation();
+    const list = [...this.services()];
+    const target = index + delta;
+    if (target < 0 || target >= list.length) return;
+    [list[index], list[target]] = [list[target], list[index]];
+    this.services.set(list);
+    try {
+      this.services.set(await this.servicesService.reorder(list.map((s) => s.id)));
+    } catch {
+      await this.load();
+    }
+  }
+
+  async saveContact(): Promise<void> {
+    this.savingContact.set(true);
+    try {
+      const saved = await this.servicesService.setContact({
+        phone: this.contactPhone().trim(),
+        whatsapp: this.contactWhatsapp().trim(),
+      });
+      this.savedContact = { phone: saved.phone ?? '', whatsapp: saved.whatsapp ?? '' };
+      this.contactPhone.set(this.savedContact.phone);
+      this.contactWhatsapp.set(this.savedContact.whatsapp);
+      this.toast.success('Contact numbers saved');
+    } finally {
+      this.savingContact.set(false);
+    }
   }
 }

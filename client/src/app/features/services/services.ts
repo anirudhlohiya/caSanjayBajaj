@@ -1,95 +1,59 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { ToastService } from '../../core/services/toast.service';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
-interface ServiceItem {
-  id: string;
-  title: string;
-  icon: string;
-  description: string;
-  tags: string[];
-}
+import { RouterLink } from '@angular/router';
+import { ServicesOfferedService } from '../../core/services/feature.services';
+import { Service } from '../../core/models';
+import { serviceTileClass } from '../../core/service-palette';
+import { Spinner } from '../../shared/components/spinner';
+import { EmptyState } from '../../shared/components/empty-state';
 
 @Component({
   selector: 'app-services',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink, Spinner, EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './services.html',
 })
 export class Services {
-  private readonly toast = inject(ToastService);
-  searchQuery = '';
+  private readonly servicesService = inject(ServicesOfferedService);
 
-  readonly services: ServiceItem[] = [
-    {
-      id: 'gst',
-      title: 'GST Services',
-      icon: 'receipt_long',
-      description: 'Comprehensive GST solutions including Registration, Return Filing, and Refund processing to ensure seamless compliance.',
-      tags: ['Registration', 'Return Filing', 'Refund']
-    },
-    {
-      id: 'income-tax',
-      title: 'Income Tax',
-      icon: 'account_balance_wallet',
-      description: 'Expert ITR Filing, Strategic Tax Planning, and meticulous TDS management optimized for individuals and corporate entities.',
-      tags: ['ITR Filing', 'Tax Planning', 'TDS']
-    },
-    {
-      id: 'mutual-funds',
-      title: 'Mutual Funds',
-      icon: 'trending_up',
-      description: 'Tailored investment strategies through SIPs and Lump Sum allocations aligned with your specific long-term goals.',
-      tags: ['SIP', 'Lump Sum', 'Goal Planning']
-    },
-    {
-      id: 'loans',
-      title: 'Loan Services',
-      icon: 'real_estate_agent',
-      description: 'Streamlined processing and advisory for Home, Personal, and Business Loans to secure optimal financing terms.',
-      tags: ['Home', 'Personal', 'Business']
-    },
-    {
-      id: 'insurance',
-      title: 'Insurance',
-      icon: 'health_and_safety',
-      description: 'Risk mitigation through structured Life, Health, and General Insurance policies tailored to protect your assets.',
-      tags: ['Life', 'Health', 'General']
-    },
-    {
-      id: 'financial-planning',
-      title: 'Financial Planning',
-      icon: 'pie_chart',
-      description: 'Holistic approaches to Wealth Creation and Retirement Planning ensuring sustained financial stability and growth.',
-      tags: ['Wealth Creation', 'Retirement']
-    },
-    {
-      id: 'company-incorporation',
-      title: 'Company Incorporation',
-      icon: 'business',
-      description: 'End-to-end assistance with entity formation, ROC Filing, and ongoing regulatory compliance frameworks.',
-      tags: ['ROC Filing', 'Compliance']
-    },
-    {
-      id: 'audit',
-      title: 'Audit & Assurance',
-      icon: 'fact_check',
-      description: 'Rigorous Internal and Statutory Audits designed to enhance operational transparency and financial fidelity.',
-      tags: ['Internal Audit', 'Statutory Audit']
-    }
-  ];
+  readonly loading = signal(true);
+  readonly failed = signal(false);
+  readonly services = signal<Service[]>([]);
+  readonly searchQuery = signal('');
 
-  get filteredServices() {
-    const query = this.searchQuery.toLowerCase();
-    return this.services.filter(s => 
-      s.title.toLowerCase().includes(query) || 
-      s.description.toLowerCase().includes(query) ||
-      s.tags.some(t => t.toLowerCase().includes(query))
+  readonly filteredServices = computed(() => {
+    const query = this.searchQuery().trim().toLowerCase();
+    if (!query) return this.services();
+    return this.services().filter(
+      (s) =>
+        s.title.toLowerCase().includes(query) ||
+        s.description.toLowerCase().includes(query) ||
+        s.tags.some((t) => t.toLowerCase().includes(query)),
     );
+  });
+
+  readonly tileClass = serviceTileClass;
+
+  constructor() {
+    void this.load();
   }
 
-  onServiceClick() {
-    this.toast.show('This feature is coming soon...', 'info');
+  async load(): Promise<void> {
+    this.loading.set(true);
+    this.failed.set(false);
+    try {
+      this.services.set(await this.servicesService.listActive());
+    } catch {
+      this.failed.set(true);
+    } finally {
+      this.loading.set(false);
+    }
   }
 }

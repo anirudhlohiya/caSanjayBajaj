@@ -1,52 +1,123 @@
-@if (loading()) {
-  <app-spinner />
-} @else if (ticket(); as t) {
-  <app-page-header [title]="t.subject" [subtitle]="(categoryLabels[t.category] || t.category) + ' · ' + t.status.toUpperCase()">
-    @if (t.status !== 'closed') {
-      <button class="px-3 py-1.5 text-xs rounded-lg border border-on-primary/30 text-on-primary hover:bg-on-primary/10" (click)="closeTicket()">
-        Close Ticket
-      </button>
-    }
-  </app-page-header>
-
-  <div class="mx-auto w-full max-w-2xl flex-1 px-4 pb-4 space-y-4">
-    @if (firstMessage(t); as m) {
-      <div class="rounded-2xl border border-card-border bg-surface-container-lowest p-4">
-        <p class="text-sm text-on-surface-variant whitespace-pre-wrap">{{ m.message }}</p>
-        <p class="mt-2 text-xs text-on-surface-variant/60">Submitted {{ fmtDate(m.created_at) }}</p>
-      </div>
-    }
-
-    @if (hasAttachments(t)) {
-      <div class="rounded-2xl border border-card-border bg-surface-container-lowest p-4">
-        <p class="mb-2 text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Attachments</p>
-        <div class="flex flex-col gap-2">
-          @for (msg of t.messages; track msg.id) {
-            @for (att of msg.attachments ?? []; track att.id) {
-              <div class="flex items-center gap-3 rounded-lg border border-card-border bg-surface p-2.5">
-                <span class="material-symbols-outlined text-[20px] text-on-surface-variant">description</span>
-                <div class="min-w-0 flex-1">
-                  <p class="truncate text-body-md text-on-surface">{{ att.original_filename }}</p>
-                  <p class="text-label-md text-on-surface-variant">{{ formatSize(att.file_size_bytes) }}</p>
-                </div>
-                <button
-                  (click)="download(att)"
-                  [disabled]="downloading()"
-                  class="inline-flex items-center gap-1 rounded-lg bg-surface-variant px-2.5 py-1.5 text-xs font-semibold text-on-surface-variant disabled:opacity-50">
-                  <span class="material-symbols-outlined" style="font-size: 14px">download</span>
-                  Download
-                </button>
-              </div>
-            }
-          }
+<div class="mx-auto w-full max-w-2xl px-4 pt-4 pb-6 flex flex-col gap-4">
+  @if (loading()) {
+    <app-spinner />
+  } @else if (ticket(); as t) {
+    <!-- Summary -->
+    <section class="rounded-2xl border border-card-border bg-surface-container-lowest p-4 shadow-card">
+      <div class="flex items-start gap-3">
+        <div class="size-10 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[20px] text-primary">{{ enquiryService() ? 'send' : 'support_agent' }}</span>
+        </div>
+        <div class="min-w-0 flex-1">
+          <h1 class="text-lg font-bold leading-snug text-primary break-words">{{ t.subject }}</h1>
+          <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
+            <span class="rounded-full px-2 py-0.5 font-semibold"
+              [class]="t.status === 'open'
+                ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300'
+                : t.status === 'replied'
+                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300'
+                  : 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'">
+              {{ t.status === 'open' ? 'Waiting for reply' : t.status === 'replied' ? 'Replied' : 'Closed' }}
+            </span>
+            <span>{{ enquiryService() ? 'Service request' : (categoryLabels[t.category] || t.category) }} · {{ fmtDate(t.created_at) }}</span>
+          </div>
         </div>
       </div>
-    }
+    </section>
 
-    @if (t.status === 'closed') {
-      <div class="rounded-2xl border border-card-border bg-surface-container-lowest p-4 text-center text-sm text-on-surface-variant">
-        This ticket has been closed. Thanks for reaching out.
-      </div>
+    @if (enquiryService()) {
+      <!-- Service request: just the next steps — the team follows up by phone -->
+      <section class="rounded-2xl border border-card-border bg-surface-container-lowest p-4 shadow-card">
+        <h2 class="text-sm font-bold text-primary">What happens next</h2>
+        <ol class="mt-3 flex flex-col gap-3">
+          <li class="flex gap-3">
+            <span class="size-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[16px]">check</span>
+            </span>
+            <div>
+              <p class="text-sm font-semibold text-primary">Request received</p>
+              <p class="text-xs text-on-surface-variant">Our team has your request for {{ enquiryService() }}.</p>
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <span class="size-6 rounded-full border-2 border-outline-variant text-on-surface-variant text-xs font-bold flex items-center justify-center shrink-0">2</span>
+            <div>
+              <p class="text-sm font-semibold text-primary">We get in touch</p>
+              <p class="text-xs text-on-surface-variant">Usually within 1 working day, by phone.</p>
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <span class="size-6 rounded-full border-2 border-outline-variant text-on-surface-variant text-xs font-bold flex items-center justify-center shrink-0">3</span>
+            <div>
+              <p class="text-sm font-semibold text-primary">Share documents &amp; get started</p>
+              <p class="text-xs text-on-surface-variant">We'll tell you exactly what's needed.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <a routerLink="/services"
+        class="flex items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-semibold text-on-primary shadow-card active:scale-[0.99] transition-transform">
+        <span class="material-symbols-outlined text-[20px]">explore</span>
+        Explore more services
+        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+      </a>
+    } @else {
+      <!-- Conversation -->
+      <section class="flex flex-col gap-3">
+        @for (msg of t.messages ?? []; track msg.id) {
+          <div class="flex" [class]="msg.sender_type === 'user' ? 'justify-end' : 'justify-start'">
+            <div class="max-w-[85%] rounded-2xl px-4 py-3"
+              [class]="msg.sender_type === 'user'
+                ? 'bg-primary text-on-primary rounded-br-md'
+                : 'border border-card-border bg-surface-container-lowest text-primary rounded-bl-md shadow-card'">
+              @if (msg.sender_type === 'admin') {
+                <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-on-surface-variant">S N Bajaj And Co</p>
+              }
+              <p class="text-sm whitespace-pre-wrap break-words leading-relaxed">{{ msg.message }}</p>
+              @for (att of msg.attachments ?? []; track att.id) {
+                <button (click)="download(att)" [disabled]="downloading()"
+                  class="mt-2 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left disabled:opacity-50"
+                  [class]="msg.sender_type === 'user' ? 'bg-on-primary/15' : 'bg-surface-container'">
+                  <span class="material-symbols-outlined text-[18px]">description</span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-xs font-medium">{{ att.original_filename }}</span>
+                    <span class="block text-[10px] opacity-70">{{ formatSize(att.file_size_bytes) }}</span>
+                  </span>
+                  <span class="material-symbols-outlined text-[18px]">download</span>
+                </button>
+              }
+              <p class="mt-1.5 text-[10px] opacity-60" [class.text-right]="msg.sender_type === 'user'">{{ fmtDate(msg.created_at) }}</p>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- Reply / closed -->
+      @if (t.status !== 'closed') {
+        <section class="rounded-2xl border border-card-border bg-surface-container-lowest p-3 shadow-card">
+          <textarea rows="3" maxlength="5000"
+            class="w-full resize-none rounded-xl bg-surface-container p-3 text-sm text-primary placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-outline"
+            placeholder="Write a message…"
+            [ngModel]="replyText()" (ngModelChange)="replyText.set($event)"></textarea>
+          <div class="mt-2 flex items-center justify-between gap-2">
+            <button (click)="closeTicket()" [disabled]="closing()"
+              class="rounded-full px-3 py-2 text-xs font-medium text-on-surface-variant hover:bg-surface-container disabled:opacity-50">
+              Close request
+            </button>
+            <button (click)="sendReply()" [disabled]="!replyText().trim() || sending()"
+              class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-on-primary disabled:opacity-40">
+              <span class="material-symbols-outlined text-[18px]">send</span>
+              {{ sending() ? 'Sending…' : 'Send' }}
+            </button>
+          </div>
+        </section>
+      } @else {
+        <section class="rounded-2xl border border-card-border bg-surface-container-lowest p-4 text-center shadow-card">
+          <p class="text-sm text-on-surface-variant">This request is closed. Thanks for reaching out.</p>
+          <a routerLink="/support/new" class="mt-3 inline-flex rounded-full bg-surface-container px-4 py-2 text-sm font-semibold text-primary">Raise a new request</a>
+        </section>
+      }
     }
-  </div>
-}
+  }
+</div>

@@ -3,6 +3,8 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
   isDevMode,
+  inject,
+  provideAppInitializer,
 } from '@angular/core';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -11,6 +13,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { NavHistoryService } from './core/services/nav-history.service';
 import { importProvidersFrom } from '@angular/core';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -25,6 +28,11 @@ export const appConfig: ApplicationConfig = {
       // Settings to a scrolled Profile) instead of snapping to the top.
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }),
     ),
+    // Start recording navigations before the first one, so back buttons know
+    // whether there is an in-app page to return to.
+    provideAppInitializer(() => {
+      inject(NavHistoryService);
+    }),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
     provideTranslateService({ fallbackLang: 'en' }),
     provideTranslateHttpLoader({ prefix: './i18n/', suffix: '.json' }),

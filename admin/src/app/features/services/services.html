@@ -1,104 +1,152 @@
-<app-page-header title="Services" subtitle="Manage the services displayed to clients and website visitors">
-  <button class="btn-primary" (click)="openAdd()">
-    <span class="material-symbols-outlined mr-1" style="font-size: 18px">add</span>
-    Add Service
-  </button>
+<app-page-header title="Services" subtitle="What clients see in the Services tab of the app. Click a service to edit its page.">
+  <a routerLink="/services/new" class="btn-primary">
+    <span class="material-symbols-outlined" style="font-size: 18px">add</span>
+    Add service
+  </a>
 </app-page-header>
 
-<div class="card overflow-hidden">
-  @if (loading()) {
-    <app-spinner />
-  } @else {
-    <div class="divide-y divide-neutral-100">
-      @for (s of services(); track s.id) {
-        <div class="p-4 flex items-start justify-between gap-4">
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <h3 class="text-sm font-semibold text-neutral-900">{{ s.title }}</h3>
-              @if (!s.is_active) {
-                <span class="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500">Inactive</span>
-              }
-            </div>
-            <p class="text-xs text-neutral-500 mt-1 line-clamp-2">{{ s.description }}</p>
-            <div class="flex items-center gap-3 mt-2 text-xs text-neutral-400">
-              @if (s.price) {
-                <span>{{ s.price }}</span>
-              }
-              @if (s.icon) {
-                <span class="material-symbols-outlined text-[14px]">{{ s.icon }}</span>
-              }
-              <span>Order: {{ s.display_order }}</span>
-            </div>
-          </div>
-          <div class="flex gap-1 shrink-0">
-            <button class="p-1.5 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors" title="Edit" (click)="openEdit(s)">
-              <span class="material-symbols-outlined" style="font-size: 20px">edit</span>
-            </button>
-            @if (s.is_active) {
-              <button class="p-1.5 rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Deactivate" (click)="deactivate(s.id)">
-                <span class="material-symbols-outlined" style="font-size: 20px">delete</span>
-              </button>
-            }
-          </div>
+@if (loading()) {
+  <app-spinner />
+} @else {
+  <!-- Contact numbers used by the Call / WhatsApp buttons on every service page -->
+  <div class="card p-5 mb-6">
+    <div class="flex flex-col lg:flex-row lg:items-end gap-4">
+      <div class="lg:w-72 shrink-0">
+        <h2 class="text-sm font-semibold text-on-surface dark:text-white flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[18px]">contact_phone</span>
+          Contact buttons
+        </h2>
+        <p class="text-xs text-on-surface-variant dark:text-neutral-400 mt-1">
+          Used by <b>Call</b> and <b>WhatsApp</b> on every service page. A service can override this in its own settings.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+        <div>
+          <label class="label" for="c-phone">Call number</label>
+          <input id="c-phone" class="input" inputmode="tel" placeholder="+91 98xxxxxxxx"
+            [ngModel]="contactPhone()" (ngModelChange)="contactPhone.set($event)" />
         </div>
-      } @empty {
-        <div class="p-8">
-          <app-empty-state icon="home_repair_service" message="No services yet" hint="Add your first service to display to clients" />
+        <div>
+          <label class="label" for="c-wa">WhatsApp number</label>
+          <input id="c-wa" class="input" inputmode="tel" placeholder="Same as call number"
+            [ngModel]="contactWhatsapp()" (ngModelChange)="contactWhatsapp.set($event)" />
+        </div>
+      </div>
+      <button class="btn-primary shrink-0" [disabled]="!contactDirty() || savingContact()" (click)="saveContact()">
+        {{ savingContact() ? 'Saving…' : 'Save' }}
+      </button>
+    </div>
+    @if (!contactPhone() && !contactWhatsapp()) {
+      <p class="mt-3 text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1">
+        <span class="material-symbols-outlined text-[16px]">info</span>
+        No number set — clients will only see the "Request this service" button.
+      </p>
+    }
+  </div>
+
+  <!-- Toolbar -->
+  <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+    <div class="inline-flex rounded-lg border border-outline-variant dark:border-neutral-700 p-0.5 bg-surface-container-low dark:bg-neutral-900 self-start">
+      @for (f of [
+        { key: 'all', label: 'All', count: counts().all },
+        { key: 'active', label: 'Visible', count: counts().active },
+        { key: 'hidden', label: 'Hidden', count: counts().hidden }
+      ]; track f.key) {
+        <button
+          class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+          [class]="filter() === f.key
+            ? 'bg-surface-container-lowest dark:bg-neutral-700 text-on-surface dark:text-white shadow-sm'
+            : 'text-on-surface-variant dark:text-neutral-400 hover:text-on-surface'"
+          (click)="filter.set($any(f.key))">
+          {{ f.label }} <span class="ml-1 tabular-nums opacity-60">{{ f.count }}</span>
+        </button>
+      }
+    </div>
+    <div class="relative sm:ml-auto sm:w-72">
+      <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span>
+      <input class="input pl-9" placeholder="Search services" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+    </div>
+  </div>
+
+  @if (visible().length === 0) {
+    <div class="card p-8">
+      <app-empty-state icon="home_repair_service"
+        [message]="services().length ? 'No services match' : 'No services yet'"
+        [hint]="services().length ? 'Try a different search or filter' : 'Add your first service to show it to clients'" />
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      @for (s of visible(); track s.id; let i = $index; let first = $first; let last = $last) {
+        <div
+          role="button"
+          tabindex="0"
+          (click)="open(s)"
+          (keydown.enter)="open(s)"
+          class="card group p-5 flex flex-col cursor-pointer hover:border-neutral-300 dark:hover:border-neutral-600 dark:bg-neutral-900 dark:border-neutral-800"
+          [class.opacity-60]="!s.is_active">
+          <div class="flex items-start gap-3">
+            <div class="size-11 rounded-xl flex items-center justify-center shrink-0" [class]="tileClass(s.icon_color)">
+              <span class="material-symbols-outlined text-[22px]">{{ s.icon || 'home_repair_service' }}</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <h3 class="font-semibold text-on-surface dark:text-white truncate">{{ s.title }}</h3>
+              </div>
+              <div class="flex items-center gap-1.5 mt-0.5 text-xs">
+                @if (s.is_active) {
+                  <span class="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                    <span class="size-1.5 rounded-full bg-emerald-500"></span> Visible
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-1 text-on-surface-variant dark:text-neutral-400">
+                    <span class="size-1.5 rounded-full bg-neutral-400"></span> Hidden
+                  </span>
+                }
+                <span class="text-on-surface-variant dark:text-neutral-500">· /services/{{ s.slug }}</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-sm text-on-surface-variant dark:text-neutral-400 mt-3 line-clamp-2">{{ s.description }}</p>
+
+          @if (s.tags.length) {
+            <div class="flex flex-wrap gap-1.5 mt-3">
+              @for (tag of s.tags; track tag) {
+                <span class="text-[11px] px-2 py-0.5 rounded-md bg-surface-container dark:bg-neutral-800 text-on-surface-variant dark:text-neutral-300">{{ tag }}</span>
+              }
+            </div>
+          }
+
+          <div class="mt-auto pt-4 flex items-center gap-1 text-xs text-on-surface-variant dark:text-neutral-400">
+            @if (!s.body_md.trim()) {
+              <span class="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                <span class="material-symbols-outlined text-[15px]">warning</span> No page content
+              </span>
+            } @else {
+              <span class="inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-[15px]">article</span> Page ready
+              </span>
+            }
+            <div class="ml-auto flex items-center gap-0.5">
+              @if (canReorder()) {
+                <button class="btn-icon" title="Move up" [disabled]="first" (click)="move(i, -1, $event)">
+                  <span class="material-symbols-outlined text-[18px]">arrow_upward</span>
+                </button>
+                <button class="btn-icon" title="Move down" [disabled]="last" (click)="move(i, 1, $event)">
+                  <span class="material-symbols-outlined text-[18px]">arrow_downward</span>
+                </button>
+              }
+              <button class="btn-icon" [title]="s.is_active ? 'Hide from clients' : 'Show to clients'"
+                [disabled]="busyId() === s.id" (click)="toggleActive(s, $event)">
+                <span class="material-symbols-outlined text-[18px]">{{ s.is_active ? 'visibility' : 'visibility_off' }}</span>
+              </button>
+              <span class="btn-icon" title="Edit">
+                <span class="material-symbols-outlined text-[18px]">edit</span>
+              </span>
+            </div>
+          </div>
         </div>
       }
     </div>
   }
-</div>
-
-<app-modal [open]="showModal()" (close)="showModal.set(false)">
-  <div class="p-6">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="font-headline-md text-headline-md text-on-surface">{{ editingId() ? 'Edit' : 'Add' }} Service</h2>
-      <button class="text-on-surface-variant hover:text-on-surface" (click)="showModal.set(false)">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    </div>
-    <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
-      <div class="flex flex-col gap-1">
-        <label class="font-label-md text-label-md text-on-surface" for="s-title">Title</label>
-        <input id="s-title" formControlName="title" class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" placeholder="e.g. GST Filing" />
-        @if (form.controls.title.touched && form.controls.title.invalid) {
-          <span class="text-error text-body-sm">Title is required</span>
-        }
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="font-label-md text-label-md text-on-surface" for="s-desc">Description</label>
-        <textarea id="s-desc" formControlName="description" rows="3" class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"></textarea>
-        @if (form.controls.description.touched && form.controls.description.invalid) {
-          <span class="text-error text-body-sm">Description is required</span>
-        }
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="font-label-md text-label-md text-on-surface" for="s-price">Price (optional)</label>
-          <input id="s-price" formControlName="price" class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" placeholder="e.g. ₹2,000/month" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="font-label-md text-label-md text-on-surface" for="s-icon">Icon (optional)</label>
-          <input id="s-icon" formControlName="icon" class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" placeholder="Material icon name" />
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="font-label-md text-label-md text-on-surface" for="s-order">Display Order</label>
-          <input id="s-order" formControlName="display_order" type="number" min="0" class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
-        </div>
-        <div class="flex items-center gap-2 pt-6">
-          <input id="s-active" formControlName="is_active" type="checkbox" class="w-4 h-4 accent-primary" />
-          <label for="s-active" class="text-sm text-on-surface">Active</label>
-        </div>
-      </div>
-      <div class="flex justify-end gap-2 mt-2">
-        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showModal.set(false)">Cancel</button>
-        <button type="submit" [disabled]="saving()" class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
-          {{ saving() ? 'Saving…' : (editingId() ? 'Update' : 'Create') }}
-        </button>
-      </div>
-    </form>
-  </div>
-</app-modal>
+}

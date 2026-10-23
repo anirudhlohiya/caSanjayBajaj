@@ -7,9 +7,10 @@
  * screens reached from within the app. Top-level tab destinations never show it,
  * because the bottom nav is their way out.
  *
- * Because this is a static map rather than a runtime history check, the back
- * button can never disagree with where back actually goes, and it can never
- * drop the user out of the app on a deep link.
+ * Where back goes is decided at runtime by `NavHistoryService`: the page the
+ * user came from. `backTo` here is only the fallback for when there is no
+ * in-app previous page (deep link, notification, reload), so back can never
+ * drop the user out of the app.
  */
 
 export interface NavEntry {
@@ -18,8 +19,9 @@ export interface NavEntry {
   /** i18n key for the optional second line. */
   readonly subtitleKey: string | null;
   /**
-   * Logical parent route. When set, the back button is shown and navigates here.
-   * `null` marks a top-level destination, which gets no back button.
+   * Logical parent route. When set, the back button is shown; it goes to the
+   * previous page, or here when there is none. `null` marks a top-level
+   * destination, which gets no back button.
    */
   readonly backTo: string | null;
 }
@@ -65,12 +67,19 @@ const NAV_ENTRIES: Readonly<Record<string, NavEntry>> = {
   // The ticket subject is dynamic, so the page renders its own heading and the
   // shell only supplies the back button.
   '/support/:id': { titleKey: null, subtitleKey: null, backTo: '/support' },
+  // Service pages render their own heading (title comes from the admin panel).
+  '/services/:slug': { titleKey: null, subtitleKey: null, backTo: '/services' },
 
   // --- Standalone routes that render outside the shell ----------------------
   '/documents/upload': {
     titleKey: 'HEADER.UPLOAD',
     subtitleKey: 'HEADER.UPLOAD_SUB',
     backTo: '/documents',
+  },
+  '/due-dates': {
+    titleKey: 'HEADER.DUE_DATES',
+    subtitleKey: null,
+    backTo: '/dashboard',
   },
   '/notifications': {
     titleKey: 'HEADER.NOTIFICATIONS',
@@ -92,5 +101,6 @@ export function resolveNav(url: string): NavEntry {
   const exact = NAV_ENTRIES[path];
   if (exact) return exact;
   if (path.startsWith('/support/')) return NAV_ENTRIES['/support/:id'];
+  if (path.startsWith('/services/')) return NAV_ENTRIES['/services/:slug'];
   return NO_HEADER;
 }

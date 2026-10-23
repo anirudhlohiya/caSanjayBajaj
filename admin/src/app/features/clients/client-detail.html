@@ -227,6 +227,52 @@
         </form>
       </div>
 
+      <!-- Family Members Card -->
+      <div class="card overflow-hidden">
+        <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-sky-600 dark:text-sky-400">family_restroom</span>
+            <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">Family Members</h3>
+            <span class="text-[11px] font-mono text-neutral-400 tabular-nums">{{ familyMembers().length }}/{{ maxFamilyMembers }}</span>
+          </div>
+          @if (familyMembers().length < maxFamilyMembers) {
+            <button
+              type="button"
+              (click)="openMemberModal()"
+              class="h-7 px-3.5 rounded-full border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-medium hover:bg-[#fafafa] dark:hover:bg-neutral-700 transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <span class="material-symbols-outlined text-[15px]">person_add</span>
+              Add Member
+            </button>
+          }
+        </div>
+        @if (familyMembers().length) {
+          <ul class="divide-y divide-[#ebebeb] dark:divide-neutral-800">
+            @for (m of familyMembers(); track m.id) {
+              <li class="flex items-center gap-3 px-5 py-3">
+                <div class="size-8 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 flex items-center justify-center text-xs font-semibold shrink-0">
+                  {{ m.name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">{{ m.name }}</p>
+                  <p class="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    {{ relationLabel(m.relation) }} · <span class="font-mono">{{ m.pan || 'No PAN' }}</span>
+                  </p>
+                </div>
+                <button type="button" class="size-7 rounded-md flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Edit" (click)="openMemberModal(m)">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </button>
+                <button type="button" class="size-7 rounded-md flex items-center justify-center text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40" title="Remove" (click)="removeMember(m)">
+                  <span class="material-symbols-outlined text-[16px]">delete</span>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="px-5 py-5 text-xs font-mono text-neutral-400">No family members. The client can add up to {{ maxFamilyMembers }} from their app.</p>
+        }
+      </div>
+
       <!-- ITR Returns Section Card -->
       <div class="card overflow-hidden">
         <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
@@ -249,7 +295,8 @@
               <table class="w-full text-left text-xs">
                 <thead>
                   <tr class="border-b border-[#ebebeb] dark:border-neutral-800 text-neutral-400 bg-[#fafafa] dark:bg-neutral-800/50 uppercase text-[11px] font-mono tracking-wider">
-                    <th class="py-2.5 px-4">Assessment Year</th>
+                    <th class="py-2.5 px-4">Person</th>
+                    <th class="py-2.5 px-4">Year</th>
                     <th class="py-2.5 px-4">Filename</th>
                     <th class="py-2.5 px-4">Size</th>
                     <th class="py-2.5 px-4">Uploaded Date</th>
@@ -257,10 +304,14 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-[#ebebeb] dark:divide-neutral-800">
-                  @for (ret of itrReturns(); track ret.id) {
+                  @for (ret of sortedItrReturns(); track ret.id) {
                     <tr class="hover:bg-[#fafafa] dark:hover:bg-neutral-800/40 transition-colors">
-                      <td class="py-3 px-4 font-mono font-semibold text-neutral-900 dark:text-white">AY {{ ret.assessment_year }}</td>
-                      <td class="py-3 px-4 font-medium text-neutral-900 dark:text-neutral-100">{{ ret.original_filename }}</td>
+                      <td class="py-3 px-4 font-medium text-neutral-900 dark:text-white">{{ personName(ret.family_member_id) }}</td>
+                      <td class="py-3 px-4 font-mono font-semibold text-neutral-900 dark:text-white whitespace-nowrap">
+                        {{ itrYearLabel(ret.assessment_year) }}
+                        <span class="block text-[10px] font-normal text-neutral-400">AY {{ ret.assessment_year }}</span>
+                      </td>
+                      <td class="py-3 px-4 font-medium text-neutral-900 dark:text-neutral-100">{{ ret.filename }}</td>
                       <td class="py-3 px-4 font-mono tabular-nums text-neutral-500 dark:text-neutral-400">{{ fmtBytes(ret.file_size_bytes) }}</td>
                       <td class="py-3 px-4 font-mono tabular-nums text-neutral-500 dark:text-neutral-400">{{ fmtDate(ret.uploaded_at) }}</td>
                       <td class="py-3 px-4 text-right">
@@ -794,18 +845,31 @@
       </button>
     </div>
     <p class="text-xs text-neutral-500 dark:text-neutral-400 mb-4 leading-relaxed">
-      Upload the client's official ITR acknowledgement PDF (e.g. ITR-V) per assessment year. If a return already exists for this assessment year, it will be replaced.
+      Upload the official ITR acknowledgement PDF (e.g. ITR-V). If a return already exists for the same person and year, it will be replaced.
     </p>
     <form class="flex flex-col gap-4" [formGroup]="itrReturnForm" (ngSubmit)="submitItrReturn()">
       <div class="flex flex-col gap-1.5">
-        <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="itr-ay">Assessment Year</label>
+        <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="itr-person">For</label>
+        <select
+          id="itr-person"
+          formControlName="family_member_id"
+          class="h-9 px-3 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-[#fafafa] dark:bg-neutral-800 text-xs font-medium text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all cursor-pointer"
+        >
+          <option value="" class="bg-white dark:bg-neutral-800">{{ client()?.name ?? 'Account holder' }} (account holder)</option>
+          @for (m of familyMembers(); track m.id) {
+            <option [value]="m.id" class="bg-white dark:bg-neutral-800">{{ m.name }} ({{ relationLabel(m.relation) }})</option>
+          }
+        </select>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="itr-ay">Year</label>
         <select
           id="itr-ay"
           formControlName="assessment_year"
           class="h-9 px-3 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-[#fafafa] dark:bg-neutral-800 text-xs font-mono font-medium text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all cursor-pointer"
         >
           @for (ay of assessmentYears; track ay) {
-            <option [value]="ay" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">AY {{ ay }}</option>
+            <option [value]="ay" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">{{ itrYearLabel(ay) }} (AY {{ ay }})</option>
           }
         </select>
       </div>
@@ -843,5 +907,50 @@
         </button>
       </div>
     </form>
+  </div>
+</app-modal>
+
+<!-- Add / Edit Family Member Modal -->
+<app-modal [open]="showMemberModal()" (close)="showMemberModal.set(false)">
+  <div class="p-6 max-w-md">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-semibold tracking-tight text-neutral-900 dark:text-white">{{ editingMemberId() ? 'Edit family member' : 'Add family member' }}</h2>
+      <button class="size-7 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer" (click)="showMemberModal.set(false)">
+        <span class="material-symbols-outlined text-[16px]">close</span>
+      </button>
+    </div>
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="fm-name">Name</label>
+        <input id="fm-name" maxlength="120" class="h-9 px-3 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white"
+          [ngModel]="memberForm().name" (ngModelChange)="setMemberField('name', $event)" placeholder="Full name as per PAN" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="fm-rel">Relation</label>
+          <select id="fm-rel" class="h-9 px-3 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-[#fafafa] dark:bg-neutral-800 text-sm text-neutral-900 dark:text-neutral-100 outline-none"
+            [ngModel]="memberForm().relation" (ngModelChange)="setMemberField('relation', $event)">
+            @for (r of relations; track r.key) {
+              <option [value]="r.key">{{ r.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="fm-pan">PAN</label>
+          <input id="fm-pan" maxlength="10" class="h-9 px-3 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-sm font-mono uppercase text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white"
+            [ngModel]="memberForm().pan" (ngModelChange)="setMemberField('pan', $event)" placeholder="ABCDE1234F" />
+        </div>
+      </div>
+      @if (memberPanInvalid()) {
+        <span class="text-rose-600 dark:text-rose-400 text-[11px] font-mono">PAN must look like ABCDE1234F</span>
+      }
+    </div>
+    <div class="flex justify-end gap-2.5 mt-5 pt-3 border-t border-[#ebebeb] dark:border-neutral-800">
+      <button type="button" class="h-8 px-4 rounded-full border border-[#ebebeb] dark:border-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-[#fafafa] dark:hover:bg-neutral-800 cursor-pointer" (click)="showMemberModal.set(false)">Cancel</button>
+      <button type="button" class="h-8 px-4 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-40 cursor-pointer"
+        [disabled]="!memberForm().name.trim() || memberPanInvalid() || memberSaving()" (click)="saveMember()">
+        {{ memberSaving() ? 'Saving…' : (editingMemberId() ? 'Save' : 'Add member') }}
+      </button>
+    </div>
   </div>
 </app-modal>

@@ -5,6 +5,7 @@ import { Document } from '../entities/document.entity';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { StorageModule } from '../storage/storage.module';
 import { UsersModule } from '../users/users.module';
+import { FamilyMembersModule } from '../family-members/family-members.module';
 import { DocumentsController } from './documents.controller';
 import { DocumentsService } from './documents.service';
 
@@ -14,6 +15,7 @@ import { DocumentsService } from './documents.service';
     StorageModule,
     UsersModule,
     ComplianceTasksModule,
+    FamilyMembersModule,
   ],
   controllers: [DocumentsController],
   providers: [DocumentsService],

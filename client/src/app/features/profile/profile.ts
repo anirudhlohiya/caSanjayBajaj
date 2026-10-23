@@ -7,22 +7,24 @@ import {
   ViewChild,
   ElementRef,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
 import {
   CertificatesService,
+  FamilyMembersService,
   ProfileService,
   ServiceRequestsService,
 } from '../../core/services/feature.services';
-import { CertType, ClientCertificate, ServiceRequest } from '../../core/models';
+import { CertType, ClientCertificate, FamilyMember, ServiceRequest } from '../../core/models';
 import { ThemeService, ThemeMode } from '../../core/services/theme.service';
 import { PushService } from '../../core/services/push.service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { DatePipe, TitleCasePipe, UpperCasePipe } from '@angular/common';
 import { INDUSTRIES } from '../../../../../shared/constants/industries';
 import { isValidGstin, isValidPan } from '../../../../../shared/constants/tax-validation';
+import { FAMILY_RELATIONS, MAX_FAMILY_MEMBERS } from '../../../../../shared/constants/itr-year';
 
 const PHOTO_KEY = 'fp_profile_photo';
 const LANG_PREF_KEY = 'fp_language';
@@ -30,7 +32,7 @@ const LANG_PREF_KEY = 'fp_language';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, TranslatePipe, DatePipe, UpperCasePipe],
+  imports: [ReactiveFormsModule, FormsModule, TranslatePipe, DatePipe, UpperCasePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.html',
 })
@@ -45,6 +47,25 @@ export class Profile {
   readonly theme = inject(ThemeService);
   private readonly push = inject(PushService);
   readonly translate = inject(TranslateService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly familyService = inject(FamilyMembersService);
+
+  // --- Family members (ITR clients) ---
+  readonly familyMembers = signal<FamilyMember[]>([]);
+  readonly relations = FAMILY_RELATIONS;
+  readonly maxFamilyMembers = MAX_FAMILY_MEMBERS;
+  /** null = form closed, 'new' = adding, otherwise the member being edited. */
+  readonly memberEditing = signal<string | null>(null);
+  readonly memberForm = signal({ name: '', relation: 'spouse', pan: '' });
+  readonly memberSaving = signal(false);
+  readonly showFamily = computed(() => {
+    const type = this.auth.userProfile()?.user_type;
+    return type === 'itr' || type === 'both';
+  });
+  readonly memberPanInvalid = computed(() => {
+    const pan = this.memberForm().pan.trim();
+    return !!pan && !isValidPan(pan);
+  });
 
   readonly photoUrl = computed(() => this.auth.userProfile()?.profile_photo_url || null);
 
@@ -115,12 +136,80 @@ export class Profile {
       this.populateProfileForm();
       void this.loadCertificates();
       void this.loadServiceRequests();
+      if (this.showFamily()) await this.loadFamily();
     } catch {
       /* auth guard handles redirect */
     }
     
     if (this.push.supported()) {
       this.pushEnabled.set(await this.push.isSubscribed());
+    }
+  }
+
+  private async loadFamily(): Promise<void> {
+    try {
+      this.familyMembers.set(await this.familyService.list());
+    } catch {
+      /* non-fatal */
+    }
+    // Arriving from the ITR tab's "Add family member" chip
+    if (this.route.snapshot.queryParamMap.get('section') === 'family') {
+      if (this.familyMembers().length < MAX_FAMILY_MEMBERS) this.editMember();
+      setTimeout(() =>
+        document.getElementById('family-members')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      );
+    }
+  }
+
+  relationLabel(key: string): string {
+    return FAMILY_RELATIONS.find((r) => r.key === key)?.label ?? key;
+  }
+
+  editMember(member?: FamilyMember): void {
+    this.memberEditing.set(member?.id ?? 'new');
+    this.memberForm.set({
+      name: member?.name ?? '',
+      relation: member?.relation ?? 'spouse',
+      pan: member?.pan ?? '',
+    });
+  }
+
+  setMemberField(key: 'name' | 'relation' | 'pan', value: string): void {
+    this.memberForm.update((f) => ({ ...f, [key]: key === 'pan' ? value.toUpperCase() : value }));
+  }
+
+  async saveMember(): Promise<void> {
+    const f = this.memberForm();
+    const editing = this.memberEditing();
+    if (!editing || !f.name.trim() || this.memberPanInvalid() || this.memberSaving()) return;
+    this.memberSaving.set(true);
+    try {
+      const body = { name: f.name.trim(), relation: f.relation, pan: f.pan.trim() };
+      if (editing === 'new') {
+        await this.familyService.create(body);
+        this.toast.success(`${body.name} added`);
+      } else {
+        await this.familyService.update(editing, body);
+        this.toast.success('Saved');
+      }
+      this.familyMembers.set(await this.familyService.list());
+      this.memberEditing.set(null);
+    } catch {
+      /* toast handled by interceptor */
+    } finally {
+      this.memberSaving.set(false);
+    }
+  }
+
+  async removeMember(member: FamilyMember): Promise<void> {
+    if (!confirm(`Remove ${member.name}? Their ITR returns and documents will also be removed.`)) return;
+    try {
+      await this.familyService.remove(member.id);
+      this.familyMembers.update((list) => list.filter((m) => m.id !== member.id));
+      if (this.memberEditing() === member.id) this.memberEditing.set(null);
+      this.toast.success(`${member.name} removed`);
+    } catch {
+      /* toast handled by interceptor */
     }
   }
 

@@ -24,6 +24,14 @@ describe('resolveNav', () => {
     expect(resolveNav('/notifications').backTo).toBe('/dashboard');
   });
 
+  it('treats any /services/<slug> as a service page that goes back to /services', () => {
+    for (const path of ['/services/gst', '/services/income-tax/']) {
+      const entry = resolveNav(path);
+      expect(entry.backTo).withContext(path).toBe('/services');
+      expect(entry.titleKey).withContext(path).toBeNull();
+    }
+  });
+
   it('treats any /support/<id> as a ticket detail page', () => {
     for (const path of ['/support/42', '/support/abc-123', '/support/7/']) {
       const entry = resolveNav(path);

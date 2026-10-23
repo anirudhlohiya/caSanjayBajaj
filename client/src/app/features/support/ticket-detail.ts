@@ -2,12 +2,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   inject,
   OnInit,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TicketsService } from '../../core/services/feature.services';
 import { ToastService } from '../../core/services/toast.service';
 import {
@@ -16,13 +18,12 @@ import {
   TICKET_STATUS_COLORS,
   TICKET_CATEGORY_LABELS,
 } from '../../core/models';
-import { PageHeader } from '../../shared/components/page-header';
 import { Spinner } from '../../shared/components/spinner';
 
 @Component({
   selector: 'app-ticket-detail',
   standalone: true,
-  imports: [PageHeader, Spinner],
+  imports: [FormsModule, RouterLink, Spinner],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ticket-detail.html',
 })
@@ -36,6 +37,15 @@ export class TicketDetail implements OnInit {
   readonly loading = signal(true);
   readonly ticket = signal<Ticket | null>(null);
   readonly downloading = signal(false);
+  readonly replyText = signal('');
+  readonly sending = signal(false);
+  readonly closing = signal(false);
+
+  /** "Service enquiry: GST Services" → "GST Services" (requests from a service page). */
+  readonly enquiryService = computed(() => {
+    const match = /^Service enquiry: (.+)$/.exec(this.ticket()?.subject ?? '');
+    return match ? match[1] : null;
+  });
 
   readonly statusColors = TICKET_STATUS_COLORS;
   readonly categoryLabels = TICKET_CATEGORY_LABELS;
@@ -58,10 +68,32 @@ export class TicketDetail implements OnInit {
 
   async closeTicket(): Promise<void> {
     const t = this.ticket();
-    if (!t) return;
-    await this.ticketsService.close(t.id);
-    this.toast.success('Ticket closed');
-    await this.load(t.id);
+    if (!t || this.closing()) return;
+    if (!confirm('Close this request? You can always raise a new one.')) return;
+    this.closing.set(true);
+    try {
+      await this.ticketsService.close(t.id);
+      this.toast.success('Request closed');
+      await this.load(t.id);
+    } finally {
+      this.closing.set(false);
+    }
+  }
+
+  async sendReply(): Promise<void> {
+    const t = this.ticket();
+    const text = this.replyText().trim();
+    if (!t || !text || this.sending()) return;
+    this.sending.set(true);
+    try {
+      await this.ticketsService.reply(t.id, text);
+      this.replyText.set('');
+      await this.load(t.id);
+    } catch {
+      /* toast handled by interceptor */
+    } finally {
+      this.sending.set(false);
+    }
   }
 
   async download(att: TicketAttachment): Promise<void> {
@@ -80,17 +112,6 @@ export class TicketDetail implements OnInit {
     } finally {
       this.downloading.set(false);
     }
-  }
-
-  hasAttachments(t: Ticket): boolean {
-    return (t.messages ?? []).some(
-      (m) => m.attachments && m.attachments.length > 0,
-    );
-  }
-
-  firstMessage(t: Ticket): { message: string; created_at: string } | null {
-    const m = (t.messages ?? [])[0];
-    return m ? { message: m.message, created_at: m.created_at } : null;
   }
 
   goBack(): void {

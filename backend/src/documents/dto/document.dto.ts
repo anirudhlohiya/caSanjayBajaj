@@ -60,6 +60,13 @@ export class CreateUploadUrlDto {
   @IsString()
   assessment_year?: string;
 
+  @ApiPropertyOptional({
+    description: 'ITR only: family member the document is for (omit for self)',
+  })
+  @IsOptional()
+  @IsUUID()
+  family_member_id?: string;
+
   @ApiProperty()
   @IsString()
   @Length(1, 255)
@@ -106,6 +113,15 @@ export class DocumentStatusQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsString()
   assessment_year?: string;
+
+  @ApiPropertyOptional({
+    description: "A family member id, or 'self' for the account holder only",
+  })
+  @IsOptional()
+  @Matches(/^(self|[0-9a-f-]{36})$/i, {
+    message: "family_member_id must be a member id or 'self'",
+  })
+  family_member_id?: string;
 
   @ApiPropertyOptional({ enum: DocumentStatus })
   @IsOptional()
