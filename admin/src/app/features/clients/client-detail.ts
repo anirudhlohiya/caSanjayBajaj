@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -94,6 +94,10 @@ export class ClientDetail implements OnInit {
 
   readonly loading = signal(true);
   readonly client = signal<Client | null>(null);
+  /** GST sections (checklist, reports, certificates) for gst / both clients. */
+  readonly hasGst = computed(() => ['gst', 'both'].includes(this.client()?.user_type ?? ''));
+  /** ITR sections (returns, family members) for itr / both clients. */
+  readonly hasItr = computed(() => ['itr', 'both'].includes(this.client()?.user_type ?? ''));
 
   readonly pendingRequest = signal<ServiceRequest | null>(null);
   readonly itrReturns = signal<ItrReturn[]>([]);

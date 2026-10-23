@@ -2,6 +2,7 @@
   <app-spinner />
 } @else if (client(); as c) {
   <app-page-header [title]="c.name" [subtitle]="c.email">
+    @if (hasGst()) {
     <button
       class="h-8 px-3.5 rounded-full border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-medium hover:bg-[#fafafa] transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
       (click)="sendReminder()"
@@ -16,6 +17,7 @@
       <span class="material-symbols-outlined text-[16px]">upload_file</span>
       Send Report
     </button>
+    }
   </app-page-header>
 
   <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 mb-6">
@@ -227,372 +229,378 @@
         </form>
       </div>
 
-      <!-- Family Members Card -->
-      <div class="card overflow-hidden">
-        <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[20px] text-sky-600 dark:text-sky-400">family_restroom</span>
-            <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">Family Members</h3>
-            <span class="text-[11px] font-mono text-neutral-400 tabular-nums">{{ familyMembers().length }}/{{ maxFamilyMembers }}</span>
-          </div>
-          @if (familyMembers().length < maxFamilyMembers) {
-            <button
-              type="button"
-              (click)="openMemberModal()"
-              class="h-7 px-3.5 rounded-full border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-medium hover:bg-[#fafafa] dark:hover:bg-neutral-700 transition-colors flex items-center gap-1 cursor-pointer"
-            >
-              <span class="material-symbols-outlined text-[15px]">person_add</span>
-              Add Member
-            </button>
-          }
-        </div>
-        @if (familyMembers().length) {
-          <ul class="divide-y divide-[#ebebeb] dark:divide-neutral-800">
-            @for (m of familyMembers(); track m.id) {
-              <li class="flex items-center gap-3 px-5 py-3">
-                <div class="size-8 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 flex items-center justify-center text-xs font-semibold shrink-0">
-                  {{ m.name.charAt(0).toUpperCase() }}
-                </div>
-                <div class="min-w-0 flex-1">
-                  <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">{{ m.name }}</p>
-                  <p class="text-[11px] text-neutral-500 dark:text-neutral-400">
-                    {{ relationLabel(m.relation) }} · <span class="font-mono">{{ m.pan || 'No PAN' }}</span>
-                  </p>
-                </div>
-                <button type="button" class="size-7 rounded-md flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Edit" (click)="openMemberModal(m)">
-                  <span class="material-symbols-outlined text-[16px]">edit</span>
-                </button>
-                <button type="button" class="size-7 rounded-md flex items-center justify-center text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40" title="Remove" (click)="removeMember(m)">
-                  <span class="material-symbols-outlined text-[16px]">delete</span>
-                </button>
-              </li>
-            }
-          </ul>
-        } @else {
-          <p class="px-5 py-5 text-xs font-mono text-neutral-400">No family members. The client can add up to {{ maxFamilyMembers }} from their app.</p>
-        }
-      </div>
-
-      <!-- ITR Returns Section Card -->
-      <div class="card overflow-hidden">
-        <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[20px] text-rose-600 dark:text-rose-400">description</span>
-            <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">ITR Returns</h3>
-          </div>
-          <button
-            type="button"
-            (click)="openItrUpload()"
-            class="h-7 px-3.5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors flex items-center gap-1 cursor-pointer"
-          >
-            <span class="material-symbols-outlined text-[15px]">upload_file</span>
-            Upload Return PDF
-          </button>
-        </div>
-        <div class="p-0">
-          @if (itrReturns().length > 0) {
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead>
-                  <tr class="border-b border-[#ebebeb] dark:border-neutral-800 text-neutral-400 bg-[#fafafa] dark:bg-neutral-800/50 uppercase text-[11px] font-mono tracking-wider">
-                    <th class="py-2.5 px-4">Person</th>
-                    <th class="py-2.5 px-4">Year</th>
-                    <th class="py-2.5 px-4">Filename</th>
-                    <th class="py-2.5 px-4">Size</th>
-                    <th class="py-2.5 px-4">Uploaded Date</th>
-                    <th class="py-2.5 px-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-[#ebebeb] dark:divide-neutral-800">
-                  @for (ret of sortedItrReturns(); track ret.id) {
-                    <tr class="hover:bg-[#fafafa] dark:hover:bg-neutral-800/40 transition-colors">
-                      <td class="py-3 px-4 font-medium text-neutral-900 dark:text-white">{{ personName(ret.family_member_id) }}</td>
-                      <td class="py-3 px-4 font-mono font-semibold text-neutral-900 dark:text-white whitespace-nowrap">
-                        {{ itrYearLabel(ret.assessment_year) }}
-                        <span class="block text-[10px] font-normal text-neutral-400">AY {{ ret.assessment_year }}</span>
-                      </td>
-                      <td class="py-3 px-4 font-medium text-neutral-900 dark:text-neutral-100">{{ ret.filename }}</td>
-                      <td class="py-3 px-4 font-mono tabular-nums text-neutral-500 dark:text-neutral-400">{{ fmtBytes(ret.file_size_bytes) }}</td>
-                      <td class="py-3 px-4 font-mono tabular-nums text-neutral-500 dark:text-neutral-400">{{ fmtDate(ret.uploaded_at) }}</td>
-                      <td class="py-3 px-4 text-right">
-                        <button
-                          type="button"
-                          (click)="downloadItrReturn(ret)"
-                          class="h-7 px-3 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-[11px] font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors cursor-pointer inline-flex items-center gap-1"
-                        >
-                          <span class="material-symbols-outlined text-[13px]">download</span>
-                          Download
-                        </button>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
+      <!-- ITR service only (itr / both) -->
+      @if (hasItr()) {
+        <!-- Family Members Card -->
+        <div class="card overflow-hidden">
+          <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px] text-sky-600 dark:text-sky-400">family_restroom</span>
+              <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">Family Members</h3>
+              <span class="text-[11px] font-mono text-neutral-400 tabular-nums">{{ familyMembers().length }}/{{ maxFamilyMembers }}</span>
             </div>
-          } @else {
-            <div class="text-center py-8 text-neutral-400">
-              <span class="material-symbols-outlined text-[32px] text-neutral-300 dark:text-neutral-600 mb-1">picture_as_pdf</span>
-              <p class="text-xs font-mono">No ITR returns uploaded yet for this client.</p>
-            </div>
-          }
-        </div>
-      </div>
-      
-      <!-- Compliance Checklist -->
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
-        <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
-          <h3 class="font-headline-sm text-headline-sm text-on-surface">Compliance Checklist</h3>
-          <div class="flex items-center gap-2">
-            <select
-              [value]="selectedPeriod()"
-              (change)="onPeriodChange($event)"
-              class="px-2 py-1 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary"
-            >
-              @for (p of periods(); track p.id) {
-                <option [value]="p.id">{{ p.period_label }}</option>
-              }
-            </select>
-            @if (tasks().length === 0 && selectedPeriod()) {
-              <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="generateTasks()">
-                Generate
+            @if (familyMembers().length < maxFamilyMembers) {
+              <button
+                type="button"
+                (click)="openMemberModal()"
+                class="h-7 px-3.5 rounded-full border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-medium hover:bg-[#fafafa] dark:hover:bg-neutral-700 transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-[15px]">person_add</span>
+                Add Member
               </button>
             }
           </div>
-        </div>
-        <div class="p-4">
-          @if (tasks().length > 0) {
-            <ul class="space-y-3">
-              @for (t of tasks(); track t.id) {
-                <li class="flex items-center justify-between p-3 border border-outline-variant rounded bg-surface-bright">
-                  <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-{{ t.status === 'completed' ? 'primary' : 'outline-variant' }}">
-                      {{ t.status === 'completed' ? 'check_circle' : 'radio_button_unchecked' }}
-                    </span>
-                    <div class="min-w-0">
-                      <div class="font-medium text-on-surface">{{ taskLabel(t.category) }}</div>
-                      <div class="text-body-sm text-on-surface-variant">
-                        Status: {{ t.filed_at ? 'filed' : t.status }}
-                        @if (t.category === 'gst_payment' && t.amount) {
-                          · Amount: ₹{{ t.amount }}
-                        }
-                      </div>
-                      @if (t.filed_at) {
-                        <div class="text-body-sm text-emerald-700 dark:text-emerald-400">
-                          Filed on {{ fmtDate(t.filed_at) }}@if (t.arn) { · ARN {{ t.arn }} }@if (t.filed_report_id) { · PDF attached }
-                        </div>
-                      }
-                      @if (t.payment_reminder_sent_at) {
-                        <div class="text-body-sm text-on-surface-variant">Reminder sent {{ fmtDate(t.payment_reminder_sent_at) }}</div>
-                      }
-                    </div>
+          @if (familyMembers().length) {
+            <ul class="divide-y divide-[#ebebeb] dark:divide-neutral-800">
+              @for (m of familyMembers(); track m.id) {
+                <li class="flex items-center gap-3 px-5 py-3">
+                  <div class="size-8 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 flex items-center justify-center text-xs font-semibold shrink-0">
+                    {{ m.name.charAt(0).toUpperCase() }}
                   </div>
-                  <div class="flex flex-wrap items-center justify-end gap-2">
-                    @if (t.nil_declared_at && t.status !== 'completed') {
-                      <button class="px-2 py-1 bg-secondary text-on-secondary rounded text-label-sm hover:bg-secondary/90 cursor-pointer" (click)="confirmNil(t)">
-                        Confirm Nil
-                      </button>
-                    }
-                    @if (canMarkFiled(t)) {
-                      <button class="px-2 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="openMarkFiled(t)">
-                        Mark filed
-                      </button>
-                    }
-                    @if (t.category === 'gst_payment' && t.status !== 'completed') {
-                      <input
-                        type="number" min="0" step="0.01" placeholder="Amount ₹"
-                        [value]="amountDraft(t)" (input)="setAmountDraft(t, $any($event.target).value)"
-                        class="w-28 px-2 py-1 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary"
-                        aria-label="GST payable amount"
-                      />
-                      @if (amountDraft(t) !== (t.amount ?? '')) {
-                        <button class="px-2 py-1 border border-outline-variant rounded text-label-sm hover:bg-surface-container-high cursor-pointer" (click)="saveAmount(t)">
-                          Save
-                        </button>
-                      }
-                      <button class="px-2 py-1 border border-outline-variant rounded text-label-sm hover:bg-surface-container-high cursor-pointer disabled:opacity-50"
-                        [disabled]="!t.amount || isReminding(t.id)" (click)="sendPaymentReminder(t)"
-                        [title]="t.amount ? 'Send payment reminder on app, email and WhatsApp' : 'Save the amount first'">
-                        {{ isReminding(t.id) ? 'Sending…' : 'Send payment reminder' }}
-                      </button>
-                      <button class="px-2 py-1 border border-outline-variant rounded text-label-sm hover:bg-surface-container-high cursor-pointer" (click)="markTaskPaid(t)">
-                        Mark Paid
-                      </button>
-                    }
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">{{ m.name }}</p>
+                    <p class="text-[11px] text-neutral-500 dark:text-neutral-400">
+                      {{ relationLabel(m.relation) }} · <span class="font-mono">{{ m.pan || 'No PAN' }}</span>
+                    </p>
                   </div>
+                  <button type="button" class="size-7 rounded-md flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Edit" (click)="openMemberModal(m)">
+                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                  </button>
+                  <button type="button" class="size-7 rounded-md flex items-center justify-center text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40" title="Remove" (click)="removeMember(m)">
+                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                  </button>
                 </li>
               }
             </ul>
           } @else {
-            <p class="text-body-md text-on-surface-variant text-center py-4">No tasks found for this period.</p>
+            <p class="px-5 py-5 text-xs font-mono text-neutral-400">No family members. The client can add up to {{ maxFamilyMembers }} from their app.</p>
           }
         </div>
-      </div>
 
-      <!-- Pending Report Requests -->
-      @if (reportRequests().length > 0) {
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
-          <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Pending Report Requests</h3>
-          <div class="space-y-2">
-            @for (req of reportRequests(); track req.id) {
-              <div class="flex items-center justify-between p-3 border border-outline-variant rounded bg-surface-bright">
-                <div>
-                  <div class="font-medium text-on-surface">Period: {{ req.filing_period?.period_label }}</div>
-                  <div class="text-body-sm text-on-surface-variant">Requested on: {{ fmtDate(req.created_at) }}</div>
-                </div>
-                <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="fulfillRequest(req)">
-                  Fulfill
-                </button>
+        <!-- ITR Returns Section Card -->
+        <div class="card overflow-hidden">
+          <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px] text-rose-600 dark:text-rose-400">description</span>
+              <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">ITR Returns</h3>
+            </div>
+            <button
+              type="button"
+              (click)="openItrUpload()"
+              class="h-7 px-3.5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <span class="material-symbols-outlined text-[15px]">upload_file</span>
+              Upload Return PDF
+            </button>
+          </div>
+          <div class="p-0">
+            @if (itrReturns().length > 0) {
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead>
+                    <tr class="border-b border-[#ebebeb] dark:border-neutral-800 text-neutral-400 bg-[#fafafa] dark:bg-neutral-800/50 uppercase text-[11px] font-mono tracking-wider">
+                      <th class="py-2.5 px-4">Person</th>
+                      <th class="py-2.5 px-4">Year</th>
+                      <th class="py-2.5 px-4">Filename</th>
+                      <th class="py-2.5 px-4">Size</th>
+                      <th class="py-2.5 px-4">Uploaded Date</th>
+                      <th class="py-2.5 px-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-[#ebebeb] dark:divide-neutral-800">
+                    @for (ret of sortedItrReturns(); track ret.id) {
+                      <tr class="hover:bg-[#fafafa] dark:hover:bg-neutral-800/40 transition-colors">
+                        <td class="py-3 px-4 font-medium text-neutral-900 dark:text-white">{{ personName(ret.family_member_id) }}</td>
+                        <td class="py-3 px-4 font-mono font-semibold text-neutral-900 dark:text-white whitespace-nowrap">
+                          {{ itrYearLabel(ret.assessment_year) }}
+                          <span class="block text-[10px] font-normal text-neutral-400">AY {{ ret.assessment_year }}</span>
+                        </td>
+                        <td class="py-3 px-4 font-medium text-neutral-900 dark:text-neutral-100">{{ ret.filename }}</td>
+                        <td class="py-3 px-4 font-mono tabular-nums text-neutral-500 dark:text-neutral-400">{{ fmtBytes(ret.file_size_bytes) }}</td>
+                        <td class="py-3 px-4 font-mono tabular-nums text-neutral-500 dark:text-neutral-400">{{ fmtDate(ret.uploaded_at) }}</td>
+                        <td class="py-3 px-4 text-right">
+                          <button
+                            type="button"
+                            (click)="downloadItrReturn(ret)"
+                            class="h-7 px-3 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-[11px] font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors cursor-pointer inline-flex items-center gap-1"
+                          >
+                            <span class="material-symbols-outlined text-[13px]">download</span>
+                            Download
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <div class="text-center py-8 text-neutral-400">
+                <span class="material-symbols-outlined text-[32px] text-neutral-300 dark:text-neutral-600 mb-1">picture_as_pdf</span>
+                <p class="text-xs font-mono">No ITR returns uploaded yet for this client.</p>
               </div>
             }
           </div>
         </div>
       }
 
-      <!-- Certificates Section -->
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
-        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Certificates</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- GST Certificate Card -->
-          <div class="border border-outline-variant rounded-lg p-4 flex flex-col justify-between bg-surface-container-low transition-all hover:border-outline">
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <span class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-[18px] text-primary">verified</span>
-                  GST Certificate
-                </span>
-                @if (hasCert('gst_cert')) {
-                  <span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800 font-medium">Available</span>
-                } @else {
-                  <span class="px-2 py-0.5 rounded text-xs bg-surface-container-high text-on-surface-variant">Not uploaded</span>
-                }
-              </div>
-              @if (certFor('gst_cert'); as cert) {
-                <button
-                  type="button"
-                  (click)="downloadCertificate(cert)"
-                  class="text-left flex items-center gap-1.5 text-body-sm font-medium text-primary hover:underline truncate max-w-full cursor-pointer mt-1"
-                  [title]="'Click to view ' + cert.original_filename"
-                >
-                  <span class="material-symbols-outlined text-[16px] shrink-0 text-primary">description</span>
-                  <span class="truncate">{{ cert.original_filename }}</span>
-                </button>
-                <p class="text-body-xs text-on-surface-variant/70 mt-1">
-                  Uploaded {{ fmtDate(cert.uploaded_at) }}
-                </p>
-              } @else {
-                <p class="text-body-sm text-on-surface-variant mt-1">Upload the registration certificate issued by the GST portal.</p>
-              }
-            </div>
-
-            <!-- Direct File Input for GST Certificate -->
-            <input
-              #gstCertInput
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-              class="hidden"
-              (change)="onDirectCertFileSelected($event, 'gst_cert')"
-            />
-
-            <div class="flex items-center gap-2 mt-4 pt-3 border-t border-outline-variant">
-              @if (certFor('gst_cert'); as cert) {
-                <button
-                  type="button"
-                  class="flex-1 px-3 py-1.5 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-label-sm hover:bg-surface-container-high transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-                  [disabled]="isDownloading(cert.id)"
-                  (click)="downloadCertificate(cert)"
-                >
-                  <span class="material-symbols-outlined text-[16px] text-primary">visibility</span>
-                  <span>View</span>
-                </button>
-              }
-              <button
-                type="button"
-                class="flex-1 px-3 py-1.5 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 shadow-2xs"
-                [disabled]="uploadingCertType() === 'gst_cert'"
-                (click)="triggerCertFileInput(gstCertInput)"
+      <!-- GST service only (gst / both) -->
+      @if (hasGst()) {
+        <!-- Compliance Checklist -->
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+          <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">Compliance Checklist</h3>
+            <div class="flex items-center gap-2">
+              <select
+                [value]="selectedPeriod()"
+                (change)="onPeriodChange($event)"
+                class="px-2 py-1 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary"
               >
-                @if (uploadingCertType() === 'gst_cert') {
-                  <span class="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  <span>Uploading…</span>
-                } @else {
-                  <span class="material-symbols-outlined text-[16px]">upload_file</span>
-                  <span>{{ hasCert('gst_cert') ? 'Replace' : 'Upload' }}</span>
+                @for (p of periods(); track p.id) {
+                  <option [value]="p.id">{{ p.period_label }}</option>
                 }
-              </button>
+              </select>
+              @if (tasks().length === 0 && selectedPeriod()) {
+                <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="generateTasks()">
+                  Generate
+                </button>
+              }
             </div>
           </div>
-
-          <!-- Udyam Certificate Card -->
-          <div class="border border-outline-variant rounded-lg p-4 flex flex-col justify-between bg-surface-container-low transition-all hover:border-outline">
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <span class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-[18px] text-primary">badge</span>
-                  Udyam Certificate
-                </span>
-                @if (hasCert('udyam_cert')) {
-                  <span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800 font-medium">Available</span>
-                } @else {
-                  <span class="px-2 py-0.5 rounded text-xs bg-surface-container-high text-on-surface-variant">Not uploaded</span>
+          <div class="p-4">
+            @if (tasks().length > 0) {
+              <ul class="space-y-3">
+                @for (t of tasks(); track t.id) {
+                  <li class="flex items-center justify-between p-3 border border-outline-variant rounded bg-surface-bright">
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-{{ t.status === 'completed' ? 'primary' : 'outline-variant' }}">
+                        {{ t.status === 'completed' ? 'check_circle' : 'radio_button_unchecked' }}
+                      </span>
+                      <div class="min-w-0">
+                        <div class="font-medium text-on-surface">{{ taskLabel(t.category) }}</div>
+                        <div class="text-body-sm text-on-surface-variant">
+                          Status: {{ t.filed_at ? 'filed' : t.status }}
+                          @if (t.category === 'gst_payment' && t.amount) {
+                            · Amount: ₹{{ t.amount }}
+                          }
+                        </div>
+                        @if (t.filed_at) {
+                          <div class="text-body-sm text-emerald-700 dark:text-emerald-400">
+                            Filed on {{ fmtDate(t.filed_at) }}@if (t.arn) { · ARN {{ t.arn }} }@if (t.filed_report_id) { · PDF attached }
+                          </div>
+                        }
+                        @if (t.payment_reminder_sent_at) {
+                          <div class="text-body-sm text-on-surface-variant">Reminder sent {{ fmtDate(t.payment_reminder_sent_at) }}</div>
+                        }
+                      </div>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                      @if (t.nil_declared_at && t.status !== 'completed') {
+                        <button class="px-2 py-1 bg-secondary text-on-secondary rounded text-label-sm hover:bg-secondary/90 cursor-pointer" (click)="confirmNil(t)">
+                          Confirm Nil
+                        </button>
+                      }
+                      @if (canMarkFiled(t)) {
+                        <button class="px-2 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="openMarkFiled(t)">
+                          Mark filed
+                        </button>
+                      }
+                      @if (t.category === 'gst_payment' && t.status !== 'completed') {
+                        <input
+                          type="number" min="0" step="0.01" placeholder="Amount ₹"
+                          [value]="amountDraft(t)" (input)="setAmountDraft(t, $any($event.target).value)"
+                          class="w-28 px-2 py-1 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary"
+                          aria-label="GST payable amount"
+                        />
+                        @if (amountDraft(t) !== (t.amount ?? '')) {
+                          <button class="px-2 py-1 border border-outline-variant rounded text-label-sm hover:bg-surface-container-high cursor-pointer" (click)="saveAmount(t)">
+                            Save
+                          </button>
+                        }
+                        <button class="px-2 py-1 border border-outline-variant rounded text-label-sm hover:bg-surface-container-high cursor-pointer disabled:opacity-50"
+                          [disabled]="!t.amount || isReminding(t.id)" (click)="sendPaymentReminder(t)"
+                          [title]="t.amount ? 'Send payment reminder on app, email and WhatsApp' : 'Save the amount first'">
+                          {{ isReminding(t.id) ? 'Sending…' : 'Send payment reminder' }}
+                        </button>
+                        <button class="px-2 py-1 border border-outline-variant rounded text-label-sm hover:bg-surface-container-high cursor-pointer" (click)="markTaskPaid(t)">
+                          Mark Paid
+                        </button>
+                      }
+                    </div>
+                  </li>
                 }
-              </div>
-              @if (certFor('udyam_cert'); as cert) {
-                <button
-                  type="button"
-                  (click)="downloadCertificate(cert)"
-                  class="text-left flex items-center gap-1.5 text-body-sm font-medium text-primary hover:underline truncate max-w-full cursor-pointer mt-1"
-                  [title]="'Click to view ' + cert.original_filename"
-                >
-                  <span class="material-symbols-outlined text-[16px] shrink-0 text-primary">description</span>
-                  <span class="truncate">{{ cert.original_filename }}</span>
-                </button>
-                <p class="text-body-xs text-on-surface-variant/70 mt-1">
-                  Uploaded {{ fmtDate(cert.uploaded_at) }}
-                </p>
-              } @else {
-                <p class="text-body-sm text-on-surface-variant mt-1">Upload MSME / Udyam registration certificate.</p>
+              </ul>
+            } @else {
+              <p class="text-body-md text-on-surface-variant text-center py-4">No tasks found for this period.</p>
+            }
+          </div>
+        </div>
+
+        <!-- Pending Report Requests -->
+        @if (reportRequests().length > 0) {
+          <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Pending Report Requests</h3>
+            <div class="space-y-2">
+              @for (req of reportRequests(); track req.id) {
+                <div class="flex items-center justify-between p-3 border border-outline-variant rounded bg-surface-bright">
+                  <div>
+                    <div class="font-medium text-on-surface">Period: {{ req.filing_period?.period_label }}</div>
+                    <div class="text-body-sm text-on-surface-variant">Requested on: {{ fmtDate(req.created_at) }}</div>
+                  </div>
+                  <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="fulfillRequest(req)">
+                    Fulfill
+                  </button>
+                </div>
               }
             </div>
+          </div>
+        }
 
-            <!-- Direct File Input for Udyam Certificate -->
-            <input
-              #udyamCertInput
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-              class="hidden"
-              (change)="onDirectCertFileSelected($event, 'udyam_cert')"
-            />
+        <!-- Certificates Section -->
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Certificates</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- GST Certificate Card -->
+            <div class="border border-outline-variant rounded-lg p-4 flex flex-col justify-between bg-surface-container-low transition-all hover:border-outline">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px] text-primary">verified</span>
+                    GST Certificate
+                  </span>
+                  @if (hasCert('gst_cert')) {
+                    <span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800 font-medium">Available</span>
+                  } @else {
+                    <span class="px-2 py-0.5 rounded text-xs bg-surface-container-high text-on-surface-variant">Not uploaded</span>
+                  }
+                </div>
+                @if (certFor('gst_cert'); as cert) {
+                  <button
+                    type="button"
+                    (click)="downloadCertificate(cert)"
+                    class="text-left flex items-center gap-1.5 text-body-sm font-medium text-primary hover:underline truncate max-w-full cursor-pointer mt-1"
+                    [title]="'Click to view ' + cert.original_filename"
+                  >
+                    <span class="material-symbols-outlined text-[16px] shrink-0 text-primary">description</span>
+                    <span class="truncate">{{ cert.original_filename }}</span>
+                  </button>
+                  <p class="text-body-xs text-on-surface-variant/70 mt-1">
+                    Uploaded {{ fmtDate(cert.uploaded_at) }}
+                  </p>
+                } @else {
+                  <p class="text-body-sm text-on-surface-variant mt-1">Upload the registration certificate issued by the GST portal.</p>
+                }
+              </div>
 
-            <div class="flex items-center gap-2 mt-4 pt-3 border-t border-outline-variant">
-              @if (certFor('udyam_cert'); as cert) {
+              <!-- Direct File Input for GST Certificate -->
+              <input
+                #gstCertInput
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                class="hidden"
+                (change)="onDirectCertFileSelected($event, 'gst_cert')"
+              />
+
+              <div class="flex items-center gap-2 mt-4 pt-3 border-t border-outline-variant">
+                @if (certFor('gst_cert'); as cert) {
+                  <button
+                    type="button"
+                    class="flex-1 px-3 py-1.5 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-label-sm hover:bg-surface-container-high transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                    [disabled]="isDownloading(cert.id)"
+                    (click)="downloadCertificate(cert)"
+                  >
+                    <span class="material-symbols-outlined text-[16px] text-primary">visibility</span>
+                    <span>View</span>
+                  </button>
+                }
                 <button
                   type="button"
-                  class="flex-1 px-3 py-1.5 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-label-sm hover:bg-surface-container-high transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-                  [disabled]="isDownloading(cert.id)"
-                  (click)="downloadCertificate(cert)"
+                  class="flex-1 px-3 py-1.5 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 shadow-2xs"
+                  [disabled]="uploadingCertType() === 'gst_cert'"
+                  (click)="triggerCertFileInput(gstCertInput)"
                 >
-                  <span class="material-symbols-outlined text-[16px] text-primary">visibility</span>
-                  <span>View</span>
+                  @if (uploadingCertType() === 'gst_cert') {
+                    <span class="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span>Uploading…</span>
+                  } @else {
+                    <span class="material-symbols-outlined text-[16px]">upload_file</span>
+                    <span>{{ hasCert('gst_cert') ? 'Replace' : 'Upload' }}</span>
+                  }
                 </button>
-              }
-              <button
-                type="button"
-                class="flex-1 px-3 py-1.5 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 shadow-2xs"
-                [disabled]="uploadingCertType() === 'udyam_cert'"
-                (click)="triggerCertFileInput(udyamCertInput)"
-              >
-                @if (uploadingCertType() === 'udyam_cert') {
-                  <span class="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  <span>Uploading…</span>
+              </div>
+            </div>
+
+            <!-- Udyam Certificate Card -->
+            <div class="border border-outline-variant rounded-lg p-4 flex flex-col justify-between bg-surface-container-low transition-all hover:border-outline">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px] text-primary">badge</span>
+                    Udyam Certificate
+                  </span>
+                  @if (hasCert('udyam_cert')) {
+                    <span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800 font-medium">Available</span>
+                  } @else {
+                    <span class="px-2 py-0.5 rounded text-xs bg-surface-container-high text-on-surface-variant">Not uploaded</span>
+                  }
+                </div>
+                @if (certFor('udyam_cert'); as cert) {
+                  <button
+                    type="button"
+                    (click)="downloadCertificate(cert)"
+                    class="text-left flex items-center gap-1.5 text-body-sm font-medium text-primary hover:underline truncate max-w-full cursor-pointer mt-1"
+                    [title]="'Click to view ' + cert.original_filename"
+                  >
+                    <span class="material-symbols-outlined text-[16px] shrink-0 text-primary">description</span>
+                    <span class="truncate">{{ cert.original_filename }}</span>
+                  </button>
+                  <p class="text-body-xs text-on-surface-variant/70 mt-1">
+                    Uploaded {{ fmtDate(cert.uploaded_at) }}
+                  </p>
                 } @else {
-                  <span class="material-symbols-outlined text-[16px]">upload_file</span>
-                  <span>{{ hasCert('udyam_cert') ? 'Replace' : 'Upload' }}</span>
+                  <p class="text-body-sm text-on-surface-variant mt-1">Upload MSME / Udyam registration certificate.</p>
                 }
-              </button>
+              </div>
+
+              <!-- Direct File Input for Udyam Certificate -->
+              <input
+                #udyamCertInput
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                class="hidden"
+                (change)="onDirectCertFileSelected($event, 'udyam_cert')"
+              />
+
+              <div class="flex items-center gap-2 mt-4 pt-3 border-t border-outline-variant">
+                @if (certFor('udyam_cert'); as cert) {
+                  <button
+                    type="button"
+                    class="flex-1 px-3 py-1.5 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-label-sm hover:bg-surface-container-high transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                    [disabled]="isDownloading(cert.id)"
+                    (click)="downloadCertificate(cert)"
+                  >
+                    <span class="material-symbols-outlined text-[16px] text-primary">visibility</span>
+                    <span>View</span>
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="flex-1 px-3 py-1.5 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 shadow-2xs"
+                  [disabled]="uploadingCertType() === 'udyam_cert'"
+                  (click)="triggerCertFileInput(udyamCertInput)"
+                >
+                  @if (uploadingCertType() === 'udyam_cert') {
+                    <span class="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span>Uploading…</span>
+                  } @else {
+                    <span class="material-symbols-outlined text-[16px]">upload_file</span>
+                    <span>{{ hasCert('udyam_cert') ? 'Replace' : 'Upload' }}</span>
+                  }
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      }
 
       <!-- Uploaded Documents -->
       <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
@@ -655,7 +663,8 @@
         }
       </div>
 
-      <!-- Sent Reports -->
+      <!-- Sent Reports (GST service only) -->
+      @if (hasGst()) {
       <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
         <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Sent Reports ({{ reportTotal() }})</h3>
         @if (reports().length === 0) {
@@ -698,6 +707,7 @@
           <app-pagination [page]="reportPage()" [totalPages]="reportPages()" (pageChange)="reportPageChanged($event)" />
         }
       </div>
+      }
     </div>
   </div>
 }
