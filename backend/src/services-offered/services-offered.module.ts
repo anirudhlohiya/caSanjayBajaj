@@ -4,14 +4,15 @@ import { AppSetting } from '../entities/app-setting.entity';
 import { Service } from '../entities/service.entity';
 import { TicketsModule } from '../tickets/tickets.module';
 import {
-  ServicesController,
   AdminServicesController,
+  FirmController,
+  ServicesController,
 } from './services-offered.controller';
 import { ServicesOfferedService } from './services-offered.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Service, AppSetting]), TicketsModule],
-  controllers: [ServicesController, AdminServicesController],
+  controllers: [ServicesController, AdminServicesController, FirmController],
   providers: [ServicesOfferedService],
   exports: [ServicesOfferedService],
 })

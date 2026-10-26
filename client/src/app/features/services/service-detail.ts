@@ -11,14 +11,9 @@ import { marked } from 'marked';
 import { ServicesOfferedService } from '../../core/services/feature.services';
 import { ServiceDetail } from '../../core/models';
 import { serviceTileClass } from '../../core/service-palette';
+import { phoneDigits } from '../../core/firm-contact';
 import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
-
-/** Digits for wa.me / tel: links; bare 10-digit numbers are Indian (+91). */
-function phoneDigits(phone: string): string {
-  const digits = phone.replace(/\D/g, '');
-  return digits.length === 10 ? `91${digits}` : digits;
-}
 
 @Component({
   selector: 'app-service-detail',

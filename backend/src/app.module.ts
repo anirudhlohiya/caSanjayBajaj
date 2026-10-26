@@ -19,6 +19,7 @@ import { WebsiteModule } from './website/website.module';
 import { ServicesOfferedModule } from './services-offered/services-offered.module';
 import { DueDatesModule } from './due-dates/due-dates.module';
 import { FamilyMembersModule } from './family-members/family-members.module';
+import { FaqsModule } from './faqs/faqs.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { RentAgreementsModule } from './rent-agreements/rent-agreements.module';
 import { SnsModule } from './sns/sns.module';
@@ -56,6 +57,7 @@ import { ItrReturnsModule } from './itr-returns/itr-returns.module';
     ServicesOfferedModule,
     DueDatesModule,
     FamilyMembersModule,
+    FaqsModule,
     TicketsModule,
     RentAgreementsModule,
     SnsModule,

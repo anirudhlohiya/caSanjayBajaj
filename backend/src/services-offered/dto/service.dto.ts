@@ -128,6 +128,51 @@ export class ServiceContactDto {
   @IsString()
   @Matches(/^$|^\+?[0-9 ]{8,16}$/, { message: 'Enter a valid phone number' })
   whatsapp?: string;
+
+  @ApiPropertyOptional({
+    example: 'office@firm.com',
+    description: 'Empty to clear',
+  })
+  @IsOptional()
+  @Matches(/^$|^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: 'Enter a valid email' })
+  email?: string;
+
+  @ApiPropertyOptional({ description: 'Office address shown on Contact Us' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  address?: string;
+
+  @ApiPropertyOptional({ description: 'Google Maps link for the office' })
+  @IsOptional()
+  @Matches(/^$|^https:\/\/\S+$/, {
+    message: 'Map link must start with https://',
+  })
+  @MaxLength(500)
+  map_url?: string;
+
+  @ApiPropertyOptional({ example: '10:00', description: 'Opening time, IST' })
+  @IsOptional()
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'Use HH:MM (24-hour)' })
+  open_from?: string;
+
+  @ApiPropertyOptional({ example: '19:00', description: 'Closing time, IST' })
+  @IsOptional()
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'Use HH:MM (24-hour)' })
+  open_to?: string;
+
+  @ApiPropertyOptional({
+    type: [Number],
+    example: [1, 2, 3, 4, 5, 6],
+    description: 'Working days, 0 = Sunday … 6 = Saturday',
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(7)
+  @IsInt({ each: true })
+  @Min(0, { each: true })
+  @Max(6, { each: true })
+  open_days?: number[];
 }
 
 export class ServiceEnquiryDto {

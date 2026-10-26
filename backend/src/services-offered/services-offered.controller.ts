@@ -25,6 +25,20 @@ import {
   UpdateServiceDto,
 } from './dto/service.dto';
 
+@ApiTags('firm')
+@Controller('firm')
+export class FirmController {
+  constructor(private readonly servicesService: ServicesOfferedService) {}
+
+  @Get('contact')
+  @ApiOperation({
+    summary: 'Firm contact details and office hours (public)',
+  })
+  contact() {
+    return this.servicesService.getContact();
+  }
+}
+
 @ApiTags('services')
 @Controller('services')
 export class ServicesController {

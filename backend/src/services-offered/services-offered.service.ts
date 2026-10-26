@@ -17,10 +17,33 @@ import {
 
 const CONTACT_SETTING_KEY = 'services.contact';
 
+/** Call / WhatsApp numbers used by the buttons on a service page. */
 export interface ServiceContact {
   phone: string | null;
   whatsapp: string | null;
 }
+
+/**
+ * Firm-wide contact details (Contact Us / Talk to Expert pages). Stored in
+ * the same app_settings row as the service-page numbers so they never drift.
+ */
+export interface FirmContact extends ServiceContact {
+  email: string | null;
+  address: string | null;
+  map_url: string | null;
+  /** Opening time "HH:MM" (IST). */
+  open_from: string;
+  /** Closing time "HH:MM" (IST). */
+  open_to: string;
+  /** Working days, 0 = Sunday … 6 = Saturday. */
+  open_days: number[];
+}
+
+const DEFAULT_HOURS = {
+  open_from: '10:00',
+  open_to: '19:00',
+  open_days: [1, 2, 3, 4, 5, 6],
+};
 
 /** A service as the client app sees it, with contact numbers resolved. */
 export type PublicService = Service & { contact: ServiceContact };
@@ -140,16 +163,39 @@ export class ServicesOfferedService {
     await this.services.save(service);
   }
 
-  async getContact(): Promise<ServiceContact> {
+  async getContact(): Promise<FirmContact> {
     const row = await this.settings.findOneBy({ key: CONTACT_SETTING_KEY });
-    const value = (row?.value ?? {}) as Partial<ServiceContact>;
-    return { phone: value.phone || null, whatsapp: value.whatsapp || null };
+    const value = (row?.value ?? {}) as Partial<FirmContact>;
+    return {
+      phone: value.phone || null,
+      whatsapp: value.whatsapp || null,
+      email: value.email || null,
+      address: value.address || null,
+      map_url: value.map_url || null,
+      open_from: value.open_from || DEFAULT_HOURS.open_from,
+      open_to: value.open_to || DEFAULT_HOURS.open_to,
+      open_days: Array.isArray(value.open_days)
+        ? value.open_days
+        : DEFAULT_HOURS.open_days,
+    };
   }
 
-  async setContact(dto: ServiceContactDto): Promise<ServiceContact> {
-    const value: ServiceContact = {
-      phone: dto.phone?.trim() || null,
-      whatsapp: dto.whatsapp?.trim() || null,
+  /** Partial update: fields left out keep their current value. */
+  async setContact(dto: ServiceContactDto): Promise<FirmContact> {
+    const current = await this.getContact();
+    const text = (v: string | undefined, fallback: string | null) =>
+      v === undefined ? fallback : v.trim() || null;
+    const value: FirmContact = {
+      phone: text(dto.phone, current.phone),
+      whatsapp: text(dto.whatsapp, current.whatsapp),
+      email: text(dto.email, current.email),
+      address: text(dto.address, current.address),
+      map_url: text(dto.map_url, current.map_url),
+      open_from: dto.open_from ?? current.open_from,
+      open_to: dto.open_to ?? current.open_to,
+      open_days: dto.open_days
+        ? [...new Set(dto.open_days)].sort()
+        : current.open_days,
     };
     await this.settings.save({ key: CONTACT_SETTING_KEY, value });
     return value;

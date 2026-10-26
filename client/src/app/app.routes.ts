@@ -82,6 +82,22 @@ export const routes: Routes = [
           import('./features/services/services').then((m) => m.Services),
       },
       {
+        path: 'contact',
+        loadComponent: () =>
+          import('./features/contact/contact').then((m) => m.Contact),
+      },
+      {
+        path: 'talk-to-expert',
+        loadComponent: () =>
+          import('./features/talk-to-expert/talk-to-expert').then(
+            (m) => m.TalkToExpert,
+          ),
+      },
+      {
+        path: 'faq',
+        loadComponent: () => import('./features/faq/faq').then((m) => m.FaqPage),
+      },
+      {
         path: 'due-dates',
         loadComponent: () =>
           import('./features/due-dates/due-dates').then((m) => m.DueDates),

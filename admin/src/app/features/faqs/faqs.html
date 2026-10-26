@@ -1,0 +1,117 @@
+<app-page-header title="FAQs" subtitle="Questions shown on the FAQ page of the client app (Home → Quick Tools → FAQs).">
+  <button class="btn-primary" (click)="openAdd()">
+    <span class="material-symbols-outlined" style="font-size: 18px">add</span>
+    Add question
+  </button>
+</app-page-header>
+
+<div class="relative mb-4 sm:w-80">
+  <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span>
+  <input class="input pl-9" placeholder="Search questions" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+</div>
+
+@if (loading()) {
+  <app-spinner />
+} @else if (!groups().length) {
+  <div class="card p-8">
+    <app-empty-state icon="quiz" [message]="faqs().length ? 'No questions match' : 'No FAQs yet'"
+      [hint]="faqs().length ? 'Try another search' : 'Add the first question clients often ask'" />
+  </div>
+} @else {
+  <div class="flex flex-col gap-5">
+    @for (g of groups(); track g.key) {
+      <section class="card overflow-hidden dark:bg-neutral-900 dark:border-neutral-800">
+        <header class="flex items-center gap-2 px-4 py-2.5 border-b border-outline-variant dark:border-neutral-800 bg-surface-container-low dark:bg-neutral-900/60">
+          <span class="material-symbols-outlined text-[18px] text-on-surface-variant">{{ g.icon }}</span>
+          <h2 class="text-sm font-semibold text-on-surface dark:text-white">{{ g.label }}</h2>
+          <span class="text-xs tabular-nums text-on-surface-variant">{{ g.items.length }}</span>
+          <button class="ml-auto text-xs font-medium text-on-surface-variant hover:text-on-surface inline-flex items-center gap-1" (click)="openAdd(g.key)">
+            <span class="material-symbols-outlined text-[16px]">add</span> Add
+          </button>
+        </header>
+        <ul class="divide-y divide-outline-variant dark:divide-neutral-800">
+          @for (f of g.items; track f.id; let first = $first; let last = $last) {
+            <li class="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-surface-container-low dark:hover:bg-neutral-800/50"
+              [class.opacity-50]="!f.is_active" (click)="openEdit(f)">
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-on-surface dark:text-white">
+                  {{ f.question }}
+                  @if (!f.is_active) {
+                    <span class="ml-1 text-[11px] px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500">Hidden</span>
+                  }
+                </p>
+                <p class="text-xs text-on-surface-variant dark:text-neutral-400 mt-0.5 line-clamp-1">{{ plain(f.answer_md) }}</p>
+              </div>
+              <div class="flex items-center gap-0.5 shrink-0">
+                <button class="btn-icon" title="Move up" [disabled]="first" (click)="move(f, -1, $event)">
+                  <span class="material-symbols-outlined text-[18px]">arrow_upward</span>
+                </button>
+                <button class="btn-icon" title="Move down" [disabled]="last" (click)="move(f, 1, $event)">
+                  <span class="material-symbols-outlined text-[18px]">arrow_downward</span>
+                </button>
+                <button class="btn-icon" [title]="f.is_active ? 'Hide from clients' : 'Show to clients'" (click)="toggleActive(f, $event)">
+                  <span class="material-symbols-outlined text-[18px]">{{ f.is_active ? 'visibility' : 'visibility_off' }}</span>
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+}
+
+<app-modal [open]="modalOpen()" (close)="modalOpen.set(false)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="font-headline-md text-headline-md text-on-surface">{{ editingId() ? 'Edit question' : 'Add question' }}</h2>
+      <button class="btn-icon" (click)="modalOpen.set(false)" aria-label="Close">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="flex flex-col gap-4">
+      <div>
+        <label class="label" for="q-cat">Topic</label>
+        <select id="q-cat" class="input" [ngModel]="form().category" (ngModelChange)="set('category', $event)">
+          @for (c of categories; track c.key) {
+            <option [value]="c.key">{{ c.label }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="label" for="q-question">Question</label>
+        <input id="q-question" class="input" maxlength="300" placeholder="e.g. Which documents do I need for GST?"
+          [ngModel]="form().question" (ngModelChange)="set('question', $event)" />
+      </div>
+      <div>
+        <div class="flex items-center justify-between">
+          <label class="label" for="q-answer">Answer</label>
+          <div class="inline-flex rounded-md border border-outline-variant p-0.5 mb-1.5">
+            <button type="button" class="px-2 py-0.5 rounded text-[11px] font-medium" [class]="!preview() ? 'bg-surface-container text-on-surface' : 'text-on-surface-variant'" (click)="preview.set(false)">Write</button>
+            <button type="button" class="px-2 py-0.5 rounded text-[11px] font-medium" [class]="preview() ? 'bg-surface-container text-on-surface' : 'text-on-surface-variant'" (click)="preview.set(true)">Preview</button>
+          </div>
+        </div>
+        @if (preview()) {
+          <div class="min-h-[160px] rounded-md border border-outline-variant p-3 md-content" [innerHTML]="previewHtml()"></div>
+        } @else {
+          <textarea id="q-answer" class="input resize-y font-mono text-[13px]" rows="7" maxlength="5000"
+            placeholder="Markdown supported: **bold**, - lists, [links](https://…)"
+            [ngModel]="form().answer_md" (ngModelChange)="set('answer_md', $event)"></textarea>
+        }
+      </div>
+      <label class="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+        <input type="checkbox" class="accent-neutral-900" [ngModel]="form().is_active" (ngModelChange)="set('is_active', $event)" />
+        Visible to clients
+      </label>
+    </div>
+    <div class="flex items-center gap-2 mt-6">
+      @if (editingId()) {
+        <button class="px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-md" (click)="remove()">Delete</button>
+      }
+      <button class="btn-outline ml-auto" (click)="modalOpen.set(false)">Cancel</button>
+      <button class="btn-primary" [disabled]="!canSave() || saving()" (click)="save()">
+        {{ saving() ? 'Saving…' : (editingId() ? 'Save' : 'Add') }}
+      </button>
+    </div>
+  </div>
+</app-modal>

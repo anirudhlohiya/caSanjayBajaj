@@ -127,4 +127,27 @@ describe('ServicesOfferedService', () => {
       message: "I'm interested in GST Services.\n\nNeed a new registration",
     });
   });
+
+  it('defaults office hours to Mon–Sat 10:00–19:00 when not set', async () => {
+    const contact = await service.getContact();
+    expect(contact).toMatchObject({
+      phone: null,
+      open_from: '10:00',
+      open_to: '19:00',
+      open_days: [1, 2, 3, 4, 5, 6],
+    });
+  });
+
+  it('updates only the contact fields that are sent', async () => {
+    setting = {
+      key: 'services.contact',
+      value: { phone: '9876543210', email: 'old@firm.com' },
+    } as AppSetting;
+    const saved = await service.setContact({ email: '', address: ' Surat ' });
+    expect(saved).toMatchObject({
+      phone: '9876543210',
+      email: null,
+      address: 'Surat',
+    });
+  });
 });

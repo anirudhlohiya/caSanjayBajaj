@@ -2,8 +2,9 @@
 
 > This file is the single source of truth for any AI coding tool (Claude Code, Cursor,
 > Copilot, etc.) working on this project. It reflects the project's CURRENT state after
-> Phases 0–5 + Phases 6–18 (GST/ITR types, services, tickets, WhatsApp desk, filing loop,
-> service catalogue, due date calendar, family members — see §5 phase log). Treat everything below as
+> Phases 0–5 + Phases 6–19 (GST/ITR types, services, tickets, WhatsApp desk, filing loop,
+> service catalogue, due date calendar, family members, contact / talk-to-expert / FAQs —
+> see §5 phase log). Treat everything below as
 > fixed requirements unless explicitly told otherwise. Companion docs (read in this
 > order): `docs/08-project-handbook.md` (deep context + gotchas),
 > `docs/09-run-and-test-guide.md` (run/test locally), `docs/10-phase5-deploy-runbook.md`
@@ -310,6 +311,15 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - Client: Profile → Family Members (add/edit/remove, PAN validated); ITR tab person switcher (Me + members + "Add family member" → `/profile?section=family`); upload passes `member`. Offline upload queue now stores category / AY / member (previously every queued file was retried as GST).
   - Admin client page: Family Members card (add/edit/remove), ITR returns table with Person column, upload modal "For" picker. Fixed blank Filename column (API sends `filename`).
 
+- **Phase 19 (Oct 26 2026) — Contact Us, Talk to Expert, FAQs — PUSHED TO MAIN Oct 26 2026 (auto-deploy)**:
+  - Home quick actions **Talk to Expert** (`/talk-to-expert`) and **Contact Us** (`/contact`) now work; **FAQs** (`/faq`) is reachable only from Home → Quick Tools (user's choice).
+  - Talk to Expert: office timing + live "Open now / Closed now · opens …" (always India time, `client/src/app/core/firm-contact.ts → officeStatus`), **Chat on WhatsApp** (business number, pre-filled text) and **Call now**, which is **disabled outside office hours** (user's choice; same on Contact Us).
+  - Contact Us: Call / WhatsApp / Email buttons + office card (address, hours, email, "Open in Google Maps").
+  - Firm contact details = one `app_settings` row (`services.contact`): phone, whatsapp, email, address, map_url, open_from, open_to, open_days (0 = Sun). Public `GET /firm/contact`; admin edits via **Services → Firm contact details → Edit contact details** (`PUT /admin/services/settings/contact`, partial update). Same numbers drive the service-page Call / WhatsApp buttons.
+  - FAQs: `faqs` table (category gst|itr|documents|app|general, question, answer_md, display_order, is_active). Public `GET /faqs`; admin **FAQs** page (`manage_website`): grouped by topic, add / edit with markdown preview, show / hide, reorder, delete (`/admin/faqs`, `/admin/faqs/reorder`).
+  - Migration `1800000000007-FaqsAndFirmContact`: creates `faqs`, seeds 12 draft FAQs (`backend/src/faqs/default-faqs.ts` — CA to review) and pre-fills firm contact (call +91 99098 31995 from the website, WhatsApp Business +91 78783 98067, casnbajaj2015@gmail.com, Trade House Surat address, Google Maps link `https://maps.app.goo.gl/4NhEy5wMpAyFHKyd6`, Mon–Sat 10:00–19:00). Values already saved by staff are kept (`defaults || jsonb_strip_nulls(saved)`).
+  - Verified locally in the browser (closed-hours state, admin hours edit → app Call enables, FAQ add / hide / delete round trip). Tests: backend 159 unit + 5 integration (`E2E_ENABLED=true`), client 22, admin 1.
+
 - **Release checklist for Phases 16–18 (Oct 24 2026 push)**:
   - Deploy runs migrations `1800000000004-ServiceCatalogue`, `-0005-DueDates`, `-0006-FamilyMembers` automatically (`release-on-server.sh` → `npm run migration:run`, ts-node from `src/`, so the seed files `services-offered/default-services.ts` and `due-dates/default-due-dates.ts` must stay in `src/`).
   - After deploy, staff must set the firm's **Call / WhatsApp numbers** in Admin → Services (until then service pages show only "Request this service").
@@ -317,6 +327,7 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - Android: `tel:` / `whatsapp:` link handling needs a new app release (web/PWA works immediately).
   - Local CI dry-run before push: backend lint (0 errors) / 147 tests / build, admin prod build (`--base-href=/admin/`), client prod build, client 17 Karma tests, built API boots and `/health` OK.
   - Deploy does NOT wait for CI (both trigger on push to main) — always run the CI steps locally before pushing.
+  - The full backend integration suite only runs with `E2E_ENABLED=true` (e.g. `E2E_ENABLED=true npx jest --config ./test/jest-e2e.json --setupFiles dotenv/config --runInBand`); it builds a throw-away database from all migrations, so it also proves new migrations apply cleanly.
 
 ## 6. Functional notes (implemented)
 

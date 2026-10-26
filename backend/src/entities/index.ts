@@ -20,6 +20,7 @@ import { Service } from './service.entity';
 import { AppSetting } from './app-setting.entity';
 import { DueDate } from './due-date.entity';
 import { FamilyMember } from './family-member.entity';
+import { Faq } from './faq.entity';
 import { Ticket } from './ticket.entity';
 import { TicketMessage } from './ticket-message.entity';
 import { TicketAttachment } from './ticket-attachment.entity';
@@ -55,6 +56,7 @@ export const entities = [
   AppSetting,
   DueDate,
   FamilyMember,
+  Faq,
   Ticket,
   TicketMessage,
   TicketAttachment,
@@ -91,6 +93,7 @@ export {
   AppSetting,
   DueDate,
   FamilyMember,
+  Faq,
   ServiceRequest,
   Ticket,
   TicketMessage,

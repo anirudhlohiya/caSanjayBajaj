@@ -8,39 +8,57 @@
 @if (loading()) {
   <app-spinner />
 } @else {
-  <!-- Contact numbers used by the Call / WhatsApp buttons on every service page -->
-  <div class="card p-5 mb-6">
-    <div class="flex flex-col lg:flex-row lg:items-end gap-4">
-      <div class="lg:w-72 shrink-0">
+  <!-- Firm contact details: service-page buttons, Contact Us and Talk to Expert -->
+  <div class="card p-5 mb-6 dark:bg-neutral-900 dark:border-neutral-800">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
         <h2 class="text-sm font-semibold text-on-surface dark:text-white flex items-center gap-1.5">
           <span class="material-symbols-outlined text-[18px]">contact_phone</span>
-          Contact buttons
+          Firm contact details
         </h2>
         <p class="text-xs text-on-surface-variant dark:text-neutral-400 mt-1">
-          Used by <b>Call</b> and <b>WhatsApp</b> on every service page. A service can override this in its own settings.
+          Shown on <b>Contact Us</b>, <b>Talk to Expert</b> and the Call / WhatsApp buttons of every service page.
         </p>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
-        <div>
-          <label class="label" for="c-phone">Call number</label>
-          <input id="c-phone" class="input" inputmode="tel" placeholder="+91 98xxxxxxxx"
-            [ngModel]="contactPhone()" (ngModelChange)="contactPhone.set($event)" />
-        </div>
-        <div>
-          <label class="label" for="c-wa">WhatsApp number</label>
-          <input id="c-wa" class="input" inputmode="tel" placeholder="Same as call number"
-            [ngModel]="contactWhatsapp()" (ngModelChange)="contactWhatsapp.set($event)" />
-        </div>
-      </div>
-      <button class="btn-primary shrink-0" [disabled]="!contactDirty() || savingContact()" (click)="saveContact()">
-        {{ savingContact() ? 'Saving…' : 'Save' }}
+      <button class="btn-outline" (click)="openContact()">
+        <span class="material-symbols-outlined" style="font-size: 18px">edit</span>
+        Edit contact details
       </button>
     </div>
-    @if (!contactPhone() && !contactWhatsapp()) {
-      <p class="mt-3 text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1">
-        <span class="material-symbols-outlined text-[16px]">info</span>
-        No number set — clients will only see the "Request this service" button.
-      </p>
+    @if (contact(); as c) {
+      <dl class="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-3 text-sm">
+        <div>
+          <dt class="label !mb-0.5">Call</dt>
+          <dd class="text-on-surface dark:text-white">{{ c.phone || '—' }}</dd>
+        </div>
+        <div>
+          <dt class="label !mb-0.5">WhatsApp</dt>
+          <dd class="text-on-surface dark:text-white">{{ c.whatsapp || c.phone || '—' }}</dd>
+        </div>
+        <div>
+          <dt class="label !mb-0.5">Email</dt>
+          <dd class="text-on-surface dark:text-white break-all">{{ c.email || '—' }}</dd>
+        </div>
+        <div>
+          <dt class="label !mb-0.5">Office hours (IST)</dt>
+          <dd class="text-on-surface dark:text-white">{{ hoursLabel() }}</dd>
+        </div>
+        <div class="sm:col-span-2">
+          <dt class="label !mb-0.5">Office address</dt>
+          <dd class="text-on-surface dark:text-white">
+            {{ c.address || '—' }}
+            @if (c.map_url) {
+              <a [href]="c.map_url" target="_blank" rel="noopener" class="ml-1 text-xs underline text-on-surface-variant">Map</a>
+            }
+          </dd>
+        </div>
+      </dl>
+      @if (!c.phone && !c.whatsapp) {
+        <p class="mt-3 text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">info</span>
+          No number set — clients can't call or WhatsApp the firm from the app.
+        </p>
+      }
     }
   </div>
 
@@ -150,3 +168,78 @@
     </div>
   }
 }
+
+<!-- Edit firm contact details -->
+<app-modal [open]="contactModal()" (close)="contactModal.set(false)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="font-headline-md text-headline-md text-on-surface">Firm contact details</h2>
+      <button class="btn-icon" (click)="contactModal.set(false)" aria-label="Close">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="flex flex-col gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="label" for="fc-phone">Call number</label>
+          <input id="fc-phone" class="input" inputmode="tel" placeholder="+91 98xxxxxxxx"
+            [ngModel]="contactForm().phone" (ngModelChange)="setContactField('phone', $event)" />
+        </div>
+        <div>
+          <label class="label" for="fc-wa">WhatsApp number</label>
+          <input id="fc-wa" class="input" inputmode="tel" placeholder="Same as call number"
+            [ngModel]="contactForm().whatsapp" (ngModelChange)="setContactField('whatsapp', $event)" />
+        </div>
+      </div>
+      <div>
+        <label class="label" for="fc-email">Email</label>
+        <input id="fc-email" class="input" type="email" placeholder="office@firm.com"
+          [ngModel]="contactForm().email" (ngModelChange)="setContactField('email', $event)" />
+      </div>
+      <div>
+        <label class="label" for="fc-address">Office address</label>
+        <textarea id="fc-address" class="input resize-none" rows="2" maxlength="300"
+          [ngModel]="contactForm().address" (ngModelChange)="setContactField('address', $event)"></textarea>
+      </div>
+      <div>
+        <label class="label" for="fc-map">Google Maps link</label>
+        <input id="fc-map" class="input" placeholder="https://maps.app.goo.gl/…"
+          [ngModel]="contactForm().map_url" (ngModelChange)="setContactField('map_url', $event)" />
+      </div>
+      <div>
+        <span class="label">Office hours (IST)</span>
+        <div class="flex flex-wrap gap-1.5 mb-3">
+          @for (d of weekdays; track d; let i = $index) {
+            <button type="button" (click)="toggleDay(i)"
+              class="h-8 min-w-11 px-2 rounded-md border text-xs font-medium transition-colors"
+              [class]="contactForm().open_days.includes(i)
+                ? 'bg-primary text-on-primary border-transparent dark:bg-white dark:text-neutral-900'
+                : 'border-outline-variant text-on-surface-variant'">
+              {{ d }}
+            </button>
+          }
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="label" for="fc-from">Opens</label>
+            <input id="fc-from" type="time" class="input" [ngModel]="contactForm().open_from" (ngModelChange)="setContactField('open_from', $event)" />
+          </div>
+          <div>
+            <label class="label" for="fc-to">Closes</label>
+            <input id="fc-to" type="time" class="input" [ngModel]="contactForm().open_to" (ngModelChange)="setContactField('open_to', $event)" />
+          </div>
+        </div>
+        <p class="text-[11px] text-on-surface-variant mt-1">Outside these hours the app disables the Call button and suggests WhatsApp.</p>
+      </div>
+      @for (e of contactErrors(); track e) {
+        <p class="text-error text-xs">{{ e }}</p>
+      }
+    </div>
+    <div class="flex justify-end gap-2 mt-6">
+      <button class="btn-outline" (click)="contactModal.set(false)">Cancel</button>
+      <button class="btn-primary" [disabled]="contactErrors().length > 0 || savingContact()" (click)="saveContact()">
+        {{ savingContact() ? 'Saving…' : 'Save' }}
+      </button>
+    </div>
+  </div>
+</app-modal>

@@ -331,9 +331,27 @@ export interface DueDate {
 
 export type DueDateCategory = 'gst' | 'income_tax' | 'tds';
 
+/** Firm contact details: service-page buttons, Contact Us and Talk to Expert. */
 export interface ServiceContact {
   phone: string | null;
   whatsapp: string | null;
+  email: string | null;
+  address: string | null;
+  map_url: string | null;
+  /** "HH:MM", IST */
+  open_from: string;
+  open_to: string;
+  /** 0 = Sunday … 6 = Saturday */
+  open_days: number[];
+}
+
+export interface Faq {
+  id: string;
+  category: string;
+  question: string;
+  answer_md: string;
+  display_order: number;
+  is_active: boolean;
 }
 
 export type TicketStatus = 'open' | 'replied' | 'closed';

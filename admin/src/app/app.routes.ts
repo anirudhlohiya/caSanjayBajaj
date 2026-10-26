@@ -55,6 +55,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/services/services').then((m) => m.ServicesPage),
       },
       {
+        path: 'faqs',
+        canActivate: [permissionGuard('manage_website')],
+        loadComponent: () => import('./features/faqs/faqs').then((m) => m.FaqsPage),
+      },
+      {
         path: 'due-dates',
         canActivate: [permissionGuard('manage_website')],
         loadComponent: () => import('./features/due-dates/due-dates').then((m) => m.DueDatesPage),

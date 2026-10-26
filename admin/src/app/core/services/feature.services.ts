@@ -20,6 +20,7 @@ import type {
   Service,
   ServiceContact,
   DueDate,
+  Faq,
   Ticket,
   TicketMessage,
   UploadUrl,
@@ -526,8 +527,33 @@ export class ServicesOfferedService {
     return firstValueFrom(this.api.get<ServiceContact>('/admin/services/settings/contact'));
   }
 
-  setContact(body: { phone: string; whatsapp: string }) {
+  setContact(body: Partial<ServiceContact>) {
     return firstValueFrom(this.api.put<ServiceContact>('/admin/services/settings/contact', body));
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class FaqsAdminService {
+  private readonly api = inject(ApiClient);
+
+  list() {
+    return firstValueFrom(this.api.get<Faq[]>('/admin/faqs'));
+  }
+
+  create(body: { category: string; question: string; answer_md: string; is_active: boolean }) {
+    return firstValueFrom(this.api.post<Faq>('/admin/faqs', body));
+  }
+
+  update(id: string, body: Partial<{ category: string; question: string; answer_md: string; is_active: boolean }>) {
+    return firstValueFrom(this.api.patch<Faq>(`/admin/faqs/${id}`, body));
+  }
+
+  reorder(ids: string[]) {
+    return firstValueFrom(this.api.post<Faq[]>('/admin/faqs/reorder', { ids }));
+  }
+
+  remove(id: string) {
+    return firstValueFrom(this.api.delete<{ success: boolean }>(`/admin/faqs/${id}`));
   }
 }
 

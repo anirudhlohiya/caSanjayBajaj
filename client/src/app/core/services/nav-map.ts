@@ -76,6 +76,13 @@ const NAV_ENTRIES: Readonly<Record<string, NavEntry>> = {
     subtitleKey: 'HEADER.UPLOAD_SUB',
     backTo: '/documents',
   },
+  '/contact': { titleKey: 'HEADER.CONTACT', subtitleKey: null, backTo: '/dashboard' },
+  '/talk-to-expert': {
+    titleKey: 'HEADER.TALK_EXPERT',
+    subtitleKey: null,
+    backTo: '/dashboard',
+  },
+  '/faq': { titleKey: 'HEADER.FAQ', subtitleKey: null, backTo: '/dashboard' },
   '/due-dates': {
     titleKey: 'HEADER.DUE_DATES',
     subtitleKey: null,

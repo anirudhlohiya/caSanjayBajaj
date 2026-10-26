@@ -1,0 +1,111 @@
+<div class="mx-auto w-full max-w-2xl px-4 pt-4 pb-6 flex flex-col gap-4">
+  @if (loading() && !contact()) {
+    <app-spinner />
+  } @else if (failed()) {
+    <div class="rounded-2xl border border-card-border bg-surface-container-lowest">
+      <app-empty-state icon="cloud_off" title="Couldn't load contact details" message="Check your connection and try again." />
+      <div class="flex justify-center pb-6">
+        <button (click)="load()" class="rounded-full bg-surface-container px-4 py-2 text-sm font-semibold text-primary">Retry</button>
+      </div>
+    </div>
+  } @else if (contact(); as c) {
+    <!-- Intro + live status -->
+    <section class="rounded-2xl bg-primary p-5 text-on-primary shadow-card">
+      <p class="text-xs font-semibold uppercase tracking-wide opacity-70">S N Bajaj And Co</p>
+      <h1 class="mt-1 text-xl font-bold leading-tight">We're here to help</h1>
+      <p class="mt-1 text-sm opacity-80">Call, WhatsApp or email us, or visit our office.</p>
+      @if (status(); as s) {
+        <span class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-on-primary/15 px-3 py-1 text-xs font-semibold">
+          <span class="size-2 rounded-full" [class]="s.open ? 'bg-emerald-400' : 'bg-rose-400'"></span>
+          {{ s.label }}
+        </span>
+      }
+    </section>
+
+    <!-- Contact buttons -->
+    <section class="grid grid-cols-3 gap-3">
+      @if (callHref(); as tel) {
+        <a [href]="tel" class="flex flex-col items-center gap-2 rounded-2xl border border-card-border bg-surface-container-lowest p-4 text-center shadow-card active:scale-[0.97] transition-transform">
+          <span class="flex size-11 items-center justify-center rounded-full bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
+            <span class="material-symbols-outlined text-[22px]">call</span>
+          </span>
+          <span class="text-sm font-semibold text-primary">Call</span>
+        </a>
+      } @else {
+        <div class="flex flex-col items-center gap-2 rounded-2xl border border-card-border bg-surface-container p-4 text-center opacity-60" aria-disabled="true">
+          <span class="flex size-11 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant">
+            <span class="material-symbols-outlined text-[22px]">phone_disabled</span>
+          </span>
+          <span class="text-sm font-semibold text-on-surface-variant">Call</span>
+          <span class="-mt-1 text-[10px] leading-tight text-on-surface-variant">{{ c.phone ? 'Office closed' : 'Not available' }}</span>
+        </div>
+      }
+
+      @if (whatsappHref(); as wa) {
+        <a [href]="wa" target="_blank" rel="noopener" class="flex flex-col items-center gap-2 rounded-2xl border border-card-border bg-surface-container-lowest p-4 text-center shadow-card active:scale-[0.97] transition-transform">
+          <span class="flex size-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+            <span class="material-symbols-outlined text-[22px]">chat</span>
+          </span>
+          <span class="text-sm font-semibold text-primary">WhatsApp</span>
+        </a>
+      }
+
+      @if (emailHref(); as mail) {
+        <a [href]="mail" class="flex flex-col items-center gap-2 rounded-2xl border border-card-border bg-surface-container-lowest p-4 text-center shadow-card active:scale-[0.97] transition-transform">
+          <span class="flex size-11 items-center justify-center rounded-full bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
+            <span class="material-symbols-outlined text-[22px]">mail</span>
+          </span>
+          <span class="text-sm font-semibold text-primary">Email</span>
+        </a>
+      }
+    </section>
+    @if (!status()?.open && c.phone) {
+      <p class="-mt-1 px-1 text-xs text-on-surface-variant">
+        Calls are available {{ hours() }}. You can WhatsApp or email us any time.
+      </p>
+    }
+
+    <!-- Office card -->
+    <section class="overflow-hidden rounded-2xl border border-card-border bg-surface-container-lowest shadow-card">
+      <div class="relative flex h-24 items-center justify-center bg-gradient-to-br from-surface-container to-surface-container-high">
+        <span class="absolute inset-0 opacity-[0.07]" style="background-image: radial-gradient(currentColor 1px, transparent 1px); background-size: 14px 14px"></span>
+        <span class="relative flex size-12 items-center justify-center rounded-full bg-primary text-on-primary shadow-lg">
+          <span class="material-symbols-outlined text-[24px]">location_on</span>
+        </span>
+      </div>
+      <div class="flex flex-col gap-4 p-5">
+        <div>
+          <h2 class="text-base font-bold text-primary">Our office</h2>
+          @if (c.address) {
+            <p class="mt-1 text-sm leading-relaxed text-on-surface-variant">{{ c.address }}</p>
+          }
+        </div>
+
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-[20px] text-on-surface-variant">schedule</span>
+          <div>
+            <p class="text-sm font-medium text-primary">{{ hours() }}</p>
+            @if (status(); as s) {
+              <p class="text-xs" [class]="s.open ? 'text-emerald-700 dark:text-emerald-400' : 'text-on-surface-variant'">{{ s.label }}</p>
+            }
+          </div>
+        </div>
+
+        @if (c.email) {
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-[20px] text-on-surface-variant">mail</span>
+            <a [href]="emailHref()" class="text-sm font-medium text-primary break-all">{{ c.email }}</a>
+          </div>
+        }
+
+        @if (c.map_url) {
+          <a [href]="c.map_url" target="_blank" rel="noopener"
+            class="flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-on-primary active:scale-[0.99] transition-transform">
+            <span class="material-symbols-outlined text-[18px]">map</span>
+            Open in Google Maps
+          </a>
+        }
+      </div>
+    </section>
+  }
+</div>
