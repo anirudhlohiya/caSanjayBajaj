@@ -12,10 +12,7 @@ import {
   PaginationQueryDto,
 } from '../common/dto/pagination';
 import { StorageService } from '../storage/storage.service';
-import {
-  NotificationsService,
-  isPushSubscription,
-} from '../notifications/notifications.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { ReportNotificationsService } from '../notifications/report-notifications.service';
 import { UsersService } from '../users/users.service';
 import {
@@ -317,22 +314,11 @@ export class TicketsService {
 
       await this.reportNotifications.record(userId, title, body, deepLink);
 
-      const pushTargets = await this.usersService.getTokensForPush(userId);
-      for (const token of pushTargets) {
-        let subscription: unknown;
-        try {
-          subscription = JSON.parse(token.push_token);
-        } catch {
-          subscription = null;
-        }
-        if (isPushSubscription(subscription)) {
-          await this.notifications.sendPush(subscription, {
-            title,
-            body,
-            url: deepLink,
-          });
-        }
-      }
+      await this.notifications.pushToUser(userId, {
+        title,
+        body,
+        url: deepLink,
+      });
 
       const url = `${process.env.API_BASE_URL ?? ''}${deepLink}`;
       await this.notifications.sendEmail(

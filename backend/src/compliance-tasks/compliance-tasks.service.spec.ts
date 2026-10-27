@@ -35,7 +35,7 @@ describe('ComplianceTasksService', () => {
 
   const notifications = {
     sendEmail: jest.fn().mockResolvedValue(true),
-    sendPush: jest.fn().mockResolvedValue(true),
+    pushToUser: jest.fn().mockResolvedValue(true),
   };
   const audit = {
     log: jest.fn().mockResolvedValue({}),

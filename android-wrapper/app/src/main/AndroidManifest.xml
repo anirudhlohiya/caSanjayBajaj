@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Android 13+: asked right after the client's first sign-in -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- DownloadManager into public Downloads needs this only on Android 9 and below -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -17,6 +19,21 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SNBajaj"
         android:usesCleartextTraffic="false">
+
+        <!-- App notifications (Firebase Cloud Messaging) -->
+        <service
+            android:name=".PushMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="alerts" />
 
         <activity
             android:name=".MainActivity"

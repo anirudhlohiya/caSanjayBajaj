@@ -4,10 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Raw } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { ClientAlertsService } from '../notifications/client-alerts.service';
-import {
-  NotificationsService,
-  isPushSubscription,
-} from '../notifications/notifications.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -90,22 +87,11 @@ export class BirthdayNotificationsService {
           htmlBody,
         );
 
-        const pushTokens = await this.usersService.getTokensForPush(user.id);
-        for (const token of pushTokens) {
-          let subscription: unknown;
-          try {
-            subscription = JSON.parse(token.push_token);
-          } catch {
-            subscription = null;
-          }
-          if (isPushSubscription(subscription)) {
-            await this.notifications.sendPush(subscription, {
-              title: subject,
-              body: greeting,
-              url: '/',
-            });
-          }
-        }
+        await this.notifications.pushToUser(user.id, {
+          title: subject,
+          body: greeting,
+          url: '/',
+        });
       }
       this.logger.log(`Sent ${users.length} birthday wishes (${timeOfDay})`);
     } catch (error) {

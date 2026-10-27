@@ -55,7 +55,7 @@ const storageMock = {
 };
 const notificationsMock = {
   sendEmail: jest.fn().mockResolvedValue(true),
-  sendPush: jest.fn().mockResolvedValue(true),
+  pushToUser: jest.fn().mockResolvedValue(true),
 };
 
 interface TokenPair {

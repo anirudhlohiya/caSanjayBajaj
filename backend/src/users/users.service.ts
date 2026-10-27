@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import sharp from 'sharp';
 // Trigger reload
 import { StorageService } from '../storage/storage.service';
@@ -223,14 +223,25 @@ export class UsersService {
     userId: string,
     dto: RegisterDeviceTokenDto,
   ): Promise<DeviceToken> {
+    const platform = (dto.platform as DevicePlatform) ?? DevicePlatform.PWA;
+    // A device belongs to whoever signed in on it last: drop it from any
+    // other account so their alerts stop reaching this phone / browser.
+    await this.deviceTokens.delete({
+      push_token: dto.push_token,
+      user_id: Not(userId),
+    });
     const existing = await this.deviceTokens.findOneBy({
       user_id: userId,
       push_token: dto.push_token,
     });
-    if (existing) return existing;
+    if (existing) {
+      if (existing.platform === platform) return existing;
+      existing.platform = platform;
+      return this.deviceTokens.save(existing);
+    }
     const token = this.deviceTokens.create({
       user_id: userId,
-      platform: (dto.platform as DevicePlatform) ?? DevicePlatform.PWA,
+      platform,
       push_token: dto.push_token,
     });
     return this.deviceTokens.save(token);
@@ -245,11 +256,6 @@ export class UsersService {
     pushToken: string,
   ): Promise<void> {
     await this.deviceTokens.delete({ user_id: userId, push_token: pushToken });
-  }
-
-  // Used by other modules
-  async getTokensForPush(userId: string): Promise<DeviceToken[]> {
-    return this.deviceTokens.find({ where: { user_id: userId } });
   }
 
   async listActiveUsers(): Promise<User[]> {

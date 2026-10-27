@@ -1,4 +1,4 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, Injectable, Injector, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ApiClient } from './api-client.service';
@@ -28,6 +28,7 @@ export class AuthService {
   constructor(
     private readonly api: ApiClient,
     private readonly router: Router,
+    private readonly injector: Injector,
   ) {}
 
   getAccessToken(): string | null {
@@ -93,6 +94,9 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
+    // Stop this account's alerts reaching this phone / browser
+    const { PushService } = await import('./push.service');
+    await this.injector.get(PushService).releaseDevice();
     const token = this.refreshToken();
     if (token) {
       try {

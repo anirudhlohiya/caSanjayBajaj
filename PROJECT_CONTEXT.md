@@ -320,6 +320,22 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - Migration `1800000000007-FaqsAndFirmContact`: creates `faqs`, seeds 12 draft FAQs (`backend/src/faqs/default-faqs.ts` — CA to review) and pre-fills firm contact (call +91 99098 31995 from the website, WhatsApp Business +91 78783 98067, casnbajaj2015@gmail.com, Trade House Surat address, Google Maps link `https://maps.app.goo.gl/4NhEy5wMpAyFHKyd6`, Mon–Sat 10:00–19:00). Values already saved by staff are kept (`defaults || jsonb_strip_nulls(saved)`).
   - Verified locally in the browser (closed-hours state, admin hours edit → app Call enables, FAQ add / hide / delete round trip). Tests: backend 159 unit + 5 integration (`E2E_ENABLED=true`), client 22, admin 1.
 
+- **Phase 20 (Oct 27 2026) — Android app notifications (Firebase Cloud Messaging)**:
+  - Every client alert now goes to all channels: email + WhatsApp (as before) + push. Push is one call, `NotificationsService.pushToUser(userId, payload)`: `device_tokens.platform = 'android'` → FCM (`firebase-admin`, data-only message `{title, body, url}`, high priority), `'pwa'` → web push (VAPID). Tokens FCM / the browser report as gone are deleted. Used by reminders, reports, tickets, birthdays and client alerts.
+  - `registerDeviceToken` moves a token to the last user who signed in on that phone (shared family phones) and never duplicates it; logout releases the device (`PushService.releaseDevice`).
+  - Android wrapper 1.2.0 (versionCode 4): `PushMessagingService` (channel `alerts`, tap opens the in-app URL), `NativePushBridge` exposed to the web app as `window.NativePush`, `POST_NOTIFICATIONS` permission. Google Services plugin is applied only when `app/google-services.json` exists, so the app still builds without Firebase.
+  - Client: after first login a "Get filing alerts and reminders" sheet asks for permission (user's choice: right after first login).
+  - **Not live until the user creates the Firebase project**: `android-wrapper/app/google-services.json` (git-ignored) + service-account JSON on the server at `/opt/ca-app/secrets/firebase-service-account.json` (chmod 600) and `FIREBASE_SERVICE_ACCOUNT_PATH` in `.env`. Steps in `android-wrapper/README.md`. Without it the backend logs that Firebase is not configured and skips Android push.
+
+- **Phase 21 (Oct 27 2026) — Production audit + security fixes + dark-mode / contrast pass**:
+  - Removed the unauthenticated `POST /notifications/test-whatsapp` endpoint (`NotificationsController`) and `backend/test-whatsapp.js` (it held an old hard-coded Meta token — still in git history; user to revoke it in Meta).
+  - WhatsApp webhook verifies Meta's `X-Hub-Signature-256` (HMAC-SHA256 of the raw body with `WHATSAPP_APP_SECRET`, `timingSafeEqual`), 401 on mismatch. If the secret is unset it logs a warning once and accepts (so production keeps working until the user adds it).
+  - OnlyOffice save callback (`RentAgreementsService.trustedOfficeCallback`): with `onlyOffice.jwtSecret` it requires a valid HS256 token (`body.token` or `Authorization: Bearer`) and trusts only the signed payload; without a secret the download URL host must equal the configured OnlyOffice server (blocks SSRF).
+  - Packages: Angular 20.3.34 in admin + client, `multer` override `^2.5.0`. Still open: `image-size` (via html-to-docx, needs a major upgrade) and `xlsx` (no npm fix; only `scripts/import-clients.ts`).
+  - Client dark mode / contrast: Contact Us hero and Talk to Expert avatar no longer turn white in dark; `--color-secondary-container` / `--color-on-secondary-container` have dark values (legal badges); WhatsApp buttons use `#128C4A` (white text readable); light-mode grey labels `text-neutral-400` → `text-neutral-500` (dark keeps 400), dim dark labels raised; Profile purple label has `dark:text-purple-300`. White primary buttons in dark mode are the intended inversion. Audited all client screens at 375 / 768 / 1366 px in light + dark: no horizontal overflow, no low-contrast text. Admin stays light only (user's choice).
+  - Audit notes (not yet acted on): repo is public; `backend/src/database/delete-users.ts` is tracked; 25 backend services have no spec; `periods.service.spec.ts` depends on the real date; `whatsapp-webhook.controller.ts` (~1,150 lines) and `NotificationsService` (~700 lines) should be split; duplicated helpers (`firstName`, `formatSize`, `currentFy`, `currentAssessmentYear`).
+  - Tests: backend 171 unit + 5 integration, client 26, admin 1; all builds + Android `assembleDebug` / `lintDebug` pass.
+
 - **Release checklist for Phases 16–18 (Oct 24 2026 push)**:
   - Deploy runs migrations `1800000000004-ServiceCatalogue`, `-0005-DueDates`, `-0006-FamilyMembers` automatically (`release-on-server.sh` → `npm run migration:run`, ts-node from `src/`, so the seed files `services-offered/default-services.ts` and `due-dates/default-due-dates.ts` must stay in `src/`).
   - After deploy, staff must set the firm's **Call / WhatsApp numbers** in Admin → Services (until then service pages show only "Request this service").
@@ -742,6 +758,11 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
 
 ## 10. Open items
 
+- **Phase 20–21 follow-ups (user actions)**:
+  - Revoke the old Meta token that was in `backend/test-whatsapp.js` (git history), then make the GitHub repo private — first run `git remote -v` in `/opt/ca-app/repo`; if it is HTTPS, add a read-only deploy key and switch the remote to SSH before going private.
+  - Add `WHATSAPP_APP_SECRET` (Meta app → App settings → Basic) to the server `.env`, `pm2 restart ca-api`.
+  - Create the Firebase project + files (see Phase 20), then release Android 1.2.0.
+  - Play requires in-app account deletion — not built yet.
 - **Phase 15 deploy (pending user's local test)**: commit + push (CI deploys), confirm the
   migration ran, add `WHATSAPP_TEMPLATES_ACCOUNT_ID=3629482393869045` to the server `.env`,
   `pm2 restart ca-api`; wait for Meta template approval (status in WhatsApp Manager).

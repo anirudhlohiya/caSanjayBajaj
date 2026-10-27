@@ -59,3 +59,7 @@ aws_*.txt
 # Cloudflare API token dropped in repo root
 cloudfare.txt
 
+# Firebase (Android app notifications) - never commit
+android-wrapper/app/google-services.json
+backend/secrets/
+*firebase*service-account*.json

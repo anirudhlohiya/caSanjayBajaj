@@ -11,10 +11,7 @@ import { paginate, PaginatedResult } from '../common/dto/pagination';
 import { assertGstClient } from '../common/utils/client-type.util';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
 import { Report } from '../entities/report.entity';
-import {
-  NotificationsService,
-  isPushSubscription,
-} from '../notifications/notifications.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { ReportNotificationsService } from '../notifications/report-notifications.service';
 import { StorageService } from '../storage/storage.service';
 import { ShareLinksService } from '../share-links/share-links.service';
@@ -121,27 +118,14 @@ export class ReportsService {
     body: string,
   ): Promise<void> {
     try {
-      const pushTargets = await this.usersService.getTokensForPush(
-        report.user_id,
-      );
-      for (const token of pushTargets) {
-        let subscription: unknown;
-        try {
-          subscription = JSON.parse(token.push_token);
-        } catch {
-          subscription = null;
-        }
-        if (isPushSubscription(subscription)) {
-          try {
-            await this.notifications.sendPush(subscription, {
-              title,
-              body,
-              url: reportUrl,
-            });
-          } catch {
-            /* keep delivering to remaining tokens + email */
-          }
-        }
+      try {
+        await this.notifications.pushToUser(report.user_id, {
+          title,
+          body,
+          url: reportUrl,
+        });
+      } catch {
+        /* push is best-effort; email below still goes out */
       }
 
       const cta = shareUrl

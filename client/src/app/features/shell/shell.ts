@@ -52,7 +52,7 @@ export class Shell implements OnInit, OnDestroy {
 
   // Inject ThemeService to initialize theming on shell load
   private readonly themeService = inject(ThemeService);
-  private readonly push = inject(PushService);
+  readonly push = inject(PushService);
   private readonly queue = inject(UploadQueueService);
   private readonly upload = inject(UploadService);
   private readonly notifications = inject(NotificationsService);
@@ -122,14 +122,15 @@ export class Shell implements OnInit, OnDestroy {
     return this.auth.userProfile()?.name?.trim().split(/\s+/)[0] ?? '';
   }
 
+  /** Banner when notifications are blocked (browser or Android app). */
   checkNotificationPermission(): void {
-    if (!('Notification' in window)) return;
-    if (Notification.permission === 'denied') {
-      this.notificationDenied.set(true);
-    } else if (Notification.permission === 'default') {
-      // Show banner only if not granted (not denied - that's a different message)
-      this.notificationDenied.set(false);
-    }
+    this.notificationDenied.set(this.push.blocked());
+  }
+
+  /** Answer from the post-sign-in "Turn on notifications" sheet (Android app). */
+  async answerPushPrompt(allow: boolean): Promise<void> {
+    await this.push.answerPrompt(allow);
+    this.checkNotificationPermission();
   }
 
   private async flushQueue(): Promise<void> {

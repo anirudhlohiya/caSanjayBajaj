@@ -3,6 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { readFileSync } from 'node:fs';
+import { App, cert, initializeApp } from 'firebase-admin/app';
+import { getMessaging } from 'firebase-admin/messaging';
+import { DevicePlatform } from '../common/enums';
+import { DeviceToken } from '../entities/device-token.entity';
 import { User } from '../entities/user.entity';
 import webpush from 'web-push';
 import {
@@ -50,6 +55,8 @@ export class NotificationsService {
   constructor(
     private readonly config: ConfigService,
     @InjectRepository(User) private readonly users: Repository<User>,
+    @InjectRepository(DeviceToken)
+    private readonly deviceTokens: Repository<DeviceToken>,
   ) {
     this.sourceEmail = this.config.get<string>('ses.sourceEmail') ?? '';
     this.sourceName = this.config.get<string>('ses.sourceName') ?? '';
@@ -120,24 +127,127 @@ export class NotificationsService {
     }
   }
 
-  async sendPush(
-    subscription: PushSubscription,
+  /**
+   * Push to every device a client has registered: browsers / PWA via web
+   * push, the Android app via Firebase Cloud Messaging. Devices that are gone
+   * (uninstalled app, expired subscription) are removed. True if any device
+   * received it.
+   */
+  async pushToUser(
+    userId: string,
     payload: NotificationPayload,
   ): Promise<boolean> {
-    if (!this.vapidConfigured) {
-      this.logger.warn('VAPID keys not configured; skipping push');
-      return false;
+    const tokens = await this.deviceTokens.find({ where: { user_id: userId } });
+    let delivered = false;
+    const stale: string[] = [];
+    for (const token of tokens) {
+      const result =
+        token.platform === DevicePlatform.ANDROID
+          ? await this.sendFcm(token.push_token, payload)
+          : await this.sendWebPush(token.push_token, payload);
+      if (result === 'sent') delivered = true;
+      if (result === 'gone') stale.push(token.id);
     }
+    if (stale.length) {
+      await this.deviceTokens.delete(stale);
+      this.logger.log(`Removed ${stale.length} expired push token(s)`);
+    }
+    return delivered;
+  }
+
+  private async sendWebPush(
+    rawToken: string,
+    payload: NotificationPayload,
+  ): Promise<'sent' | 'gone' | 'failed'> {
+    let subscription: unknown;
+    try {
+      subscription = JSON.parse(rawToken);
+    } catch {
+      return 'gone';
+    }
+    if (!isPushSubscription(subscription)) return 'gone';
+    if (!this.vapidConfigured) return 'failed';
     try {
       await webpush.sendNotification(
         subscription,
         JSON.stringify({ ...payload, url: payload.url ?? '/' }),
         { TTL: 86400 },
       );
-      return true;
+      return 'sent';
     } catch (error) {
+      const status = (error as { statusCode?: number }).statusCode;
+      if (status === 404 || status === 410) return 'gone';
       this.logger.error(`Push send failed: ${(error as Error).message}`);
-      return false;
+      return 'failed';
+    }
+  }
+
+  private firebaseApp: App | null | undefined;
+
+  /** Firebase app for FCM, created on first use; null when not configured. */
+  private firebase(): App | null {
+    if (this.firebaseApp !== undefined) return this.firebaseApp;
+    const path = this.config.get<string>('firebase.serviceAccountPath');
+    if (!path) {
+      this.firebaseApp = null;
+      return null;
+    }
+    try {
+      const account = JSON.parse(readFileSync(path, 'utf8')) as {
+        project_id: string;
+        client_email: string;
+        private_key: string;
+      };
+      this.firebaseApp = initializeApp(
+        {
+          credential: cert({
+            projectId: account.project_id,
+            clientEmail: account.client_email,
+            privateKey: account.private_key,
+          }),
+        },
+        'fcm',
+      );
+    } catch (error) {
+      this.logger.error(
+        `Firebase service account could not be loaded: ${(error as Error).message}`,
+      );
+      this.firebaseApp = null;
+    }
+    return this.firebaseApp;
+  }
+
+  /** Android app notification via Firebase Cloud Messaging. */
+  private async sendFcm(
+    token: string,
+    payload: NotificationPayload,
+  ): Promise<'sent' | 'gone' | 'failed'> {
+    const app = this.firebase();
+    if (!app) return 'failed';
+    try {
+      await getMessaging(app).send({
+        token,
+        // Data-only: the app builds the notification itself so a tap can open
+        // the right screen (payload.url) inside the app.
+        data: {
+          title: payload.title,
+          body: payload.body,
+          url: payload.url ?? '/',
+        },
+        android: { priority: 'high', ttl: 86400 * 1000 },
+      });
+      return 'sent';
+    } catch (error) {
+      const code = (error as { code?: string }).code ?? '';
+      if (
+        code === 'messaging/registration-token-not-registered' ||
+        code === 'messaging/invalid-registration-token' ||
+        code === 'messaging/invalid-argument'
+      ) {
+        return 'gone';
+      }
+      this.logger.error(`FCM send failed: ${(error as Error).message}`);
+      return 'failed';
     }
   }
 
@@ -563,10 +673,16 @@ export class NotificationsService {
     }
   }
 
-  health(): { ses: boolean; push: boolean; whatsapp: boolean } {
+  health(): {
+    ses: boolean;
+    push: boolean;
+    android_push: boolean;
+    whatsapp: boolean;
+  } {
     return {
       ses: Boolean(this.sourceEmail),
       push: this.vapidConfigured,
+      android_push: this.firebase() !== null,
       whatsapp: Boolean(
         this.config.get<string>('whatsapp.phoneNumberId') &&
         this.config.get<string>('whatsapp.accessToken'),

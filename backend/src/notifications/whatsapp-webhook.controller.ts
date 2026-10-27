@@ -9,6 +9,8 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
+import type { RawBodyRequest } from '@nestjs/common';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -120,6 +122,33 @@ export class WhatsappWebhookController {
     private readonly periodRepo: Repository<GstFilingPeriod>,
   ) {}
 
+  private warnedNoSecret = false;
+
+  /**
+   * Meta signs every webhook call: X-Hub-Signature-256 = "sha256=" +
+   * HMAC-SHA256(app secret, raw body). Anything else is a forged message.
+   * Until WHATSAPP_APP_SECRET is configured, calls are let through with a
+   * warning so the bot keeps working.
+   */
+  private hasValidSignature(req: RawBodyRequest<Request>): boolean {
+    const secret = this.configService.get<string>('whatsapp.appSecret');
+    if (!secret) {
+      if (!this.warnedNoSecret) {
+        this.logger.warn(
+          'WHATSAPP_APP_SECRET is not set: incoming WhatsApp webhooks are NOT verified',
+        );
+        this.warnedNoSecret = true;
+      }
+      return true;
+    }
+    const header = req.headers['x-hub-signature-256'];
+    if (typeof header !== 'string' || !req.rawBody) return false;
+    const expected = `sha256=${createHmac('sha256', secret).update(req.rawBody).digest('hex')}`;
+    const a = Buffer.from(header);
+    const b = Buffer.from(expected);
+    return a.length === b.length && timingSafeEqual(a, b);
+  }
+
   @Get()
   verifyWebhook(@Req() req: Request, @Res() res: Response) {
     const mode = req.query['hub.mode'];
@@ -136,9 +165,8 @@ export class WhatsappWebhookController {
         this.logger.log('WhatsApp Webhook successfully verified by Meta');
         return res.status(HttpStatus.OK).send(challenge);
       } else {
-        this.logger.warn(
-          `Webhook verification token mismatch. Received: ${token}, Expected: ${verifyToken ?? ''}`,
-        );
+        // Never log the tokens themselves: they are secrets
+        this.logger.warn('Webhook verification token mismatch');
         return res.sendStatus(HttpStatus.FORBIDDEN);
       }
     }
@@ -147,7 +175,11 @@ export class WhatsappWebhookController {
   }
 
   @Post()
-  handleWebhook(@Req() req: Request, @Res() res: Response) {
+  handleWebhook(@Req() req: RawBodyRequest<Request>, @Res() res: Response) {
+    if (!this.hasValidSignature(req)) {
+      this.logger.warn('Rejected WhatsApp webhook call with a bad signature');
+      return res.sendStatus(HttpStatus.UNAUTHORIZED);
+    }
     const body = req.body as WhatsappWebhookBody;
 
     // Acknowledge Meta immediately with 200 OK so Meta doesn't retry unnecessarily

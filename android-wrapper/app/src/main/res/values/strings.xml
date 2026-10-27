@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SN Bajaj And Co</string>
+    <string name="notification_channel_name">Filing alerts &amp; reminders</string>
+    <string name="notification_channel_description">Return filed, due date reminders, reports and replies from your CA</string>
 </resources>

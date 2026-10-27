@@ -22,10 +22,7 @@ import {
   hasGstService,
 } from '../common/utils/client-type.util';
 import { ClientAlertsService } from '../notifications/client-alerts.service';
-import {
-  NotificationsService,
-  isPushSubscription,
-} from '../notifications/notifications.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { SchedulingService } from '../schedule/scheduling.service';
 import { UsersService } from '../users/users.service';
 import { ReminderLogQueryDto, SendReminderDto } from './dto/reminder.dto';
@@ -209,23 +206,7 @@ export class RemindersService implements OnModuleInit {
     body: string,
     url: string,
   ): Promise<boolean> {
-    const tokens = await this.usersService.getTokensForPush(user.id);
-    let ok = false;
-    for (const token of tokens) {
-      let subscription: unknown;
-      try {
-        subscription = JSON.parse(token.push_token);
-      } catch {
-        subscription = null;
-      }
-      if (
-        isPushSubscription(subscription) &&
-        (await this.notifications.sendPush(subscription, { title, body, url }))
-      ) {
-        ok = true;
-      }
-    }
-    return ok;
+    return this.notifications.pushToUser(user.id, { title, body, url });
   }
 
   async log(query: ReminderLogQueryDto): Promise<PaginatedResult<Reminder>> {

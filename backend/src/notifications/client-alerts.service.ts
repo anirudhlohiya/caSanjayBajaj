@@ -5,10 +5,7 @@ import { Repository } from 'typeorm';
 import { DeviceToken } from '../entities/device-token.entity';
 import { User } from '../entities/user.entity';
 import { WhatsappChatsService } from '../whatsapp-chats/whatsapp-chats.service';
-import {
-  isPushSubscription,
-  NotificationsService,
-} from './notifications.service';
+import { NotificationsService } from './notifications.service';
 import { ReportNotificationsService } from './report-notifications.service';
 import { WhatsappTemplateKey } from './whatsapp-templates';
 
@@ -143,27 +140,11 @@ export class ClientAlertsService {
     }
   }
 
-  /** Web push to every registered device of a client. True if any succeeded. */
-  async pushToUser(
+  /** Push to every device of a client (browser and Android app). */
+  pushToUser(
     userId: string,
     payload: { title: string; body: string; url: string },
   ): Promise<boolean> {
-    const tokens = await this.deviceTokens.find({ where: { user_id: userId } });
-    let ok = false;
-    for (const token of tokens) {
-      let subscription: unknown;
-      try {
-        subscription = JSON.parse(token.push_token);
-      } catch {
-        subscription = null;
-      }
-      if (
-        isPushSubscription(subscription) &&
-        (await this.notifications.sendPush(subscription, payload))
-      ) {
-        ok = true;
-      }
-    }
-    return ok;
+    return this.notifications.pushToUser(userId, payload);
   }
 }

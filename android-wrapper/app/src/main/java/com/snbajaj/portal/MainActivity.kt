@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         get() = compareVersions(BuildConfig.VERSION_NAME, latestVersion) < 0
 
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
+    private lateinit var nativePush: NativePushBridge
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,6 +67,7 @@ class MainActivity : AppCompatActivity() {
         webView = findViewById(R.id.web_view)
 
         applySystemBarInsets()
+        PushMessagingService.ensureChannel(this)
         setupWebView()
         setupBackNavigation()
         refreshVersionInfo()
@@ -141,6 +143,11 @@ class MainActivity : AppCompatActivity() {
         }
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
+
+        // window.NativePush: Android notifications for the portal (web push is
+        // not available inside WebView)
+        nativePush = NativePushBridge(this, webView)
+        webView.addJavascriptInterface(nativePush, "NativePush")
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(
@@ -322,6 +329,15 @@ class MainActivity : AppCompatActivity() {
             return
         }
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == NativePushBridge.REQUEST_CODE) nativePush.onPermissionResult()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

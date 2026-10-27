@@ -88,25 +88,25 @@
               <div class="text-xs text-neutral-600 dark:text-neutral-400 mt-2 space-y-1 bg-white/70 dark:bg-black/20 p-2.5 rounded-lg border border-amber-200/50 dark:border-amber-900/30">
                 @if (req.payload.business_name) {
                   <div class="flex justify-between gap-2">
-                    <span class="text-neutral-400 font-mono text-[11px]">Business:</span>
+                    <span class="text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">Business:</span>
                     <span class="font-medium text-neutral-900 dark:text-white">{{ req.payload.business_name }}</span>
                   </div>
                 }
                 @if (req.payload.gstin) {
                   <div class="flex justify-between gap-2">
-                    <span class="text-neutral-400 font-mono text-[11px]">GSTIN:</span>
+                    <span class="text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">GSTIN:</span>
                     <span class="font-mono font-medium text-neutral-900 dark:text-white">{{ req.payload.gstin }}</span>
                   </div>
                 }
                 @if (req.payload.industry) {
                   <div class="flex justify-between gap-2">
-                    <span class="text-neutral-400 font-mono text-[11px]">Industry:</span>
+                    <span class="text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">Industry:</span>
                     <span class="font-medium text-neutral-900 dark:text-white">{{ req.payload.industry }}</span>
                   </div>
                 }
                 @if (req.payload.pan) {
                   <div class="flex justify-between gap-2">
-                    <span class="text-neutral-400 font-mono text-[11px]">PAN:</span>
+                    <span class="text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">PAN:</span>
                     <span class="font-mono font-medium text-neutral-900 dark:text-white">{{ req.payload.pan }}</span>
                   </div>
                 }
@@ -135,7 +135,7 @@
                     <span class="text-[10px] font-mono uppercase tracking-wider text-[#0070f3] bg-[#d3e5ff]/50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md font-medium">
                       GST Compliance
                     </span>
-                    <span class="material-symbols-outlined text-[18px] text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all">
+                    <span class="material-symbols-outlined text-[18px] text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all">
                       arrow_forward
                     </span>
                   </div>
@@ -168,10 +168,10 @@
               >
                 <div>
                   <div class="flex items-center justify-between gap-2 mb-2">
-                    <span class="text-[10px] font-mono uppercase tracking-wider text-[#7928ca] bg-[#d8ccf1]/40 dark:bg-purple-950/40 px-2 py-0.5 rounded-md font-medium">
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-[#7928ca] dark:text-purple-300 bg-[#d8ccf1]/40 dark:bg-purple-950/40 px-2 py-0.5 rounded-md font-medium">
                       Income Tax
                     </span>
-                    <span class="material-symbols-outlined text-[18px] text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all">
+                    <span class="material-symbols-outlined text-[18px] text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all">
                       arrow_forward
                     </span>
                   </div>
@@ -181,7 +181,7 @@
                   </p>
                   <div class="mt-2.5">
                     <span class="inline-flex items-center gap-1 text-[11px] font-mono text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800/80 px-2 py-0.5 rounded">
-                      <span class="material-symbols-outlined text-[13px] text-[#7928ca]">credit_card</span>
+                      <span class="material-symbols-outlined text-[13px] text-[#7928ca] dark:text-purple-300">credit_card</span>
                       10-char PAN required
                     </span>
                   </div>
@@ -250,7 +250,7 @@
   @if (auth.userProfile()?.gstin || auth.userProfile()?.pan || auth.userProfile()?.business_name) {
     <section class="card overflow-hidden">
       <div class="border-b border-[#ebebeb] bg-[#fafafa] dark:bg-neutral-800 px-4 py-3 dark:border-neutral-800">
-        <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">Business & Tax Details</h2>
+        <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-medium">Business & Tax Details</h2>
       </div>
       <div class="divide-y divide-[#ebebeb] px-4 dark:divide-neutral-800 text-xs">
         @if (auth.userProfile()?.business_name) {
@@ -289,8 +289,8 @@
   @if (showFamily()) {
     <section id="family-members" class="card overflow-hidden scroll-mt-24">
       <div class="border-b border-[#ebebeb] bg-[#fafafa] dark:bg-neutral-800 px-4 py-3 dark:border-neutral-800 flex items-center justify-between">
-        <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">Family Members</h2>
-        <span class="text-[11px] font-mono text-neutral-400 tabular-nums">{{ familyMembers().length }}/{{ maxFamilyMembers }}</span>
+        <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-medium">Family Members</h2>
+        <span class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 tabular-nums">{{ familyMembers().length }}/{{ maxFamilyMembers }}</span>
       </div>
       <p class="px-4 pt-3 text-xs text-neutral-500 dark:text-neutral-400">
         Add family members to manage their ITR from your account: upload their documents and download their returns.
@@ -360,7 +360,7 @@
   <!-- Your Documents -->
   <section class="card overflow-hidden">
     <div class="border-b border-[#ebebeb] bg-[#fafafa] dark:bg-neutral-800 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">Your Documents</h2>
+      <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-medium">Your Documents</h2>
     </div>
     @if (auth.userProfile()?.user_type === 'gst' || auth.userProfile()?.user_type === 'both') {
       <div class="divide-y divide-[#ebebeb] px-4 dark:divide-neutral-800">
@@ -370,7 +370,7 @@
             @if (certFor('gst_cert'); as cert) {
               <p class="text-xs text-neutral-900 truncate dark:text-neutral-200 font-medium">{{ cert.original_filename }}</p>
             } @else {
-              <p class="text-[11px] font-mono text-neutral-400">Not uploaded yet</p>
+              <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">Not uploaded yet</p>
             }
           </div>
           <button
@@ -388,7 +388,7 @@
             @if (certFor('udyam_cert'); as cert) {
               <p class="text-xs text-neutral-900 truncate dark:text-neutral-200 font-medium">{{ cert.original_filename }}</p>
             } @else {
-              <p class="text-[11px] font-mono text-neutral-400">Not uploaded yet</p>
+              <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">Not uploaded yet</p>
             }
           </div>
           <button
@@ -403,9 +403,9 @@
       </div>
     } @else {
       <div class="flex flex-col items-center gap-2 px-4 py-8 text-center">
-        <span class="material-symbols-outlined text-[28px] text-neutral-300 dark:text-neutral-600">folder_off</span>
+        <span class="material-symbols-outlined text-[28px] text-neutral-500">folder_off</span>
         <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">No registered certificates</p>
-        <p class="text-[11px] font-mono text-neutral-400">Certificates uploaded by your CA will appear here.</p>
+        <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">Certificates uploaded by your CA will appear here.</p>
       </div>
     }
   </section>
@@ -413,8 +413,8 @@
   <!-- Language -->
   <section class="card overflow-hidden">
     <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">{{ 'SETTINGS.LANGUAGE' | translate }}</h2>
-      <p class="text-xs text-neutral-400 mt-0.5">{{ 'SETTINGS.LANGUAGE_DESC' | translate }}</p>
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.LANGUAGE' | translate }}</h2>
+      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{{ 'SETTINGS.LANGUAGE_DESC' | translate }}</p>
     </div>
     <div class="divide-y divide-neutral-100 dark:divide-neutral-800">
       @for (opt of langOptions; track opt.value) {
@@ -441,8 +441,8 @@
   <!-- Payment Options -->
   <section class="card overflow-hidden">
     <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">{{ 'SETTINGS.PAYMENT' | translate }}</h2>
-      <p class="text-xs text-neutral-400 mt-0.5">{{ 'SETTINGS.PAYMENT_DESC' | translate }}</p>
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.PAYMENT' | translate }}</h2>
+      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{{ 'SETTINGS.PAYMENT_DESC' | translate }}</p>
     </div>
     <button
       (click)="showPaymentModal.set(true)"
@@ -454,15 +454,15 @@
       <span class="flex-1">
         <span class="block text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ 'SETTINGS.PAYMENT' | translate }}</span>
       </span>
-      <span class="material-symbols-outlined text-[20px] text-neutral-400">chevron_right</span>
+      <span class="material-symbols-outlined text-[20px] text-neutral-500 dark:text-neutral-400">chevron_right</span>
     </button>
   </section>
 
   <!-- Theme -->
   <section class="card overflow-hidden">
     <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">{{ 'SETTINGS.APPEARANCE' | translate }}</h2>
-      <p class="text-xs text-neutral-400 mt-0.5">{{ 'SETTINGS.APPEARANCE_DESC' | translate }}</p>
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.APPEARANCE' | translate }}</h2>
+      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{{ 'SETTINGS.APPEARANCE_DESC' | translate }}</p>
     </div>
     <div class="divide-y divide-neutral-100 dark:divide-neutral-800">
       @for (opt of themeOptions; track opt.value) {
@@ -489,13 +489,13 @@
   <!-- Notifications -->
   <section class="card overflow-hidden">
     <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">{{ 'SETTINGS.NOTIFICATIONS' | translate }}</h2>
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.NOTIFICATIONS' | translate }}</h2>
     </div>
     <div class="divide-y divide-neutral-100 dark:divide-neutral-800">
       <div class="flex items-center justify-between gap-3 px-4 py-3.5">
         <div>
           <p class="text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ 'SETTINGS.NOTIF_PUSH' | translate }}</p>
-          <p class="text-xs text-neutral-400 mt-0.5">{{ 'SETTINGS.NOTIF_PUSH_DESC' | translate }}</p>
+          <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{{ 'SETTINGS.NOTIF_PUSH_DESC' | translate }}</p>
         </div>
         @if (pushSupported()) {
           <button
@@ -514,7 +514,7 @@
             ></span>
           </button>
         } @else {
-          <p class="text-xs text-neutral-400">Unavailable</p>
+          <p class="text-xs text-neutral-500 dark:text-neutral-400">Unavailable</p>
         }
       </div>
     </div>
@@ -523,12 +523,12 @@
   <!-- Change Password -->
   <section class="card overflow-hidden">
     <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">{{ 'SETTINGS.SECURITY' | translate }}</h2>
-      <p class="text-xs text-neutral-400 mt-0.5">{{ 'SETTINGS.SECURITY_DESC' | translate }}</p>
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.SECURITY' | translate }}</h2>
+      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{{ 'SETTINGS.SECURITY_DESC' | translate }}</p>
     </div>
     <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="flex flex-col gap-4 p-4">
       <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">{{ 'SETTINGS.CUR_PASSWORD' | translate }}</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.CUR_PASSWORD' | translate }}</span>
         <input
           formControlName="current_password"
           type="password"
@@ -538,7 +538,7 @@
         />
       </label>
       <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">{{ 'SETTINGS.NEW_PASSWORD' | translate }}</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.NEW_PASSWORD' | translate }}</span>
         <input
           formControlName="new_password"
           type="password"
@@ -548,7 +548,7 @@
         />
       </label>
       <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">{{ 'SETTINGS.CONFIRM_PASSWORD' | translate }}</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.CONFIRM_PASSWORD' | translate }}</span>
         <input
           formControlName="confirm"
           type="password"
@@ -579,7 +579,7 @@
     Log out
   </button>
 
-  <p class="pb-4 text-center text-xs text-neutral-400">
+  <p class="pb-4 text-center text-xs text-neutral-500 dark:text-neutral-400">
     S N Bajaj And Co — GST Client Portal
   </p>
 </div>
@@ -588,7 +588,7 @@
 @if (showPaymentModal()) {
   <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
     <div class="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 shadow-2xl p-6 relative flex flex-col items-center">
-      <button (click)="showPaymentModal.set(false)" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200">
+      <button (click)="showPaymentModal.set(false)" class="absolute top-4 right-4 text-neutral-500 dark:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200">
         <span class="material-symbols-outlined">close</span>
       </button>
       
@@ -619,7 +619,7 @@
 @if (showServiceModal() === 'gst') {
   <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md px-4">
     <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-neutral-900 border border-[#ebebeb] dark:border-neutral-800 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col max-h-[90vh] overflow-y-auto">
-      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer">
+      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-8 rounded-full flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer">
         <span class="material-symbols-outlined text-[18px]">close</span>
       </button>
 
@@ -676,7 +676,7 @@
             [class.border-[#0070f3]]="gstServiceForm.get('gstin')?.value?.length === 15 && isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
             [class.border-[#ee0000]]="gstServiceForm.get('gstin')?.value?.length === 15 && !isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
           />
-          <p class="text-[11px] font-mono text-neutral-400 dark:text-neutral-500">
+          <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
             2 state digits + 10 PAN characters + 1 entity code + Z + 1 check digit.
           </p>
         </label>
@@ -727,7 +727,7 @@
             formControlName="industry"
             class="h-10 rounded-md border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm text-[#171717] dark:text-neutral-100 outline-none focus:border-[#171717] focus:ring-1 focus:ring-[#171717] dark:focus:border-white dark:focus:ring-white transition-all cursor-pointer"
           >
-            <option value="" disabled selected class="bg-white dark:bg-neutral-800 text-neutral-400">Select your industry</option>
+            <option value="" disabled selected class="bg-white dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">Select your industry</option>
             @for (ind of industries; track ind) {
               <option [value]="ind" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">{{ ind }}</option>
             }
@@ -763,7 +763,7 @@
 @if (showServiceModal() === 'itr') {
   <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md px-4">
     <div class="w-full max-w-md rounded-2xl bg-white dark:bg-neutral-900 border border-[#ebebeb] dark:border-neutral-800 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col">
-      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer">
+      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-8 rounded-full flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer">
         <span class="material-symbols-outlined text-[18px]">close</span>
       </button>
 
@@ -807,7 +807,7 @@
             [class.border-[#0070f3]]="itrServiceForm.get('pan')?.value?.length === 10 && isPanValid(itrServiceForm.get('pan')?.value)"
             [class.border-[#ee0000]]="itrServiceForm.get('pan')?.value?.length === 10 && !isPanValid(itrServiceForm.get('pan')?.value)"
           />
-          <p class="text-[11px] font-mono text-neutral-400 dark:text-neutral-500">
+          <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
             5 letters + 4 digits + 1 letter (e.g. ABCDE1234F).
           </p>
         </label>

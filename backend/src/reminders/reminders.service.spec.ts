@@ -44,11 +44,11 @@ describe('RemindersService', () => {
   };
   let notifications: {
     sendEmail: jest.Mock;
-    sendPush: jest.Mock;
+    pushToUser: jest.Mock;
     sendWhatsappTemplate: jest.Mock;
   };
   let alerts: { sendWhatsappTemplate: jest.Mock; recordInApp: jest.Mock };
-  let usersService: { getTokensForPush: jest.Mock; listActiveUsers: jest.Mock };
+  let usersService: { listActiveUsers: jest.Mock };
   let scheduler: { doesExist: jest.Mock; addCronJob: jest.Mock };
   const registeredJobs: Array<{ stop: () => void }> = [];
   let tasks: ComplianceTask[];
@@ -128,7 +128,7 @@ describe('RemindersService', () => {
     };
     notifications = {
       sendEmail: jest.fn().mockResolvedValue(true),
-      sendPush: jest.fn().mockResolvedValue(true),
+      pushToUser: jest.fn().mockResolvedValue(true),
       sendWhatsappTemplate: jest.fn().mockResolvedValue(true),
     };
     alerts = {
@@ -136,7 +136,6 @@ describe('RemindersService', () => {
       recordInApp: jest.fn().mockResolvedValue(true),
     };
     usersService = {
-      getTokensForPush: jest.fn().mockResolvedValue([]),
       listActiveUsers: jest.fn().mockResolvedValue([]),
     };
     const config = {
@@ -174,9 +173,6 @@ describe('RemindersService', () => {
     it('targets a pending monthly gstr_1 on GSTR-1 day1 and logs system sends', async () => {
       periodsRepo.find.mockResolvedValue([makePeriod('p1', null)]);
       tasks = [makeTask(monthlyUser, ComplianceCategory.GSTR_1)];
-      usersService.getTokensForPush.mockResolvedValue([
-        { push_token: '{"endpoint":"e","keys":{"p256dh":"k","auth":"a"}}' },
-      ]);
 
       await service.handleAutoReminders('2026-10-05');
 
@@ -189,7 +185,7 @@ describe('RemindersService', () => {
         }),
       );
       expect(notifications.sendEmail).toHaveBeenCalledTimes(1);
-      expect(notifications.sendPush).toHaveBeenCalledTimes(1);
+      expect(notifications.pushToUser).toHaveBeenCalledTimes(1);
       const sent = saved.filter((r) => r.triggered_by === 'system');
       expect(sent.length).toBe(3); // email + push + whatsapp
       expect(sent.every((r) => r.status === ReminderStatus.SENT)).toBe(true);
@@ -236,7 +232,7 @@ describe('RemindersService', () => {
       await service.handleAutoReminders('2026-10-05');
 
       expect(notifications.sendEmail).not.toHaveBeenCalled();
-      expect(notifications.sendPush).not.toHaveBeenCalled();
+      expect(notifications.pushToUser).not.toHaveBeenCalled();
     });
 
     it('skips completed/uploaded/nil_declared tasks', async () => {
@@ -256,7 +252,7 @@ describe('RemindersService', () => {
       await service.handleAutoReminders('2026-10-05');
 
       expect(notifications.sendEmail).not.toHaveBeenCalled();
-      expect(notifications.sendPush).not.toHaveBeenCalled();
+      expect(notifications.pushToUser).not.toHaveBeenCalled();
     });
 
     it('reminds monthly filers on GSTR-1 day and quarterly filers on IFF day', async () => {
@@ -331,7 +327,7 @@ describe('RemindersService', () => {
       await service.handleAutoReminders('2026-10-20');
 
       expect(notifications.sendEmail).not.toHaveBeenCalled();
-      expect(notifications.sendPush).not.toHaveBeenCalled();
+      expect(notifications.pushToUser).not.toHaveBeenCalled();
     });
 
     it('does not resend a slot already logged today', async () => {
@@ -345,7 +341,7 @@ describe('RemindersService', () => {
 
       await service.handleAutoReminders('2026-10-05');
 
-      expect(notifications.sendPush).not.toHaveBeenCalled();
+      expect(notifications.pushToUser).not.toHaveBeenCalled();
       expect(notifications.sendEmail).toHaveBeenCalledTimes(1);
       const sent = saved.filter((r) => r.status === ReminderStatus.SENT);
       expect(sent.length).toBe(1);

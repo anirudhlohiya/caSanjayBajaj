@@ -50,7 +50,7 @@ import { AuthService } from '../../core/services/auth.service';
       <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
         <!-- Hero Header -->
         <div class="mb-8 border-b border-hairline pb-8 dark:border-hairline-strong">
-          <div class="inline-flex items-center gap-1.5 rounded-full bg-secondary-container px-3 py-1 text-xs font-medium text-secondary">
+          <div class="inline-flex items-center gap-1.5 rounded-full bg-secondary-container px-3 py-1 text-xs font-medium text-on-secondary-container">
             <span class="material-symbols-outlined text-[14px]">verified_user</span>
             Legal & Compliance
           </div>

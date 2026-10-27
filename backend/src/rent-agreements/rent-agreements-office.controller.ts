@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Param,
+  Post,
+  Res,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { RentAgreementsService } from './rent-agreements.service';
 
@@ -24,7 +32,15 @@ export class RentAgreementsOfficeController {
   }
 
   @Post('office/callback/:key')
-  async officeCallback(@Param('key') key: string, @Body() body: any) {
-    return this.rentAgreementsService.handleOfficeCallback(key, body);
+  async officeCallback(
+    @Param('key') key: string,
+    @Body() body: unknown,
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.rentAgreementsService.handleOfficeCallback(
+      key,
+      body,
+      authorization,
+    );
   }
 }

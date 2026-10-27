@@ -43,6 +43,11 @@ export default () => ({
     vapidPrivateKey: process.env.FIREBASE_VAPID_PRIVATE_KEY ?? '',
     vapidSubject:
       process.env.FIREBASE_VAPID_SUBJECT ?? 'mailto:admin@example.com',
+    /**
+     * Path to the Firebase service-account JSON used to send Android app
+     * notifications (FCM). Empty = Android push is off; web push still works.
+     */
+    serviceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH ?? '',
   },
 
   reminders: {
@@ -120,6 +125,8 @@ export default () => ({
     accessToken: process.env.WHATSAPP_ACCESS_TOKEN ?? '',
     number: process.env.WHATSAPP_NUMBER ?? '',
     verifyToken: process.env.WHATSAPP_VERIFY_TOKEN ?? '',
+    /** Meta App Secret: verifies X-Hub-Signature-256 on incoming webhooks. */
+    appSecret: process.env.WHATSAPP_APP_SECRET ?? '',
     // Meta-approved Utility template names (see notifications/whatsapp-templates.ts)
     templates: {
       returnFiled: process.env.WHATSAPP_TPL_RETURN_FILED ?? 'gst_return_filed',

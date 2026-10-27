@@ -14,7 +14,6 @@ import {
 import { ClientAlertsService } from './client-alerts.service';
 import { WhatsappTranscriptionService } from './whatsapp-transcription.service';
 import { WhatsappUploadsService } from './whatsapp-uploads.service';
-import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
 import { ReportNotificationsController } from './report-notifications.controller';
 import { ReportNotificationsService } from './report-notifications.service';
@@ -41,11 +40,7 @@ import { StorageModule } from '../storage/storage.module';
     forwardRef(() => WhatsappChatsModule),
     StorageModule,
   ],
-  controllers: [
-    ReportNotificationsController,
-    NotificationsController,
-    WhatsappWebhookController,
-  ],
+  controllers: [ReportNotificationsController, WhatsappWebhookController],
   providers: [
     NotificationsService,
     ReportNotificationsService,

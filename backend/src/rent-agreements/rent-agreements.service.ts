@@ -528,12 +528,22 @@ export class RentAgreementsService {
     };
   }
 
-  async handleOfficeCallback(key: string, bodyValue: unknown) {
+  async handleOfficeCallback(
+    key: string,
+    bodyValue: unknown,
+    authorization?: string,
+  ) {
     const session = this.officeSessions.get(key);
     if (!session) {
       return { error: 0 };
     }
-    const body = (bodyValue ?? {}) as Record<string, unknown>;
+    const body = this.trustedOfficeCallback(bodyValue, authorization);
+    if (!body) {
+      this.logger.warn(
+        'Rejected OnlyOffice callback: not signed by the document server',
+      );
+      return { error: 1 };
+    }
     const status = body['status'];
     const url = body['url'];
     if ((status === 2 || status === 6) && typeof url === 'string') {
@@ -560,6 +570,49 @@ export class RentAgreementsService {
       }
     }
     return { error: 0 };
+  }
+
+  /**
+   * The callback tells us where to download the edited file, so it must come
+   * from our OnlyOffice document server:
+   * - JWT secret configured: the payload must carry a valid token (body.token,
+   *   or "Authorization: Bearer" with the payload nested), and only the
+   *   signed payload is trusted;
+   * - no secret: the download URL must point at the configured server's host.
+   * Returns the trusted payload, or null to reject.
+   */
+  trustedOfficeCallback(
+    bodyValue: unknown,
+    authorization?: string,
+  ): Record<string, unknown> | null {
+    const body = (bodyValue ?? {}) as Record<string, unknown>;
+    const secret = this.config.get<string>('onlyOffice.jwtSecret') ?? '';
+    if (secret) {
+      const bearer = authorization?.startsWith('Bearer ')
+        ? authorization.slice(7)
+        : undefined;
+      const token = typeof body['token'] === 'string' ? body['token'] : bearer;
+      if (!token) return null;
+      try {
+        const decoded = jwt.verify(token, secret, {
+          algorithms: ['HS256'],
+        }) as Record<string, unknown>;
+        const payload = decoded['payload'];
+        return payload && typeof payload === 'object'
+          ? (payload as Record<string, unknown>)
+          : decoded;
+      } catch {
+        return null;
+      }
+    }
+    const url = body['url'];
+    if (typeof url !== 'string') return body; // status-only callbacks
+    try {
+      const allowed = new URL(this.officeServerUrl).host;
+      return allowed && new URL(url).host === allowed ? body : null;
+    } catch {
+      return null;
+    }
   }
 
   async getEditedDocx(id: string): Promise<Buffer | null> {
