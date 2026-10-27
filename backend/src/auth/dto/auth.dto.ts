@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
 export class LoginDto {
@@ -30,4 +30,9 @@ export class AuthTokensDto {
 
   @ApiProperty()
   expires_in: number;
+
+  @ApiPropertyOptional({
+    description: 'Signing in cancelled a pending account deletion',
+  })
+  deletion_cancelled?: boolean;
 }

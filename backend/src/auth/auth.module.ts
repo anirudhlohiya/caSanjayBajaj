@@ -8,6 +8,7 @@ import { RefreshToken } from '../entities/refresh-token.entity';
 import { User } from '../entities/user.entity';
 import { OtpVerification } from '../entities/otp-verification.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { AccountDeletionModule } from '../account-deletion/account-deletion.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
@@ -23,6 +24,7 @@ import { AuthService } from './auth.service';
     ]),
     JwtModule.register({ global: true }),
     NotificationsModule,
+    AccountDeletionModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

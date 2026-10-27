@@ -83,6 +83,8 @@ export interface AuthTokens {
   refresh_token: string;
   token_type: string;
   expires_in: number;
+  /** Signing in cancelled a pending account deletion */
+  deletion_cancelled?: boolean;
 }
 
 export interface JwtPayload {

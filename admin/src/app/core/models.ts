@@ -137,8 +137,26 @@ export interface Client {
   user_type: UserType;
   status: UserStatus;
   gst_filing_frequency?: 'monthly' | 'quarterly';
+  /** Client asked to delete their account (erased 30 days later unless they sign in). */
+  deletion_requested_at?: string | null;
+  /** Login and personal details erased; tax records kept. */
+  deleted_at?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** Status to show for a client, including self-service account deletion. */
+export function clientStatus(c: Client): string {
+  if (c.deleted_at) return 'deleted';
+  if (c.deletion_requested_at) return 'deletion_pending';
+  return c.status;
+}
+
+/** Day the account of a client with a pending deletion is erased. */
+export function clientDeleteOn(c: Client): Date | null {
+  return c.deletion_requested_at && !c.deleted_at
+    ? new Date(new Date(c.deletion_requested_at).getTime() + 30 * 24 * 60 * 60 * 1000)
+    : null;
 }
 
 export interface FilingPeriod {

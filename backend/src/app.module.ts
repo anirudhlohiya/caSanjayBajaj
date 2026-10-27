@@ -6,6 +6,7 @@ import configuration from './config/configuration';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { AccountDeletionModule } from './account-deletion/account-deletion.module';
 import { PeriodsModule } from './periods/periods.module';
 import { DocumentsModule } from './documents/documents.module';
 import { ReportsModule } from './reports/reports.module';
@@ -44,6 +45,7 @@ import { ItrReturnsModule } from './itr-returns/itr-returns.module';
     DatabaseModule,
     AuthModule,
     UsersModule,
+    AccountDeletionModule,
     PeriodsModule,
     DocumentsModule,
     ReportsModule,

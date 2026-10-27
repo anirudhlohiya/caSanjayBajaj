@@ -21,6 +21,7 @@ import { ClientPreRegistration } from '../entities/client-pre-registration.entit
 import { Permission } from '../entities/permission.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { User } from '../entities/user.entity';
+import { AccountDeletionService } from '../account-deletion/account-deletion.service';
 import { OtpVerification } from '../entities/otp-verification.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuthTokensDto, LoginDto, RefreshDto } from './dto/auth.dto';
@@ -54,6 +55,7 @@ export class AuthService {
     private readonly preRegistrations: Repository<ClientPreRegistration>,
     private readonly notifications: NotificationsService,
     private readonly jwtService: JwtService,
+    private readonly accountDeletion: AccountDeletionService,
   ) {}
 
   async verifyPassword(hash: string, password: string): Promise<boolean> {
@@ -73,6 +75,8 @@ export class AuthService {
     ) {
       throw new UnauthorizedException('Invalid email or password');
     }
+    // Signing in during the grace period cancels a requested deletion
+    const deletionCancelled = await this.accountDeletion.cancelIfPending(user);
     if (user.status !== UserStatus.ACTIVE) {
       throw new ForbiddenException('Account is inactive');
     }
@@ -82,7 +86,8 @@ export class AuthService {
       type: 'user',
       email: user.email,
     };
-    return this.issueTokens(payload, SubjectType.USER, user.id);
+    const tokens = await this.issueTokens(payload, SubjectType.USER, user.id);
+    return deletionCancelled ? { ...tokens, deletion_cancelled: true } : tokens;
   }
 
   async loginAdmin(dto: LoginDto): Promise<AuthTokensDto> {

@@ -20,6 +20,8 @@ import {
   CertType,
   Client,
   ClientCertificate,
+  clientDeleteOn,
+  clientStatus,
   Document,
   FilingPeriod,
   FamilyMember,
@@ -62,6 +64,8 @@ import {
   templateUrl: './client-detail.html',
 })
 export class ClientDetail implements OnInit {
+  readonly clientStatus = clientStatus;
+  readonly clientDeleteOn = clientDeleteOn;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly clientsService = inject(ClientsService);

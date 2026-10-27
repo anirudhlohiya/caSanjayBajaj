@@ -11,6 +11,7 @@ import { User } from '../entities/user.entity';
 import { OtpVerification } from '../entities/otp-verification.entity';
 import { ClientPreRegistration } from '../entities/client-pre-registration.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AccountDeletionService } from '../account-deletion/account-deletion.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -50,6 +51,10 @@ describe('AuthService', () => {
   const notificationsService = {
     sendEmail: jest.fn().mockResolvedValue(true),
   } as unknown as NotificationsService;
+  const cancelIfPending = jest.fn().mockResolvedValue(false);
+  const accountDeletion = {
+    cancelIfPending,
+  } as unknown as AccountDeletionService;
   const jwtService = {
     signAsync: jest.fn().mockResolvedValue('access-token'),
     sign: jest.fn().mockReturnValue('refresh-token'),
@@ -71,6 +76,7 @@ describe('AuthService', () => {
         },
         { provide: NotificationsService, useValue: notificationsService },
         { provide: JwtService, useValue: jwtService },
+        { provide: AccountDeletionService, useValue: accountDeletion },
       ],
     }).compile();
     service = module.get(AuthService);
@@ -100,6 +106,33 @@ describe('AuthService', () => {
       expect(result.access_token).toBe('access-token');
       expect(result.refresh_token).toBe('refresh-token');
       expect(refreshTokensSave).toHaveBeenCalled();
+    });
+
+    it('signing in cancels a pending account deletion first', async () => {
+      const user = {
+        id: 'u1',
+        email: 'client@example.com',
+        password_hash: await argon2.hash('password123'),
+        status: 'inactive',
+        deletion_requested_at: new Date(),
+      };
+      (users.createQueryBuilder as jest.Mock).mockReturnValue({
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(user),
+      });
+      cancelIfPending.mockImplementationOnce((u: { status: string }) => {
+        u.status = 'active';
+        return Promise.resolve(true);
+      });
+
+      const result = await service.loginUser({
+        email: 'client@example.com',
+        password: 'password123',
+      });
+
+      expect(cancelIfPending).toHaveBeenCalledWith(user);
+      expect(result.access_token).toBe('access-token');
     });
 
     it('rejects invalid password', async () => {

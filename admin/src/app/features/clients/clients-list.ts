@@ -5,7 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClientsService } from '../../core/services/feature.services';
 import { ToastService } from '../../core/services/toast.service';
-import { Client } from '../../core/models';
+import { Client, clientStatus } from '../../core/models';
 import { PageHeader } from '../../shared/components/page-header';
 import { Pagination } from '../../shared/components/pagination';
 import { Modal } from '../../shared/components/modal';
@@ -38,6 +38,7 @@ function gstClientValidator(control: AbstractControl): ValidationErrors | null {
   templateUrl: './clients-list.html',
 })
 export class ClientsList implements OnInit {
+  readonly clientStatus = clientStatus;
   private readonly clientsService = inject(ClientsService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);

@@ -33,6 +33,7 @@ export class StatusChip {
       case 'completed':
         return GREEN;
       case 'received':
+      case 'deletion_pending':
         return AMBER;
       case 'pending':
       case 'queued':

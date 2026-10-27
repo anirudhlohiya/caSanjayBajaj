@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -171,6 +172,12 @@ export class StorageService {
       throw new Error(`S3 GetObject returned an empty body for ${s3Key}`);
     }
     return Buffer.from(await body.transformToByteArray());
+  }
+
+  async deleteObject(s3Key: string): Promise<void> {
+    await this.client.send(
+      new DeleteObjectCommand({ Bucket: this.docsBucket, Key: s3Key }),
+    );
   }
 
   async health(): Promise<boolean> {

@@ -336,6 +336,16 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - Audit notes (not yet acted on): repo is public; `backend/src/database/delete-users.ts` is tracked; 25 backend services have no spec; `periods.service.spec.ts` depends on the real date; `whatsapp-webhook.controller.ts` (~1,150 lines) and `NotificationsService` (~700 lines) should be split; duplicated helpers (`firstName`, `formatSize`, `currentFy`, `currentAssessmentYear`).
   - Tests: backend 171 unit + 5 integration, client 26, admin 1; all builds + Android `assembleDebug` / `lintDebug` pass.
 
+- **Phase 22 (Oct 27 2026) — Client self-service account deletion (Play Store requirement)**:
+  - Client app: Profile → **Delete account** (under Log out) → sheet explaining what is deleted / kept → re-enter password → signed out. Play's "delete account" web link = the client web app (sign in → Profile → Delete account) (user's choice).
+  - `POST /me/delete-account {password}` (`AccountDeletionService.request`, throttled): status → inactive, `users.deletion_requested_at` = now, refresh tokens revoked, device tokens deleted, audit `user.deletion_requested`, firm emailed (firm contact email from `services.contact`) with name / PAN / GSTIN and the erase date.
+  - **30-day grace** (user's choice): signing in again cancels (`AuthService.loginUser` → `cancelIfPending`; login response carries `deletion_cancelled: true` and the app shows "Your account will not be deleted"). Staff setting the client back to Active in Admin also cancels.
+  - Daily cron 02:30 IST (`eraseDue`) erases accounts past 30 days: email → `deleted-<id>@deleted.invalid`, random password, phone / DOB / photo cleared, `deleted_at` set; deletes tickets (+ attachments in S3), reminders, report notifications, device tokens, WhatsApp conversations, refresh tokens, OTP rows. **Kept for the firm (tax-law retention, user's choice)**: name, PAN, GSTIN, business name, family members, filings, documents, reports, certificates.
+  - Admin: client list / detail show **Deletion Pending** (amber) with "Deletes on <date>"; erased accounts show **Deleted**.
+  - Migration `1800000000008-AccountDeletion`: `users.deletion_requested_at`, `users.deleted_at`; also adds `whatsapp_conversations.client_id` (+ FK, index) **only if missing** — it was only ever created by a migration in the unused `src/migrations/` folder, so fresh databases lacked it (found by the new integration test).
+  - Tests: `account-deletion.service.spec.ts`, `users-reopen.spec.ts`, auth spec, and `test/account-deletion.e2e-spec.ts` (real Postgres: wrong password, cancel by signing in, erase after 30 days keeping tax records). Totals: backend 182 unit + 8 integration, client 26, admin 1.
+  - UI text is English only (like the surrounding Log out button); hi / gu translations not added.
+
 - **Release checklist for Phases 16–18 (Oct 24 2026 push)**:
   - Deploy runs migrations `1800000000004-ServiceCatalogue`, `-0005-DueDates`, `-0006-FamilyMembers` automatically (`release-on-server.sh` → `npm run migration:run`, ts-node from `src/`, so the seed files `services-offered/default-services.ts` and `due-dates/default-due-dates.ts` must stay in `src/`).
   - After deploy, staff must set the firm's **Call / WhatsApp numbers** in Admin → Services (until then service pages show only "Request this service").
@@ -762,7 +772,7 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
   - Revoke the old Meta token that was in `backend/test-whatsapp.js` (git history), then make the GitHub repo private — first run `git remote -v` in `/opt/ca-app/repo`; if it is HTTPS, add a read-only deploy key and switch the remote to SSH before going private.
   - Add `WHATSAPP_APP_SECRET` (Meta app → App settings → Basic) to the server `.env`, `pm2 restart ca-api`.
   - Create the Firebase project + files (see Phase 20), then release Android 1.2.0.
-  - Play requires in-app account deletion — not built yet.
+  - Play Console → Data safety / account deletion: give the client web app URL (sign in → Profile → Delete account) and state that tax records are kept as required by law.
 - **Phase 15 deploy (pending user's local test)**: commit + push (CI deploys), confirm the
   migration ran, add `WHATSAPP_TEMPLATES_ACCOUNT_ID=3629482393869045` to the server `.env`,
   `pm2 restart ca-api`; wait for Meta template approval (status in WhatsApp Manager).

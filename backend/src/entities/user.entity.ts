@@ -60,6 +60,14 @@ export class User {
   @Column({ type: 'timestamptz', nullable: true })
   email_suppressed_at: Date | null;
 
+  /** Client asked to delete the account; erased 30 days later unless they sign in. */
+  @Column({ type: 'timestamptz', nullable: true })
+  deletion_requested_at: Date | null;
+
+  /** Login and personal details erased; tax records kept for the firm. */
+  @Column({ type: 'timestamptz', nullable: true })
+  deleted_at: Date | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 

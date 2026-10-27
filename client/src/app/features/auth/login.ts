@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 import { ToastContainer } from '../../shared/components/toast-container';
 import { AuthLayout } from '../../shared/components/auth-layout';
 
@@ -16,6 +17,7 @@ export class Login {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   readonly loading = signal(false);
   readonly error = signal('');
@@ -35,7 +37,9 @@ export class Login {
     this.loading.set(true);
     try {
       const { email, password } = this.form.getRawValue();
-      await this.auth.login(email, password);
+      if (await this.auth.login(email, password)) {
+        this.toast.success('Welcome back. Your account will not be deleted.');
+      }
       // Ask for notification permission after successful login
       if ('Notification' in window && Notification.permission === 'default') {
         void Notification.requestPermission();

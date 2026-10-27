@@ -109,6 +109,14 @@ export class UsersService {
     const user = await this.findOne(id);
     const previousCadence = user.gst_filing_frequency;
     Object.assign(user, dto);
+    // Staff reopening an account also cancels a pending self-service deletion
+    if (
+      dto.status === UserStatus.ACTIVE &&
+      user.deletion_requested_at &&
+      !user.deleted_at
+    ) {
+      user.deletion_requested_at = null;
+    }
     const saved = await this.users.save(user);
 
     if (

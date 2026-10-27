@@ -33,8 +33,14 @@
           </div>
           <div class="flex justify-between gap-2">
             <dt class="text-neutral-500 dark:text-neutral-400">Status</dt>
-            <dd><app-status-chip [status]="c.status" /></dd>
+            <dd><app-status-chip [status]="clientStatus(c)" /></dd>
           </div>
+          @if (clientDeleteOn(c); as deleteOn) {
+            <div class="flex justify-between gap-2">
+              <dt class="text-neutral-500 dark:text-neutral-400">Deletes on</dt>
+              <dd class="text-[#E65100] font-medium text-right">{{ fmtDate(deleteOn.toISOString()) }}<span class="block text-xs font-normal text-neutral-500 dark:text-neutral-400">Cancelled if they sign in</span></dd>
+            </div>
+          }
           <div class="flex justify-between gap-2">
             <dt class="text-neutral-500 dark:text-neutral-400">Joined</dt>
             <dd class="text-neutral-900 dark:text-white font-mono tabular-nums">{{ fmtDate(c.created_at) }}</dd>

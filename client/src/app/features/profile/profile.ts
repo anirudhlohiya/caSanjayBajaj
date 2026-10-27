@@ -83,6 +83,8 @@ export class Profile {
   readonly pushSupported = signal(this.push.supported());
   readonly pushBusy = signal(false);
   readonly passwordBusy = signal(false);
+  readonly showDeleteModal = signal(false);
+  readonly deleteBusy = signal(false);
   readonly showPaymentModal = signal(false);
   
   readonly currentLanguage = signal(localStorage.getItem(LANG_PREF_KEY) || 'en');
@@ -120,6 +122,10 @@ export class Profile {
     current_password: ['', [Validators.required, Validators.minLength(8)]],
     new_password: ['', [Validators.required, Validators.minLength(8)]],
     confirm: ['', [Validators.required]],
+  });
+
+  readonly deleteForm = this.fb.nonNullable.group({
+    password: ['', [Validators.required]],
   });
 
   readonly profileBusy = signal(false);
@@ -480,6 +486,37 @@ export class Profile {
       /* interceptor toasts */
     } finally {
       this.passwordBusy.set(false);
+    }
+  }
+
+  openDeleteModal(): void {
+    this.deleteForm.reset();
+    this.showDeleteModal.set(true);
+  }
+
+  async deleteAccount(): Promise<void> {
+    if (this.deleteBusy()) return;
+    if (this.deleteForm.invalid) {
+      this.toast.error('Enter your password to confirm.');
+      return;
+    }
+    this.deleteBusy.set(true);
+    try {
+      const { delete_after } = await this.profileService.deleteAccount(
+        this.deleteForm.getRawValue().password,
+      );
+      const when = new Date(delete_after).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+      this.showDeleteModal.set(false);
+      this.toast.success(`Your account will be deleted on ${when}. Sign in before then to cancel.`);
+      await this.auth.logout();
+    } catch {
+      /* interceptor toasts (e.g. wrong password) */
+    } finally {
+      this.deleteBusy.set(false);
     }
   }
 }

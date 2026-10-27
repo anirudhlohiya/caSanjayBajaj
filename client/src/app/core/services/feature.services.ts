@@ -261,6 +261,13 @@ export class ProfileService {
     );
   }
 
+  /** Locks the account now; it is erased after 30 days unless the client signs in again. */
+  deleteAccount(password: string) {
+    return firstValueFrom(
+      this.api.post<{ delete_after: string }>('/me/delete-account', { password }),
+    );
+  }
+
   registerDeviceToken(push_token: string, platform: 'pwa' | 'android' = 'pwa') {
     return firstValueFrom(
       this.api.post('/me/device-token', { push_token, platform }),

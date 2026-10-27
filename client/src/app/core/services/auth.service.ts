@@ -63,12 +63,14 @@ export class AuthService {
     return payload.type === 'user';
   }
 
-  async login(email: string, password: string): Promise<UserProfile> {
+  /** Resolves true when signing in cancelled a pending account deletion. */
+  async login(email: string, password: string): Promise<boolean> {
     const tokens = await firstValueFrom(
       this.api.post<AuthTokens>('/auth/login/user', { email, password }),
     );
     this.setTokens(tokens);
-    return this.loadProfile();
+    await this.loadProfile();
+    return tokens.deletion_cancelled === true;
   }
 
   async loadProfile(): Promise<UserProfile> {
