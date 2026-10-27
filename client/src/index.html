@@ -12,7 +12,22 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="S N BAJAJ AND CO">
   <meta name="mobile-web-app-capable" content="yes">
-  
+
+  <!-- Apply the saved theme before first paint so a refresh never flashes
+       (or sticks on) light mode. Mirrors ThemeService (key fp_theme). -->
+  <script>
+    (function () {
+      try {
+        var mode = localStorage.getItem('fp_theme') || 'system';
+        var dark = mode === 'dark' ||
+          (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', dark ? '#0a0a0a' : '#fafafa');
+      } catch (e) { /* storage blocked: keep defaults */ }
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">

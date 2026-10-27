@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,10 @@ import { TranslateService } from '@ngx-translate/core';
   `,
 })
 export class App {
+  // Created at the root (not only in the shell) so pages outside the shell,
+  // e.g. /documents/upload and /notifications, keep the theme on refresh.
+  private readonly theme = inject(ThemeService);
+
   constructor() {
     const translate = inject(TranslateService);
     const savedLang = localStorage.getItem('fp_language') || 'en';
