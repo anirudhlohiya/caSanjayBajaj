@@ -17,6 +17,7 @@ import { UploadService } from '../../core/services/upload.service';
 import { UploadQueueService, QueuedUpload } from '../../core/services/upload-queue.service';
 import { DocumentCategory, GstFilingPeriod } from '../../core/models';
 import { PageHeader } from '../../shared/components/page-header';
+import { AuthService } from '../../core/services/auth.service';
 import {
   currentAssessmentYear,
   itrYearLabel,
@@ -46,6 +47,7 @@ export class Upload {
   private readonly upload = inject(UploadService);
   private readonly queue = inject(UploadQueueService);
   private readonly familyMembers = inject(FamilyMembersService);
+  private readonly auth = inject(AuthService);
 
   readonly category = signal<DocumentCategory>('gst');
   /** ITR uploads always go to the year being filed now (rolls over on 1 April). */
@@ -111,10 +113,18 @@ export class Upload {
   }
 
   async init(): Promise<void> {
-    const qCategory = this.route.snapshot.queryParamMap.get('category');
-    if (qCategory === 'itr' || qCategory === 'general' || qCategory === 'gst') {
-      this.category.set(qCategory);
-    }
+    // Only offer a category the server will accept for this account (mirrors
+    // getUnlockedCategories in the backend); otherwise every upload 403s.
+    const type =
+      (this.auth.userProfile() ?? (await this.auth.loadProfile().catch(() => null)))?.user_type ??
+      'general';
+    const unlocked: DocumentCategory[] =
+      type === 'both' ? ['gst', 'itr', 'general']
+      : type === 'gst' ? ['gst', 'general']
+      : type === 'itr' ? ['itr', 'general']
+      : ['general'];
+    const qCategory = this.route.snapshot.queryParamMap.get('category') as DocumentCategory | null;
+    this.category.set(qCategory && unlocked.includes(qCategory) ? qCategory : unlocked[0]);
     const qMember = this.route.snapshot.queryParamMap.get('member');
     if (this.category() === 'itr' && qMember) {
       try {
@@ -136,7 +146,12 @@ export class Upload {
         if (qPeriod) {
           this.selectedPeriodId.set(qPeriod);
         } else if (periods.length > 0) {
-          this.selectedPeriodId.set(periods[0].id);
+          // Default to last month's return (in November you file October); periods come newest first.
+          const d = new Date();
+          d.setDate(1);
+          d.setMonth(d.getMonth() - 1);
+          const lastMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          this.selectedPeriodId.set((periods.find((p) => p.period_code <= lastMonth) ?? periods[0]).id);
         }
       }
       this.queuedCount.set((await this.queue.list()).length);

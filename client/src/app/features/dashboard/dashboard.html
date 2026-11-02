@@ -35,7 +35,7 @@
     }
 
     <!-- Carousel Dots -->
-    <div class="absolute bottom-6 left-0 right-0 flex justify-center gap-1.5 z-10">
+    <div class="absolute bottom-4 right-5 flex gap-1.5 z-10">
       @for (banner of banners; track $index) {
       <div class="w-1.5 h-1.5 rounded-full cursor-pointer transition-colors duration-300"
         [class.bg-primary]="currentBannerIndex() === $index"

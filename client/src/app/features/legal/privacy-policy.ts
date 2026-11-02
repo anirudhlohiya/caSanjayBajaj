@@ -28,6 +28,7 @@ import { AuthService } from '../../core/services/auth.service';
           </div>
 
           <div class="flex items-center gap-3">
+            @if (!isApp) {
             <button
               (click)="printPolicy()"
               type="button"
@@ -36,6 +37,7 @@ import { AuthService } from '../../core/services/auth.service';
               <span class="material-symbols-outlined text-[16px]">print</span>
               <span>Print</span>
             </button>
+            }
             <a
               [routerLink]="homeRoute"
               class="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary transition-opacity hover:opacity-90 dark:bg-white dark:text-black"
@@ -217,6 +219,8 @@ import { AuthService } from '../../core/services/auth.service';
   `,
 })
 export class PrivacyPolicy {
+  /** window.print() does nothing inside the Android app's WebView. */
+  readonly isApp = 'NativePush' in window;
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
 

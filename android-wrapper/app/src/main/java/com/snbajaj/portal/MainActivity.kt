@@ -13,6 +13,7 @@ import android.os.Environment
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
+import android.webkit.JavascriptInterface
 import android.webkit.URLUtil
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -24,6 +25,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.coroutines.CoroutineScope
@@ -133,8 +135,25 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private inner class ThemeBridge {
+        @JavascriptInterface
+        fun setDark(dark: Boolean) = runOnUiThread { applyBarTheme(dark) }
+    }
+
+    /** Same colours as the portal's theme-color (#0a0a0a dark / #fafafa light). */
+    private fun applyBarTheme(dark: Boolean) {
+        val root = findViewById<View>(R.id.root)
+        root.setBackgroundColor(if (dark) 0xFF0A0A0A.toInt() else 0xFFFAFAFA.toInt())
+        WindowCompat.getInsetsController(window, root).apply {
+            isAppearanceLightStatusBars = !dark
+            isAppearanceLightNavigationBars = !dark
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
+        // Debug builds only: lets chrome://inspect / adb read the page while testing on a phone.
+        if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true)
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -151,6 +170,8 @@ class MainActivity : AppCompatActivity() {
         // not available inside WebView)
         nativePush = NativePushBridge(this, webView)
         webView.addJavascriptInterface(nativePush, "NativePush")
+        // window.NativeTheme: the portal's light/dark theme, so the bars match the page
+        webView.addJavascriptInterface(ThemeBridge(), "NativeTheme")
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(

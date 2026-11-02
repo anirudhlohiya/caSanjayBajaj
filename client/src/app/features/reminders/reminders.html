@@ -134,5 +134,13 @@
         </div>
       </div>
     }
+
+    @if (!groupedTasks().needsAttention.length && !groupedTasks().upcoming.length && !groupedTasks().completed.length) {
+      <app-empty-state
+        icon="task_alt"
+        message="You're all caught up"
+        hint="Reminders from your CA will show up here."
+      />
+    }
   }
 </div>

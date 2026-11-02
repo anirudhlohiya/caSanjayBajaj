@@ -45,6 +45,8 @@ export class ThemeService {
       root.classList.remove('dark');
       metaThemeColor?.setAttribute('content', '#fafafa');
     }
+    // Android app (MainActivity.kt): paint the status/navigation bars to match.
+    (window as Window & { NativeTheme?: { setDark(dark: boolean): void } }).NativeTheme?.setDark(dark);
   }
 
   isDark(): boolean {
