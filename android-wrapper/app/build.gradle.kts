@@ -31,8 +31,8 @@ android {
         // Google Play requires API 36 for new apps and updates from 31 Aug 2026.
         targetSdk = 36
         // +1 on every Play upload; versionName is what the forced-update gate compares.
-        versionCode = 4
-        versionName = "1.2.0"
+        versionCode = 5
+        versionName = "1.2.1"
     }
 
     signingConfigs {

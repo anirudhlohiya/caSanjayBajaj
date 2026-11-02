@@ -124,6 +124,9 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         isEnabled = false
                         onBackPressedDispatcher.onBackPressed()
+                        // Android 12+ only moves the task to the background here, so the
+                        // activity lives on; without this every later back would exit the app.
+                        isEnabled = true
                     }
                 }
             },
