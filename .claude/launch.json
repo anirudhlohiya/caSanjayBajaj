@@ -7,6 +7,12 @@
       "runtimeArgs": ["--prefix", "client", "ng", "serve", "--project", "client", "--port", "4201"],
       "cwd": "client",
       "port": 4201
+    },
+    {
+      "name": "website",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--prefix", "website", "astro", "preview", "--root", "website", "--port", "4321"],
+      "port": 4321
     }
   ]
 }

@@ -28,7 +28,7 @@ export const prerender = true;
         Privacy Policy
       </h1>
       <p style="font-size: 14px; color: #718096; margin-top: 8px;">
-        Last Updated: October 2026 • Applicable to all website visitors and client engagements
+        Last Updated: November 2026 • Applicable to all website visitors and client engagements
       </p>
     </div>
 
@@ -60,7 +60,10 @@ export const prerender = true;
           <li><strong>Statutory Tax Credentials:</strong> Permanent Account Number (PAN), Goods and Services Tax Identification Number (GSTIN), TAN, MCA Corporate Identity Number (CIN).</li>
           <li><strong>Financial & Accounting Records:</strong> Sales and purchase invoices, bank statements, ledger balances, previous returns (ITR, GSTR-1, GSTR-3B, GSTR-9), TDS certificates, and audited balance sheets submitted for professional processing.</li>
           <li><strong>Website Usage Data:</strong> Anonymized server logs, browser type, device information, and interaction timestamps for site reliability and cyber safety.</li>
+          <li><strong>Client Portal & Android App:</strong> Your account details (name, email, phone, date of birth), uploaded documents, and, in the Android app, a Google Firebase device token used only to send you notifications.</li>
+          <li><strong>WhatsApp Messages:</strong> Messages, voice notes, and files you send to our WhatsApp business number.</li>
         </ul>
+        <p style="margin-top: 10px;">We do not use advertising, analytics, or session-recording tools in the client portal or the app.</p>
       </section>
 
       <section>
@@ -97,6 +100,7 @@ export const prerender = true;
         </p>
         <ul style="list-style-type: disc; margin-left: 25px; margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
           <li>Executing authorized filings on government portals (Income Tax e-filing, GST Portal, MCA21).</li>
+          <li>Using service providers that process data only on our behalf: Amazon Web Services (storage and email), Meta (WhatsApp Business), Cloudflare R2 (WhatsApp media storage), Groq (AI that reads and transcribes WhatsApp messages), and Google Firebase (app notifications).</li>
           <li>Mandated by a court order, summons, or statutory investigation under applicable Indian laws.</li>
         </ul>
       </section>
@@ -112,7 +116,16 @@ export const prerender = true;
 
       <section>
         <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 12px;">
-          7. Grievances and Contact
+          7. Deleting Your Account
+        </h2>
+        <p>
+          You can delete your client portal account at any time. See <a href="/delete-account" style="color: var(--primary-color);">how to delete your account</a> for the steps, what is erased, and what we must keep by law.
+        </p>
+      </section>
+
+      <section>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 12px;">
+          8. Grievances and Contact
         </h2>
         <p>For inquiries, corrections, or concerns regarding your data, please contact:</p>
         <div style="background: #edf2f7; padding: 20px; border-radius: 8px; margin-top: 10px;">
@@ -128,3 +141,8 @@ export const prerender = true;
 
   <Footer />
 </Base>
+
+<style>
+  /* global CSS sets li { list-style: none }; legal lists need their bullets/numbers */
+  article li { list-style: inherit; }
+</style>

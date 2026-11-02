@@ -1,0 +1,88 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+export const prerender = true;
+---
+
+<Base
+  title="Delete Your Account | S N Bajaj And Co"
+  description="How to delete your S N Bajaj And Co client portal and app account, what is erased, and what we keep by law."
+  canonical="/delete-account"
+>
+  <Header />
+
+  <article class="section" style="flex-direction: column; align-items: stretch; padding: 130px 10% 80px; gap: 40px;">
+    <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 30px;">
+      <div style="display: flex; gap: 8px; font-size: 14px; color: #718096; margin-bottom: 15px;">
+        <a href="/" style="color: var(--primary-color);">Home</a>
+        <span>/</span>
+        <span>Delete Account</span>
+      </div>
+      <h1 style="font-size: clamp(2.2rem, 4vw, 3rem); font-weight: 700; color: var(--secondary-color); margin-top: 8px;">
+        Delete Your Account
+      </h1>
+      <p style="font-size: 14px; color: #718096; margin-top: 8px;">
+        For the S N Bajaj And Co client portal (app.snbajaj.com) and Android app
+      </p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 35px; color: #2d3748; font-size: 16px; line-height: 28px;">
+      <section>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 12px;">
+          In the app or portal
+        </h2>
+        <ol style="list-style-type: decimal; margin-left: 25px; display: flex; flex-direction: column; gap: 8px;">
+          <li>Sign in to the app or <a href="https://app.snbajaj.com" style="color: var(--primary-color);">app.snbajaj.com</a>.</li>
+          <li>Open <strong>Profile</strong> and tap <strong>Delete account</strong>.</li>
+          <li>Enter your password to confirm.</li>
+        </ol>
+        <p style="margin-top: 10px;">
+          Your account is locked and signed out on all devices straight away. If you change your mind, sign in again within 30 days and the request is cancelled.
+        </p>
+      </section>
+
+      <section>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 12px;">
+          Can't sign in?
+        </h2>
+        <p>
+          Email <a href="mailto:casnbajaj2015@gmail.com?subject=Delete%20my%20account" style="color: var(--primary-color);">casnbajaj2015@gmail.com</a> from the email address on your account, with the subject "Delete my account". We will confirm and process it within 7 days.
+        </p>
+      </section>
+
+      <section>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 12px;">
+          What is erased after 30 days
+        </h2>
+        <ul style="list-style-type: disc; margin-left: 25px; display: flex; flex-direction: column; gap: 8px;">
+          <li>Your login and password</li>
+          <li>Email address, phone number, date of birth, and profile photo</li>
+          <li>Support tickets, reminders, and notifications</li>
+          <li>WhatsApp chats with our office</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 12px;">
+          What we keep, and why
+        </h2>
+        <p>
+          As Chartered Accountants we must keep tax and accounting records under the <em>Income Tax Act 1961</em>, the <em>CGST Act 2017</em>, and the <em>Companies Act 2013</em>. We keep your name, PAN, GSTIN, business name, family members' details, filings, uploaded documents, reports, and certificates for up to 8 years, then securely dispose of them. These records can no longer be reached through any login.
+        </p>
+      </section>
+
+      <p>
+        See our <a href="/privacy-policy" style="color: var(--primary-color);">Privacy Policy</a> for more on how we handle your data.
+      </p>
+    </div>
+  </article>
+
+  <Footer />
+</Base>
+
+<style>
+  /* global CSS sets li { list-style: none }; legal lists need their bullets/numbers */
+  article li { list-style: inherit; }
+</style>

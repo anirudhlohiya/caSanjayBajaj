@@ -768,6 +768,10 @@ automatic deploy pipeline. **Extended runbook: `docs/11-lightsail-migration-runb
 
 ## 10. Open items
 
+- **START HERE in a new chat (Nov 2 2026): Play Store publishing + security/reliability
+  follow-ups are written step by step in `docs/15-play-store-publishing.md`.** The user has
+  a Play developer account; nothing uploaded yet. Do the "Code" items in its Step 4 first.
+
 - **Phase 20–21 follow-ups (user actions)**:
   - Revoke the old Meta token that was in `backend/test-whatsapp.js` (git history), then make the GitHub repo private — first run `git remote -v` in `/opt/ca-app/repo`; if it is HTTPS, add a read-only deploy key and switch the remote to SSH before going private.
   - Add `WHATSAPP_APP_SECRET` (Meta app → App settings → Basic) to the server `.env`, `pm2 restart ca-api`.
