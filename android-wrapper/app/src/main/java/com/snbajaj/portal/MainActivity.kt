@@ -141,9 +141,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** Same colours as the portal's theme-color (#0a0a0a dark / #fafafa light). */
+    @Suppress("DEPRECATION")
     private fun applyBarTheme(dark: Boolean) {
         val root = findViewById<View>(R.id.root)
-        root.setBackgroundColor(if (dark) 0xFF0A0A0A.toInt() else 0xFFFAFAFA.toInt())
+        val color = if (dark) 0xFF0A0A0A.toInt() else 0xFFFAFAFA.toInt()
+        root.setBackgroundColor(color)
+        // Android 14 and older paint the bars from these (15+ ignores them and shows root).
+        window.statusBarColor = color
+        window.navigationBarColor = color
         WindowCompat.getInsetsController(window, root).apply {
             isAppearanceLightStatusBars = !dark
             isAppearanceLightNavigationBars = !dark
