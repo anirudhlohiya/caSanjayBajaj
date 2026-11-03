@@ -7,7 +7,8 @@ import {
   ViewChild,
   ElementRef,
 } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ageValidator } from '../auth/signup';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -101,11 +102,17 @@ export class Profile {
     { label: 'ગુજરાતી (Gujarati)', value: 'gu' }
   ];
 
-  readonly profileForm = this.fb.nonNullable.group({
-    name: ['', [Validators.required, Validators.minLength(2)]],
-    phone: ['', [Validators.pattern(/^\d{10}$/)]],
-    dob: ['', [Validators.pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d{2}$/)]],
-  });
+  /** Which inline editor is open: date of birth, or business name + industry. */
+  readonly editing = signal<'dob' | 'business' | null>(null);
+  readonly dobDraft = signal(''); // YYYY-MM-DD from the date input
+  readonly dobError = signal('');
+  readonly bizDraft = signal({ business_name: '', industry: '' });
+  /** Latest allowed date of birth: clients must be 18 (same rule as sign-up). */
+  readonly maxDob = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 18);
+    return d.toISOString().split('T')[0];
+  })();
 
   readonly gstServiceForm = this.fb.nonNullable.group({
     business_name: ['', [Validators.required, Validators.minLength(2)]],
@@ -139,7 +146,6 @@ export class Profile {
   async ngOnInit(): Promise<void> {
     try {
       await this.auth.loadProfile();
-      this.populateProfileForm();
       void this.loadCertificates();
       void this.loadServiceRequests();
       if (this.showFamily()) await this.loadFamily();
@@ -326,42 +332,48 @@ export class Profile {
     }
   }
 
-  private populateProfileForm(): void {
-    const profile = this.auth.userProfile();
-    if (!profile) return;
-    const dobStr = profile.dob ? this.formatDateToDDMMYYYY(profile.dob) : '';
-    this.profileForm.patchValue({
-      name: profile.name || '',
-      phone: profile.phone || '',
-      dob: dobStr,
-    });
+  startDobEdit(): void {
+    this.dobDraft.set(this.auth.userProfile()?.dob?.slice(0, 10) ?? '');
+    this.dobError.set('');
+    this.editing.set('dob');
   }
 
-  private formatDateToDDMMYYYY(date: string | Date | null): string {
-    if (!date) return '';
-    const d = new Date(date);
-    if (isNaN(d.getTime())) return '';
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
-  }
-
-  async saveProfile(): Promise<void> {
-    if (this.profileForm.invalid) {
-      this.profileForm.markAllAsTouched();
+  async saveDob(): Promise<void> {
+    const draft = this.dobDraft();
+    const problem = ageValidator(18)(new FormControl(draft));
+    if (!draft || problem) {
+      this.dobError.set(
+        problem?.['minAge'] ? 'You must be at least 18 years old.' : 'Please select a valid date of birth.',
+      );
       return;
     }
+    const [y, m, d] = draft.split('-');
+    await this.saveProfileFields({ dob: `${d}/${m}/${y}` }, 'Date of birth updated.');
+  }
+
+  startBusinessEdit(): void {
+    const p = this.auth.userProfile();
+    this.bizDraft.set({ business_name: p?.business_name ?? '', industry: p?.industry ?? '' });
+    this.editing.set('business');
+  }
+
+  async saveBusiness(): Promise<void> {
+    const { business_name, industry } = this.bizDraft();
+    if (business_name.trim().length < 2) return;
+    await this.saveProfileFields({ business_name: business_name.trim(), industry }, 'Business details updated.');
+  }
+
+  /** GSTIN and PAN are not sent: only the CA changes those. */
+  private async saveProfileFields(
+    body: { dob?: string; business_name?: string; industry?: string },
+    done: string,
+  ): Promise<void> {
     this.profileBusy.set(true);
     try {
-      const { name, phone, dob } = this.profileForm.getRawValue();
-      await this.profileService.update({
-        name,
-        phone: phone || undefined,
-        dob: dob || undefined,
-      });
+      await this.profileService.update(body);
       await this.auth.loadProfile();
-      this.toast.success('Profile updated successfully.');
+      this.editing.set(null);
+      this.toast.success(done);
     } catch {
       /* interceptor toasts */
     } finally {

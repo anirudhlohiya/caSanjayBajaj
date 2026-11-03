@@ -248,7 +248,7 @@ export class FamilyMembersService {
 export class ProfileService {
   constructor(private readonly api: ApiClient) {}
 
-  update(body: { name?: string; phone?: string; gstin?: string; dob?: string }) {
+  update(body: { name?: string; phone?: string; gstin?: string; dob?: string; business_name?: string; industry?: string }) {
     return firstValueFrom(this.api.patch('/me', body));
   }
 

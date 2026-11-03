@@ -1,64 +1,113 @@
 <div class="mx-auto w-full max-w-2xl flex flex-col gap-6 px-4 pt-4">
 
-  <!-- Profile avatar & info -->
-  <div class="card p-5">
-    <div class="flex items-start gap-4">
-      <!-- Avatar / Photo -->
-      <div class="relative shrink-0">
-        @if (photoUrl()) {
-          <img
-            [src]="photoUrl()"
-            alt="Profile photo"
-            class="size-18 rounded-full object-cover border-2 border-neutral-100 dark:border-neutral-800"
-          />
-        } @else {
-          <div class="flex size-18 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 font-bold text-xl dark:bg-neutral-800 dark:text-neutral-300">
-            {{ initials() }}
-          </div>
+  <!-- Profile photo, name and client type -->
+  <div class="card p-4 flex items-center gap-4">
+    <div class="relative shrink-0">
+      @if (photoUrl()) {
+        <img [src]="photoUrl()" alt="Profile photo" class="size-16 rounded-full object-cover ring-2 ring-gold" />
+      } @else {
+        <div class="flex size-16 items-center justify-center rounded-full bg-brand-tint text-brand-ink font-semibold text-xl ring-2 ring-gold">
+          {{ initials() }}
+        </div>
+      }
+      <button
+        (click)="triggerPhotoUpload()"
+        class="absolute -bottom-1 -right-1 flex size-8 items-center justify-center rounded-full bg-brand text-on-brand ring-2 ring-surface-container-lowest cursor-pointer"
+        aria-label="Change profile photo"
+      >
+        <span class="material-symbols-outlined text-[16px]">photo_camera</span>
+      </button>
+      <input #photoInput type="file" accept="image/*" class="hidden" (change)="onPhotoSelected($event)" />
+    </div>
+    <div class="min-w-0 flex-1">
+      <h1 class="text-[17px] font-semibold text-on-surface truncate">{{ auth.userProfile()?.name }}</h1>
+      <span
+        [class]="
+          'mt-1.5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ' +
+          (auth.userProfile()?.user_type === 'general' ? 'bg-surface-container text-on-surface-variant' : 'bg-success-tint text-success')
+        "
+      >
+        @if (auth.userProfile()?.user_type !== 'general') {
+          <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1" aria-hidden="true">verified</span>
         }
-        <!-- Edit photo button -->
-        <button
-          (click)="triggerPhotoUpload()"
-          class="absolute -bottom-1 -right-1 flex size-7 items-center justify-center rounded-full bg-brand text-on-brand hover:opacity-90 shadow-md cursor-pointer transition-colors"
-          aria-label="Change profile photo"
-        >
-          <span class="material-symbols-outlined text-[14px]">photo_camera</span>
-        </button>
-        <input #photoInput type="file" accept="image/*" class="hidden" (change)="onPhotoSelected($event)" />
-      </div>
-
-      <!-- Name & info -->
-      <div class="min-w-0 flex-1">
-        <h1 class="text-base font-bold text-neutral-950 truncate dark:text-white">{{ auth.userProfile()?.name }}</h1>
-        <p class="text-xs text-neutral-500 mt-0.5 truncate dark:text-neutral-400">{{ auth.userProfile()?.email }}</p>
-        @if (auth.userProfile()?.phone) {
-          <p class="text-xs text-neutral-500 mt-0.5 dark:text-neutral-400">{{ auth.userProfile()?.phone }}</p>
-        }
-        @if (auth.userProfile()?.dob) {
-          <p class="text-xs text-neutral-500 mt-0.5 dark:text-neutral-400">DOB: {{ auth.userProfile()?.dob | date: 'dd/MM/yyyy' }}</p>
-        }
-      </div>
+        {{ userTypeLabel(auth.userProfile()?.user_type) }}
+      </span>
     </div>
   </div>
 
+  <!-- Personal details: only the date of birth can be changed here -->
+  <section class="flex flex-col gap-2.5">
+    <h2 class="px-1 text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">Personal details</h2>
+    <div class="card overflow-hidden divide-y divide-card-border">
+      @for (row of [
+        { icon: 'person', label: 'Full name', value: auth.userProfile()?.name },
+        { icon: 'mail', label: 'Email', value: auth.userProfile()?.email },
+        { icon: 'call', label: 'Phone', value: auth.userProfile()?.phone }
+      ]; track row.label) {
+        @if (row.value) {
+          <div class="flex items-center gap-3 px-4 py-3">
+            <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-ink">
+              <span class="material-symbols-outlined text-[20px]">{{ row.icon }}</span>
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="text-[13px] text-on-surface-variant">{{ row.label }}</p>
+              <p class="truncate font-medium text-on-surface tabular-nums">{{ row.value }}</p>
+            </div>
+          </div>
+        }
+      }
+      <div class="px-4 py-3">
+        <div class="flex items-center gap-3">
+          <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-ink">
+            <span class="material-symbols-outlined text-[20px]">cake</span>
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="text-[13px] text-on-surface-variant">Date of birth</p>
+            <p class="font-medium text-on-surface tabular-nums">
+              {{ auth.userProfile()?.dob ? (auth.userProfile()?.dob | date: 'd MMM yyyy') : 'Not added' }}
+            </p>
+          </div>
+          @if (editing() !== 'dob') {
+            <button type="button" (click)="startDobEdit()" class="flex size-11 shrink-0 items-center justify-center rounded-full text-link hover:bg-surface-container" aria-label="Edit date of birth">
+              <span class="material-symbols-outlined text-[20px]">edit</span>
+            </button>
+          }
+        </div>
+        @if (editing() === 'dob') {
+          <div class="mt-3 flex flex-col gap-2">
+            <label class="sr-only" for="dob-edit">Date of birth</label>
+            <input id="dob-edit" type="date" class="field-input" [max]="maxDob" [ngModel]="dobDraft()" (ngModelChange)="dobDraft.set($event); dobError.set('')" />
+            @if (dobError()) {
+              <p class="text-xs text-error" role="alert">{{ dobError() }}</p>
+            }
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" (click)="editing.set(null)" class="h-11 rounded-xl border border-card-border text-sm font-semibold text-on-surface">Cancel</button>
+              <button type="button" (click)="saveDob()" [disabled]="profileBusy()" class="btn-primary h-11 text-sm">Save</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
   <!-- My Services Card -->
   <section class="card overflow-hidden">
-    <div class="border-b border-neutral-200 bg-neutral-50 dark:bg-neutral-800 px-4 py-3 flex items-center justify-between gap-3 dark:border-neutral-800">
+    <div class="border-b border-card-border bg-surface-container px-4 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2 min-w-0">
-        <span class="material-symbols-outlined text-neutral-600 dark:text-neutral-400 text-[18px] shrink-0">verified</span>
-        <h2 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase truncate">My Services</h2>
+        <span class="material-symbols-outlined text-on-surface-variant text-[18px] shrink-0">verified</span>
+        <h2 class="text-xs font-semibold text-on-surface tracking-tight uppercase truncate">My Services</h2>
       </div>
       <!-- Type Chip -->
       <span
         class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium tracking-tight whitespace-nowrap shrink-0"
         [class]="
           auth.userProfile()?.user_type === 'both'
-            ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 border border-neutral-900 dark:border-white'
+            ? 'bg-brand text-on-brand'
             : auth.userProfile()?.user_type === 'gst'
-            ? 'bg-[#d3e5ff]/70 text-[#0761d1] border border-[#0070f3]/25 dark:bg-blue-950/50 dark:text-blue-300'
+            ? 'bg-brand-tint text-link border border-transparent'
             : auth.userProfile()?.user_type === 'itr'
-            ? 'bg-[#d8ccf1]/70 text-[#4c2889] border border-[#7928ca]/25 dark:bg-purple-950/50 dark:text-purple-300'
-            : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700'
+            ? 'bg-gold-tint text-gold-ink border'
+            : 'bg-surface-container text-on-surface border border-card-border'
         "
       >
         {{ userTypeLabel(auth.userProfile()?.user_type) }}
@@ -68,50 +117,50 @@
     <div class="p-5 flex flex-col gap-4">
       <!-- Pending Request State -->
       @if (pendingRequest(); as req) {
-        <div class="rounded-xl border border-amber-300/80 bg-[#fffdfa] p-4.5 dark:border-amber-800/60 dark:bg-amber-950/20 shadow-xs">
+        <div class="rounded-xl border bg-warning-tint p-4.5 shadow-xs">
           <div class="flex items-start gap-3">
-            <div class="size-8 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 flex items-center justify-center shrink-0">
+            <div class="size-8 rounded-xl bg-warning-tint text-warning flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-[18px]">hourglass_top</span>
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center justify-between gap-2">
-                <span class="text-[10px] font-mono font-medium uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                <span class="text-xs font-semibold uppercase tracking-[0.07em] font-medium text-warning">
                   Verification In Progress
                 </span>
-                <span class="text-[11px] font-mono text-amber-600 dark:text-amber-400">
+                <span class="text-xs tabular-nums text-warning">
                   {{ req.created_at | date: 'dd MMM yyyy' }}
                 </span>
               </div>
-              <p class="text-sm font-semibold text-neutral-900 dark:text-white mt-1 tracking-tight">
+              <p class="text-sm font-semibold text-on-surface mt-1 tracking-tight">
                 Upgrade to {{ req.requested_type | uppercase }} Service
               </p>
-              <div class="text-xs text-neutral-600 dark:text-neutral-400 mt-2 space-y-1 bg-white/70 dark:bg-black/20 p-2.5 rounded-lg border border-amber-200/50 dark:border-amber-900/30">
+              <div class="text-xs text-on-surface-variant mt-2 space-y-1 bg-surface-container-low p-2.5 rounded-xl">
                 @if (req.payload.business_name) {
                   <div class="flex justify-between gap-2">
-                    <span class="text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">Business:</span>
-                    <span class="font-medium text-neutral-900 dark:text-white">{{ req.payload.business_name }}</span>
+                    <span class="text-on-surface-variant tabular-nums text-xs">Business:</span>
+                    <span class="font-medium text-on-surface">{{ req.payload.business_name }}</span>
                   </div>
                 }
                 @if (req.payload.gstin) {
                   <div class="flex justify-between gap-2">
-                    <span class="text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">GSTIN:</span>
-                    <span class="font-mono font-medium text-neutral-900 dark:text-white">{{ req.payload.gstin }}</span>
+                    <span class="text-on-surface-variant tabular-nums text-xs">GSTIN:</span>
+                    <span class="tabular-nums font-medium text-on-surface">{{ req.payload.gstin }}</span>
                   </div>
                 }
                 @if (req.payload.industry) {
                   <div class="flex justify-between gap-2">
-                    <span class="text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">Industry:</span>
-                    <span class="font-medium text-neutral-900 dark:text-white">{{ req.payload.industry }}</span>
+                    <span class="text-on-surface-variant tabular-nums text-xs">Industry:</span>
+                    <span class="font-medium text-on-surface">{{ req.payload.industry }}</span>
                   </div>
                 }
                 @if (req.payload.pan) {
                   <div class="flex justify-between gap-2">
-                    <span class="text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">PAN:</span>
-                    <span class="font-mono font-medium text-neutral-900 dark:text-white">{{ req.payload.pan }}</span>
+                    <span class="text-on-surface-variant tabular-nums text-xs">PAN:</span>
+                    <span class="tabular-nums font-medium text-on-surface">{{ req.payload.pan }}</span>
                   </div>
                 }
               </div>
-              <p class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2">
+              <p class="text-xs text-on-surface-variant mt-2">
                 Our office will review your credentials and confirm access shortly.
               </p>
             </div>
@@ -121,39 +170,39 @@
         <!-- General User: Prompt to become GST or ITR client -->
         @if (auth.userProfile()?.user_type === 'general') {
           <div class="flex flex-col gap-3">
-            <p class="text-xs text-neutral-500 dark:text-neutral-400">
+            <p class="text-xs text-on-surface-variant">
               Activate dedicated chartered accountancy services with S N Bajaj & Co:
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               <!-- GST Card -->
               <div
                 (click)="openServiceModal('gst')"
-                class="flex flex-col justify-between p-4.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-400 dark:hover:border-neutral-600 transition-all hover:shadow-xs group cursor-pointer overflow-hidden"
+                class="flex flex-col justify-between p-4.5 rounded-xl border border-card-border bg-surface-container-lowest hover:border-outline transition-all hover:shadow-xs group cursor-pointer overflow-hidden"
               >
                 <div>
                   <div class="flex items-center justify-between gap-2 mb-2">
-                    <span class="text-[10px] font-mono uppercase tracking-wider text-link bg-[#d3e5ff]/50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md font-medium">
+                    <span class="text-xs font-semibold uppercase tracking-[0.07em] text-link bg-brand-tint px-2 py-0.5 rounded-xl font-medium">
                       GST Compliance
                     </span>
-                    <span class="material-symbols-outlined text-[18px] text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all">
+                    <span class="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary group-hover:translate-x-0.5 transition-all">
                       arrow_forward
                     </span>
                   </div>
-                  <h3 class="text-sm font-semibold text-neutral-900 dark:text-white tracking-tight">Become a GST Client</h3>
-                  <p class="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed mt-1">
+                  <h3 class="text-sm font-semibold text-on-surface tracking-tight">Become a GST Client</h3>
+                  <p class="text-xs text-on-surface-variant leading-relaxed mt-1">
                     Monthly/quarterly GSTR-1, GSTR-3B filings, tax computation & ITC reconciliation.
                   </p>
                   <div class="mt-2.5">
-                    <span class="inline-flex items-center gap-1 text-[11px] font-mono text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800/80 px-2 py-0.5 rounded">
+                    <span class="inline-flex items-center gap-1 text-xs tabular-nums text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">
                       <span class="material-symbols-outlined text-[13px] text-link">badge</span>
                       15-char GSTIN required
                     </span>
                   </div>
                 </div>
-                <div class="mt-4 pt-3 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-end">
+                <div class="mt-4 pt-3 border-t border-card-border flex items-center justify-end">
                   <button
                     type="button"
-                    class="w-full sm:w-auto h-8 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-semibold whitespace-nowrap inline-flex items-center justify-center gap-1.5 shadow-2xs group-hover:bg-neutral-800 dark:group-hover:bg-neutral-100 transition-all pointer-events-none"
+                    class="w-full sm:w-auto h-10 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-semibold whitespace-nowrap inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all pointer-events-none"
                   >
                     <span>Apply Now</span>
                     <span class="material-symbols-outlined text-[14px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
@@ -164,32 +213,32 @@
               <!-- ITR Card -->
               <div
                 (click)="openServiceModal('itr')"
-                class="flex flex-col justify-between p-4.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-400 dark:hover:border-neutral-600 transition-all hover:shadow-xs group cursor-pointer overflow-hidden"
+                class="flex flex-col justify-between p-4.5 rounded-xl border border-card-border bg-surface-container-lowest hover:border-outline transition-all hover:shadow-xs group cursor-pointer overflow-hidden"
               >
                 <div>
                   <div class="flex items-center justify-between gap-2 mb-2">
-                    <span class="text-[10px] font-mono uppercase tracking-wider text-[#7928ca] dark:text-purple-300 bg-[#d8ccf1]/40 dark:bg-purple-950/40 px-2 py-0.5 rounded-md font-medium">
+                    <span class="text-xs font-semibold uppercase tracking-[0.07em] text-gold-ink bg-gold-tint px-2 py-0.5 rounded-xl font-medium">
                       Income Tax
                     </span>
-                    <span class="material-symbols-outlined text-[18px] text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all">
+                    <span class="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary group-hover:translate-x-0.5 transition-all">
                       arrow_forward
                     </span>
                   </div>
-                  <h3 class="text-sm font-semibold text-neutral-900 dark:text-white tracking-tight">Become an ITR Client</h3>
-                  <p class="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed mt-1">
+                  <h3 class="text-sm font-semibold text-on-surface tracking-tight">Become an ITR Client</h3>
+                  <p class="text-xs text-on-surface-variant leading-relaxed mt-1">
                     Individual and business Income Tax returns, computation of income & tax advisory.
                   </p>
                   <div class="mt-2.5">
-                    <span class="inline-flex items-center gap-1 text-[11px] font-mono text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800/80 px-2 py-0.5 rounded">
-                      <span class="material-symbols-outlined text-[13px] text-[#7928ca] dark:text-purple-300">credit_card</span>
+                    <span class="inline-flex items-center gap-1 text-xs tabular-nums text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">
+                      <span class="material-symbols-outlined text-[13px] text-gold-ink">credit_card</span>
                       10-char PAN required
                     </span>
                   </div>
                 </div>
-                <div class="mt-4 pt-3 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-end">
+                <div class="mt-4 pt-3 border-t border-card-border flex items-center justify-end">
                   <button
                     type="button"
-                    class="w-full sm:w-auto h-8 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-semibold whitespace-nowrap inline-flex items-center justify-center gap-1.5 shadow-2xs group-hover:bg-neutral-800 dark:group-hover:bg-neutral-100 transition-all pointer-events-none"
+                    class="w-full sm:w-auto h-10 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-semibold whitespace-nowrap inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all pointer-events-none"
                   >
                     <span>Apply Now</span>
                     <span class="material-symbols-outlined text-[14px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
@@ -202,14 +251,14 @@
 
         <!-- GST Client: Prompt to add ITR -->
         @if (auth.userProfile()?.user_type === 'gst') {
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-800">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-surface-container-low border border-card-border">
             <div>
-              <p class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight">Need Personal or Corporate Tax Advisory?</p>
-              <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Add annual Income Tax return filing (ITR) to your active services.</p>
+              <p class="text-xs font-semibold text-on-surface tracking-tight">Need Personal or Corporate Tax Advisory?</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">Add annual Income Tax return filing (ITR) to your active services.</p>
             </div>
             <button
               (click)="openServiceModal('itr')"
-              class="self-start sm:self-auto shrink-0 h-8 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shadow-2xs"
+              class="self-start sm:self-auto shrink-0 h-10 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shadow-2xs"
             >
               Request ITR Service
             </button>
@@ -218,14 +267,14 @@
 
         <!-- ITR Client: Prompt to add GST -->
         @if (auth.userProfile()?.user_type === 'itr') {
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-800">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-surface-container-low border border-card-border">
             <div>
-              <p class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight">Need Business GST Filing?</p>
-              <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Add monthly/quarterly GST compliance and reconciliation.</p>
+              <p class="text-xs font-semibold text-on-surface tracking-tight">Need Business GST Filing?</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">Add monthly/quarterly GST compliance and reconciliation.</p>
             </div>
             <button
               (click)="openServiceModal('gst')"
-              class="self-start sm:self-auto shrink-0 h-8 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shadow-2xs"
+              class="self-start sm:self-auto shrink-0 h-10 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shadow-2xs"
             >
               Request GST Service
             </button>
@@ -234,11 +283,11 @@
 
         <!-- Both Services Active -->
         @if (auth.userProfile()?.user_type === 'both') {
-          <div class="rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-800 p-3.5 flex items-center gap-3">
-            <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-xl">verified</span>
+          <div class="rounded-xl bg-surface-container-low border border-card-border p-3.5 flex items-center gap-3">
+            <span class="material-symbols-outlined text-success text-xl">verified</span>
             <div>
-              <p class="text-xs font-semibold text-neutral-900 dark:text-white">Full Practice Services Active</p>
-              <p class="text-[11px] text-neutral-500 dark:text-neutral-400">All GST and Income Tax compliance features are fully unlocked.</p>
+              <p class="text-xs font-semibold text-on-surface">Full Practice Services Active</p>
+              <p class="text-xs text-on-surface-variant">All GST and Income Tax compliance features are fully unlocked.</p>
             </div>
           </div>
         }
@@ -246,41 +295,80 @@
     </div>
   </section>
 
-  <!-- Business & Tax Profile Details -->
+  <!-- Business & Tax Profile Details: business name and industry are editable; GSTIN and PAN only by the CA -->
   @if (auth.userProfile()?.gstin || auth.userProfile()?.pan || auth.userProfile()?.business_name) {
-    <section class="card overflow-hidden">
-      <div class="border-b border-neutral-200 bg-neutral-50 dark:bg-neutral-800 px-4 py-3 dark:border-neutral-800">
-        <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-medium">Business & Tax Details</h2>
+    <section class="flex flex-col gap-2.5">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">Business & Tax Details</h2>
+        @if (editing() !== 'business') {
+          <button type="button" (click)="startBusinessEdit()" class="flex h-9 items-center gap-1 rounded-full px-2 text-sm font-semibold text-link hover:bg-surface-container">
+            <span class="material-symbols-outlined text-[18px]">edit</span> Edit
+          </button>
+        }
       </div>
-      <div class="divide-y divide-neutral-200 px-4 dark:divide-neutral-800 text-xs">
-        @if (auth.userProfile()?.business_name) {
-          <div class="flex items-center justify-between py-3">
-            <span class="font-medium text-neutral-500 dark:text-neutral-400">Business Name</span>
-            <span class="font-semibold text-neutral-900 dark:text-neutral-100">{{ auth.userProfile()?.business_name }}</span>
+      <div class="card overflow-hidden">
+        @if (editing() === 'business') {
+          <div class="flex flex-col gap-3 p-4">
+            <label class="flex flex-col gap-1.5">
+              <span class="field-label">Business Name</span>
+              <input class="field-input" [ngModel]="bizDraft().business_name" (ngModelChange)="bizDraft.set({ business_name: $event, industry: bizDraft().industry })" />
+            </label>
+            <label class="flex flex-col gap-1.5">
+              <span class="field-label">Industry</span>
+              <span class="relative">
+                <select class="field-input appearance-none cursor-pointer pr-10" [ngModel]="bizDraft().industry" (ngModelChange)="bizDraft.set({ business_name: bizDraft().business_name, industry: $event })">
+                  <option value="">Select your industry</option>
+                  @for (ind of industries; track ind) {
+                    <option [value]="ind">{{ ind }}</option>
+                  }
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant" aria-hidden="true">expand_more</span>
+              </span>
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" (click)="editing.set(null)" class="h-11 rounded-xl border border-card-border text-sm font-semibold text-on-surface">Cancel</button>
+              <button type="button" (click)="saveBusiness()" [disabled]="profileBusy() || bizDraft().business_name.trim().length < 2" class="btn-primary h-11 text-sm">Save</button>
+            </div>
           </div>
         }
-        @if (auth.userProfile()?.industry) {
-          <div class="flex items-center justify-between py-3">
-            <span class="font-medium text-neutral-500 dark:text-neutral-400">Industry</span>
-            <span class="font-medium text-neutral-800 dark:text-neutral-200">{{ auth.userProfile()?.industry }}</span>
-          </div>
-        }
-        @if (auth.userProfile()?.gstin) {
-          <div class="flex items-center justify-between py-3">
-            <span class="font-medium text-neutral-500 dark:text-neutral-400">GSTIN</span>
-            <span class="font-mono font-semibold text-neutral-900 dark:text-neutral-100">{{ auth.userProfile()?.gstin }}</span>
-          </div>
-          <div class="flex items-center justify-between py-3">
-            <span class="font-medium text-neutral-500 dark:text-neutral-400">Filing Cadence</span>
-            <span class="capitalize font-medium text-neutral-800 dark:text-neutral-200">{{ auth.userProfile()?.gst_filing_frequency || 'monthly' }}</span>
-          </div>
-        }
-        @if (auth.userProfile()?.pan) {
-          <div class="flex items-center justify-between py-3">
-            <span class="font-medium text-neutral-500 dark:text-neutral-400">PAN</span>
-            <span class="font-mono font-semibold text-neutral-900 dark:text-neutral-100">{{ auth.userProfile()?.pan }}</span>
-          </div>
-        }
+        <div class="divide-y divide-card-border">
+          @if (editing() !== 'business') {
+            @if (auth.userProfile()?.business_name) {
+              <div class="flex items-center justify-between gap-3 px-4 py-3">
+                <span class="text-[13px] text-on-surface-variant">Business Name</span>
+                <span class="text-right font-medium text-on-surface">{{ auth.userProfile()?.business_name }}</span>
+              </div>
+            }
+            @if (auth.userProfile()?.industry) {
+              <div class="flex items-center justify-between gap-3 px-4 py-3">
+                <span class="text-[13px] text-on-surface-variant">Industry</span>
+                <span class="text-right font-medium text-on-surface">{{ auth.userProfile()?.industry }}</span>
+              </div>
+            }
+          }
+          @if (auth.userProfile()?.gstin) {
+            <div class="flex items-center justify-between gap-3 px-4 py-3">
+              <span class="text-[13px] text-on-surface-variant">GSTIN</span>
+              <span class="font-mono text-sm font-medium tracking-wide text-on-surface">{{ auth.userProfile()?.gstin }}</span>
+            </div>
+            <div class="flex items-center justify-between gap-3 px-4 py-3">
+              <span class="text-[13px] text-on-surface-variant">Filing Cadence</span>
+              <span class="capitalize font-medium text-on-surface">{{ auth.userProfile()?.gst_filing_frequency || 'monthly' }}</span>
+            </div>
+          }
+          @if (auth.userProfile()?.pan) {
+            <div class="flex items-center justify-between gap-3 px-4 py-3">
+              <span class="text-[13px] text-on-surface-variant">PAN</span>
+              <span class="font-mono text-sm font-medium tracking-wide text-on-surface">{{ auth.userProfile()?.pan }}</span>
+            </div>
+          }
+          @if (auth.userProfile()?.gstin || auth.userProfile()?.pan) {
+            <p class="flex items-center gap-2 bg-surface-container-low px-4 py-2.5 text-xs text-on-surface-variant">
+              <span class="material-symbols-outlined text-[16px]" aria-hidden="true">lock</span>
+              To change your GSTIN or PAN, contact your CA.
+            </p>
+          }
+        </div>
       </div>
     </section>
   }
@@ -288,27 +376,27 @@
   <!-- Family Members (ITR clients) -->
   @if (showFamily()) {
     <section id="family-members" class="card overflow-hidden scroll-mt-24">
-      <div class="border-b border-neutral-200 bg-neutral-50 dark:bg-neutral-800 px-4 py-3 dark:border-neutral-800 flex items-center justify-between">
-        <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-medium">Family Members</h2>
-        <span class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 tabular-nums">{{ familyMembers().length }}/{{ maxFamilyMembers }}</span>
+      <div class="border-b border-card-border bg-surface-container px-4 py-3 flex items-center justify-between">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant font-medium">Family Members</h2>
+        <span class="text-xs tabular-nums text-on-surface-variant">{{ familyMembers().length }}/{{ maxFamilyMembers }}</span>
       </div>
-      <p class="px-4 pt-3 text-xs text-neutral-500 dark:text-neutral-400">
+      <p class="px-4 pt-3 text-xs text-on-surface-variant">
         Add family members to manage their ITR from your account: upload their documents and download their returns.
       </p>
-      <ul class="divide-y divide-neutral-200 dark:divide-neutral-800">
+      <ul class="divide-y divide-card-border">
         @for (m of familyMembers(); track m.id) {
           <li class="flex items-center gap-3 px-4 py-3">
-            <div class="size-9 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 flex items-center justify-center text-sm font-semibold shrink-0">
+            <div class="size-9 rounded-full bg-brand-tint text-brand-ink flex items-center justify-center text-sm font-semibold shrink-0">
               {{ m.name.charAt(0).toUpperCase() }}
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">{{ m.name }}</p>
-              <p class="text-[11px] text-neutral-500 dark:text-neutral-400">{{ relationLabel(m.relation) }} · <span class="font-mono">{{ m.pan || 'PAN not added' }}</span></p>
+              <p class="text-sm font-medium text-on-surface truncate">{{ m.name }}</p>
+              <p class="text-xs text-on-surface-variant">{{ relationLabel(m.relation) }} · <span class="tabular-nums">{{ m.pan || 'PAN not added' }}</span></p>
             </div>
-            <button type="button" (click)="editMember(m)" class="size-8 rounded-full flex items-center justify-center text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800" aria-label="Edit">
+            <button type="button" (click)="editMember(m)" class="size-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low" aria-label="Edit">
               <span class="material-symbols-outlined text-[18px]">edit</span>
             </button>
-            <button type="button" (click)="removeMember(m)" class="size-8 rounded-full flex items-center justify-center text-neutral-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40" aria-label="Remove">
+            <button type="button" (click)="removeMember(m)" class="size-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error-container" aria-label="Remove">
               <span class="material-symbols-outlined text-[18px]">delete</span>
             </button>
           </li>
@@ -316,27 +404,27 @@
       </ul>
 
       @if (memberEditing()) {
-        <div class="m-4 mt-2 rounded-xl border border-neutral-200 dark:border-neutral-700 p-3 flex flex-col gap-3">
-          <p class="text-xs font-semibold text-neutral-900 dark:text-white">{{ memberEditing() === 'new' ? 'Add family member' : 'Edit family member' }}</p>
+        <div class="m-4 mt-2 rounded-xl border border-card-border p-3 flex flex-col gap-3">
+          <p class="text-xs font-semibold text-on-surface">{{ memberEditing() === 'new' ? 'Add family member' : 'Edit family member' }}</p>
           <input maxlength="120" placeholder="Full name as per PAN"
-            class="h-10 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-sm text-neutral-900 dark:text-white outline-none focus:border-brand"
+            class="h-10 rounded-xl border border-card-border bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand"
             [ngModel]="memberForm().name" (ngModelChange)="setMemberField('name', $event)" />
           <div class="grid grid-cols-2 gap-2">
-            <select class="h-10 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 text-sm text-neutral-900 dark:text-white outline-none"
+            <select class="h-10 rounded-xl border border-card-border bg-surface-container px-3 text-sm text-on-surface outline-none"
               [ngModel]="memberForm().relation" (ngModelChange)="setMemberField('relation', $event)" aria-label="Relation">
               @for (r of relations; track r.key) {
                 <option [value]="r.key">{{ r.label }}</option>
               }
             </select>
             <input maxlength="10" placeholder="PAN (optional)"
-              class="h-10 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-sm font-mono uppercase text-neutral-900 dark:text-white outline-none focus:border-brand"
+              class="h-10 rounded-xl border border-card-border bg-surface-container-lowest px-3 text-sm tabular-nums uppercase text-on-surface outline-none focus:border-brand"
               [ngModel]="memberForm().pan" (ngModelChange)="setMemberField('pan', $event)" />
           </div>
           @if (memberPanInvalid()) {
-            <p class="text-[11px] text-rose-600 dark:text-rose-400">PAN must look like ABCDE1234F</p>
+            <p class="text-xs text-error">PAN must look like ABCDE1234F</p>
           }
           <div class="grid grid-cols-2 gap-2">
-            <button type="button" (click)="memberEditing.set(null)" class="h-10 rounded-full border border-neutral-200 dark:border-neutral-700 text-sm font-medium text-neutral-700 dark:text-neutral-300">Cancel</button>
+            <button type="button" (click)="memberEditing.set(null)" class="h-10 rounded-full border border-card-border text-sm font-medium text-on-surface">Cancel</button>
             <button type="button" (click)="saveMember()" [disabled]="!memberForm().name.trim() || memberPanInvalid() || memberSaving()"
               class="h-10 rounded-full bg-brand text-on-brand hover:opacity-90 text-sm font-medium disabled:opacity-40">
               {{ memberSaving() ? 'Saving…' : (memberEditing() === 'new' ? 'Add' : 'Save') }}
@@ -346,92 +434,96 @@
       } @else if (familyMembers().length < maxFamilyMembers) {
         <div class="p-4 pt-2">
           <button type="button" (click)="editMember()"
-            class="w-full h-10 rounded-full border border-dashed border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 inline-flex items-center justify-center gap-1.5">
+            class="w-full h-10 rounded-full border border-dashed border-outline text-sm font-medium text-on-surface inline-flex items-center justify-center gap-1.5">
             <span class="material-symbols-outlined text-[18px]">person_add</span>
             Add family member
           </button>
         </div>
       } @else {
-        <p class="px-4 pb-4 pt-2 text-[11px] text-neutral-500 dark:text-neutral-400">You've added the maximum of {{ maxFamilyMembers }} family members.</p>
+        <p class="px-4 pb-4 pt-2 text-xs text-on-surface-variant">You've added the maximum of {{ maxFamilyMembers }} family members.</p>
       }
     </section>
   }
 
   <!-- Your Documents -->
   <section class="card overflow-hidden">
-    <div class="border-b border-neutral-200 bg-neutral-50 dark:bg-neutral-800 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-medium">Your Documents</h2>
+    <div class="border-b border-card-border bg-surface-container px-4 py-3">
+      <h2 class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant font-medium">Your Documents</h2>
     </div>
     @if (auth.userProfile()?.user_type === 'gst' || auth.userProfile()?.user_type === 'both') {
-      <div class="divide-y divide-neutral-200 px-4 dark:divide-neutral-800">
+      <div class="divide-y divide-card-border px-4">
         <div class="flex items-center justify-between py-3 gap-3">
           <div class="min-w-0">
-            <p class="text-xs font-medium text-neutral-500 dark:text-neutral-400">GST Certificate</p>
+            <p class="text-xs font-medium text-on-surface-variant">GST Certificate</p>
             @if (certFor('gst_cert'); as cert) {
-              <p class="text-xs text-neutral-900 truncate dark:text-neutral-200 font-medium">{{ cert.original_filename }}</p>
+              <p class="text-xs text-on-surface truncate font-medium">{{ cert.original_filename }}</p>
             } @else {
-              <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">Not uploaded yet</p>
+              <p class="text-xs tabular-nums text-on-surface-variant">Not uploaded yet</p>
             }
           </div>
-          <button
-            (click)="downloadCertificate(certFor('gst_cert')!)"
-            [disabled]="!certFor('gst_cert') || downloading().includes(certFor('gst_cert')!.id)"
-            class="h-7 px-3 rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors inline-flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <span class="material-symbols-outlined text-[14px]">download</span>
-            Download
-          </button>
+          @if (certFor('gst_cert'); as cert) {
+            <button
+              (click)="downloadCertificate(cert)"
+              [disabled]="downloading().includes(cert.id)"
+              class="flex size-11 shrink-0 items-center justify-center rounded-full border border-card-border bg-surface-container-lowest text-brand-ink hover:bg-surface-container-low disabled:opacity-50 cursor-pointer"
+              [attr.aria-label]="'Download ' + cert.original_filename"
+            >
+              <span class="material-symbols-outlined text-[20px]">download</span>
+            </button>
+          }
         </div>
         <div class="flex items-center justify-between py-3 gap-3">
           <div class="min-w-0">
-            <p class="text-xs font-medium text-neutral-500 dark:text-neutral-400">Udyam Certificate</p>
+            <p class="text-xs font-medium text-on-surface-variant">Udyam Certificate</p>
             @if (certFor('udyam_cert'); as cert) {
-              <p class="text-xs text-neutral-900 truncate dark:text-neutral-200 font-medium">{{ cert.original_filename }}</p>
+              <p class="text-xs text-on-surface truncate font-medium">{{ cert.original_filename }}</p>
             } @else {
-              <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">Not uploaded yet</p>
+              <p class="text-xs tabular-nums text-on-surface-variant">Not uploaded yet</p>
             }
           </div>
-          <button
-            (click)="downloadCertificate(certFor('udyam_cert')!)"
-            [disabled]="!certFor('udyam_cert') || downloading().includes(certFor('udyam_cert')!.id)"
-            class="h-7 px-3 rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors inline-flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <span class="material-symbols-outlined text-[14px]">download</span>
-            Download
-          </button>
+          @if (certFor('udyam_cert'); as cert) {
+            <button
+              (click)="downloadCertificate(cert)"
+              [disabled]="downloading().includes(cert.id)"
+              class="flex size-11 shrink-0 items-center justify-center rounded-full border border-card-border bg-surface-container-lowest text-brand-ink hover:bg-surface-container-low disabled:opacity-50 cursor-pointer"
+              [attr.aria-label]="'Download ' + cert.original_filename"
+            >
+              <span class="material-symbols-outlined text-[20px]">download</span>
+            </button>
+          }
         </div>
       </div>
     } @else {
       <div class="flex flex-col items-center gap-2 px-4 py-8 text-center">
-        <span class="material-symbols-outlined text-[28px] text-neutral-500">folder_off</span>
-        <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">No registered certificates</p>
-        <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">Certificates uploaded by your CA will appear here.</p>
+        <span class="material-symbols-outlined text-[28px] text-on-surface-variant">folder_off</span>
+        <p class="text-xs font-semibold text-on-surface tracking-tight">No registered certificates</p>
+        <p class="text-xs tabular-nums text-on-surface-variant">Certificates uploaded by your CA will appear here.</p>
       </div>
     }
   </section>
 
   <!-- Language -->
   <section class="card overflow-hidden">
-    <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.LANGUAGE' | translate }}</h2>
-      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{{ 'SETTINGS.LANGUAGE_DESC' | translate }}</p>
+    <div class="border-b border-card-border px-4 py-3">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{{ 'SETTINGS.LANGUAGE' | translate }}</h2>
+      <p class="text-xs text-on-surface-variant mt-0.5">{{ 'SETTINGS.LANGUAGE_DESC' | translate }}</p>
     </div>
-    <div class="divide-y divide-neutral-100 dark:divide-neutral-800">
+    <div class="divide-y divide-card-border">
       @for (opt of langOptions; track opt.value) {
         <button
           (click)="setLanguage(opt.value)"
-          class="flex w-full items-center gap-4 px-4 py-3.5 text-left cursor-pointer hover:bg-neutral-50 transition-colors dark:hover:bg-neutral-800/50"
+          class="flex w-full items-center gap-4 px-4 py-3.5 text-left cursor-pointer hover:bg-surface-container-low transition-colors"
         >
-          <span class="flex size-9 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+          <span class="flex size-9 items-center justify-center rounded-xl bg-surface-container text-on-surface-variant">
             <span class="material-symbols-outlined text-[20px]">translate</span>
           </span>
           <span class="flex-1">
-            <span class="block text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ opt.label }}</span>
+            <span class="block text-sm font-medium text-on-surface">{{ opt.label }}</span>
           </span>
           @if (currentLanguage() === opt.value) {
-            <span class="material-symbols-outlined text-[20px] text-neutral-900 dark:text-neutral-100">check_circle</span>
+            <span class="material-symbols-outlined text-[20px] text-on-surface">check_circle</span>
           } @else {
-            <span class="size-5 rounded-full border-2 border-neutral-200 dark:border-neutral-700"></span>
+            <span class="size-5 rounded-full border-2 border-card-border"></span>
           }
         </button>
       }
@@ -440,46 +532,46 @@
 
   <!-- Payment Options -->
   <section class="card overflow-hidden">
-    <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.PAYMENT' | translate }}</h2>
-      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{{ 'SETTINGS.PAYMENT_DESC' | translate }}</p>
+    <div class="border-b border-card-border px-4 py-3">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{{ 'SETTINGS.PAYMENT' | translate }}</h2>
+      <p class="text-xs text-on-surface-variant mt-0.5">{{ 'SETTINGS.PAYMENT_DESC' | translate }}</p>
     </div>
     <button
       (click)="showPaymentModal.set(true)"
-      class="flex w-full items-center gap-4 px-4 py-3.5 text-left cursor-pointer hover:bg-neutral-50 transition-colors dark:hover:bg-neutral-800/50"
+      class="flex w-full items-center gap-4 px-4 py-3.5 text-left cursor-pointer hover:bg-surface-container-low transition-colors"
     >
-      <span class="flex size-9 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+      <span class="flex size-9 items-center justify-center rounded-xl bg-surface-container text-on-surface-variant">
         <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
       </span>
       <span class="flex-1">
-        <span class="block text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ 'SETTINGS.PAYMENT' | translate }}</span>
+        <span class="block text-sm font-medium text-on-surface">{{ 'SETTINGS.PAYMENT' | translate }}</span>
       </span>
-      <span class="material-symbols-outlined text-[20px] text-neutral-500 dark:text-neutral-400">chevron_right</span>
+      <span class="material-symbols-outlined text-[20px] text-on-surface-variant">chevron_right</span>
     </button>
   </section>
 
   <!-- Theme -->
   <section class="card overflow-hidden">
-    <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.APPEARANCE' | translate }}</h2>
-      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{{ 'SETTINGS.APPEARANCE_DESC' | translate }}</p>
+    <div class="border-b border-card-border px-4 py-3">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{{ 'SETTINGS.APPEARANCE' | translate }}</h2>
+      <p class="text-xs text-on-surface-variant mt-0.5">{{ 'SETTINGS.APPEARANCE_DESC' | translate }}</p>
     </div>
-    <div class="divide-y divide-neutral-100 dark:divide-neutral-800">
+    <div class="divide-y divide-card-border">
       @for (opt of themeOptions; track opt.value) {
         <button
           (click)="setTheme(opt.value)"
-          class="flex w-full items-center gap-4 px-4 py-3.5 text-left cursor-pointer hover:bg-neutral-50 transition-colors dark:hover:bg-neutral-800/50"
+          class="flex w-full items-center gap-4 px-4 py-3.5 text-left cursor-pointer hover:bg-surface-container-low transition-colors"
         >
-          <span class="flex size-9 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+          <span class="flex size-9 items-center justify-center rounded-xl bg-surface-container text-on-surface-variant">
             <span class="material-symbols-outlined text-[20px]">{{ opt.icon }}</span>
           </span>
           <span class="flex-1">
-            <span class="block text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ opt.label }}</span>
+            <span class="block text-sm font-medium text-on-surface">{{ opt.label }}</span>
           </span>
           @if (theme.mode() === opt.value) {
-            <span class="material-symbols-outlined text-[20px] text-neutral-900 dark:text-neutral-100">check_circle</span>
+            <span class="material-symbols-outlined text-[20px] text-on-surface">check_circle</span>
           } @else {
-            <span class="size-5 rounded-full border-2 border-neutral-200 dark:border-neutral-700"></span>
+            <span class="size-5 rounded-full border-2 border-card-border"></span>
           }
         </button>
       }
@@ -488,33 +580,33 @@
 
   <!-- Notifications -->
   <section class="card overflow-hidden">
-    <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.NOTIFICATIONS' | translate }}</h2>
+    <div class="border-b border-card-border px-4 py-3">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{{ 'SETTINGS.NOTIFICATIONS' | translate }}</h2>
     </div>
-    <div class="divide-y divide-neutral-100 dark:divide-neutral-800">
+    <div class="divide-y divide-card-border">
       <div class="flex items-center justify-between gap-3 px-4 py-3.5">
         <div>
-          <p class="text-sm font-medium text-neutral-800 dark:text-neutral-200">{{ 'SETTINGS.NOTIF_PUSH' | translate }}</p>
-          <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{{ 'SETTINGS.NOTIF_PUSH_DESC' | translate }}</p>
+          <p class="text-sm font-medium text-on-surface">{{ 'SETTINGS.NOTIF_PUSH' | translate }}</p>
+          <p class="text-xs text-on-surface-variant mt-0.5">{{ 'SETTINGS.NOTIF_PUSH_DESC' | translate }}</p>
         </div>
         @if (pushSupported()) {
           <button
             (click)="togglePush(!pushEnabled())"
             [disabled]="pushBusy()"
             [class]="
-              'relative h-7 w-12 rounded-full transition-colors ' +
-              (pushEnabled() ? 'bg-neutral-900 dark:bg-neutral-100' : 'bg-neutral-200 dark:bg-neutral-700') +
-              (pushBusy() ? ' opacity-60' : '')
+              'relative h-7 w-12 rounded-full transition-colors'  +
+              (pushEnabled() ? 'bg-brand' : 'bg-surface-container-high') +
+              (pushBusy() ? 'opacity-60' : '')
             "
             aria-label="Toggle push notifications"
           >
             <span
-              [class]="'absolute top-0.5 size-6 rounded-full shadow-sm transition-all ' + (pushEnabled() ? 'bg-white dark:bg-neutral-900' : 'bg-white dark:bg-neutral-400')"
+              [class]="'absolute top-0.5 size-6 rounded-full shadow-sm transition-all'  + (pushEnabled() ? 'bg-surface-container-lowest' : 'bg-surface-container-lowest')"
               [style.left.px]="pushEnabled() ? 22 : 2"
             ></span>
           </button>
         } @else {
-          <p class="text-xs text-neutral-500 dark:text-neutral-400">Unavailable</p>
+          <p class="text-xs text-on-surface-variant">Unavailable</p>
         }
       </div>
     </div>
@@ -522,45 +614,45 @@
 
   <!-- Change Password -->
   <section class="card overflow-hidden">
-    <div class="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.SECURITY' | translate }}</h2>
-      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{{ 'SETTINGS.SECURITY_DESC' | translate }}</p>
+    <div class="border-b border-card-border px-4 py-3">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{{ 'SETTINGS.SECURITY' | translate }}</h2>
+      <p class="text-xs text-on-surface-variant mt-0.5">{{ 'SETTINGS.SECURITY_DESC' | translate }}</p>
     </div>
     <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="flex flex-col gap-4 p-4">
       <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.CUR_PASSWORD' | translate }}</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{{ 'SETTINGS.CUR_PASSWORD' | translate }}</span>
         <input
           formControlName="current_password"
           type="password"
           autocomplete="current-password"
           placeholder="********"
-          class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-100"
+          class="h-11 rounded-xl border border-card-border bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
         />
       </label>
       <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.NEW_PASSWORD' | translate }}</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{{ 'SETTINGS.NEW_PASSWORD' | translate }}</span>
         <input
           formControlName="new_password"
           type="password"
           autocomplete="new-password"
           placeholder="********"
-          class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-100"
+          class="h-11 rounded-xl border border-card-border bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
         />
       </label>
       <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{{ 'SETTINGS.CONFIRM_PASSWORD' | translate }}</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{{ 'SETTINGS.CONFIRM_PASSWORD' | translate }}</span>
         <input
           formControlName="confirm"
           type="password"
           autocomplete="new-password"
           placeholder="********"
-          class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-100"
+          class="h-11 rounded-xl border border-card-border bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
         />
       </label>
       <button
         type="submit"
         [disabled]="passwordBusy()"
-        class="flex h-11 items-center justify-center gap-2 rounded-lg bg-brand text-on-brand hover:opacity-90 text-sm font-semibold disabled:opacity-50 cursor-pointer"
+        class="flex h-11 items-center justify-center gap-2 rounded-xl bg-brand text-on-brand hover:opacity-90 text-sm font-semibold disabled:opacity-50 cursor-pointer"
       >
         @if (passwordBusy()) {
           <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
@@ -573,7 +665,7 @@
   <!-- Logout -->
   <button
     (click)="auth.logout()"
-    class="flex h-11 items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors cursor-pointer dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+    class="flex h-12 items-center justify-center gap-2 rounded-xl border border-card-border bg-surface-container-lowest text-[15px] font-semibold text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
   >
     <span class="material-symbols-outlined text-[20px]">logout</span>
     Log out
@@ -583,13 +675,13 @@
   <button
     type="button"
     (click)="openDeleteModal()"
-    class="flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-medium text-neutral-500 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer dark:text-neutral-400 dark:hover:text-red-400 dark:hover:bg-red-900/20"
+    class="flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-semibold text-error hover:bg-error-container transition-colors cursor-pointer"
   >
     <span class="material-symbols-outlined text-[18px]">person_remove</span>
     Delete account
   </button>
 
-  <p class="pb-4 text-center text-xs text-neutral-500 dark:text-neutral-400">
+  <p class="pb-4 text-center text-xs text-on-surface-variant">
     S N Bajaj And Co — GST Client Portal
   </p>
 </div>
@@ -597,29 +689,29 @@
 <!-- Payment Modal -->
 @if (showPaymentModal()) {
   <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-    <div class="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 shadow-2xl p-6 relative flex flex-col items-center">
-      <button (click)="showPaymentModal.set(false)" class="absolute top-4 right-4 text-neutral-500 dark:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200">
+    <div class="w-full max-w-sm rounded-2xl bg-surface-container-lowest shadow-2xl p-6 relative flex flex-col items-center">
+      <button (click)="showPaymentModal.set(false)" class="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface">
         <span class="material-symbols-outlined">close</span>
       </button>
       
-      <h2 class="text-lg font-bold text-neutral-900 dark:text-white mb-6">{{ 'PAYMENT.MODAL_TITLE' | translate }}</h2>
+      <h2 class="text-lg font-bold text-on-surface mb-6">{{ 'PAYMENT.MODAL_TITLE' | translate }}</h2>
       
-      <div class="w-48 h-48 bg-white border border-neutral-200 rounded-xl mb-4 overflow-hidden shadow-sm flex items-center justify-center p-2">
+      <div class="w-48 h-48 bg-surface-container-lowest border border-card-border rounded-xl mb-4 overflow-hidden shadow-sm flex items-center justify-center p-2">
         <img src="/payment-qr.jpeg" alt="Payment QR Code" class="w-full h-full object-contain" />
       </div>
       
-      <button (click)="downloadQR()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors mb-6 cursor-pointer">
+      <button (click)="downloadQR()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium text-sm transition-colors mb-6 cursor-pointer">
         <span class="material-symbols-outlined text-[18px]">download</span>
         {{ 'PAYMENT.DOWNLOAD_QR' | translate }}
       </button>
       
-      <div class="w-full bg-neutral-50 dark:bg-neutral-800 rounded-xl p-4 flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-        <p class="font-bold text-neutral-900 dark:text-white">{{ 'PAYMENT.COMPANY' | translate }}</p>
+      <div class="w-full bg-surface-container rounded-xl p-4 flex flex-col gap-2 text-sm text-on-surface">
+        <p class="font-bold text-on-surface">{{ 'PAYMENT.COMPANY' | translate }}</p>
         <p>{{ 'PAYMENT.BANK' | translate }}</p>
         <p>{{ 'PAYMENT.ACCOUNT' | translate }}</p>
         <p>{{ 'PAYMENT.IFSC' | translate }}</p>
-        <div class="h-px w-full bg-neutral-200 dark:bg-neutral-700 my-1"></div>
-        <p class="font-mono text-xs font-semibold">{{ 'PAYMENT.UPI' | translate }}</p>
+        <div class="h-px w-full bg-surface-container-high my-1"></div>
+        <p class="tabular-nums text-xs font-semibold">{{ 'PAYMENT.UPI' | translate }}</p>
       </div>
     </div>
   </div>
@@ -628,48 +720,48 @@
 <!-- GST Request Modal -->
 @if (showServiceModal() === 'gst') {
   <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md px-4">
-    <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col max-h-[90vh] overflow-y-auto">
-      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-8 rounded-full flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer">
+    <div class="w-full max-w-lg rounded-2xl bg-surface-container-lowest border border-card-border shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col max-h-[90vh] overflow-y-auto">
+      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors cursor-pointer">
         <span class="material-symbols-outlined text-[18px]">close</span>
       </button>
 
       <div class="flex items-center gap-3 mb-5">
-        <div class="size-10 rounded-xl bg-[#d3e5ff]/50 dark:bg-blue-950/40 text-[#0761d1] dark:text-blue-400 border border-[#0070f3]/20 flex items-center justify-center shrink-0">
+        <div class="size-10 rounded-xl bg-brand-tint text-link border border-transparent flex items-center justify-center shrink-0">
           <span class="material-symbols-outlined text-[20px]">receipt_long</span>
         </div>
         <div>
-          <span class="text-[10px] font-mono uppercase tracking-wider text-link dark:text-blue-400 font-medium">Practice Application</span>
-          <h2 class="text-base font-semibold text-neutral-900 dark:text-white tracking-tight">Become a GST Client</h2>
+          <span class="text-xs font-semibold uppercase tracking-[0.07em] text-link font-medium">Practice Application</span>
+          <h2 class="text-base font-semibold text-on-surface tracking-tight">Become a GST Client</h2>
         </div>
       </div>
 
       <form [formGroup]="gstServiceForm" (ngSubmit)="submitGstRequest()" class="flex flex-col gap-4">
         <!-- Business Name -->
         <label class="flex flex-col gap-1.5">
-          <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+          <span class="text-xs font-medium text-on-surface">
             Business / Trade Name <span class="text-red-500">*</span>
           </span>
           <input
             formControlName="business_name"
             type="text"
             placeholder="e.g. SN Enterprises Pvt Ltd"
-            class="h-10 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
+            class="h-10 rounded-xl border border-card-border bg-surface-container-lowest px-3 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
           />
         </label>
 
         <!-- GSTIN -->
         <label class="flex flex-col gap-1.5">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+            <span class="text-xs font-medium text-on-surface">
               GSTIN (15 characters) <span class="text-red-500">*</span>
             </span>
             @if (gstServiceForm.get('gstin')?.value?.length === 15) {
               @if (isGstinChecksumValid(gstServiceForm.get('gstin')?.value)) {
-                <span class="text-[11px] font-mono font-medium text-link bg-[#d3e5ff]/50 dark:bg-blue-950/40 px-2 py-0.5 rounded flex items-center gap-1">
+                <span class="text-xs tabular-nums font-medium text-link bg-brand-tint px-2 py-0.5 rounded flex items-center gap-1">
                   <span class="material-symbols-outlined text-[13px]">check_circle</span> Valid checksum
                 </span>
               } @else {
-                <span class="text-[11px] font-mono font-medium text-[#ee0000] bg-[#f7d4d6]/60 dark:bg-red-950/40 px-2 py-0.5 rounded flex items-center gap-1">
+                <span class="text-xs tabular-nums font-medium text-error bg-error-container px-2 py-0.5 rounded flex items-center gap-1">
                   <span class="material-symbols-outlined text-[13px]">error</span> Invalid checksum
                 </span>
               }
@@ -680,24 +772,24 @@
             type="text"
             maxlength="15"
             placeholder="e.g. 27AAPFU0939F1ZV"
-            class="h-10 rounded-md border uppercase font-mono tracking-wider bg-white dark:bg-neutral-800 px-3 text-sm text-neutral-900 dark:text-neutral-100 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
+            class="h-10 rounded-xl border uppercase tabular-nums tracking-wider bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
             [class.border-[#ebebeb]]="gstServiceForm.get('gstin')?.value?.length !== 15"
             [class.dark:border-neutral-700]="gstServiceForm.get('gstin')?.value?.length !== 15"
             [class.border-[#0070f3]]="gstServiceForm.get('gstin')?.value?.length === 15 && isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
             [class.border-[#ee0000]]="gstServiceForm.get('gstin')?.value?.length === 15 && !isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
           />
-          <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+          <p class="text-xs tabular-nums text-on-surface-variant">
             2 state digits + 10 PAN characters + 1 entity code + Z + 1 check digit.
           </p>
         </label>
 
         <!-- Filing Frequency -->
         <div class="flex flex-col gap-1.5">
-          <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+          <span class="text-xs font-medium text-on-surface">
             Filing Frequency <span class="text-red-500">*</span>
           </span>
           <div class="grid grid-cols-2 gap-3">
-            <label class="flex items-center gap-2.5 p-3 rounded-md border cursor-pointer transition-all"
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all"
               [class.border-[#171717]]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
               [class.dark:border-white]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
               [class.bg-[#fafafa]]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
@@ -705,13 +797,13 @@
               [class.border-[#ebebeb]]="gstServiceForm.get('filing_frequency')?.value !== 'monthly'"
               [class.dark:border-neutral-700]="gstServiceForm.get('filing_frequency')?.value !== 'monthly'"
             >
-              <input type="radio" value="monthly" formControlName="filing_frequency" class="accent-[#171717] dark:accent-white" />
+              <input type="radio" value="monthly" formControlName="filing_frequency" class="accent-brand" />
               <div>
-                <p class="text-xs font-semibold text-neutral-900 dark:text-white">Monthly</p>
-                <p class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">Regular filers</p>
+                <p class="text-xs font-semibold text-on-surface">Monthly</p>
+                <p class="text-[11px] text-on-surface-variant tabular-nums">Regular filers</p>
               </div>
             </label>
-            <label class="flex items-center gap-2.5 p-3 rounded-md border cursor-pointer transition-all"
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all"
               [class.border-[#171717]]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
               [class.dark:border-white]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
               [class.bg-[#fafafa]]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
@@ -719,10 +811,10 @@
               [class.border-[#ebebeb]]="gstServiceForm.get('filing_frequency')?.value !== 'quarterly'"
               [class.dark:border-neutral-700]="gstServiceForm.get('filing_frequency')?.value !== 'quarterly'"
             >
-              <input type="radio" value="quarterly" formControlName="filing_frequency" class="accent-[#171717] dark:accent-white" />
+              <input type="radio" value="quarterly" formControlName="filing_frequency" class="accent-brand" />
               <div>
-                <p class="text-xs font-semibold text-neutral-900 dark:text-white">Quarterly</p>
-                <p class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">QRMP scheme</p>
+                <p class="text-xs font-semibold text-on-surface">Quarterly</p>
+                <p class="text-[11px] text-on-surface-variant tabular-nums">QRMP scheme</p>
               </div>
             </label>
           </div>
@@ -730,26 +822,26 @@
 
         <!-- Industry -->
         <label class="flex flex-col gap-1.5">
-          <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+          <span class="text-xs font-medium text-on-surface">
             Industry / Sector <span class="text-red-500">*</span>
           </span>
           <select
             formControlName="industry"
-            class="h-10 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm text-neutral-900 dark:text-neutral-100 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer"
+            class="h-10 rounded-xl border border-card-border bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer"
           >
-            <option value="" disabled selected class="bg-white dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">Select your industry</option>
+            <option value="" disabled selected class="bg-surface-container-lowest text-on-surface-variant">Select your industry</option>
             @for (ind of industries; track ind) {
-              <option [value]="ind" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">{{ ind }}</option>
+              <option [value]="ind" class="bg-surface-container-lowest text-on-surface">{{ ind }}</option>
             }
           </select>
         </label>
 
         <!-- Action buttons -->
-        <div class="flex items-center justify-end gap-2.5 mt-2 pt-3 border-t border-neutral-200 dark:border-neutral-800">
+        <div class="flex items-center justify-end gap-2.5 mt-2 pt-3 border-t border-card-border">
           <button
             type="button"
             (click)="closeServiceModal()"
-            class="h-9 px-4 rounded-full border border-neutral-200 dark:border-neutral-700 text-xs font-medium text-neutral-900 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+            class="h-9 px-4 rounded-full border border-card-border text-xs font-medium text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -772,18 +864,18 @@
 <!-- ITR Request Modal -->
 @if (showServiceModal() === 'itr') {
   <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md px-4">
-    <div class="w-full max-w-md rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col">
-      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-8 rounded-full flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer">
+    <div class="w-full max-w-md rounded-2xl bg-surface-container-lowest border border-card-border shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col">
+      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors cursor-pointer">
         <span class="material-symbols-outlined text-[18px]">close</span>
       </button>
 
       <div class="flex items-center gap-3 mb-5">
-        <div class="size-10 rounded-xl bg-[#d8ccf1]/40 dark:bg-purple-950/40 text-[#4c2889] dark:text-purple-400 border border-[#7928ca]/20 flex items-center justify-center shrink-0">
+        <div class="size-10 rounded-xl bg-gold-tint text-gold-ink border flex items-center justify-center shrink-0">
           <span class="material-symbols-outlined text-[20px]">account_balance</span>
         </div>
         <div>
-          <span class="text-[10px] font-mono uppercase tracking-wider text-[#7928ca] dark:text-purple-400 font-medium">Practice Application</span>
-          <h2 class="text-base font-semibold text-neutral-900 dark:text-white tracking-tight">Become an ITR Client</h2>
+          <span class="text-xs font-semibold uppercase tracking-[0.07em] text-gold-ink font-medium">Practice Application</span>
+          <h2 class="text-base font-semibold text-on-surface tracking-tight">Become an ITR Client</h2>
         </div>
       </div>
 
@@ -791,16 +883,16 @@
         <!-- PAN -->
         <label class="flex flex-col gap-1.5">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+            <span class="text-xs font-medium text-on-surface">
               PAN (10 characters) <span class="text-red-500">*</span>
             </span>
             @if (itrServiceForm.get('pan')?.value?.length === 10) {
               @if (isPanValid(itrServiceForm.get('pan')?.value)) {
-                <span class="text-[11px] font-mono font-medium text-link bg-[#d3e5ff]/50 dark:bg-blue-950/40 px-2 py-0.5 rounded flex items-center gap-1">
+                <span class="text-xs tabular-nums font-medium text-link bg-brand-tint px-2 py-0.5 rounded flex items-center gap-1">
                   <span class="material-symbols-outlined text-[13px]">check_circle</span> Valid PAN
                 </span>
               } @else {
-                <span class="text-[11px] font-mono font-medium text-[#ee0000] bg-[#f7d4d6]/60 dark:bg-red-950/40 px-2 py-0.5 rounded flex items-center gap-1">
+                <span class="text-xs tabular-nums font-medium text-error bg-error-container px-2 py-0.5 rounded flex items-center gap-1">
                   <span class="material-symbols-outlined text-[13px]">error</span> Invalid PAN
                 </span>
               }
@@ -811,23 +903,23 @@
             type="text"
             maxlength="10"
             placeholder="e.g. ABCDE1234F"
-            class="h-10 rounded-md border uppercase font-mono tracking-wider bg-white dark:bg-neutral-800 px-3 text-sm text-neutral-900 dark:text-neutral-100 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
+            class="h-10 rounded-xl border uppercase tabular-nums tracking-wider bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
             [class.border-[#ebebeb]]="itrServiceForm.get('pan')?.value?.length !== 10"
             [class.dark:border-neutral-700]="itrServiceForm.get('pan')?.value?.length !== 10"
             [class.border-[#0070f3]]="itrServiceForm.get('pan')?.value?.length === 10 && isPanValid(itrServiceForm.get('pan')?.value)"
             [class.border-[#ee0000]]="itrServiceForm.get('pan')?.value?.length === 10 && !isPanValid(itrServiceForm.get('pan')?.value)"
           />
-          <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+          <p class="text-xs tabular-nums text-on-surface-variant">
             5 letters + 4 digits + 1 letter (e.g. ABCDE1234F).
           </p>
         </label>
 
         <!-- Action buttons -->
-        <div class="flex items-center justify-end gap-2.5 mt-2 pt-3 border-t border-neutral-200 dark:border-neutral-800">
+        <div class="flex items-center justify-end gap-2.5 mt-2 pt-3 border-t border-card-border">
           <button
             type="button"
             (click)="closeServiceModal()"
-            class="h-9 px-4 rounded-full border border-neutral-200 dark:border-neutral-700 text-xs font-medium text-neutral-900 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+            class="h-9 px-4 rounded-full border border-card-border text-xs font-medium text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -850,46 +942,46 @@
 <!-- Delete Account Modal -->
 @if (showDeleteModal()) {
   <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md sm:px-4" role="dialog" aria-modal="true" aria-labelledby="delete-account-title">
-    <div class="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col max-h-[90vh] overflow-y-auto">
-      <button type="button" (click)="showDeleteModal.set(false)" aria-label="Close" class="absolute top-4 right-4 size-8 rounded-full flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer">
+    <div class="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl bg-surface-container-lowest border border-card-border shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col max-h-[90vh] overflow-y-auto">
+      <button type="button" (click)="showDeleteModal.set(false)" aria-label="Close" class="absolute top-4 right-4 size-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors cursor-pointer">
         <span class="material-symbols-outlined text-[18px]">close</span>
       </button>
 
       <div class="flex items-center gap-3 mb-4">
-        <div class="size-10 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 flex items-center justify-center shrink-0">
+        <div class="size-10 rounded-xl bg-error-container text-error flex items-center justify-center shrink-0">
           <span class="material-symbols-outlined text-[20px]">person_remove</span>
         </div>
-        <h2 id="delete-account-title" class="text-base font-semibold text-neutral-900 dark:text-white tracking-tight">Delete your account?</h2>
+        <h2 id="delete-account-title" class="text-base font-semibold text-on-surface tracking-tight">Delete your account?</h2>
       </div>
 
-      <div class="flex flex-col gap-3 text-sm text-neutral-700 dark:text-neutral-300">
-        <p>You will be signed out and your account locked now. It is deleted after <strong class="text-neutral-900 dark:text-white">30 days</strong>. Sign in again before then to keep it.</p>
-        <div class="rounded-xl bg-neutral-50 dark:bg-neutral-800 p-3">
-          <p class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">We delete</p>
+      <div class="flex flex-col gap-3 text-sm text-on-surface">
+        <p>You will be signed out and your account locked now. It is deleted after <strong class="text-on-surface">30 days</strong>. Sign in again before then to keep it.</p>
+        <div class="rounded-xl bg-surface-container p-3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1.5">We delete</p>
           <p>Your login, email, phone number, date of birth and photo, plus support tickets, reminders and notifications.</p>
         </div>
-        <div class="rounded-xl bg-neutral-50 dark:bg-neutral-800 p-3">
-          <p class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">We keep, as tax law requires</p>
+        <div class="rounded-xl bg-surface-container p-3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1.5">We keep, as tax law requires</p>
           <p>Your name, PAN, GSTIN, business name, family members, filings, documents, reports and certificates. Only S N Bajaj And Co can see them.</p>
         </div>
       </div>
 
       <form [formGroup]="deleteForm" (ngSubmit)="deleteAccount()" class="mt-5 flex flex-col gap-4">
         <label class="flex flex-col gap-1.5">
-          <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Enter your password to confirm</span>
+          <span class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">Enter your password to confirm</span>
           <input
             formControlName="password"
             type="password"
             autocomplete="current-password"
             placeholder="********"
-            class="h-11 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200/50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-100"
+            class="h-11 rounded-xl border border-card-border bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
           />
         </label>
         <div class="flex gap-3">
-          <button type="button" (click)="showDeleteModal.set(false)" class="flex-1 h-11 rounded-lg border border-neutral-200 dark:border-neutral-700 text-sm font-semibold text-neutral-800 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer">
+          <button type="button" (click)="showDeleteModal.set(false)" class="flex-1 h-11 rounded-xl border border-card-border text-sm font-semibold text-on-surface hover:bg-surface-container-low cursor-pointer">
             Keep account
           </button>
-          <button type="submit" [disabled]="deleteBusy()" class="flex-1 flex h-11 items-center justify-center gap-2 rounded-lg bg-red-700 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50 cursor-pointer">
+          <button type="submit" [disabled]="deleteBusy()" class="flex-1 flex h-11 items-center justify-center gap-2 rounded-xl bg-red-700 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50 cursor-pointer">
             @if (deleteBusy()) {
               <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
             }
