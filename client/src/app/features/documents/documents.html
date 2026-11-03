@@ -1,17 +1,18 @@
 <div class="max-w-2xl mx-auto px-4 pt-4 flex flex-col gap-5">
   <!-- Segmented Control for Service Buckets -->
   @if (availableTabs().length > 1) {
-    <div class="p-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-full flex gap-1 w-full max-w-md mx-auto">
+    <div class="p-1 bg-surface-container rounded-xl flex gap-1 w-full max-w-md mx-auto" role="tablist">
       @for (tab of availableTabs(); track tab.id) {
         <button
           type="button"
           (click)="selectTab(tab.id)"
           [class]="activeTab() === tab.id
-            ? 'bg-white dark:bg-neutral-800 text-[#171717] dark:text-white shadow-xs border border-[#ebebeb] dark:border-neutral-700 font-medium'
-            : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 border border-transparent font-normal'"
-          class="flex-1 py-1.5 px-3 rounded-full text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            ? 'bg-surface-container-lowest text-primary shadow-sm font-semibold'
+            : 'text-on-surface-variant hover:text-primary font-medium'"
+          class="flex-1 h-10 px-3 rounded-lg text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+          role="tab" [attr.aria-selected]="activeTab() === tab.id"
         >
-          <span class="material-symbols-outlined text-[16px]">{{ tab.icon }}</span>
+          <span class="material-symbols-outlined text-[16px]" aria-hidden="true">{{ tab.icon }}</span>
           <span>{{ tab.label }}</span>
         </button>
       }
@@ -20,10 +21,10 @@
 
   <!-- ==================== GST TAB ==================== -->
   @if (activeTab() === 'gst') {
-    <div class="card p-4 flex flex-col gap-2.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+    <div class="card p-4 flex flex-col gap-2.5">
       <div class="flex items-center justify-between">
-        <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-medium">Select Filing Period</label>
-        <button (click)="goUpload()" class="h-7 px-3 rounded-full bg-brand text-on-brand hover:opacity-90 text-[11px] font-medium transition-colors inline-flex items-center gap-1 cursor-pointer">
+        <label class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant font-medium">Select Filing Period</label>
+        <button (click)="goUpload()" class="h-9 px-3 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium transition-colors inline-flex items-center gap-1 cursor-pointer">
           <span class="material-symbols-outlined text-[14px]">upload</span>
           Upload Documents
         </button>
@@ -32,39 +33,39 @@
         <select
           [ngModel]="periodId()"
           (ngModelChange)="setPeriod($event)"
-          class="w-full appearance-none bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md p-2.5 pl-9 pr-8 text-xs font-medium text-neutral-900 dark:text-neutral-100 cursor-pointer outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
+          class="field-input appearance-none cursor-pointer pl-10 pr-9 text-sm font-medium"
         >
-          <option value="" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">All filing periods</option>
+          <option value="" class="bg-surface-container-lowest text-on-surface">All filing periods</option>
           @for (period of periods(); track period.id) {
-            <option [value]="period.id" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">{{ period.period_label }}</option>
+            <option [value]="period.id" class="bg-surface-container-lowest text-on-surface">{{ period.period_label }}</option>
           }
         </select>
-        <span class="material-symbols-outlined text-neutral-500 dark:text-neutral-400 text-[18px] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">calendar_month</span>
-        <span class="material-symbols-outlined text-neutral-500 dark:text-neutral-400 text-[18px] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+        <span class="material-symbols-outlined text-on-surface-variant text-[18px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">calendar_month</span>
+        <span class="material-symbols-outlined text-on-surface-variant text-[18px] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
       </div>
     </div>
 
     @if (currentPeriod(); as period) {
-      <div class="card p-4.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+      <div class="card p-4.5">
         <div class="flex items-start justify-between gap-2">
           <div>
-            <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1 font-medium">CURRENT GST PERIOD</div>
-            <div class="text-xl font-semibold text-neutral-900 dark:text-white tracking-tight mb-0.5">{{ period.period_label }}</div>
-            <div class="text-xs text-neutral-500 dark:text-neutral-400 mb-4 capitalize">{{ cadence() }} GST Filing Cycle</div>
+            <div class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant mb-1 font-medium">CURRENT GST PERIOD</div>
+            <div class="text-xl font-semibold text-on-surface tracking-tight mb-0.5">{{ period.period_label }}</div>
+            <div class="text-xs text-on-surface-variant mb-4 capitalize">{{ cadence() }} GST Filing Cycle</div>
           </div>
-          <span class="px-2.5 py-0.5 rounded-full font-mono text-[11px] bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 font-medium">
+          <span class="px-2.5 py-0.5 rounded-full tabular-nums text-xs bg-surface-container border border-card-border text-on-surface-variant font-medium">
             Due {{ period.due_date | date: 'd MMM yyyy' }}
           </span>
         </div>
 
         <div class="flex justify-between items-end mb-2">
-          <div class="text-xs font-medium text-neutral-800 dark:text-neutral-200">Documents Progress</div>
-          <div class="text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300">{{ docDone() }} / {{ docTotal() }}</div>
+          <div class="text-xs font-medium text-on-surface">Documents Progress</div>
+          <div class="text-xs tabular-nums font-medium text-on-surface">{{ docDone() }} / {{ docTotal() }}</div>
         </div>
-        <div class="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden mb-2.5">
-          <div class="h-full bg-brand text-on-brand hover:opacity-90 rounded-full transition-all" [style.width.%]="progressPct()"></div>
+        <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden mb-2.5">
+          <div class="h-full bg-gold rounded-full transition-all" [style.width.%]="progressPct()"></div>
         </div>
-        <div class="text-xs font-mono" [class]="docTotal() - docDone() > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'">
+        <div class="text-xs tabular-nums" [class]="docTotal() - docDone() > 0 ? 'text-warning' : 'text-success'">
           @if (docTotal() === 0) {
             No documents required for this period
           } @else if (docTotal() - docDone() > 0) {
@@ -77,60 +78,60 @@
     }
 
     <div>
-      <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2.5 ml-1 font-medium">DOCUMENTS TO SUBMIT</div>
-      <div class="card overflow-hidden divide-y divide-neutral-200 dark:divide-neutral-800 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+      <div class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant mb-2.5 ml-1 font-medium">DOCUMENTS TO SUBMIT</div>
+      <div class="card overflow-hidden divide-y divide-card-border">
         @for (task of uploadTasks(); track task.id) {
-          <div class="p-4 flex items-center justify-between bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
+          <div class="p-4 flex items-center justify-between bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
             <div class="flex items-center gap-3">
-              <div class="size-9 rounded-lg flex items-center justify-center shrink-0"
-                [class]="task.status === 'completed' || task.status === 'uploaded' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-900/30' : task.nil_declared_at ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-900/30' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/50 dark:border-rose-900/30'">
+              <div class="size-9 rounded-xl flex items-center justify-center shrink-0"
+                [class]="task.status === 'completed' || task.status === 'uploaded' ? 'bg-success-tint text-success' : task.nil_declared_at ? 'bg-brand-tint text-link border' : 'bg-error-container text-error'">
                 <span class="material-symbols-outlined text-[18px]">
                   {{ task.status === 'completed' || task.status === 'uploaded' ? 'description' : 'upload_file' }}
                 </span>
               </div>
               <div>
-                <div class="font-medium text-neutral-900 dark:text-neutral-100 text-sm tracking-tight">{{ taskLabel(task) }}</div>
-                <div class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">PDF / Excel</div>
+                <div class="font-medium text-on-surface text-sm tracking-tight">{{ taskLabel(task) }}</div>
+                <div class="text-xs tabular-nums text-on-surface-variant mt-0.5">PDF / Excel</div>
               </div>
             </div>
             <div class="flex items-center gap-3">
               <div class="text-right flex flex-col items-end">
                 @if (task.filed_at) {
-                  <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-mono text-xs font-medium">
+                  <span class="inline-flex items-center gap-1 text-success tabular-nums text-xs font-medium">
                     <span class="material-symbols-outlined text-[15px]">verified</span>
                     Return filed
                   </span>
-                  <div class="text-[10px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  <div class="text-[11px] tabular-nums text-on-surface-variant mt-0.5">
                     {{ fmtFiledDate(task.filed_at) }}@if (task.arn) { · ARN {{ task.arn }} }
                   </div>
                 } @else if (task.status === 'completed') {
-                  <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-mono text-xs font-medium">
+                  <span class="inline-flex items-center gap-1 text-success tabular-nums text-xs font-medium">
                     <span class="material-symbols-outlined text-[15px]">check_circle</span>
                     Filled
                   </span>
                 } @else if (task.status === 'uploaded') {
-                  <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-mono text-xs font-medium">
+                  <span class="inline-flex items-center gap-1 text-warning tabular-nums text-xs font-medium">
                     <span class="material-symbols-outlined text-[15px]">schedule</span>
                     Pending review
                   </span>
                 } @else if (task.nil_declared_at) {
-                  <span class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 font-mono text-xs font-medium">
+                  <span class="inline-flex items-center gap-1 text-link tabular-nums text-xs font-medium">
                     <span class="material-symbols-outlined text-[15px]">pending</span>
                     Nil Pending
                   </span>
-                  <div class="text-[10px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">Awaiting CA confirmation</div>
+                  <div class="text-[11px] tabular-nums text-on-surface-variant mt-0.5">Awaiting CA confirmation</div>
                 } @else {
                   <div class="flex items-center gap-1.5 mb-1.5">
-                    <span class="size-1.5 rounded-full bg-rose-500"></span>
-                    <span class="text-[11px] font-mono uppercase tracking-wide text-rose-600 dark:text-rose-400 font-medium">Required</span>
+                    <span class="size-1.5 rounded-full bg-error"></span>
+                    <span class="text-xs tabular-nums uppercase tracking-wide text-error font-medium">Required</span>
                   </div>
                   <div class="flex gap-2">
                     @if (canFileNil(task)) {
-                      <button (click)="markNil(task); $event.stopPropagation()" class="h-7 px-2.5 rounded-full border border-neutral-200 dark:border-neutral-700 text-[11px] font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors cursor-pointer">
+                      <button (click)="markNil(task); $event.stopPropagation()" class="h-9 px-2.5 rounded-full border border-card-border text-xs font-medium text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer">
                         File Nil
                       </button>
                     }
-                    <button (click)="goUpload(); $event.stopPropagation()" class="h-7 px-3 rounded-full bg-brand text-on-brand hover:opacity-90 text-[11px] font-medium transition-colors inline-flex items-center gap-1 cursor-pointer">
+                    <button (click)="goUpload(); $event.stopPropagation()" class="h-9 px-3 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium transition-colors inline-flex items-center gap-1 cursor-pointer">
                       <span class="material-symbols-outlined text-[14px]">add</span>
                       Upload
                     </button>
@@ -141,27 +142,27 @@
           </div>
         }
         @if (paymentTask(); as payment) {
-          <div class="p-4 flex items-center justify-between bg-white dark:bg-neutral-900">
+          <div class="p-4 flex items-center justify-between bg-surface-container-lowest">
             <div class="flex items-center gap-3">
-              <div class="size-9 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200/50 dark:border-amber-900/40 flex items-center justify-center text-amber-700 dark:text-amber-400">
+              <div class="size-9 rounded-xl bg-warning-tint border flex items-center justify-center text-warning">
                 <span class="material-symbols-outlined text-[18px]">payments</span>
               </div>
               <div>
-                <div class="font-medium text-neutral-900 dark:text-neutral-100 text-sm tracking-tight">GST Tax Payment</div>
-                <div class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">No document upload needed</div>
+                <div class="font-medium text-on-surface text-sm tracking-tight">GST Tax Payment</div>
+                <div class="text-xs tabular-nums text-on-surface-variant mt-0.5">No document upload needed</div>
               </div>
             </div>
             <div class="flex items-center gap-2">
               @if (payment.amount) {
-                <span class="px-2.5 py-0.5 rounded-full font-mono text-xs bg-brand text-on-brand hover:opacity-90 font-medium">₹{{ payment.amount }}</span>
+                <span class="px-2.5 py-0.5 rounded-full tabular-nums text-xs bg-brand text-on-brand hover:opacity-90 font-medium">₹{{ payment.amount }}</span>
               }
               @if (payment.status === 'completed' || payment.paid_at) {
-                <span class="flex items-center gap-1 font-mono text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                <span class="flex items-center gap-1 tabular-nums text-xs font-medium text-success">
                   <span class="material-symbols-outlined text-[15px]">check_circle</span>
                   Paid
                 </span>
               } @else {
-                <span class="flex items-center gap-1 font-mono text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                <span class="flex items-center gap-1 tabular-nums text-xs font-medium text-on-surface-variant">
                   <span class="material-symbols-outlined text-[15px]">info</span>
                   Advisory
                 </span>
@@ -170,7 +171,7 @@
           </div>
         }
         @if (uploadTasks().length === 0 && !paymentTask()) {
-          <div class="p-6 text-center text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+          <div class="p-6 text-center text-xs text-on-surface-variant tabular-nums">
             No filing tasks for this period.
           </div>
         }
@@ -180,29 +181,29 @@
     <!-- Uploaded GST Documents -->
     @if (docs().length > 0) {
       <div>
-        <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2.5 ml-1 font-medium">SUBMITTED GST DOCUMENTS</div>
-        <div class="card overflow-hidden divide-y divide-neutral-200 dark:divide-neutral-800 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+        <div class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant mb-2.5 ml-1 font-medium">SUBMITTED GST DOCUMENTS</div>
+        <div class="card overflow-hidden divide-y divide-card-border">
           @for (doc of docs(); track doc.id) {
-            <div class="p-3.5 flex items-center justify-between hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
+            <div class="p-3.5 flex items-center justify-between hover:bg-surface-container-low transition-colors">
               <div class="flex items-center gap-3 min-w-0">
-                <div class="size-9 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-neutral-600 dark:text-neutral-300 shrink-0">
+                <div class="size-9 rounded-xl bg-surface-container border border-card-border flex items-center justify-center text-on-surface-variant shrink-0">
                   <span class="material-symbols-outlined text-[18px]">
                     {{ doc.file_type === 'pdf' ? 'picture_as_pdf' : doc.file_type === 'image' ? 'image' : 'table_chart' }}
                   </span>
                 </div>
                 <div class="min-w-0">
-                  <div class="font-medium text-neutral-900 dark:text-neutral-100 text-xs truncate max-w-xs">{{ doc.original_filename }}</div>
-                  <div class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  <div class="font-medium text-on-surface text-xs truncate max-w-xs">{{ doc.original_filename }}</div>
+                  <div class="text-xs tabular-nums text-on-surface-variant mt-0.5">
                     {{ formatSize(doc.file_size_bytes) }} · {{ doc.uploaded_at | date: 'd MMM yyyy' }}
                   </div>
                 </div>
               </div>
               <div class="flex items-center gap-2.5 shrink-0">
-                <span class="px-2 py-0.5 rounded-full font-mono text-[10px] font-medium uppercase tracking-wide"
-                  [class]="doc.status === 'processed' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/40' : 'bg-[#fafafa] text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 border border-[#ebebeb] dark:border-neutral-700'">
+                <span class="px-2 py-0.5 rounded-full tabular-nums text-[11px] font-medium uppercase tracking-wide"
+                  [class]="doc.status === 'processed' ? 'bg-success-tint text-success' : 'bg-surface-container text-on-surface-variant'">
                   {{ doc.status }}
                 </span>
-                <button (click)="downloadDoc(doc)" class="size-8 rounded-full flex items-center justify-center text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors cursor-pointer" title="Download">
+                <button (click)="downloadDoc(doc)" class="size-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors cursor-pointer" title="Download">
                   <span class="material-symbols-outlined text-[18px]">download</span>
                 </button>
               </div>
@@ -213,28 +214,28 @@
     }
 
     <div>
-      <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2.5 ml-1 font-medium">FROM YOUR CA</div>
-      <div class="card overflow-hidden divide-y divide-neutral-200 dark:divide-neutral-800 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+      <div class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant mb-2.5 ml-1 font-medium">FROM YOUR CA</div>
+      <div class="card overflow-hidden divide-y divide-card-border">
         @for (report of reports(); track report.id) {
-          <div class="p-3.5 flex items-center justify-between bg-white dark:bg-neutral-900 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors" (click)="downloadReport(report)">
+          <div class="p-3.5 flex items-center justify-between bg-surface-container-lowest cursor-pointer hover:bg-surface-container-low transition-colors" (click)="downloadReport(report)">
             <div class="flex items-center gap-3">
-              <div class="size-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/50 dark:border-rose-900/40 flex items-center justify-center font-mono text-[10px] font-bold shrink-0">
+              <div class="size-9 rounded-xl bg-error-container text-error border flex items-center justify-center tabular-nums text-[11px] font-bold shrink-0">
                 PDF
               </div>
               <div>
-                <div class="font-medium text-neutral-900 dark:text-neutral-100 text-xs tracking-tight">{{ typeLabel(report) }}</div>
-                <div class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">{{ periodLabel(report.filing_period) }}</div>
+                <div class="font-medium text-on-surface text-xs tracking-tight">{{ typeLabel(report) }}</div>
+                <div class="text-xs tabular-nums text-on-surface-variant mt-0.5">{{ periodLabel(report.filing_period) }}</div>
               </div>
             </div>
             <div class="flex items-center gap-3">
-              <span class="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">Available · {{ report.sent_at | date: 'd MMM' }}</span>
-              <button class="size-8 flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full cursor-pointer transition-colors" aria-label="Download report">
+              <span class="text-xs tabular-nums text-success">Available · {{ report.sent_at | date: 'd MMM' }}</span>
+              <button class="size-10 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full cursor-pointer transition-colors" aria-label="Download report">
                 <span class="material-symbols-outlined text-[18px]">download</span>
               </button>
             </div>
           </div>
         } @empty {
-          <div class="p-6 text-center text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+          <div class="p-6 text-center text-xs text-on-surface-variant tabular-nums">
             Your CA will share reports here once filed.
           </div>
         }
@@ -242,25 +243,25 @@
     </div>
 
     <div>
-      <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2.5 ml-1 font-medium">FILED RETURNS</div>
-      <div class="card p-4 flex flex-col gap-3 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+      <div class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant mb-2.5 ml-1 font-medium">FILED RETURNS</div>
+      <div class="card p-4 flex flex-col gap-3">
         <div>
-          <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5 block font-medium">Select Filing Period</label>
+          <label class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant mb-1.5 block font-medium">Select Filing Period</label>
           <div class="relative">
             <select
               [(ngModel)]="reportPeriodId"
-              class="w-full appearance-none bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md p-2.5 pl-9 pr-8 text-xs font-medium text-neutral-900 dark:text-neutral-100 cursor-pointer outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
+              class="field-input appearance-none cursor-pointer pl-10 pr-9 text-sm font-medium"
             >
               @for (period of periods(); track period.id) {
-                <option [value]="period.id" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">{{ period.period_label }}</option>
+                <option [value]="period.id" class="bg-surface-container-lowest text-on-surface">{{ period.period_label }}</option>
               }
             </select>
-            <span class="material-symbols-outlined text-neutral-500 dark:text-neutral-400 text-[18px] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">calendar_month</span>
-            <span class="material-symbols-outlined text-neutral-500 dark:text-neutral-400 text-[18px] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+            <span class="material-symbols-outlined text-on-surface-variant text-[18px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">calendar_month</span>
+            <span class="material-symbols-outlined text-on-surface-variant text-[18px] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
           </div>
         </div>
 
-        <button (click)="requestReport()" class="w-full h-9 rounded-full border border-neutral-200 dark:border-neutral-700 text-xs font-medium text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center cursor-pointer">
+        <button (click)="requestReport()" class="w-full h-9 rounded-full border border-card-border text-xs font-medium text-on-surface hover:bg-surface-container-low transition-colors flex items-center justify-center cursor-pointer">
           Request Report Copy
         </button>
       </div>
@@ -272,22 +273,22 @@
     <!-- Person switcher: the account holder and their family members -->
     <div class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4">
       <button (click)="selectPerson('self')"
-        class="shrink-0 inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full border text-xs font-medium transition-colors cursor-pointer"
-        [class]="selectedPerson() === 'self' ? 'bg-[#171717] dark:bg-white text-white dark:text-[#171717] border-transparent' : 'bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-[#ebebeb] dark:border-neutral-700'">
+        class="shrink-0 inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full border text-xs font-medium transition-colors cursor-pointer"
+        [class]="selectedPerson() === 'self' ? 'bg-brand text-on-brand border-transparent' : 'bg-surface-container-lowest text-on-surface border-card-border'">
         <span class="material-symbols-outlined text-[16px]">person</span>
         Me
       </button>
       @for (m of members(); track m.id) {
         <button (click)="selectPerson(m.id)"
-          class="shrink-0 inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full border text-xs font-medium transition-colors cursor-pointer"
-          [class]="selectedPerson() === m.id ? 'bg-[#171717] dark:bg-white text-white dark:text-[#171717] border-transparent' : 'bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-[#ebebeb] dark:border-neutral-700'">
+          class="shrink-0 inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full border text-xs font-medium transition-colors cursor-pointer"
+          [class]="selectedPerson() === m.id ? 'bg-brand text-on-brand border-transparent' : 'bg-surface-container-lowest text-on-surface border-card-border'">
           {{ m.name.split(' ')[0] }}
           <span class="opacity-60">· {{ relationLabel(m.relation) }}</span>
         </button>
       }
       @if (members().length < maxMembers) {
         <button routerLink="/profile" [queryParams]="{ section: 'family' }"
-          class="shrink-0 inline-flex items-center gap-1 h-8 px-3.5 rounded-full border border-dashed border-neutral-300 dark:border-neutral-600 text-xs font-medium text-neutral-500 dark:text-neutral-400 cursor-pointer">
+          class="shrink-0 inline-flex items-center gap-1 h-10 px-3.5 rounded-full border border-dashed border-outline text-xs font-medium text-on-surface-variant cursor-pointer">
           <span class="material-symbols-outlined text-[16px]">add</span>
           Add family member
         </button>
@@ -295,15 +296,15 @@
     </div>
 
     <!-- Current ITR year (fixed; rolls over on 1 April) -->
-    <div class="card p-4 flex flex-col gap-3 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+    <div class="card p-4 flex flex-col gap-3">
       <div class="flex items-center gap-3">
-        <div class="size-10 rounded-xl bg-[#d8ccf1]/40 dark:bg-purple-950/40 text-[#4c2889] dark:text-purple-300 border border-[#7928ca]/20 dark:border-purple-800/40 flex items-center justify-center shrink-0">
+        <div class="size-10 rounded-xl bg-gold-tint text-gold-ink border flex items-center justify-center shrink-0">
           <span class="material-symbols-outlined text-[20px]">account_balance</span>
         </div>
         <div class="min-w-0 flex-1">
-          <div class="text-base font-semibold text-neutral-900 dark:text-white tracking-tight">{{ itrYearLabel(currentAy) }}</div>
+          <div class="text-base font-semibold text-on-surface tracking-tight">{{ itrYearLabel(currentAy) }}</div>
           @if (selectedPerson() !== 'self') {
-            <div class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">for {{ selectedPersonName() }}</div>
+            <div class="text-xs text-on-surface-variant truncate">for {{ selectedPersonName() }}</div>
           }
         </div>
       </div>
@@ -318,20 +319,20 @@
 
     <!-- ITR returns: current year and the three before it -->
     <div>
-      <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2.5 ml-1 font-medium">
+      <div class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant mb-2.5 ml-1 font-medium">
         {{ selectedPerson() === 'self' ? 'MY ITR RETURNS' : 'ITR RETURNS · ' + selectedPersonName().toUpperCase() }}
       </div>
-      <div class="card overflow-hidden divide-y divide-neutral-200 dark:divide-neutral-800 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+      <div class="card overflow-hidden divide-y divide-card-border">
         @for (row of personReturns(); track row.ay) {
           <div class="p-3.5 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
-              <div class="size-9 rounded-lg flex items-center justify-center font-mono font-bold text-[10px] shrink-0"
-                [class]="row.ret ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-900/30' : 'bg-[#fafafa] dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 border border-[#ebebeb] dark:border-neutral-700'">
+              <div class="size-9 rounded-xl flex items-center justify-center tabular-nums font-bold text-[11px] shrink-0"
+                [class]="row.ret ? 'bg-error-container text-error' : 'bg-surface-container text-on-surface-variant'">
                 PDF
               </div>
               <div class="min-w-0">
-                <div class="font-medium text-neutral-900 dark:text-neutral-100 text-xs tracking-tight">{{ itrYearLabel(row.ay) }}</div>
-                <div class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
+                <div class="font-medium text-on-surface text-xs tracking-tight">{{ itrYearLabel(row.ay) }}</div>
+                <div class="text-xs tabular-nums text-on-surface-variant mt-0.5">
                   @if (row.ret) {
                     Uploaded {{ row.ret.uploaded_at | date: 'd MMM yyyy' }}
                   } @else if (row.ay === currentAy) {
@@ -345,7 +346,7 @@
             @if (row.ret; as ret) {
               <button
                 (click)="downloadItrReturn(ret)"
-                class="h-7 px-3 rounded-full bg-brand text-on-brand hover:opacity-90 text-[11px] font-medium transition-colors inline-flex items-center gap-1 cursor-pointer shrink-0"
+                class="h-9 px-3 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium transition-colors inline-flex items-center gap-1 cursor-pointer shrink-0"
               >
                 <span class="material-symbols-outlined text-[14px]">download</span>
                 Download
@@ -358,39 +359,39 @@
 
     <!-- Documents submitted for the current year -->
     <div>
-      <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2.5 ml-1 font-medium">SUBMITTED DOCUMENTS · {{ itrYearLabel(currentAy) }}</div>
-      <div class="card overflow-hidden divide-y divide-neutral-200 dark:divide-neutral-800 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+      <div class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant mb-2.5 ml-1 font-medium">SUBMITTED DOCUMENTS · {{ itrYearLabel(currentAy) }}</div>
+      <div class="card overflow-hidden divide-y divide-card-border">
         @for (doc of docs(); track doc.id) {
-          <div class="p-3.5 flex items-center justify-between hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
+          <div class="p-3.5 flex items-center justify-between hover:bg-surface-container-low transition-colors">
             <div class="flex items-center gap-3 min-w-0">
-              <div class="size-9 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-neutral-600 dark:text-neutral-300 shrink-0">
+              <div class="size-9 rounded-xl bg-surface-container border border-card-border flex items-center justify-center text-on-surface-variant shrink-0">
                 <span class="material-symbols-outlined text-[18px]">
                   {{ doc.file_type === 'pdf' ? 'picture_as_pdf' : doc.file_type === 'image' ? 'image' : 'table_chart' }}
                 </span>
               </div>
               <div class="min-w-0">
-                <div class="font-medium text-neutral-900 dark:text-neutral-100 text-xs truncate max-w-xs">{{ doc.original_filename }}</div>
-                <div class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
+                <div class="font-medium text-on-surface text-xs truncate max-w-xs">{{ doc.original_filename }}</div>
+                <div class="text-xs tabular-nums text-on-surface-variant mt-0.5">
                   {{ formatSize(doc.file_size_bytes) }} · {{ doc.uploaded_at | date: 'd MMM yyyy' }}
                 </div>
               </div>
             </div>
             <div class="flex items-center gap-2.5 shrink-0">
-              <span class="px-2 py-0.5 rounded-full font-mono text-[10px] font-medium uppercase tracking-wide"
-                [class]="doc.status === 'processed' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/40' : 'bg-[#fafafa] text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 border border-[#ebebeb] dark:border-neutral-700'">
+              <span class="px-2 py-0.5 rounded-full tabular-nums text-[11px] font-medium uppercase tracking-wide"
+                [class]="doc.status === 'processed' ? 'bg-success-tint text-success' : 'bg-surface-container text-on-surface-variant'">
                 {{ doc.status }}
               </span>
-              <button (click)="downloadDoc(doc)" class="size-8 rounded-full flex items-center justify-center text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors cursor-pointer" title="Download">
+              <button (click)="downloadDoc(doc)" class="size-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors cursor-pointer" title="Download">
                 <span class="material-symbols-outlined text-[18px]">download</span>
               </button>
             </div>
           </div>
         } @empty {
           <div class="p-8 text-center flex flex-col items-center">
-            <span class="material-symbols-outlined text-neutral-500 text-[32px] mb-1.5">upload_file</span>
-            <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">No documents submitted for {{ itrYearLabel(currentAy) }}</p>
-            <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">Upload Form 16, bank statements, or capital gains proofs.</p>
-            <button (click)="goUpload()" class="mt-3.5 h-8 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-on-surface-variant text-[32px] mb-1.5">upload_file</span>
+            <p class="text-xs font-semibold text-on-surface tracking-tight">No documents submitted for {{ itrYearLabel(currentAy) }}</p>
+            <p class="text-xs tabular-nums text-on-surface-variant mt-0.5">Upload Form 16, bank statements, or capital gains proofs.</p>
+            <button (click)="goUpload()" class="mt-3.5 h-10 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium transition-colors cursor-pointer">
               Upload documents
             </button>
           </div>
@@ -401,19 +402,19 @@
 
   <!-- ==================== GENERAL TAB ==================== -->
   @if (activeTab() === 'general') {
-    <div class="card p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+    <div class="card p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="size-10 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+        <div class="size-10 rounded-xl bg-surface-container border border-card-border text-on-surface flex items-center justify-center shrink-0">
           <span class="material-symbols-outlined text-[20px]">folder_open</span>
         </div>
         <div>
-          <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 block font-medium">General Documents Bucket</label>
-          <div class="text-sm font-semibold text-neutral-900 dark:text-white tracking-tight">Permanent & Advisory Records</div>
+          <label class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant block font-medium">General Documents Bucket</label>
+          <div class="text-sm font-semibold text-on-surface tracking-tight">Permanent & Advisory Records</div>
         </div>
       </div>
       <button
         (click)="goUpload()"
-        class="h-8 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5"
+        class="h-10 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5"
       >
         <span class="material-symbols-outlined text-[16px]">upload</span>
         Upload Document
@@ -421,39 +422,39 @@
     </div>
 
     <div>
-      <div class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2.5 ml-1 font-medium">YOUR GENERAL DOCUMENTS</div>
-      <div class="card overflow-hidden divide-y divide-neutral-200 dark:divide-neutral-800 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+      <div class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant mb-2.5 ml-1 font-medium">YOUR GENERAL DOCUMENTS</div>
+      <div class="card overflow-hidden divide-y divide-card-border">
         @for (doc of docs(); track doc.id) {
-          <div class="p-3.5 flex items-center justify-between hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
+          <div class="p-3.5 flex items-center justify-between hover:bg-surface-container-low transition-colors">
             <div class="flex items-center gap-3 min-w-0">
-              <div class="size-9 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-neutral-600 dark:text-neutral-300 shrink-0">
+              <div class="size-9 rounded-xl bg-surface-container border border-card-border flex items-center justify-center text-on-surface-variant shrink-0">
                 <span class="material-symbols-outlined text-[18px]">
                   {{ doc.file_type === 'pdf' ? 'picture_as_pdf' : doc.file_type === 'image' ? 'image' : 'table_chart' }}
                 </span>
               </div>
               <div class="min-w-0">
-                <div class="font-medium text-neutral-900 dark:text-neutral-100 text-xs truncate max-w-xs">{{ doc.original_filename }}</div>
-                <div class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
+                <div class="font-medium text-on-surface text-xs truncate max-w-xs">{{ doc.original_filename }}</div>
+                <div class="text-xs tabular-nums text-on-surface-variant mt-0.5">
                   {{ formatSize(doc.file_size_bytes) }} · {{ doc.uploaded_at | date: 'd MMM yyyy' }}
                 </div>
               </div>
             </div>
             <div class="flex items-center gap-2.5 shrink-0">
-              <span class="px-2 py-0.5 rounded-full font-mono text-[10px] font-medium uppercase tracking-wide"
-                [class]="doc.status === 'processed' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/40' : 'bg-[#fafafa] text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 border border-[#ebebeb] dark:border-neutral-700'">
+              <span class="px-2 py-0.5 rounded-full tabular-nums text-[11px] font-medium uppercase tracking-wide"
+                [class]="doc.status === 'processed' ? 'bg-success-tint text-success' : 'bg-surface-container text-on-surface-variant'">
                 {{ doc.status }}
               </span>
-              <button (click)="downloadDoc(doc)" class="size-8 rounded-full flex items-center justify-center text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors cursor-pointer" title="Download">
+              <button (click)="downloadDoc(doc)" class="size-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors cursor-pointer" title="Download">
                 <span class="material-symbols-outlined text-[18px]">download</span>
               </button>
             </div>
           </div>
         } @empty {
           <div class="p-8 text-center flex flex-col items-center">
-            <span class="material-symbols-outlined text-neutral-500 text-[32px] mb-1.5">folder_open</span>
-            <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight">No general documents uploaded</p>
-            <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">Upload partnership deeds, KYC records, or advisory files.</p>
-            <button (click)="goUpload()" class="mt-3.5 h-8 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-on-surface-variant text-[32px] mb-1.5">folder_open</span>
+            <p class="text-xs font-semibold text-on-surface tracking-tight">No general documents uploaded</p>
+            <p class="text-xs tabular-nums text-on-surface-variant mt-0.5">Upload partnership deeds, KYC records, or advisory files.</p>
+            <button (click)="goUpload()" class="mt-3.5 h-10 px-4 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium transition-colors cursor-pointer">
               Upload Document
             </button>
           </div>
