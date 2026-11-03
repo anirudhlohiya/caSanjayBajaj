@@ -293,9 +293,10 @@
    while maintaining a mobile-app-like feel. Portrait-locked.
    ============================================================ */
 
-/* Ensure body never overflows horizontally */
+/* Ensure body never overflows horizontally. `clip`, not `hidden`: hidden turns
+   body into a scroll box and the sticky top bar then scrolls away with the page. */
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100%;
 }
 
