@@ -21,6 +21,24 @@ export function isNetworkError(err: unknown): boolean {
   return e.status === 0 || e.status === undefined;
 }
 
+/** Why the server refused an upload, in words a client can act on. */
+export function uploadErrorReason(err: unknown): string {
+  const e = err as { status?: number; error?: { message?: string | string[] } };
+  const msg = e.error?.message;
+  if (Array.isArray(msg) && msg.length) return msg.join('. ');
+  if (typeof msg === 'string' && msg.trim()) return msg.trim();
+  switch (e.status) {
+    case 403:
+      return "You don't have access to upload this kind of document";
+    case 413:
+      return 'This file is too large';
+    case 415:
+      return "This file type isn't allowed";
+    default:
+      return 'Something went wrong. Please try again';
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class UploadService {
   constructor(
@@ -33,6 +51,7 @@ export class UploadService {
     file: File,
     periodIdOrOptions?: string | UploadOptions,
     onProgress?: (percent: number) => void,
+    onError?: (reason: string) => void,
   ): Promise<UploadOutcome> {
     const opts: UploadOptions =
       typeof periodIdOrOptions === 'string'
@@ -68,6 +87,7 @@ export class UploadService {
         });
         return 'queued';
       }
+      onError?.(uploadErrorReason(err));
       return 'failed';
     }
   }

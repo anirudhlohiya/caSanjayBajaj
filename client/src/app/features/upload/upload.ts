@@ -28,6 +28,8 @@ interface UploadItem {
   file: File;
   status: 'pending' | 'uploading' | 'success' | 'failed' | 'queued';
   progress: number;
+  /** Server's reason when the upload failed. */
+  error?: string;
 }
 
 const MAX_SIZE = 50 * 1024 * 1024;
@@ -226,6 +228,7 @@ export class Upload {
               this.category() === 'itr' ? (this.memberId() ?? undefined) : undefined,
           },
           (percent) => this.setProgress(item.id, percent),
+          (reason) => this.items.update((list) => list.map((i) => (i.id === item.id ? { ...i, error: reason } : i))),
         );
         if (outcome === 'success') {
           this.setStatus(item.id, 'success', 100);
