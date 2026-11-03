@@ -40,6 +40,7 @@ export class Signup implements OnDestroy {
 
   readonly step = signal<'email' | 'verify'>('email');
   readonly loading = signal(false);
+  readonly showPassword = signal(false);
   readonly error = signal('');
   readonly resendOtpCooldown = signal(0);
   private cooldownInterval?: any;

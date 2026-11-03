@@ -2,7 +2,7 @@
   <app-toast-container />
 
   @if (error()) {
-    <div class="mb-6 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">
+    <div class="mb-6 flex items-center gap-2 rounded-xl bg-error-container px-3 py-2.5 text-sm text-on-error-container" role="alert">
       <span class="material-symbols-outlined text-[18px]">error</span>
       <span>{{ error() }}</span>
     </div>
@@ -12,36 +12,36 @@
   @if (step() === 'email') {
     <form [formGroup]="emailForm" (ngSubmit)="requestOtp()" class="flex flex-col gap-6">
       <div class="flex flex-col gap-1">
-        <label class="font-geist-mono text-xs tracking-wider text-secondary" for="email">Email address</label>
+        <label class="field-label" for="email">Email address</label>
         <input
           formControlName="email"
           id="email"
           type="email"
           autocomplete="email"
-          placeholder="you@example.com"
-          class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface"
+          placeholder="sanjay@example.com"
+          class="field-input"
         />
       </div>
 
       @if (emailForm.controls.email.touched && emailForm.controls.email.invalid) {
-        <p class="font-geist text-xs text-error -mt-4">Enter a valid email address.</p>
+        <p class="text-xs text-error -mt-4">Enter a valid email address.</p>
       }
 
       <button
         type="submit"
         [disabled]="emailForm.invalid || loading()"
-        class="flex justify-center items-center gap-2 w-full bg-brand text-on-brand font-geist text-sm font-medium rounded-full py-[10px] transition-colors active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+        class="btn-primary flex h-12 w-full items-center justify-center gap-2 text-[15px] active:scale-[0.98]"
       >
         @if (loading()) {
-          <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white dark:border-black/40 dark:border-t-black"></span>
+          <span class="size-4 animate-spin rounded-full border-2 border-on-brand/40 border-t-on-brand"></span>
         }
         Send Verification OTP
       </button>
 
       <div class="text-center pt-2">
-        <p class="font-geist text-sm text-on-surface-variant">
+        <p class="text-sm text-on-surface-variant">
           Already have an account?
-          <a routerLink="/login" class="text-primary font-medium hover:underline dark:text-white">Sign in</a>
+          <a routerLink="/login" class="font-semibold text-link hover:underline">Sign in</a>
         </p>
       </div>
     </form>
@@ -52,15 +52,15 @@
     <form [formGroup]="signupForm" (ngSubmit)="verifyAndSignup()" class="flex flex-col gap-4">
       
       <!-- OTP Section -->
-      <div class="p-4 bg-canvas-inset border border-hairline rounded-lg mb-2 dark:bg-surface-container dark:border-hairline-strong">
+      <div class="card p-4 mb-2">
         <div class="flex items-center justify-between mb-3">
-          <span class="font-geist-mono text-xs tracking-wider text-secondary uppercase">Email Verification</span>
-          <button type="button" (click)="backToEmail()" class="font-geist-mono text-xs font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer dark:text-white">
+          <span class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">Email Verification</span>
+          <button type="button" (click)="backToEmail()" class="flex min-h-11 items-center gap-1 text-sm font-semibold text-link hover:underline cursor-pointer">
             <span class="material-symbols-outlined text-[16px]">edit</span> Edit
           </button>
         </div>
         <div class="flex flex-col gap-1">
-          <span class="font-geist text-sm text-on-surface-variant">Verifying: <strong class="text-on-surface">{{ emailForm.controls.email.value }}</strong></span>
+          <span class="text-sm text-on-surface-variant">Verifying: <strong class="text-on-surface">{{ emailForm.controls.email.value }}</strong></span>
           <div class="relative w-full mt-2">
             <input
               formControlName="otp_code"
@@ -70,7 +70,7 @@
               maxlength="6"
               placeholder="000000"
               (input)="onOtpInput()"
-              class="w-full h-12 text-center text-xl tracking-[8px] bg-surface-container-lowest border border-hairline rounded px-3 font-geist text-on-surface focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface disabled:opacity-60 disabled:cursor-not-allowed"
+              class="field-input h-14 text-center text-2xl font-semibold tracking-[10px] disabled:cursor-not-allowed"
             />
             @if (otpVerified()) {
               <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
@@ -79,18 +79,18 @@
             }
             @if (otpVerifying()) {
               <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
-                <span class="size-5 animate-spin rounded-full border-2 border-brand/40 border-t-primary dark:border-white/40 dark:border-t-white"></span>
+                <span class="size-5 animate-spin rounded-full border-2 border-brand/30 border-t-brand"></span>
               </div>
             }
           </div>
           <div class="flex justify-end mt-1 h-5">
             @if (otpVerified()) {
-              <span class="font-geist text-xs font-semibold text-green-600 dark:text-green-400">Verified</span>
+              <span class="text-xs font-semibold text-green-600 dark:text-green-400">Verified</span>
             } @else {
               @if (resendOtpCooldown() > 0) {
-                <span class="font-geist text-xs text-on-surface-variant">Resend in {{ resendOtpCooldown() }}s</span>
+                <span class="text-xs text-on-surface-variant">Resend in {{ resendOtpCooldown() }}s</span>
               } @else {
-                <button type="button" (click)="resendOtp()" [disabled]="loading()" class="font-geist text-xs font-semibold text-primary hover:underline cursor-pointer dark:text-white disabled:opacity-50 disabled:cursor-not-allowed">Resend OTP</button>
+                <button type="button" (click)="resendOtp()" [disabled]="loading()" class="text-sm font-semibold text-link hover:underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Resend OTP</button>
               }
             }
           </div>
@@ -98,20 +98,20 @@
       </div>
 
       <div class="flex flex-col gap-1">
-        <label class="font-geist-mono text-xs tracking-wider text-secondary" for="name">Full Name</label>
+        <label class="field-label" for="name">Full Name</label>
         <input
           formControlName="name"
           id="name"
           type="text"
           placeholder="your full name"
-          class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface"
+          class="field-input"
         />
       </div>
 
       <div class="flex flex-col gap-1">
-        <label class="font-geist-mono text-xs tracking-wider text-secondary" for="phone">Phone Number</label>
-        <div class="flex bg-surface-container-lowest border border-hairline rounded overflow-hidden dark:bg-surface-container dark:border-hairline-strong focus-within:ring-1 focus-within:ring-brand focus-within:border-brand dark:focus-within:ring-white dark:focus-within:border-white transition-shadow">
-          <div class="flex items-center justify-center px-3 border-r border-hairline bg-canvas-inset font-geist text-sm text-secondary dark:bg-surface-container dark:border-hairline-strong">
+        <label class="field-label" for="phone">Phone Number</label>
+        <div class="flex h-12 overflow-hidden rounded-xl border border-card-border bg-surface-container-lowest transition-shadow focus-within:border-brand focus-within:shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-brand)_18%,transparent)]">
+          <div class="flex items-center justify-center px-3.5 border-r border-card-border bg-surface-container text-[15px] font-medium text-on-surface">
             +91
           </div>
           <input
@@ -119,51 +119,62 @@
             id="phone"
             type="tel"
             placeholder="98765 43210"
-            class="w-full px-3 py-[10px] bg-transparent border-none text-on-surface focus:ring-0 font-geist text-sm placeholder:text-outline-variant outline-none dark:text-on-surface"
+            class="w-full px-3.5 bg-transparent text-[15px] text-on-surface outline-none placeholder:text-on-surface-variant/75"
           />
         </div>
         @if (signupForm.controls.phone.touched && signupForm.controls.phone.invalid) {
-          <p class="font-geist text-xs text-error">Enter a valid 10-digit phone number.</p>
+          <p class="text-xs text-error">Enter a valid 10-digit phone number.</p>
         }
       </div>
 
       <div class="flex flex-col gap-1">
-        <label class="font-geist-mono text-xs tracking-wider text-secondary" for="dob">Date of Birth</label>
+        <label class="field-label" for="dob">Date of Birth</label>
         <input
           formControlName="dob"
           id="dob"
           type="date"
           [max]="maxDob"
-          class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface"
+          class="field-input"
         />
         @if (signupForm.controls.dob.touched && signupForm.controls.dob.invalid) {
           @if (signupForm.controls.dob.errors?.['minAge']) {
-            <p class="font-geist text-xs text-error">You must be at least 18 years old to create an account.</p>
+            <p class="text-xs text-error">You must be at least 18 years old to create an account.</p>
           } @else {
-            <p class="font-geist text-xs text-error">Please select a valid date of birth.</p>
+            <p class="text-xs text-error">Please select a valid date of birth.</p>
           }
         }
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
         <div class="flex flex-col gap-1">
-          <label class="font-geist-mono text-xs tracking-wider text-secondary" for="password">Password</label>
-          <input
-            formControlName="password"
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface"
-          />
+          <label class="field-label" for="password">Password</label>
+          <div class="relative">
+            <input
+              formControlName="password"
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              placeholder="••••••••"
+              class="field-input pr-12"
+            />
+            <button
+              type="button"
+              (click)="showPassword.set(!showPassword())"
+              class="absolute right-1 top-1/2 -translate-y-1/2 flex size-11 items-center justify-center rounded-full text-on-surface-variant hover:text-primary"
+              [attr.aria-label]="showPassword() ? 'Hide passwords' : 'Show passwords'"
+              [attr.aria-pressed]="showPassword()"
+            >
+              <span class="material-symbols-outlined text-[20px]">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
         </div>
         <div class="flex flex-col gap-1">
-          <label class="font-geist-mono text-xs tracking-wider text-secondary" for="confirm_password">Confirm</label>
+          <label class="field-label" for="confirm_password">Confirm</label>
           <input
             formControlName="confirm_password"
             id="confirm_password"
-            type="password"
+            [type]="showPassword() ? 'text' : 'password'"
             placeholder="••••••••"
-            class="w-full bg-surface-container-lowest border border-hairline rounded px-3 py-[10px] font-geist text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-shadow placeholder:text-outline-variant dark:bg-surface-container dark:border-hairline-strong dark:text-on-surface"
+            class="field-input"
           />
         </div>
       </div>
@@ -175,27 +186,27 @@
             formControlName="terms_accepted"
             type="checkbox"
             id="terms_accepted"
-            class="mt-0.5 size-4 rounded border-hairline-strong accent-brand text-primary focus:ring-1 focus:ring-brand dark:accent-white dark:border-hairline dark:bg-surface-container cursor-pointer"
+            class="mt-0.5 size-4 rounded border-hairline-strong accent-brand text-primary focus:ring-1 focus:ring-brand cursor-pointer"
           />
-          <span class="font-geist text-xs leading-5 text-on-surface-variant">
+          <span class="text-xs leading-5 text-on-surface-variant">
             I agree to the
-            <a routerLink="/terms-and-conditions" target="_blank" rel="noopener noreferrer" class="font-medium text-primary hover:underline dark:text-white">Terms and Conditions</a>
+            <a routerLink="/terms-and-conditions" target="_blank" rel="noopener noreferrer" class="font-semibold text-link hover:underline">Terms and Conditions</a>
             and
-            <a routerLink="/privacy-policy" target="_blank" rel="noopener noreferrer" class="font-medium text-primary hover:underline dark:text-white">Privacy Policy</a>.
+            <a routerLink="/privacy-policy" target="_blank" rel="noopener noreferrer" class="font-semibold text-link hover:underline">Privacy Policy</a>.
           </span>
         </label>
         @if (signupForm.controls.terms_accepted.touched && signupForm.controls.terms_accepted.invalid) {
-          <p class="font-geist text-xs text-error">You must agree to the Terms and Conditions and Privacy Policy to create an account.</p>
+          <p class="text-xs text-error">You must agree to the Terms and Conditions and Privacy Policy to create an account.</p>
         }
       </div>
 
       <button
         type="submit"
         [disabled]="signupForm.invalid || loading() || !otpVerified()"
-        class="flex justify-center items-center gap-2 w-full bg-brand text-on-brand font-geist text-sm font-medium rounded-full py-[10px] mt-2 transition-colors active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+        class="btn-primary flex h-12 w-full items-center justify-center gap-2 text-[15px] active:scale-[0.98] mt-2"
       >
         @if (loading()) {
-          <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white dark:border-black/40 dark:border-t-black"></span>
+          <span class="size-4 animate-spin rounded-full border-2 border-on-brand/40 border-t-on-brand"></span>
         }
         Register
       </button>

@@ -21,6 +21,7 @@ export class ForgotPassword {
 
   readonly step = signal<'email' | 'verify'>('email');
   readonly loading = signal(false);
+  readonly showPassword = signal(false);
   readonly error = signal('');
 
   readonly emailForm = this.fb.nonNullable.group({
