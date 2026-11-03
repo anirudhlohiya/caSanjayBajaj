@@ -18,12 +18,12 @@
   }
 
   <!-- TopAppBar -->
-  <header class="w-full sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-hairline pt-4 pb-2">
-    <div class="flex items-center gap-1 px-4 max-w-container-max mx-auto">
+  <header class="w-full sticky top-0 z-50 bg-surface-container-lowest border-b border-hairline py-2">
+    <div class="flex min-h-12 items-center gap-1 px-4 max-w-container-max mx-auto">
       @if (canGoBack()) {
         <button
           (click)="goBack()"
-          class="flex size-9 shrink-0 -ml-1 items-center justify-center rounded-full text-primary hover:bg-canvas-soft transition-colors active:scale-95"
+          class="flex size-11 shrink-0 -ml-2.5 items-center justify-center rounded-full text-primary hover:bg-canvas-soft transition-colors active:scale-95"
           [attr.aria-label]="'HEADER.BACK' | translate"
         >
           <span class="material-symbols-outlined text-[22px]">arrow_back</span>
@@ -31,23 +31,23 @@
       }
       <div class="flex min-w-0 flex-1 flex-col">
         @if (header().titleKey; as title) {
-          <span class="truncate font-bold text-lg text-primary">{{ title | translate: headerParams() }}</span>
+          <span class="truncate font-semibold text-xl tracking-tight text-primary">{{ title | translate: headerParams() }}</span>
           @if (header().subtitleKey; as subtitle) {
-            <span class="truncate text-xs text-on-surface-variant">{{ subtitle | translate }}</span>
+            <span class="truncate text-[13px] text-on-surface-variant">{{ subtitle | translate }}</span>
           }
         }
       </div>
-      <div class="flex shrink-0 items-center gap-3">
-        <button routerLink="/notifications" class="relative p-2 rounded-full hover:bg-canvas-soft transition-colors active:scale-95" [attr.aria-label]="'HEADER.NOTIFICATIONS' | translate">
+      <div class="flex shrink-0 items-center -mr-2">
+        <button routerLink="/notifications" class="relative flex size-11 items-center justify-center rounded-full hover:bg-canvas-soft transition-colors active:scale-95" [attr.aria-label]="'HEADER.NOTIFICATIONS' | translate">
           <span class="material-symbols-outlined text-primary text-[24px]">notifications</span>
           @if (unreadCount() > 0) {
-            <span class="absolute right-0.5 top-0.5 flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold leading-none text-on-error">
+            <span class="absolute right-1 top-1 flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold leading-none text-[#0a1530] ring-2 ring-surface-container-lowest">
               {{ unreadCount() > 99 ? '99+' : unreadCount() }}
             </span>
           }
         </button>
-        <button routerLink="/profile" class="p-1 rounded-full hover:bg-canvas-soft transition-colors active:scale-95" [attr.aria-label]="'HEADER.PROFILE' | translate">
-          <span class="material-symbols-outlined text-primary text-[28px]">account_circle</span>
+        <button routerLink="/profile" class="flex size-11 items-center justify-center rounded-full hover:bg-canvas-soft transition-colors active:scale-95" [attr.aria-label]="'HEADER.PROFILE' | translate">
+          <span class="material-symbols-outlined text-primary text-[26px]">account_circle</span>
         </button>
       </div>
     </div>
@@ -61,7 +61,7 @@
     <!-- 
     <button
       (click)="router.navigate(['/documents/upload'])"
-      class="fixed bottom-[88px] right-md w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center md:hidden z-40 active:scale-95 transition-transform hover:opacity-90"
+      class="fixed bottom-[88px] right-md w-14 h-14 bg-brand text-on-brand rounded-full shadow-lg flex items-center justify-center md:hidden z-40 active:scale-95 transition-transform hover:opacity-90"
       aria-label="Upload documents"
     >
       <span class="material-symbols-outlined text-[28px]">add</span>
@@ -70,20 +70,22 @@
   </main>
 
   <!-- BottomNavBar (Always visible, constrained to mobile width on desktop) -->
-  <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full sm:max-w-[420px] z-50 border-t border-hairline bg-surface/95 backdrop-blur-lg" style="padding-bottom: env(safe-area-inset-bottom);">
-    <div class="flex justify-around items-center h-16 px-2">
+  <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full sm:max-w-[420px] z-50 border-t border-hairline bg-surface-container-lowest" style="padding-bottom: env(safe-area-inset-bottom);">
+    <div class="flex justify-around items-stretch h-[68px] px-1 py-2">
       @for (item of navItems; track item.label) {
         <a
           [routerLink]="item.route"
           routerLinkActive="active"
           #rla="routerLinkActive"
           [class]="
-            'flex flex-col items-center justify-center w-16 h-full transition-all ' +
-            (rla.isActive ? 'text-primary font-medium' : 'text-on-surface-variant')
+            'flex flex-1 flex-col items-center justify-center gap-0.5 transition-colors ' +
+            (rla.isActive ? 'text-primary font-semibold' : 'text-on-surface-variant font-medium')
           "
         >
-          <span class="material-symbols-outlined text-[24px] mb-0.5" [style.font-variation-settings]="rla.isActive ? '\'FILL\' 1' : ''">{{ item.icon }}</span>
-          <span class="text-[10px]">{{ item.labelKey | translate }}</span>
+          <span [class]="'flex h-8 w-14 items-center justify-center rounded-full transition-colors ' + (rla.isActive ? 'bg-brand-tint text-brand-ink' : '')">
+            <span class="material-symbols-outlined text-[22px]" [style.font-variation-settings]="rla.isActive ? '\'FILL\' 1' : ''">{{ item.icon }}</span>
+          </span>
+          <span class="text-[11.5px]">{{ item.labelKey | translate }}</span>
         </a>
       }
     </div>
@@ -94,7 +96,7 @@
 @if (push.showPrompt()) {
   <div class="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/40">
     <div class="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl bg-surface-container-lowest p-6 pb-8 sm:pb-6 shadow-xl text-center" role="dialog" aria-modal="true" aria-labelledby="push-title">
-      <span class="mx-auto flex size-14 items-center justify-center rounded-full bg-primary text-on-primary">
+      <span class="mx-auto flex size-14 items-center justify-center rounded-full bg-brand text-on-brand">
         <span class="material-symbols-outlined text-[28px]">notifications_active</span>
       </span>
       <h2 id="push-title" class="mt-3 text-lg font-bold text-primary">Get filing alerts and reminders</h2>
@@ -103,7 +105,7 @@
       </p>
       <div class="mt-5 grid grid-cols-2 gap-2">
         <button (click)="answerPushPrompt(false)" class="rounded-xl border border-card-border py-3 text-sm font-medium text-primary">Not now</button>
-        <button (click)="answerPushPrompt(true)" class="rounded-xl bg-primary py-3 text-sm font-semibold text-on-primary">Turn on</button>
+        <button (click)="answerPushPrompt(true)" class="rounded-xl bg-brand py-3 text-sm font-semibold text-on-brand">Turn on</button>
       </div>
     </div>
   </div>

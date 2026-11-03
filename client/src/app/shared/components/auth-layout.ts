@@ -7,34 +7,46 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="bg-surface-container-lowest text-on-surface font-geist min-h-dvh flex flex-col items-center justify-center antialiased w-full">
-      <div class="w-full max-w-md px-4 sm:px-6">
-        <!-- Logo -->
+    <!-- One background for the whole screen: no colour split between the logo and the form. -->
+    <div class="bg-surface text-on-surface min-h-dvh w-full flex justify-center antialiased">
+      <div class="w-full max-w-md px-6 pt-10 pb-6 flex flex-col">
         @if (showLogo()) {
-          <div class="flex justify-center mb-8">
-            <img alt="S N Bajaj And Co Logo" class="h-24 sm:h-32 w-auto object-contain" src="/logo-transparent.png" onerror="this.src='/logo-login.png'">
+          <div class="flex flex-col items-center text-center gap-2.5">
+            <img
+              alt="S N Bajaj And Co logo"
+              src="/logo-round.webp"
+              width="92"
+              height="92"
+              class="size-[92px] rounded-full ring-2 ring-gold"
+            />
+            <p class="mt-1.5 text-[21px] font-semibold tracking-tight text-brand-ink">S N Bajaj &amp; Co</p>
+            <span class="h-0.5 w-9 rounded-full bg-gold" aria-hidden="true"></span>
+            <p class="text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
+              Chartered Accountants · Surat
+            </p>
           </div>
         }
-        
-        <!-- Auth Container -->
-        <div [class]="'bg-canvas-soft border border-hairline rounded-lg px-6 pb-6 sm:px-8 sm:pb-8 shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_4px_6px_-1px_rgba(0,0,0,0.02)] dark:shadow-none w-full ' + (showLogo() ? 'pt-6 sm:pt-8' : 'pt-10 sm:pt-12')">
-          @if (heroTitle()) {
-            <h1 class="font-geist font-semibold text-2xl tracking-[-0.96px] text-center mb-2">{{ heroTitle() }}</h1>
-          }
-          @if (heroSubtitle()) {
-            <p class="font-geist text-sm text-on-surface-variant text-center mb-6">{{ heroSubtitle() }}</p>
-          }
-          
+
+        @if (heroTitle()) {
+          <h1 [class]="'text-[22px] font-semibold tracking-tight text-primary ' + (showLogo() ? 'mt-9' : '')">
+            {{ heroTitle() }}
+          </h1>
+        }
+        @if (heroSubtitle()) {
+          <p class="mt-1 text-sm text-on-surface-variant">{{ heroSubtitle() }}</p>
+        }
+
+        <div class="mt-6">
           <ng-content></ng-content>
         </div>
-        
-        <footer class="mt-8 text-center space-y-2">
-          <div class="flex items-center justify-center gap-3 font-geist text-xs text-on-surface-variant">
-            <a routerLink="/terms-and-conditions" class="hover:text-primary dark:hover:text-white transition-colors">Terms & Conditions</a>
-            <span>•</span>
-            <a routerLink="/privacy-policy" class="hover:text-primary dark:hover:text-white transition-colors">Privacy Policy</a>
+
+        <footer class="mt-auto pt-10 text-center space-y-1.5">
+          <div class="flex items-center justify-center gap-3 text-xs text-on-surface-variant">
+            <a routerLink="/terms-and-conditions" class="py-2 hover:text-primary transition-colors">Terms &amp; Conditions</a>
+            <span aria-hidden="true">·</span>
+            <a routerLink="/privacy-policy" class="py-2 hover:text-primary transition-colors">Privacy Policy</a>
           </div>
-          <p class="font-geist-mono text-xs tracking-wider text-secondary">Provided to you by S N Bajaj And Co</p>
+          <p class="text-xs text-on-surface-variant">Provided to you by S N Bajaj And Co</p>
         </footer>
       </div>
     </div>

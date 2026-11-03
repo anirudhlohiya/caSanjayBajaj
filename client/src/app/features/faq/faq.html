@@ -9,10 +9,10 @@
   @if (categories().length > 1) {
     <div class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4">
       <button (click)="category.set('all')" class="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
-        [class]="category() === 'all' ? 'border-primary bg-primary text-on-primary' : 'border-card-border text-on-surface-variant'">All</button>
+        [class]="category() === 'all' ? 'border-brand bg-brand text-on-brand' : 'border-card-border text-on-surface-variant'">All</button>
       @for (c of categories(); track c.key) {
         <button (click)="category.set(c.key)" class="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
-          [class]="category() === c.key ? 'border-primary bg-primary text-on-primary' : 'border-card-border text-on-surface-variant'">{{ c.label }}</button>
+          [class]="category() === c.key ? 'border-brand bg-brand text-on-brand' : 'border-card-border text-on-surface-variant'">{{ c.label }}</button>
       }
     </div>
   }

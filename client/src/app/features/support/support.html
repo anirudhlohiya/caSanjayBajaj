@@ -1,7 +1,7 @@
 <div class="max-w-2xl mx-auto px-4 pt-4 pb-6">
   <div class="flex justify-end mb-4">
     <a routerLink="/support/new"
-       class="inline-flex items-center gap-1 px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-medium">
+       class="inline-flex items-center gap-1 px-4 py-2 bg-brand text-on-brand rounded-lg text-sm font-medium">
       <span class="material-symbols-outlined" style="font-size: 18px">add</span>
       New Ticket
     </a>
@@ -11,7 +11,7 @@
     <button
       class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
       [class.bg-on-surface]="statusFilter() === ''"
-      [class.text-on-primary]="statusFilter() === ''"
+      [class.text-on-brand]="statusFilter() === ''"
       [class.bg-surface-container]="statusFilter() !== ''"
       [class.text-on-surface-variant]="statusFilter() !== ''"
       (click)="filterByStatus('')"

@@ -57,7 +57,7 @@
       </section>
 
       <a routerLink="/services"
-        class="flex items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-semibold text-on-primary shadow-card active:scale-[0.99] transition-transform">
+        class="flex items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-semibold text-on-brand shadow-card active:scale-[0.99] transition-transform">
         <span class="material-symbols-outlined text-[20px]">explore</span>
         Explore more services
         <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -69,7 +69,7 @@
           <div class="flex" [class]="msg.sender_type === 'user' ? 'justify-end' : 'justify-start'">
             <div class="max-w-[85%] rounded-2xl px-4 py-3"
               [class]="msg.sender_type === 'user'
-                ? 'bg-primary text-on-primary rounded-br-md'
+                ? 'bg-brand text-on-brand rounded-br-md'
                 : 'border border-card-border bg-surface-container-lowest text-primary rounded-bl-md shadow-card'">
               @if (msg.sender_type === 'admin') {
                 <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-on-surface-variant">S N Bajaj And Co</p>
@@ -78,7 +78,7 @@
               @for (att of msg.attachments ?? []; track att.id) {
                 <button (click)="download(att)" [disabled]="downloading()"
                   class="mt-2 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left disabled:opacity-50"
-                  [class]="msg.sender_type === 'user' ? 'bg-on-primary/15' : 'bg-surface-container'">
+                  [class]="msg.sender_type === 'user' ? 'bg-on-brand/15' : 'bg-surface-container'">
                   <span class="material-symbols-outlined text-[18px]">description</span>
                   <span class="min-w-0 flex-1">
                     <span class="block truncate text-xs font-medium">{{ att.original_filename }}</span>
@@ -106,7 +106,7 @@
               Close request
             </button>
             <button (click)="sendReply()" [disabled]="!replyText().trim() || sending()"
-              class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-on-primary disabled:opacity-40">
+              class="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-on-brand disabled:opacity-40">
               <span class="material-symbols-outlined text-[18px]">send</span>
               {{ sending() ? 'Sending…' : 'Send' }}
             </button>

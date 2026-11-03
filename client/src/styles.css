@@ -4,53 +4,80 @@
 @custom-variant dark (&:is(.dark, .dark *));
 
 @theme {
-  /* Financial Services Portal Clean UI Colors */
-  --color-surface: #ffffff;
-  --color-surface-dim: #f9f9f9;
+  /* S N Bajaj brand: logo navy + gold. Light values here, dark ones under .dark below. */
+  --color-surface: #f5f6f9;
+  --color-surface-dim: #eef1f6;
   --color-surface-bright: #ffffff;
+  --color-surface-variant: #eef1f6;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #fafafa;
-  --color-surface-container: #f5f5f5;
-  --color-surface-container-high: #f0f0f0;
-  --color-surface-container-highest: #ebebeb;
-  
-  --color-on-surface: #171717;
-  --color-on-surface-variant: #666666;
-  --color-inverse-surface: #171717;
-  --color-inverse-on-surface: #ffffff;
-  
-  --color-outline: #d4d4d4;
-  --color-outline-variant: #ebebeb;
-  
-  --color-primary: #000000;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #f5f5f5;
-  --color-on-primary-container: #000000;
-  
-  --color-secondary: #0070f3;
-  --color-on-secondary: #ffffff;
-  --color-secondary-container: #e6f0fd;
-  --color-on-secondary-container: #0070f3;
-  
-  --color-background: #fafafa;
-  --color-on-background: #171717;
-  
-  --color-error: #ee0000;
-  --color-on-error: #ffffff;
-  
-  --color-link: #0070f3;
-  --color-canvas-soft: #fafafa;
-  --color-canvas-inset: #f5f5f5;
-  --color-hairline: #ebebeb;
-  --color-hairline-strong: #a3a3a3;
-  --color-card-border: #f0f0f0;
+  --color-surface-container-low: #f5f6f9;
+  --color-surface-container: #eef1f6;
+  --color-surface-container-high: #e8ebf2;
+  --color-surface-container-highest: #e2e6ee;
 
-  /* Fonts */
-  --font-geist: 'Inter', sans-serif;
-  --font-geist-mono: 'Geist Mono', monospace;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-headline: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --color-on-surface: #0d1730;
+  --color-on-surface-variant: #5a6479;
+  --color-inverse-surface: #0d1730;
+  --color-inverse-on-surface: #ffffff;
+
+  --color-outline: #c9d0dd;
+  --color-outline-variant: #e2e6ee;
+
+  /* primary = strong text (navy / near-white); brand = buttons and highlights (navy / gold) */
+  --color-primary: #001a4c;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #e8edf7;
+  --color-on-primary-container: #001a4c;
+  --color-brand: #001a4c;
+  --color-on-brand: #ffffff;
+  --color-brand-tint: #e8edf7;
+  --color-brand-ink: #001a4c;
+  --color-gold: #c9a03a;
+  --color-gold-ink: #8a6514;
+  --color-gold-tint: #f8f0dc;
+  --color-hero-from: #0e2e73;
+  --color-hero-to: #001a4c;
+
+  --color-secondary: #1d3f8f;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e8edf7;
+  --color-on-secondary-container: #1d3f8f;
+
+  --color-background: #f5f6f9;
+  --color-on-background: #0d1730;
+
+  --color-error: #b42318;
+  --color-on-error: #ffffff;
+  --color-error-container: #fde8e6;
+  --color-on-error-container: #b42318;
+
+  --color-link: #1d3f8f;
+  --color-canvas-soft: #f5f6f9;
+  --color-canvas-inset: #eef1f6;
+  --color-hairline: #e2e6ee;
+  --color-hairline-strong: #97a2ba;
+  --color-card-border: #e2e6ee;
+
+  /* Greys tinted toward the brand navy; the same scale serves both themes. */
+  --color-neutral-50: #f5f6f9;
+  --color-neutral-100: #eef1f6;
+  --color-neutral-200: #e2e6ee;
+  --color-neutral-300: #c9d0dd;
+  --color-neutral-400: #97a2ba;
+  --color-neutral-500: #6b7590;
+  --color-neutral-600: #4a556d;
+  --color-neutral-700: #333e57;
+  --color-neutral-800: #182440;
+  --color-neutral-900: #0e1629;
+  --color-neutral-950: #060b17;
+
+  /* Fonts: IBM Plex Sans, with matching faces for Hindi and Gujarati */
+  --font-geist: 'IBM Plex Sans', 'IBM Plex Sans Devanagari', 'Noto Sans Gujarati', sans-serif;
+  --font-geist-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-sans: 'IBM Plex Sans', 'IBM Plex Sans Devanagari', 'Noto Sans Gujarati', ui-sans-serif, system-ui, sans-serif;
+  --font-headline: 'IBM Plex Sans', 'IBM Plex Sans Devanagari', 'Noto Sans Gujarati', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', 'IBM Plex Sans Devanagari', 'Noto Sans Gujarati', ui-sans-serif, system-ui, sans-serif;
 
   /* Typography */
   --text-display-xl: 48px;
@@ -132,77 +159,126 @@
 /* Dark mode overrides */
 @layer base {
   .dark {
-    /* Financial Services Portal Dark Mode Overrides */
-    --color-canvas-soft: #111111;
-    --color-canvas-inset: #0a0a0a;
-    --color-hairline: #2a2a2a;
-    --color-hairline-strong: #404040;
-    
-    --color-surface-container-lowest: #000000;
-    --color-surface-container-low: #0a0a0a;
-    --color-surface-container: #171717;
-    --color-surface-container-high: #262626;
-    --color-surface-container-highest: #2a2a2a;
-    
-    --color-surface: #0a0a0a;
-    --color-surface-dim: #111111;
-    --color-surface-bright: #171717;
-    
-    --color-on-surface: #ffffff;
-    --color-on-surface-variant: #a3a3a3;
-    --color-inverse-surface: #ffffff;
-    --color-inverse-on-surface: #171717;
-    
-    --color-outline: #404040;
-    --color-outline-variant: #2a2a2a;
-    --color-card-border: #2a2a2a;
-    
-    --color-primary: #ffffff;
-    --color-on-primary: #000000;
-    --color-primary-container: #262626;
-    --color-on-primary-container: #ffffff;
-    
-    --color-secondary-container: #0b2546;
-    --color-on-secondary-container: #7cb8ff;
+    --color-canvas-soft: #0a1120;
+    --color-canvas-inset: #060b17;
+    --color-hairline: #1f2b47;
+    --color-hairline-strong: #2c3a5c;
 
-    --color-background: #000000;
-    --color-on-background: #ffffff;
-    
-    background-color: #000000;
-    color: #ffffff;
+    --color-surface-variant: #152039;
+    --color-surface-container-lowest: #0e1629;
+    --color-surface-container-low: #0a1120;
+    --color-surface-container: #152039;
+    --color-surface-container-high: #1a2546;
+    --color-surface-container-highest: #1f2b47;
+
+    --color-surface: #060b17;
+    --color-surface-dim: #0a1120;
+    --color-surface-bright: #152039;
+
+    --color-on-surface: #eaeef7;
+    --color-on-surface-variant: #97a2ba;
+    --color-inverse-surface: #eaeef7;
+    --color-inverse-on-surface: #0d1730;
+
+    --color-outline: #2c3a5c;
+    --color-outline-variant: #1f2b47;
+    --color-card-border: #1f2b47;
+
+    --color-primary: #eaeef7;
+    --color-on-primary: #0a1530;
+    --color-primary-container: #1a2546;
+    --color-on-primary-container: #eaeef7;
+    --color-brand: #d4af55;
+    --color-on-brand: #0a1530;
+    --color-brand-tint: #1a2546;
+    --color-brand-ink: #e0be6a;
+    --color-gold-ink: #e0be6a;
+    --color-gold-tint: #2a2414;
+    --color-hero-from: #0c2560;
+    --color-hero-to: #06132f;
+
+    --color-secondary: #9db5ee;
+    --color-on-secondary: #0a1530;
+    --color-secondary-container: #16224a;
+    --color-on-secondary-container: #9db5ee;
+    --color-link: #9db5ee;
+
+    --color-error: #f2877c;
+    --color-on-error: #0a1530;
+    --color-error-container: #331614;
+    --color-on-error-container: #f2877c;
+
+    --color-background: #060b17;
+    --color-on-background: #eaeef7;
+
+    background-color: #060b17;
+    color: #eaeef7;
   }
 }
 
 @layer components {
   .card {
-    background-color: #ffffff;
-    border: 1px solid #ebebeb;
-    border-radius: 0.75rem;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.02), 0 4px 16px rgba(0,0,0,0.01);
+    background-color: var(--color-surface-container-lowest);
+    border: 1px solid var(--color-card-border);
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(13, 23, 48, 0.04), 0 6px 20px rgba(13, 23, 48, 0.05);
   }
 
   .dark .card {
-    background-color: #171717;
-    border-color: #2a2a2a;
+    box-shadow: none;
   }
 
   .btn-primary {
-    background-color: #171717;
-    color: #ffffff;
+    background-color: var(--color-brand);
+    color: var(--color-on-brand);
     font-size: 0.875rem;
     font-weight: 600;
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     cursor: pointer;
-    transition: background-color 0.15s;
+    transition: opacity 0.15s;
   }
 
   .btn-primary:hover:not(:disabled) {
-    background-color: #262626;
+    opacity: 0.9;
   }
 
   .btn-primary:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  /* Form fields shared by every screen: 48px tall, brand focus ring. */
+  .field-label {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--color-on-surface);
+  }
+
+  .field-input {
+    width: 100%;
+    height: 3rem;
+    border: 1px solid var(--color-card-border);
+    border-radius: 0.75rem;
+    background-color: var(--color-surface-container-lowest);
+    padding: 0 0.875rem;
+    font-size: 15px;
+    color: var(--color-on-surface);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .field-input::placeholder {
+    color: var(--color-on-surface-variant);
+    opacity: 0.75;
+  }
+
+  .field-input:focus {
+    outline: none;
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand) 18%, transparent);
+  }
+
+  .field-input:disabled {
+    opacity: 0.6;
   }
 
   .size-18 {

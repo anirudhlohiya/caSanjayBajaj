@@ -1,0 +1,7 @@
+{
+  "/api": {
+    "target": "https://app.snbajaj.com",
+    "secure": true,
+    "changeOrigin": true
+  }
+}

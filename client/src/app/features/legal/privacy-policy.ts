@@ -40,7 +40,7 @@ import { AuthService } from '../../core/services/auth.service';
             }
             <a
               [routerLink]="homeRoute"
-              class="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary transition-opacity hover:opacity-90 dark:bg-white dark:text-black"
+              class="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-on-brand transition-opacity hover:opacity-90"
             >
               {{ homeLabel }}
             </a>

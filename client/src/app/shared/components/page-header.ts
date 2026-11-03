@@ -17,11 +17,11 @@ import { NavHistoryService } from '../../core/services/nav-history.service';
         </button>
       }
       <div class="min-w-0 flex-1">
-        <h1 class="text-xl font-bold tracking-tight text-neutral-950 dark:text-white leading-tight">
+        <h1 class="text-xl font-semibold tracking-tight text-primary leading-tight">
           {{ title() }}
         </h1>
         @if (subtitle()) {
-          <p class="text-sm text-neutral-500 dark:text-neutral-400 leading-snug text-wrap">
+          <p class="text-[13px] text-on-surface-variant leading-snug text-wrap">
             {{ subtitle() }}
           </p>
         }

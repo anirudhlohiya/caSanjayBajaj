@@ -9,6 +9,13 @@
       "port": 4201
     },
     {
+      "name": "client-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--prefix", "client", "ng", "serve", "--project", "client", "--configuration", "preview", "--host", "127.0.0.1", "--port", "4202"],
+      "cwd": "client",
+      "port": 4202
+    },
+    {
       "name": "website",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["--prefix", "website", "astro", "preview", "--root", "website", "--port", "4321"],

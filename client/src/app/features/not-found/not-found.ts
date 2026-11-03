@@ -20,7 +20,7 @@ import { AuthService } from '../../core/services/auth.service';
         <!-- 404 Illustration / Graphic Container -->
         <div class="relative mx-auto mb-6 flex size-24 items-center justify-center rounded-2xl border border-hairline bg-canvas-soft shadow-sm dark:border-hairline-strong dark:bg-surface-container">
           <span class="material-symbols-outlined text-[44px] text-secondary">travel_explore</span>
-          <span class="absolute -top-2 -right-2 flex items-center justify-center rounded-full bg-primary px-2 py-0.5 font-geist-mono text-[11px] font-bold text-on-primary dark:bg-white dark:text-black">
+          <span class="absolute -top-2 -right-2 flex items-center justify-center rounded-full bg-brand px-2 py-0.5 font-geist-mono text-[11px] font-bold text-on-brand">
             404
           </span>
         </div>
@@ -37,7 +37,7 @@ import { AuthService } from '../../core/services/auth.service';
         <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <a
             [routerLink]="homeRoute"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-on-primary transition-all hover:opacity-90 active:scale-[0.98] dark:bg-white dark:text-black"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-brand px-6 text-sm font-semibold text-on-brand transition-all hover:opacity-90 active:scale-[0.98]"
           >
             <span class="material-symbols-outlined text-[18px]">home</span>
             <span>{{ homeLabel }}</span>

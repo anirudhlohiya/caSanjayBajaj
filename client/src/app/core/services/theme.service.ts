@@ -40,10 +40,10 @@ export class ThemeService {
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (dark) {
       root.classList.add('dark');
-      metaThemeColor?.setAttribute('content', '#0a0a0a');
+      metaThemeColor?.setAttribute('content', '#0e1629');
     } else {
       root.classList.remove('dark');
-      metaThemeColor?.setAttribute('content', '#fafafa');
+      metaThemeColor?.setAttribute('content', '#ffffff');
     }
     // Android app (MainActivity.kt): paint the status/navigation bars to match.
     (window as Window & { NativeTheme?: { setDark(dark: boolean): void } }).NativeTheme?.setDark(dark);

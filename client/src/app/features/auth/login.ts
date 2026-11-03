@@ -21,6 +21,7 @@ export class Login {
 
   readonly loading = signal(false);
   readonly error = signal('');
+  readonly showPassword = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],

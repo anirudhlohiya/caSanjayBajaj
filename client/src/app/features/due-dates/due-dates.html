@@ -25,12 +25,12 @@
       }
       <div class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4">
         <button (click)="category.set('all')" class="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
-          [class]="category() === 'all' ? 'border-primary bg-primary text-on-primary' : 'border-card-border text-on-surface-variant'">
+          [class]="category() === 'all' ? 'border-brand bg-brand text-on-brand' : 'border-card-border text-on-surface-variant'">
           All
         </button>
         @for (k of categoryKeys; track k) {
           <button (click)="category.set(k)" class="shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
-            [class]="category() === k ? 'border-primary bg-primary text-on-primary' : 'border-card-border text-on-surface-variant'">
+            [class]="category() === k ? 'border-brand bg-brand text-on-brand' : 'border-card-border text-on-surface-variant'">
             <span class="size-2 rounded-full" [class]="categories[k].dot"></span>
             {{ categories[k].label }}
           </button>
@@ -47,14 +47,14 @@
             @let left = daysLeft(r.due_date);
             <button (click)="jumpTo(r)"
               class="snap-start shrink-0 w-[78%] max-w-[300px] rounded-2xl p-4 text-left shadow-card transition-transform active:scale-[0.98]"
-              [class]="first ? 'bg-primary text-on-primary' : 'border border-card-border bg-surface-container-lowest text-primary'">
+              [class]="first ? 'bg-brand text-on-brand' : 'border border-card-border bg-surface-container-lowest text-primary'">
               <div class="flex items-center justify-between gap-2">
                 <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide opacity-80">
                   <span class="size-2 rounded-full" [class]="categories[r.category].dot"></span>
                   {{ categories[r.category].label }}
                 </span>
                 <span class="rounded-full px-2 py-0.5 text-[11px] font-bold"
-                  [class]="left <= 3 ? 'bg-rose-500 text-white' : first ? 'bg-on-primary/15' : 'bg-surface-container'">
+                  [class]="left <= 3 ? 'bg-rose-500 text-white' : first ? 'bg-on-brand/15' : 'bg-surface-container'">
                   {{ dueLabel(r.due_date) }}
                 </span>
               </div>
@@ -94,9 +94,9 @@
           <button (click)="selectDay(d)" class="flex flex-col items-center gap-1 py-1" [attr.aria-label]="fmt(d.iso, { day: 'numeric', month: 'long' })">
             <span class="flex size-9 items-center justify-center rounded-full text-sm tabular-nums transition-colors"
               [class]="selectedDay() === d.iso
-                ? 'bg-primary text-on-primary font-bold'
+                ? 'bg-brand text-on-brand font-bold'
                 : d.isToday
-                  ? 'ring-2 ring-primary text-primary font-bold'
+                  ? 'ring-2 ring-brand text-primary font-bold'
                   : d.inMonth
                     ? (d.categories.length ? 'text-primary font-semibold' : 'text-primary')
                     : 'text-on-surface-variant/40'">

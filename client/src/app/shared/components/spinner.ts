@@ -7,7 +7,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   template: `
     <div class="flex items-center justify-center py-10">
       <div
-        class="size-8 animate-spin rounded-full border-[3px] border-primary/20 border-t-primary"
+        class="size-8 animate-spin rounded-full border-[3px] border-brand/20 border-t-primary"
       ></div>
     </div>
   `,
