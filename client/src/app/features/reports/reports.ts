@@ -35,6 +35,18 @@ export class Reports {
 
   readonly total = computed(() => this.reports().length);
 
+  /** Reports grouped by filing period, keeping the API's newest-first order. */
+  readonly groups = computed(() => {
+    const groups: { label: string; items: Report[] }[] = [];
+    for (const r of this.reports()) {
+      const label = this.periodLabel(r.filing_period);
+      const g = groups.find((x) => x.label === label);
+      if (g) g.items.push(r);
+      else groups.push({ label, items: [r] });
+    }
+    return groups;
+  });
+
   readonly pendingRequests = computed(() =>
     this.requests().filter((r) => r.status === 'pending'),
   );
