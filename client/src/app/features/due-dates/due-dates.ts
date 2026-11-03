@@ -11,6 +11,7 @@ import { DueDate } from '../../core/models';
 import {
   DUE_DATE_CATEGORIES,
   DUE_DATE_CATEGORY_KEYS,
+  fyOf,
   relevantAudiences,
 } from '../../core/due-date-meta';
 import { Spinner } from '../../shared/components/spinner';
@@ -34,11 +35,6 @@ function parse(isoDate: string): Date {
   return new Date(`${isoDate}T00:00:00`);
 }
 
-/** "2026-27" for dates from 1 Apr 2026 to 31 Mar 2027. */
-function fyOf(d: Date): string {
-  const start = d.getMonth() >= 3 ? d.getFullYear() : d.getFullYear() - 1;
-  return `${start}-${String((start + 1) % 100).padStart(2, '0')}`;
-}
 
 @Component({
   selector: 'app-due-dates',

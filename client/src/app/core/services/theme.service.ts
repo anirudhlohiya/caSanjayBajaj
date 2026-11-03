@@ -35,18 +35,32 @@ export class ThemeService {
     }
   }
 
+  /** Home has a navy top bar; the status bar follows it there. */
+  private hero = false;
+
+  setHero(on: boolean): void {
+    if (on === this.hero) return;
+    this.hero = on;
+    this.applyToDom(this.isDark());
+  }
+
+  /** Status bar colour: the top bar's colour (white / navy card, or the Home navy). */
+  barColor(dark: boolean): string {
+    if (this.hero) return dark ? '#06132f' : '#001a4c';
+    return dark ? '#0e1629' : '#ffffff';
+  }
+
   private applyToDom(dark: boolean): void {
-    const root = document.documentElement;
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (dark) {
-      root.classList.add('dark');
-      metaThemeColor?.setAttribute('content', '#0e1629');
-    } else {
-      root.classList.remove('dark');
-      metaThemeColor?.setAttribute('content', '#ffffff');
-    }
+    document.documentElement.classList.toggle('dark', dark);
+    const color = this.barColor(dark);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', color);
     // Android app (MainActivity.kt): paint the status/navigation bars to match.
-    (window as Window & { NativeTheme?: { setDark(dark: boolean): void } }).NativeTheme?.setDark(dark);
+    // setStatusBar exists from app 1.3.0; older apps only know setDark.
+    const native = (window as Window & {
+      NativeTheme?: { setDark(dark: boolean): void; setStatusBar?(color: string, lightIcons: boolean): void };
+    }).NativeTheme;
+    native?.setDark(dark);
+    native?.setStatusBar?.(color, dark || this.hero);
   }
 
   isDark(): boolean {

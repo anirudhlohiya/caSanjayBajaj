@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
   OnInit,
@@ -12,11 +13,24 @@ import { AuthService } from '../../core/services/auth.service';
 
 import { Spinner } from '../../shared/components/spinner';
 import {
+  DueDatesService,
   ReportsService,
   ServicesOfferedService,
 } from '../../core/services/feature.services';
-import { Report, Service } from '../../core/models';
-import { serviceTileClass } from '../../core/service-palette';
+import { DueDate, Report, Service } from '../../core/models';
+import {
+  DUE_DATE_CATEGORIES,
+  daysUntil,
+  fyOf,
+  nextDue,
+  relevantAudiences,
+} from '../../core/due-date-meta';
+
+/** Local date as YYYY-MM-DD. */
+function todayIso(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -36,8 +50,21 @@ export class Dashboard implements OnInit, OnDestroy {
   /** First six visible services, in the order set in the admin panel. */
   readonly homeServices = signal<Service[]>([]);
   readonly servicesLoading = signal(true);
-  readonly tileClass = serviceTileClass;
   private readonly servicesService = inject(ServicesOfferedService);
+  private readonly dueDatesService = inject(DueDatesService);
+
+  /** Deadlines for this financial year; the "Next due" card shows the nearest one for this client. */
+  private readonly dueDates = signal<DueDate[]>([]);
+  private readonly today = todayIso();
+  readonly categories = DUE_DATE_CATEGORIES;
+  readonly next = computed(() => {
+    const p = this.auth.userProfile();
+    return nextDue(this.dueDates(), this.today, relevantAudiences(p?.user_type, p?.gst_filing_frequency));
+  });
+  readonly nextDays = computed(() => {
+    const n = this.next();
+    return n ? daysUntil(n.due_date, this.today) : 0;
+  });
 
   // Banner logic
   banners = [
@@ -75,6 +102,30 @@ export class Dashboard implements OnInit, OnDestroy {
       this.currentBannerIndex.update(i => (i + 1) % this.banners.length);
     }, 4000);
     void this.loadServices();
+    void this.loadDueDates();
+  }
+
+  private async loadDueDates(): Promise<void> {
+    try {
+      this.dueDates.set(await this.dueDatesService.list(fyOf(new Date())));
+    } catch {
+      this.dueDates.set([]); // the card simply stays hidden
+    }
+  }
+
+  /** "Due today", "1 day left", "4 days left". */
+  daysLabel(days: number): string {
+    if (days <= 0) return 'Due today';
+    return days === 1 ? '1 day left' : `${days} days left`;
+  }
+
+  /** "Sat, 7 Nov" */
+  shortDate(isoDate: string): string {
+    return new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-IN', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    });
   }
 
   private async loadServices(): Promise<void> {

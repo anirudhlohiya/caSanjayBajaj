@@ -6,10 +6,14 @@ import android.app.DownloadManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.view.Gravity
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
@@ -108,6 +112,8 @@ class MainActivity : AppCompatActivity() {
                     WindowInsetsCompat.Type.ime(),
             )
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            statusInset = bars.top
+            paintRoot()
             WindowInsetsCompat.CONSUMED
         }
     }
@@ -138,21 +144,47 @@ class MainActivity : AppCompatActivity() {
     private inner class ThemeBridge {
         @JavascriptInterface
         fun setDark(dark: Boolean) = runOnUiThread { applyBarTheme(dark) }
+
+        /** The portal's top bar colour, e.g. the navy header on Home. Call after setDark. */
+        @JavascriptInterface
+        fun setStatusBar(color: String, lightIcons: Boolean) = runOnUiThread {
+            val parsed = runCatching { Color.parseColor(color) }.getOrNull() ?: return@runOnUiThread
+            statusColor = parsed
+            @Suppress("DEPRECATION")
+            window.statusBarColor = parsed
+            WindowCompat.getInsetsController(window, findViewById(R.id.root)).isAppearanceLightStatusBars = !lightIcons
+            paintRoot()
+        }
     }
 
-    /** Same colours as the portal's theme-color (#0a0a0a dark / #fafafa light). */
+    // Bar colours: the page's card colour (#ffffff / #0e1629), and the status bar on top.
+    private var pageColor = 0xFFFFFFFF.toInt()
+    private var statusColor = pageColor
+    private var statusInset = 0
+
+    /** Android 15+ draws both bars over the root view: page colour, status colour in the top inset. */
+    private fun paintRoot() {
+        findViewById<View>(R.id.root).background = LayerDrawable(
+            arrayOf(ColorDrawable(pageColor), ColorDrawable(statusColor)),
+        ).apply {
+            setLayerGravity(1, Gravity.TOP)
+            setLayerHeight(1, statusInset)
+        }
+    }
+
     @Suppress("DEPRECATION")
     private fun applyBarTheme(dark: Boolean) {
         val root = findViewById<View>(R.id.root)
-        val color = if (dark) 0xFF0A0A0A.toInt() else 0xFFFAFAFA.toInt()
-        root.setBackgroundColor(color)
+        pageColor = if (dark) 0xFF0E1629.toInt() else 0xFFFFFFFF.toInt()
+        statusColor = pageColor
         // Android 14 and older paint the bars from these (15+ ignores them and shows root).
-        window.statusBarColor = color
-        window.navigationBarColor = color
+        window.statusBarColor = pageColor
+        window.navigationBarColor = pageColor
         WindowCompat.getInsetsController(window, root).apply {
             isAppearanceLightStatusBars = !dark
             isAppearanceLightNavigationBars = !dark
         }
+        paintRoot()
     }
 
     @SuppressLint("SetJavaScriptEnabled")

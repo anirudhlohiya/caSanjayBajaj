@@ -18,36 +18,50 @@
   }
 
   <!-- TopAppBar -->
-  <header class="w-full sticky top-0 z-50 bg-surface-container-lowest border-b border-hairline py-2">
+  <!-- On Home the bar is navy (hero) and runs into the Next due band below it. -->
+  <header
+    [class]="
+      'w-full sticky top-0 z-50 py-2 ' +
+      (hero() ? 'bg-hero-to text-white' : 'bg-surface-container-lowest text-primary border-b border-hairline')
+    "
+  >
     <div class="flex min-h-12 items-center gap-1 px-4 max-w-container-max mx-auto">
       @if (canGoBack()) {
         <button
           (click)="goBack()"
-          class="flex size-11 shrink-0 -ml-2.5 items-center justify-center rounded-full text-primary hover:bg-canvas-soft transition-colors active:scale-95"
+          class="flex size-11 shrink-0 -ml-2.5 items-center justify-center rounded-full hover:bg-canvas-soft/10 transition-colors active:scale-95"
           [attr.aria-label]="'HEADER.BACK' | translate"
         >
           <span class="material-symbols-outlined text-[22px]">arrow_back</span>
         </button>
       }
+      @if (hero()) {
+        <img src="/logo-round.webp" alt="" width="40" height="40" class="mr-2 size-10 shrink-0 rounded-full ring-2 ring-gold" />
+      }
       <div class="flex min-w-0 flex-1 flex-col">
         @if (header().titleKey; as title) {
-          <span class="truncate font-semibold text-xl tracking-tight text-primary">{{ title | translate: headerParams() }}</span>
+          <span class="truncate font-semibold text-xl tracking-tight">{{ title | translate: headerParams() }}</span>
           @if (header().subtitleKey; as subtitle) {
-            <span class="truncate text-[13px] text-on-surface-variant">{{ subtitle | translate }}</span>
+            <span [class]="'truncate text-[13px] ' + (hero() ? 'text-white/75' : 'text-on-surface-variant')">{{ subtitle | translate }}</span>
           }
         }
       </div>
       <div class="flex shrink-0 items-center -mr-2">
-        <button routerLink="/notifications" class="relative flex size-11 items-center justify-center rounded-full hover:bg-canvas-soft transition-colors active:scale-95" [attr.aria-label]="'HEADER.NOTIFICATIONS' | translate">
-          <span class="material-symbols-outlined text-primary text-[24px]">notifications</span>
+        <button routerLink="/notifications" class="relative flex size-11 items-center justify-center rounded-full hover:bg-canvas-soft/10 transition-colors active:scale-95" [attr.aria-label]="'HEADER.NOTIFICATIONS' | translate">
+          <span class="material-symbols-outlined text-[24px]">notifications</span>
           @if (unreadCount() > 0) {
-            <span class="absolute right-1 top-1 flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold leading-none text-[#0a1530] ring-2 ring-surface-container-lowest">
+            <span
+              [class]="
+                'absolute right-1 top-1 flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold leading-none text-[#0a1530] ring-2 ' +
+                (hero() ? 'ring-hero-to' : 'ring-surface-container-lowest')
+              "
+            >
               {{ unreadCount() > 99 ? '99+' : unreadCount() }}
             </span>
           }
         </button>
-        <button routerLink="/profile" class="flex size-11 items-center justify-center rounded-full hover:bg-canvas-soft transition-colors active:scale-95" [attr.aria-label]="'HEADER.PROFILE' | translate">
-          <span class="material-symbols-outlined text-primary text-[26px]">account_circle</span>
+        <button routerLink="/profile" class="flex size-11 items-center justify-center rounded-full hover:bg-canvas-soft/10 transition-colors active:scale-95" [attr.aria-label]="'HEADER.PROFILE' | translate">
+          <span class="material-symbols-outlined text-[26px]">account_circle</span>
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   OnDestroy,
   OnInit,
@@ -43,6 +44,9 @@ export class Shell implements OnInit, OnDestroy {
   private readonly navEntry = signal<NavEntry>(resolveNav(this.router.url));
   readonly header = this.navEntry.asReadonly();
   readonly canGoBack = computed(() => this.navEntry().backTo !== null);
+  /** Home gets the navy top bar with the logo. */
+  private readonly url = signal(this.router.url);
+  readonly hero = computed(() => this.url().split(/[?#]/)[0] === '/dashboard');
   readonly headerParams = computed<Record<string, string>>(() => ({
     name: this.firstName(),
   }));
@@ -67,6 +71,7 @@ export class Shell implements OnInit, OnDestroy {
   ];
 
   constructor() {
+    effect(() => this.themeService.setHero(this.hero()));
     window.addEventListener('online', () => {
       this.online.set(true);
       void this.flushQueue();
@@ -94,6 +99,7 @@ export class Shell implements OnInit, OnDestroy {
         .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
         .subscribe((e) => {
           this.navEntry.set(resolveNav(e.urlAfterRedirects));
+          this.url.set(e.urlAfterRedirects);
           void this.notifications.refreshUnread();
         }),
     );
@@ -111,6 +117,7 @@ export class Shell implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.navSub.unsubscribe();
+    this.themeService.setHero(false);
   }
 
   /** Back action for the top bar: the previous page, else the logical parent. */
