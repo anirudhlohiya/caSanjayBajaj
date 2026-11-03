@@ -301,7 +301,7 @@ export const TICKET_CATEGORY_LABELS: Record<TicketCategory, string> = {
 };
 
 export const TICKET_STATUS_COLORS: Record<TicketStatus, string> = {
-  open: 'bg-amber-100 text-amber-800',
-  replied: 'bg-blue-100 text-blue-800',
-  closed: 'bg-neutral-200 text-neutral-600',
+  open: 'bg-gold-tint text-gold-ink',
+  replied: 'bg-brand-tint text-link',
+  closed: 'bg-surface-container text-on-surface-variant',
 };

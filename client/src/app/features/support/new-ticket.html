@@ -1,7 +1,7 @@
 <div class="flex min-h-dvh flex-col bg-surface">
   <div class="mx-auto w-full max-w-2xl flex-1 px-4 pt-4 pb-8">
     @if (error()) {
-      <div class="mb-4 flex items-center gap-2 rounded-lg border border-error/20 bg-error-container px-3 py-2.5 text-body-md text-on-error-container">
+      <div class="mb-4 flex items-center gap-2 rounded-xl bg-error-container px-3 py-2.5 text-sm text-on-error-container" role="alert">
         <span class="material-symbols-outlined text-[18px]">error</span>
         <span>{{ error() }}</span>
       </div>
@@ -9,63 +9,64 @@
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
       <label class="flex flex-col gap-1.5">
-        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Subject</span>
-        <input
-          formControlName="subject"
-          type="text"
-          placeholder="e.g. Need GSTR-1 for March 2026"
-          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
-        />
+        <span class="field-label">Subject</span>
+        <input formControlName="subject" type="text" placeholder="e.g. Need GSTR-1 for March 2026" class="field-input" />
       </label>
 
       <label class="flex flex-col gap-1.5">
-        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Category</span>
-        <select formControlName="category"
-          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none transition focus:border-secondary">
-          @for (cat of categories; track cat[0]) {
-            <option [value]="cat[0]">{{ cat[1] }}</option>
+        <span class="field-label">Category</span>
+        <span class="relative">
+          <select formControlName="category" class="field-input appearance-none cursor-pointer pr-10">
+            @for (cat of categories; track cat[0]) {
+              <option [value]="cat[0]">{{ cat[1] }}</option>
+            }
+          </select>
+          <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant" aria-hidden="true">expand_more</span>
+        </span>
+      </label>
+
+      <!-- Priority: one tap instead of a dropdown -->
+      <div class="flex flex-col gap-1.5">
+        <span class="field-label" id="priority-label">Priority</span>
+        <div class="flex gap-1 rounded-xl bg-surface-container p-1" role="radiogroup" aria-labelledby="priority-label">
+          @for (p of [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']]; track p[0]) {
+            <button
+              type="button"
+              role="radio"
+              [attr.aria-checked]="form.controls.priority.value === p[0]"
+              (click)="form.controls.priority.setValue(p[0])"
+              [class]="
+                'h-10 flex-1 rounded-lg text-sm transition-colors ' +
+                (form.controls.priority.value === p[0] ? 'bg-surface-container-lowest font-semibold text-primary shadow-sm' : 'font-medium text-on-surface-variant')
+              "
+            >{{ p[1] }}</button>
           }
-        </select>
-      </label>
+        </div>
+      </div>
 
       <label class="flex flex-col gap-1.5">
-        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Priority</span>
-        <select formControlName="priority"
-          class="h-12 rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 text-body-lg text-on-surface outline-none transition focus:border-secondary">
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-      </label>
-
-      <label class="flex flex-col gap-1.5">
-        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Message</span>
-        <textarea
-          formControlName="message"
-          rows="5"
-          placeholder="Describe what you need in detail..."
-          class="rounded-[8px] border border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-lg text-on-surface outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 resize-none"
-        ></textarea>
+        <span class="field-label">Message</span>
+        <textarea formControlName="message" rows="5" placeholder="Describe what you need in detail..." class="field-input h-auto resize-none py-3"></textarea>
       </label>
 
       <div class="flex flex-col gap-2">
-        <span class="text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">Attachments (optional)</span>
-        <label
-          class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-outline-variant bg-surface-container-lowest px-4 py-6 text-body-md text-on-surface-variant transition hover:border-secondary"
-        >
-          <span class="material-symbols-outlined text-[22px]">attach_file</span>
+        <span class="field-label">Attachments (optional)</span>
+        <label class="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-outline bg-surface-container-lowest text-sm text-on-surface-variant transition hover:border-brand">
+          <span class="material-symbols-outlined text-[20px]">attach_file</span>
           <span>Tap to add files</span>
           <input type="file" multiple class="hidden" (change)="onFilesSelected($event)" />
         </label>
 
         @if (files().length > 0) {
-          <div class="flex flex-col gap-2">
+          <div class="card overflow-hidden divide-y divide-card-border">
             @for (item of files(); track item.id) {
-              <div class="flex items-center gap-3 rounded-lg border border-card-border bg-surface-container-lowest p-2.5">
-                <span class="material-symbols-outlined text-[20px] text-on-surface-variant">description</span>
+              <div class="flex items-center gap-3 px-3 py-2.5">
+                <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand-ink">
+                  <span class="material-symbols-outlined text-[18px]">description</span>
+                </span>
                 <div class="min-w-0 flex-1">
-                  <p class="truncate text-body-md text-on-surface">{{ item.file.name }}</p>
-                  <p class="text-label-md text-on-surface-variant">
+                  <p class="truncate text-sm text-on-surface">{{ item.file.name }}</p>
+                  <p class="text-xs text-on-surface-variant tabular-nums">
                     {{ formatSize(item.file.size) }}
                     @if (item.status === 'uploading') { · {{ item.progress }}% }
                     @else if (item.status === 'success') { · uploaded }
@@ -73,8 +74,8 @@
                   </p>
                 </div>
                 <button type="button" (click)="removeFile(item.id)"
-                  class="rounded-full p-1 text-on-surface-variant hover:text-error"
-                  [disabled]="saving()">
+                  class="flex size-10 items-center justify-center rounded-full text-on-surface-variant hover:text-error"
+                  [disabled]="saving()" aria-label="Remove file">
                   <span class="material-symbols-outlined text-[18px]">close</span>
                 </button>
               </div>
@@ -86,10 +87,10 @@
       <button
         type="submit"
         [disabled]="form.invalid || saving()"
-        class="mt-2 flex h-12 items-center justify-center gap-2 rounded-[8px] bg-brand text-body-lg font-semibold text-on-brand transition disabled:opacity-50"
+        class="btn-primary mt-2 flex h-12 items-center justify-center gap-2 text-[15px]"
       >
         @if (saving()) {
-          <span class="size-5 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+          <span class="size-5 animate-spin rounded-full border-2 border-on-brand/40 border-t-on-brand"></span>
         }
         Submit Ticket
       </button>

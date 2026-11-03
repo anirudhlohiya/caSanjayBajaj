@@ -1,82 +1,68 @@
-<div class="max-w-2xl mx-auto px-4 pt-4 pb-6">
-  <div class="flex justify-end mb-4">
-    <a routerLink="/support/new"
-       class="inline-flex items-center gap-1 px-4 py-2 bg-brand text-on-brand rounded-lg text-sm font-medium">
-      <span class="material-symbols-outlined" style="font-size: 18px">add</span>
-      New Ticket
-    </a>
+<div class="max-w-2xl mx-auto px-4 pt-4 pb-6 flex flex-col gap-4">
+  <div class="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4" role="group" aria-label="Filter tickets">
+    @for (f of [{ key: '', label: 'All' }, { key: 'open', label: 'Open' }, { key: 'closed', label: 'Closed' }]; track f.key) {
+      <button
+        type="button"
+        (click)="filterByStatus(f.key)"
+        [attr.aria-pressed]="statusFilter() === f.key"
+        [class]="
+          'h-9 shrink-0 rounded-full border px-4 text-sm font-medium transition-colors whitespace-nowrap ' +
+          (statusFilter() === f.key ? 'border-brand bg-brand text-on-brand' : 'border-card-border bg-surface-container-lowest text-on-surface-variant')
+        "
+      >{{ f.label }}</button>
+    }
   </div>
 
-  <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
-    <button
-      class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
-      [class.bg-on-surface]="statusFilter() === ''"
-      [class.text-on-brand]="statusFilter() === ''"
-      [class.bg-surface-container]="statusFilter() !== ''"
-      [class.text-on-surface-variant]="statusFilter() !== ''"
-      (click)="filterByStatus('')"
-    >All</button>
-    <button
-      class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
-      [class.bg-amber-100]="statusFilter() === 'open'"
-      [class.text-amber-800]="statusFilter() === 'open'"
-      [class.bg-surface-container]="statusFilter() !== 'open'"
-      [class.text-on-surface-variant]="statusFilter() !== 'open'"
-      (click)="filterByStatus('open')"
-    >Open</button>
-    <button
-      class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
-      [class.bg-neutral-200]="statusFilter() === 'closed'"
-      [class.dark:bg-neutral-800]="statusFilter() === 'closed'"
-      [class.text-neutral-700]="statusFilter() === 'closed'"
-      [class.dark:text-neutral-300]="statusFilter() === 'closed'"
-      [class.bg-surface-container]="statusFilter() !== 'closed'"
-      [class.text-on-surface-variant]="statusFilter() !== 'closed'"
-      (click)="filterByStatus('closed')"
-    >Closed</button>
-  </div>
+  <a routerLink="/support/new" class="btn-primary flex h-12 items-center justify-center gap-2 text-[15px]">
+    <span class="material-symbols-outlined text-[20px]">add</span>
+    New Ticket
+  </a>
 
   @if (loading()) {
     <app-spinner />
   } @else {
-    <div class="responsive-list">
-      @for (t of tickets(); track t.id) {
-        <div class="card p-4 cursor-pointer active:scale-[0.98] transition-transform h-full" (click)="openTicket(t.id)">
-          <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0 flex-1">
-              <h3 class="text-sm font-semibold text-on-surface truncate">{{ t.subject }}</h3>
-              <p class="text-xs text-on-surface-variant mt-1">
+    @if (tickets().length) {
+      <div class="card overflow-hidden divide-y divide-card-border">
+        @for (t of tickets(); track t.id) {
+          <button type="button" class="flex w-full items-center gap-3 px-4 py-3.5 text-left hover:bg-surface-container-low transition-colors" (click)="openTicket(t.id)">
+            <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-ink">
+              <span class="material-symbols-outlined text-[20px]">confirmation_number</span>
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block truncate font-medium text-on-surface">{{ t.subject }}</span>
+              <span class="block text-[13px] text-on-surface-variant">
                 {{ categoryLabels[t.category] || t.category }} · {{ fmtDate(t.created_at) }}
-              </p>
-            </div>
-            <span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase"
-                  [class]="statusColors[t.status] || ''">
+              </span>
+            </span>
+            <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold capitalize" [class]="statusColors[t.status] || ''">
               {{ t.status }}
             </span>
-          </div>
-        </div>
-      } @empty {
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="card">
         <app-empty-state
           icon="support_agent"
-          message="No support tickets yet"
-          hint="Need help? Create a support ticket and we'll get back to you."
+          title="No support tickets yet"
+          message="Need help? Create a support ticket and we'll get back to you."
         />
-      }
-    </div>
+      </div>
+    }
 
     @if (total() > 20) {
-      <div class="flex items-center justify-between mt-4 px-2">
+      <div class="flex items-center justify-between gap-2">
         <button
           [disabled]="page() <= 1"
           (click)="pageChanged(page() - 1)"
-          class="px-3 py-1.5 text-sm rounded-lg border border-outline-variant disabled:opacity-40">
+          class="h-10 px-4 text-sm font-medium rounded-xl border border-card-border bg-surface-container-lowest disabled:opacity-40">
           Previous
         </button>
         <span class="text-xs text-on-surface-variant">Page {{ page() }} of {{ totalPages() }}</span>
         <button
           [disabled]="page() >= totalPages()"
           (click)="pageChanged(page() + 1)"
-          class="px-3 py-1.5 text-sm rounded-lg border border-outline-variant disabled:opacity-40">
+          class="h-10 px-4 text-sm font-medium rounded-xl border border-card-border bg-surface-container-lowest disabled:opacity-40">
           Next
         </button>
       </div>

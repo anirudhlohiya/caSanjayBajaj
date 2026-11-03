@@ -1,18 +1,18 @@
 <div class="mx-auto w-full max-w-2xl px-4 pt-4 pb-6 flex flex-col gap-4">
   <div class="relative">
-    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant">search</span>
+    <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant" aria-hidden="true">search</span>
     <input type="search" placeholder="Search questions"
-      class="w-full rounded-xl border border-outline-variant bg-surface-container py-3 pl-10 pr-4 text-sm text-primary placeholder:text-on-surface-variant focus:outline-none focus:border-outline focus:ring-1 focus:ring-outline"
+      class="field-input pl-11" aria-label="Search questions"
       [value]="search()" (input)="search.set($any($event.target).value)" />
   </div>
 
   @if (categories().length > 1) {
     <div class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4">
-      <button (click)="category.set('all')" class="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
-        [class]="category() === 'all' ? 'border-brand bg-brand text-on-brand' : 'border-card-border text-on-surface-variant'">All</button>
+      <button (click)="category.set('all')" class="h-9 shrink-0 rounded-full border px-4 text-sm font-medium transition-colors"
+        [class]="category() === 'all' ? 'border-brand bg-brand text-on-brand' : 'border-card-border bg-surface-container-lowest text-on-surface-variant'">All</button>
       @for (c of categories(); track c.key) {
-        <button (click)="category.set(c.key)" class="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
-          [class]="category() === c.key ? 'border-brand bg-brand text-on-brand' : 'border-card-border text-on-surface-variant'">{{ c.label }}</button>
+        <button (click)="category.set(c.key)" class="h-9 shrink-0 rounded-full border px-4 text-sm font-medium transition-colors"
+          [class]="category() === c.key ? 'border-brand bg-brand text-on-brand' : 'border-card-border bg-surface-container-lowest text-on-surface-variant'">{{ c.label }}</button>
       }
     </div>
   }
@@ -20,10 +20,10 @@
   @if (loading()) {
     <app-spinner />
   } @else if (failed()) {
-    <div class="rounded-2xl border border-card-border bg-surface-container-lowest">
+    <div class="card">
       <app-empty-state icon="cloud_off" title="Couldn't load FAQs" message="Check your connection and try again." />
       <div class="flex justify-center pb-6">
-        <button (click)="load()" class="rounded-full bg-surface-container px-4 py-2 text-sm font-semibold text-primary">Retry</button>
+        <button (click)="load()" class="btn-primary h-10 px-5 text-sm">Retry</button>
       </div>
     </div>
   } @else if (!groups().length) {
@@ -34,12 +34,12 @@
   } @else {
     @for (g of groups(); track g.key) {
       <section>
-        <h2 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">{{ g.label }}</h2>
-        <div class="overflow-hidden rounded-2xl border border-card-border bg-surface-container-lowest shadow-card divide-y divide-card-border">
+        <h2 class="mb-2.5 px-1 text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">{{ g.label }}</h2>
+        <div class="card overflow-hidden divide-y divide-card-border">
           @for (f of g.items; track f.id) {
             <div>
               <button (click)="toggle(f)" class="flex w-full items-start gap-3 p-4 text-left" [attr.aria-expanded]="openId() === f.id">
-                <span class="min-w-0 flex-1 text-sm font-semibold leading-snug text-primary">{{ f.question }}</span>
+                <span class="min-w-0 flex-1 text-[15px] font-medium leading-snug text-on-surface">{{ f.question }}</span>
                 <span class="material-symbols-outlined text-[20px] text-on-surface-variant transition-transform" [class.rotate-180]="openId() === f.id">expand_more</span>
               </button>
               @if (openId() === f.id) {
@@ -52,14 +52,14 @@
     }
   }
 
-  <a routerLink="/talk-to-expert" class="flex items-center gap-3 rounded-2xl border border-card-border bg-surface-container-lowest p-4 shadow-card active:scale-[0.99] transition-transform">
-    <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-container">
-      <span class="material-symbols-outlined text-[20px] text-primary">support_agent</span>
+  <a routerLink="/talk-to-expert" class="card flex items-center gap-3 p-4 active:scale-[0.99] transition-transform">
+    <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gold-tint text-gold-ink">
+      <span class="material-symbols-outlined text-[20px]">support_agent</span>
     </span>
     <span class="min-w-0 flex-1">
-      <span class="block text-sm font-semibold text-primary">Still have a question?</span>
-      <span class="block text-xs text-on-surface-variant">Talk to our team on WhatsApp or call</span>
+      <span class="block text-[15px] font-semibold text-on-surface">Still have a question?</span>
+      <span class="block text-[13px] text-on-surface-variant">Talk to our team on WhatsApp or call</span>
     </span>
-    <span class="material-symbols-outlined text-primary">arrow_forward</span>
+    <span class="material-symbols-outlined text-[20px] text-on-surface-variant">chevron_right</span>
   </a>
 </div>
