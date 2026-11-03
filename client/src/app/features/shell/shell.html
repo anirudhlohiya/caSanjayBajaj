@@ -42,7 +42,7 @@
         @if (header().titleKey; as title) {
           <span class="truncate font-semibold text-xl tracking-tight">{{ title | translate: headerParams() }}</span>
           @if (header().subtitleKey; as subtitle) {
-            <span [class]="'truncate text-[13px] ' + (hero() ? 'text-white/75' : 'text-on-surface-variant')">{{ subtitle | translate }}</span>
+            <span [class]="'line-clamp-2 text-[13px] leading-snug ' + (hero() ? 'text-white/75' : 'text-on-surface-variant')">{{ subtitle | translate }}</span>
           }
         }
       </div>
