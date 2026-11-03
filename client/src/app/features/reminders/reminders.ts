@@ -26,6 +26,8 @@ export class Reminders {
 
   readonly loading = signal(true);
   readonly tasks = signal<ComplianceTask[]>([]);
+  /** Completed reminders stay folded until asked for. */
+  readonly showCompleted = signal(false);
 
   readonly isQuarterly = computed(
     () => this.authService.userProfile()?.gst_filing_frequency === 'quarterly',
@@ -94,6 +96,22 @@ export class Reminders {
     if (category === 'gstr_3b') return 'fact_check';
     if (category === 'iff') return 'calendar_month';
     return 'description';
+  }
+
+  /** "GSTR-1", "GSTR-3B", "IFF", "GST Payment". */
+  taskLabel(category: string): string {
+    const known: Record<string, string> = { gstr_1: 'GSTR-1', gstr_3b: 'GSTR-3B', iff: 'IFF', gst_payment: 'GST Payment' };
+    return known[category] ?? category.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  /** Whole days until the date shown on the card; null when there is none or it has passed. */
+  daysLeft(task: ComplianceTask): number | null {
+    const due = task.due_date || task.filing_period?.due_date;
+    if (!due) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const days = Math.round((new Date(`${due.slice(0, 10)}T00:00:00`).getTime() - today.getTime()) / DAY);
+    return days > 0 ? days : null;
   }
 
   cadenceLabel(task: ComplianceTask): string {

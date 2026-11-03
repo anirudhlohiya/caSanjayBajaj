@@ -1,146 +1,132 @@
-<div class="max-w-container-max mx-auto px-4 pt-4 flex flex-col gap-6">
+<div class="max-w-container-max mx-auto px-4 pt-4 pb-6 flex flex-col gap-6">
   @if (loading()) {
     <app-spinner />
   } @else {
-    <!-- Summary Cards -->
-    <div class="card p-0 overflow-hidden flex items-stretch divide-x divide-neutral-100 dark:divide-neutral-800 bg-white dark:bg-neutral-900">
-      <div class="flex-1 p-4 flex flex-col items-center justify-center">
-        <span class="text-2xl font-bold text-red-600 dark:text-red-400">{{ counts().needsAttention < 10 ? '0' + counts().needsAttention : counts().needsAttention }}</span>
-        <span class="text-[10px] font-semibold text-red-700 dark:text-red-400 text-center uppercase tracking-wider mt-1 leading-tight">Needs<br>Attention</span>
-      </div>
-      <div class="flex-1 p-4 flex flex-col items-center justify-center">
-        <span class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ counts().upcoming < 10 ? '0' + counts().upcoming : counts().upcoming }}</span>
-        <span class="text-[10px] font-semibold text-orange-700 dark:text-orange-400 text-center uppercase tracking-wider mt-1 leading-tight">Upcoming</span>
-      </div>
-      <div class="flex-1 p-4 flex flex-col items-center justify-center">
-        <span class="text-2xl font-bold text-green-600 dark:text-green-400">{{ counts().completed < 10 ? '0' + counts().completed : counts().completed }}</span>
-        <span class="text-[10px] font-semibold text-green-700 dark:text-green-400 text-center uppercase tracking-wider mt-1 leading-tight">Completed</span>
-      </div>
+    <!-- Summary counters -->
+    <div class="card overflow-hidden grid grid-cols-3 divide-x divide-card-border">
+      @for (c of [
+        { n: counts().needsAttention, label: 'Needs Attention', icon: 'error', tone: 'text-error' },
+        { n: counts().upcoming, label: 'Upcoming', icon: 'schedule', tone: 'text-warning' },
+        { n: counts().completed, label: 'Completed', icon: 'task_alt', tone: 'text-success' }
+      ]; track c.label) {
+        <div [class]="'flex flex-col items-center justify-center gap-0.5 px-2 py-4 text-center ' + c.tone">
+          <span class="material-symbols-outlined text-[20px]" aria-hidden="true">{{ c.icon }}</span>
+          <span class="text-[26px] font-semibold leading-tight tabular-nums">{{ c.n }}</span>
+          <span class="text-xs font-medium text-on-surface-variant">{{ c.label }}</span>
+        </div>
+      }
     </div>
 
     <!-- Needs Attention -->
     @if (groupedTasks().needsAttention.length > 0) {
-      <div>
-        <div class="flex items-center justify-between mb-3 ml-1">
-          <h2 class="text-[10px] font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider">NEEDS ATTENTION</h2>
-          <span class="w-5 h-5 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-400 text-[10px] font-bold">{{ groupedTasks().needsAttention.length }}</span>
-        </div>
-        <div class="card overflow-hidden divide-y divide-neutral-100 dark:divide-neutral-800">
+      <section>
+        <h2 class="mb-2.5 px-1 text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">Needs Attention</h2>
+        <div class="flex flex-col gap-3">
           @for (task of groupedTasks().needsAttention; track task.id) {
-            <div class="p-4 flex items-start justify-between bg-white dark:bg-neutral-900 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors gap-3">
-              <div class="flex items-start gap-3">
-                <div class="w-12 h-12 shrink-0 rounded-xl flex flex-col items-center justify-center bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400">
-                  <span class="material-symbols-outlined text-[20px]">{{ getTaskIcon(task.category) }}</span>
-                </div>
-                <div class="pt-0.5">
-                  <div class="font-bold text-neutral-900 dark:text-neutral-100 text-sm capitalize">{{ task.category.replace('_', ' ') }}</div>
-                  <div class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">{{ task.filing_period?.period_label }}</div>
-                  
-                  @if (task.category === 'gst_payment') {
-                    <div class="text-[13px] font-bold text-red-600 dark:text-red-400 mt-2">
-                      @if (task.amount) {
-                        ₹{{ task.amount }} remaining
-                      } @else {
-                        Amount Pending
-                      }
-                    </div>
-                  } @else if (task.status === 'nil_declared') {
-                    <div class="inline-block mt-2 px-2 py-0.5 bg-secondary/10 text-secondary text-[10px] font-bold rounded">
-                      Nil declared — awaiting CA confirmation
-                    </div>
-                  } @else {
-                    <div class="inline-block mt-2 px-2 py-0.5 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-bold rounded">
-                      Upload required
-                    </div>
-                  }
-                  @if (task.due_date || task.filing_period?.due_date) {
-                    <div class="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1.5">Due on {{ task.due_date || task.filing_period?.due_date | date:'MMM d, yyyy' }}</div>
-                  }
-                </div>
+            <div class="card p-4">
+              <div class="flex items-center justify-between gap-2">
+                @if (task.category === 'gst_payment') {
+                  <span class="rounded-full bg-error-container px-2.5 py-1 text-xs font-semibold text-error">
+                    @if (task.amount) { ₹{{ task.amount }} remaining } @else { Amount Pending }
+                  </span>
+                } @else if (task.status === 'nil_declared') {
+                  <span class="rounded-full bg-brand-tint px-2.5 py-1 text-xs font-semibold text-link">Nil declared — awaiting CA confirmation</span>
+                } @else {
+                  <span class="rounded-full bg-error-container px-2.5 py-1 text-xs font-semibold text-error">Upload required</span>
+                }
+                <span class="text-xs text-on-surface-variant">{{ task.filing_period?.period_label }}</span>
               </div>
-              <div class="pt-2">
-                <span class="material-symbols-outlined text-neutral-400 dark:text-neutral-500" style="font-size: 20px">chevron_right</span>
+              <div class="mt-2.5 flex items-center gap-3">
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-error-container text-error">
+                  <span class="material-symbols-outlined text-[20px]">{{ getTaskIcon(task.category) }}</span>
+                </span>
+                <div class="min-w-0">
+                  <div class="text-[15px] font-semibold text-on-surface">{{ taskLabel(task.category) }}</div>
+                  @if (task.due_date || task.filing_period?.due_date) {
+                    <div class="text-[13px] text-on-surface-variant tabular-nums">Due on {{ task.due_date || task.filing_period?.due_date | date:'d MMM yyyy' }}</div>
+                  }
+                </div>
               </div>
             </div>
           }
         </div>
-      </div>
+      </section>
     }
 
     <!-- Upcoming -->
     @if (groupedTasks().upcoming.length > 0) {
-      <div>
-        <div class="flex items-center justify-between mb-3 ml-1">
-          <h2 class="text-[10px] font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider">UPCOMING</h2>
-          <span class="w-5 h-5 flex items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-400 text-[10px] font-bold">{{ groupedTasks().upcoming.length }}</span>
-        </div>
-        <div class="card overflow-hidden divide-y divide-neutral-100 dark:divide-neutral-800">
+      <section>
+        <h2 class="mb-2.5 px-1 text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">Upcoming</h2>
+        <div class="card overflow-hidden divide-y divide-card-border">
           @for (task of groupedTasks().upcoming; track task.id) {
-            <div class="p-4 flex items-center justify-between bg-white dark:bg-neutral-900 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors gap-3">
-              <div class="flex items-center gap-3">
-                <div class="w-12 h-12 shrink-0 rounded-xl flex flex-col items-center justify-center"
-                     [class]="task.category === 'gst_payment' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'">
-                  <span class="material-symbols-outlined text-[20px]">{{ getTaskIcon(task.category) }}</span>
-                </div>
-                <div>
-                  <div class="font-bold text-neutral-900 dark:text-neutral-100 text-sm capitalize">{{ task.category.replace('_', ' ') }}</div>
-                  <div class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">{{ task.filing_period?.period_label }}</div>
-                  @if (task.due_date || task.filing_period?.due_date) {
-                    <div class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">Due on {{ task.due_date || task.filing_period?.due_date | date:'MMM d, yyyy' }}</div>
-                  }
-                </div>
-              </div>
-              <div class="flex flex-col items-end gap-2">
-                <span class="material-symbols-outlined text-neutral-400 dark:text-neutral-500" style="font-size: 20px">chevron_right</span>
-                <div class="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[9px] font-bold rounded">
-                  {{ cadenceLabel(task) }}
+            <div class="flex items-center gap-3 px-4 py-3.5">
+              <span
+                [class]="
+                  'flex size-10 shrink-0 items-center justify-center rounded-xl ' +
+                  (task.category === 'gst_payment' ? 'bg-gold-tint text-gold-ink' : 'bg-brand-tint text-brand-ink')
+                "
+              >
+                <span class="material-symbols-outlined text-[20px]">{{ getTaskIcon(task.category) }}</span>
+              </span>
+              <div class="min-w-0 flex-1">
+                <div class="font-medium text-on-surface">{{ taskLabel(task.category) }}</div>
+                <div class="text-[13px] text-on-surface-variant tabular-nums">
+                  {{ task.filing_period?.period_label }}@if (task.due_date || task.filing_period?.due_date) { · due {{ task.due_date || task.filing_period?.due_date | date:'d MMM' }}} · {{ cadenceLabel(task) }}
                 </div>
               </div>
+              @if (daysLeft(task); as d) {
+                <span [class]="'shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums ' + (d <= 7 ? 'bg-warning-tint text-warning' : 'bg-surface-container text-on-surface-variant')">
+                  {{ d === 1 ? '1 day' : d + ' days' }}
+                </span>
+              }
             </div>
           }
         </div>
-      </div>
+      </section>
     }
 
-    <!-- Completed -->
+    <!-- Completed: folded until asked for -->
     @if (groupedTasks().completed.length > 0) {
-      <div>
-        <div class="flex items-center justify-between mb-3 ml-1">
-          <h2 class="text-[10px] font-bold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider">COMPLETED</h2>
-          <span class="w-5 h-5 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400 text-[10px] font-bold">{{ groupedTasks().completed.length }}</span>
-        </div>
-        <div class="card overflow-hidden divide-y divide-neutral-100 dark:divide-neutral-800">
-          @for (task of groupedTasks().completed; track task.id) {
-            <div class="p-4 flex items-center justify-between bg-white dark:bg-neutral-900 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors gap-3">
-              <div class="flex items-center gap-3">
-                <div class="w-6 h-6 shrink-0 rounded-full border-2 border-green-600 flex items-center justify-center text-green-600 dark:text-green-400">
-                  <span class="material-symbols-outlined text-[14px] font-bold">check</span>
+      <section>
+        @if (showCompleted()) {
+          <h2 class="mb-2.5 px-1 text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">Completed</h2>
+          <div class="card overflow-hidden divide-y divide-card-border">
+            @for (task of groupedTasks().completed; track task.id) {
+              <div class="flex items-center gap-3 px-4 py-3.5">
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-success-tint text-success">
+                  <span class="material-symbols-outlined text-[20px]">check</span>
+                </span>
+                <div class="min-w-0 flex-1">
+                  <div class="font-medium text-on-surface">{{ taskLabel(task.category) }} {{ task.category === 'gst_payment' ? 'paid' : 'uploaded' }}</div>
+                  <div class="text-[13px] text-on-surface-variant">{{ task.filing_period?.period_label }}</div>
                 </div>
-                <div>
-                  <div class="font-bold text-neutral-900 dark:text-neutral-100 text-sm capitalize">{{ task.category.replace('_', ' ') }} {{ task.category === 'gst_payment' ? 'paid' : 'uploaded' }}</div>
-                  <div class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">{{ task.filing_period?.period_label }}</div>
+                <div class="shrink-0 text-xs text-on-surface-variant tabular-nums">
+                  {{ (task.paid_at || task.filing_period?.due_date || '') | date:'d MMM yyyy' }}
                 </div>
               </div>
-              <div class="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
-                {{ (task.paid_at || task.filing_period?.due_date || '') | date:'MMM d, yyyy' }}
-              </div>
-            </div>
-          }
-          <div class="p-3 bg-white dark:bg-neutral-900 text-center cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
-            <span class="text-[11px] font-bold text-blue-600 dark:text-blue-400 flex items-center justify-center gap-1">
-              View all <span class="material-symbols-outlined text-[14px]">expand_more</span>
-            </span>
+            }
           </div>
-        </div>
-      </div>
+        }
+        <button
+          type="button"
+          (click)="showCompleted.set(!showCompleted())"
+          class="mx-auto mt-1 flex h-11 items-center gap-1 px-3 text-sm font-semibold text-link"
+          [attr.aria-expanded]="showCompleted()"
+        >
+          {{ showCompleted() ? 'Hide completed' : 'Show ' + groupedTasks().completed.length + ' completed' }}
+          <span class="material-symbols-outlined text-[18px]">{{ showCompleted() ? 'expand_less' : 'expand_more' }}</span>
+        </button>
+      </section>
     }
 
     @if (!groupedTasks().needsAttention.length && !groupedTasks().upcoming.length && !groupedTasks().completed.length) {
-      <app-empty-state
-        icon="task_alt"
-        title="You're all caught up"
-        message="Reminders from your CA will show up here."
-      />
+      <div class="card">
+        <app-empty-state
+          icon="task_alt"
+          title="You're all caught up"
+          message="Reminders from your CA will show up here."
+        />
+      </div>
     }
   }
 </div>

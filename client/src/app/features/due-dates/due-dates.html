@@ -13,11 +13,11 @@
     <div class="flex flex-col gap-2">
       @if (canPersonalise()) {
         <div class="grid grid-cols-2 rounded-xl bg-surface-container p-1">
-          <button (click)="personalised.set(true)" class="rounded-lg py-2 text-sm font-semibold transition-colors"
+          <button (click)="personalised.set(true)" class="rounded-xl py-2 text-sm font-semibold transition-colors"
             [class]="personalised() ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'">
             For you
           </button>
-          <button (click)="personalised.set(false)" class="rounded-lg py-2 text-sm font-semibold transition-colors"
+          <button (click)="personalised.set(false)" class="rounded-xl py-2 text-sm font-semibold transition-colors"
             [class]="!personalised() ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'">
             All due dates
           </button>
@@ -49,12 +49,12 @@
               class="snap-start shrink-0 w-[78%] max-w-[300px] rounded-2xl p-4 text-left shadow-card transition-transform active:scale-[0.98]"
               [class]="first ? 'bg-brand text-on-brand' : 'border border-card-border bg-surface-container-lowest text-primary'">
               <div class="flex items-center justify-between gap-2">
-                <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide opacity-80">
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide opacity-80">
                   <span class="size-2 rounded-full" [class]="categories[r.category].dot"></span>
                   {{ categories[r.category].label }}
                 </span>
-                <span class="rounded-full px-2 py-0.5 text-[11px] font-bold"
-                  [class]="left <= 3 ? 'bg-rose-500 text-white' : first ? 'bg-on-brand/15' : 'bg-surface-container'">
+                <span class="rounded-full px-2 py-0.5 text-xs font-bold"
+                  [class]="left <= 3 ? 'bg-error text-white' : first ? 'bg-on-brand/15' : 'bg-surface-container'">
                   {{ dueLabel(r.due_date) }}
                 </span>
               </div>
@@ -83,7 +83,7 @@
 
       <div class="mt-3 grid grid-cols-7 text-center">
         @for (w of weekdays; track w) {
-          <span class="pb-2 text-[11px] font-semibold uppercase text-on-surface-variant">{{ w.slice(0, 1) }}</span>
+          <span class="pb-2 text-xs font-semibold uppercase text-on-surface-variant">{{ w.slice(0, 1) }}</span>
         }
       </div>
       <!-- Re-created per month so the slide animation plays on every change -->
@@ -111,11 +111,11 @@
         }
       </div>
       }
-      <p class="mt-1 text-center text-[10px] text-on-surface-variant/70">Swipe to change month</p>
+      <p class="mt-1 text-center text-[11px] text-on-surface-variant/70">Swipe to change month</p>
 
       <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-card-border pt-3">
         @for (k of categoryKeys; track k) {
-          <span class="inline-flex items-center gap-1.5 text-[11px] text-on-surface-variant">
+          <span class="inline-flex items-center gap-1.5 text-xs text-on-surface-variant">
             <span class="size-2 rounded-full" [class]="categories[k].dot"></span>{{ categories[k].label }}
           </span>
         }
@@ -140,29 +140,29 @@
           [class.opacity-60]="left < 0">
           <div class="flex w-12 shrink-0 flex-col items-center justify-center rounded-xl py-1.5" [class]="categories[r.category].chip">
             <span class="text-lg font-bold leading-none tabular-nums">{{ fmt(r.due_date, { day: '2-digit' }) }}</span>
-            <span class="mt-0.5 text-[10px] font-semibold uppercase">{{ weekday(r.due_date) }}</span>
+            <span class="mt-0.5 text-[11px] font-semibold uppercase">{{ weekday(r.due_date) }}</span>
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-start justify-between gap-2">
               <p class="text-sm font-semibold leading-snug text-primary">{{ r.title }}</p>
-              <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold"
+              <span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold"
                 [class]="left < 0 ? 'bg-surface-container text-on-surface-variant'
-                  : left <= 3 ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300'
+                  : left <= 3 ? 'bg-rose-100 text-error dark:bg-rose-500/15'
                   : left <= 10 ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300'
                   : 'bg-surface-container text-on-surface-variant'">
                 {{ dueLabel(r.due_date) }}
               </span>
             </div>
-            <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-on-surface-variant">
+            <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-on-surface-variant">
               @if (r.form) {
-                <span class="rounded bg-surface-container px-1.5 py-0.5 font-mono text-primary">{{ r.form }}</span>
+                <span class="rounded bg-surface-container px-1.5 py-0.5 tabular-nums text-primary">{{ r.form }}</span>
               }
               @if (r.period_label) {
                 <span>{{ r.period_label }}</span>
               }
             </div>
             @if (r.original_due_date) {
-              <p class="mt-1.5 inline-flex items-center gap-1 rounded-md bg-violet-50 px-1.5 py-0.5 text-[11px] font-medium text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
+              <p class="mt-1.5 inline-flex items-center gap-1 rounded-xl bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">
                 <span class="material-symbols-outlined text-[14px]">more_time</span>
                 Extended from <span class="line-through">{{ fmt(r.original_due_date) }}</span>
               </p>
@@ -182,7 +182,7 @@
       }
     </section>
 
-    <p class="px-2 text-center text-[11px] leading-relaxed text-on-surface-variant">
+    <p class="px-2 text-center text-xs leading-relaxed text-on-surface-variant">
       Dates as notified for FY {{ fy }}. Government extensions are updated by our team.
     </p>
   }
