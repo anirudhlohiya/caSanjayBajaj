@@ -8,21 +8,21 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="min-h-dvh bg-surface-container-lowest text-on-surface font-geist antialiased selection:bg-neutral-800 selection:text-white dark:selection:bg-neutral-200 dark:selection:text-black">
+    <div class="min-h-dvh bg-surface text-on-surface antialiased selection:bg-brand selection:text-on-brand">
       <!-- Top Navigation Bar -->
-      <header class="sticky top-0 z-30 border-b border-hairline bg-surface/80 backdrop-blur-md dark:border-hairline-strong">
+      <header class="sticky top-0 z-30 border-b border-hairline bg-surface/80 backdrop-blur-md">
         <div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
           <div class="flex items-center gap-3">
             <button
               (click)="goBack()"
               type="button"
-              class="flex size-9 items-center justify-center rounded-full border border-hairline bg-surface text-on-surface transition-colors hover:bg-surface-container active:scale-95 dark:border-hairline-strong dark:bg-surface-container"
+              class="flex size-9 items-center justify-center rounded-full border border-hairline bg-surface text-on-surface transition-colors hover:bg-surface-container active:scale-95"
               title="Go back"
             >
               <span class="material-symbols-outlined text-[18px]">arrow_back</span>
             </button>
             <a routerLink="/" class="flex items-center gap-2">
-              <img src="/logo-transparent.png" alt="S N Bajaj And Co" class="h-7 w-auto object-contain" onerror="this.src='/logo-login.png'" />
+              <img src="/logo-round.webp" alt="S N Bajaj And Co" width="32" height="32" class="size-8 rounded-full ring-2 ring-gold" />
               <span class="font-semibold text-sm tracking-tight hidden sm:inline">S N Bajaj And Co</span>
             </a>
           </div>
@@ -32,7 +32,7 @@ import { AuthService } from '../../core/services/auth.service';
             <button
               (click)="printPolicy()"
               type="button"
-              class="inline-flex items-center gap-1.5 rounded-md border border-hairline px-3 py-1.5 text-xs font-medium text-on-surface transition-colors hover:bg-surface-container dark:border-hairline-strong"
+              class="inline-flex items-center gap-1.5 rounded-xl border border-hairline px-3 py-1.5 text-xs font-medium text-on-surface transition-colors hover:bg-surface-container"
             >
               <span class="material-symbols-outlined text-[16px]">print</span>
               <span>Print</span>
@@ -40,7 +40,7 @@ import { AuthService } from '../../core/services/auth.service';
             }
             <a
               [routerLink]="homeRoute"
-              class="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-on-brand transition-opacity hover:opacity-90"
+              class="inline-flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-xs font-semibold text-on-brand transition-opacity hover:opacity-90"
             >
               {{ homeLabel }}
             </a>
@@ -51,7 +51,7 @@ import { AuthService } from '../../core/services/auth.service';
       <!-- Main Content -->
       <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
         <!-- Hero Header -->
-        <div class="mb-8 border-b border-hairline pb-8 dark:border-hairline-strong">
+        <div class="mb-8 border-b border-hairline pb-8">
           <div class="inline-flex items-center gap-1.5 rounded-full bg-secondary-container px-3 py-1 text-xs font-medium text-on-secondary-container">
             <span class="material-symbols-outlined text-[14px]">verified_user</span>
             Legal & Compliance
@@ -68,22 +68,22 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
 
         <!-- Quick Summary Box -->
-        <div class="mb-10 rounded-xl border border-hairline bg-canvas-soft p-5 dark:border-hairline-strong dark:bg-surface-container">
+        <div class="mb-10 card p-5">
           <h2 class="flex items-center gap-2 font-semibold text-sm text-on-surface">
             <span class="material-symbols-outlined text-secondary text-[20px]">shield</span>
             Summary of Key Commitments
           </h2>
           <ul class="mt-3 space-y-2 text-xs leading-5 text-on-surface-variant sm:text-sm">
             <li class="flex items-start gap-2">
-              <span class="material-symbols-outlined text-green-600 dark:text-green-400 text-[18px]">check_circle</span>
+              <span class="material-symbols-outlined text-gold-ink text-[18px]">check_circle</span>
               <span><strong>ICAI Confidentiality:</strong> All records are governed by the Code of Ethics prescribed by the Institute of Chartered Accountants of India.</span>
             </li>
             <li class="flex items-start gap-2">
-              <span class="material-symbols-outlined text-green-600 dark:text-green-400 text-[18px]">check_circle</span>
+              <span class="material-symbols-outlined text-gold-ink text-[18px]">check_circle</span>
               <span><strong>Bank-Grade Storage:</strong> Documents are encrypted in transit via TLS 1.3 and at rest with AWS S3 private signed URLs.</span>
             </li>
             <li class="flex items-start gap-2">
-              <span class="material-symbols-outlined text-green-600 dark:text-green-400 text-[18px]">check_circle</span>
+              <span class="material-symbols-outlined text-gold-ink text-[18px]">check_circle</span>
               <span><strong>Never Sold:</strong> We do not sell, rent, or trade your financial or personal information to any third-party advertisers.</span>
             </li>
           </ul>
@@ -188,7 +188,7 @@ import { AuthService } from '../../core/services/auth.service';
           </section>
 
           <!-- 8. Grievance Officer & Contact -->
-          <section class="rounded-xl border border-hairline bg-surface p-6 dark:border-hairline-strong dark:bg-surface-container">
+          <section class="rounded-xl border border-hairline bg-surface p-6">
             <h2 class="font-headline text-base font-bold text-on-surface">8. Data Protection & Grievance Contact</h2>
             <p class="mt-2 text-xs sm:text-sm">
               If you have any questions or wish to exercise your rights under this policy, please reach out to:
@@ -204,14 +204,14 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
 
         <!-- Bottom Navigation Links -->
-        <div class="mt-12 flex flex-col items-center justify-between gap-4 border-t border-hairline pt-6 text-xs text-on-surface-variant sm:flex-row dark:border-hairline-strong">
+        <div class="mt-12 flex flex-col items-center justify-between gap-4 border-t border-hairline pt-6 text-xs text-on-surface-variant sm:flex-row">
           <p>© 2026 S N Bajaj And Co. All rights reserved.</p>
           <div class="flex items-center gap-4">
-            <a routerLink="/terms-and-conditions" class="hover:text-primary dark:hover:text-white underline">Terms & Conditions</a>
+            <a routerLink="/terms-and-conditions" class="hover:text-primary underline">Terms & Conditions</a>
             <span>•</span>
-            <a routerLink="/signup" class="hover:text-primary dark:hover:text-white underline">Sign Up</a>
+            <a routerLink="/signup" class="hover:text-primary underline">Sign Up</a>
             <span>•</span>
-            <a routerLink="/login" class="hover:text-primary dark:hover:text-white underline">Sign In</a>
+            <a routerLink="/login" class="hover:text-primary underline">Sign In</a>
           </div>
         </div>
       </main>

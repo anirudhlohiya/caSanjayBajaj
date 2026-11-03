@@ -773,10 +773,9 @@
             maxlength="15"
             placeholder="e.g. 27AAPFU0939F1ZV"
             class="h-10 rounded-xl border uppercase tabular-nums tracking-wider bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
-            [class.border-[#ebebeb]]="gstServiceForm.get('gstin')?.value?.length !== 15"
-            [class.dark:border-neutral-700]="gstServiceForm.get('gstin')?.value?.length !== 15"
-            [class.border-[#0070f3]]="gstServiceForm.get('gstin')?.value?.length === 15 && isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
-            [class.border-[#ee0000]]="gstServiceForm.get('gstin')?.value?.length === 15 && !isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
+            [class.border-card-border]="gstServiceForm.get('gstin')?.value?.length !== 15"
+            [class.border-success]="gstServiceForm.get('gstin')?.value?.length === 15 && isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
+            [class.border-error]="gstServiceForm.get('gstin')?.value?.length === 15 && !isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
           />
           <p class="text-xs tabular-nums text-on-surface-variant">
             2 state digits + 10 PAN characters + 1 entity code + Z + 1 check digit.
@@ -790,12 +789,10 @@
           </span>
           <div class="grid grid-cols-2 gap-3">
             <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all"
-              [class.border-[#171717]]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
+              [class.border-brand]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
               [class.dark:border-white]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
-              [class.bg-[#fafafa]]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
-              [class.dark:bg-neutral-800]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
-              [class.border-[#ebebeb]]="gstServiceForm.get('filing_frequency')?.value !== 'monthly'"
-              [class.dark:border-neutral-700]="gstServiceForm.get('filing_frequency')?.value !== 'monthly'"
+              [class.bg-brand-tint]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
+              [class.border-card-border]="gstServiceForm.get('filing_frequency')?.value !== 'monthly'"
             >
               <input type="radio" value="monthly" formControlName="filing_frequency" class="accent-brand" />
               <div>
@@ -804,12 +801,10 @@
               </div>
             </label>
             <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all"
-              [class.border-[#171717]]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
+              [class.border-brand]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
               [class.dark:border-white]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
-              [class.bg-[#fafafa]]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
-              [class.dark:bg-neutral-800]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
-              [class.border-[#ebebeb]]="gstServiceForm.get('filing_frequency')?.value !== 'quarterly'"
-              [class.dark:border-neutral-700]="gstServiceForm.get('filing_frequency')?.value !== 'quarterly'"
+              [class.bg-brand-tint]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
+              [class.border-card-border]="gstServiceForm.get('filing_frequency')?.value !== 'quarterly'"
             >
               <input type="radio" value="quarterly" formControlName="filing_frequency" class="accent-brand" />
               <div>
@@ -904,10 +899,9 @@
             maxlength="10"
             placeholder="e.g. ABCDE1234F"
             class="h-10 rounded-xl border uppercase tabular-nums tracking-wider bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
-            [class.border-[#ebebeb]]="itrServiceForm.get('pan')?.value?.length !== 10"
-            [class.dark:border-neutral-700]="itrServiceForm.get('pan')?.value?.length !== 10"
-            [class.border-[#0070f3]]="itrServiceForm.get('pan')?.value?.length === 10 && isPanValid(itrServiceForm.get('pan')?.value)"
-            [class.border-[#ee0000]]="itrServiceForm.get('pan')?.value?.length === 10 && !isPanValid(itrServiceForm.get('pan')?.value)"
+            [class.border-card-border]="itrServiceForm.get('pan')?.value?.length !== 10"
+            [class.border-success]="itrServiceForm.get('pan')?.value?.length === 10 && isPanValid(itrServiceForm.get('pan')?.value)"
+            [class.border-error]="itrServiceForm.get('pan')?.value?.length === 10 && !isPanValid(itrServiceForm.get('pan')?.value)"
           />
           <p class="text-xs tabular-nums text-on-surface-variant">
             5 letters + 4 digits + 1 letter (e.g. ABCDE1234F).
