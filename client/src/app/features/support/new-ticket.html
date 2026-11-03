@@ -1,16 +1,14 @@
 <div class="flex min-h-dvh flex-col bg-surface">
   <div class="mx-auto w-full max-w-2xl flex-1 px-4 pt-4 pb-8">
-    @if (error()) {
-      <div class="mb-4 flex items-center gap-2 rounded-xl bg-error-container px-3 py-2.5 text-sm text-on-error-container" role="alert">
-        <span class="material-symbols-outlined text-[18px]">error</span>
-        <span>{{ error() }}</span>
-      </div>
-    }
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
       <label class="flex flex-col gap-1.5">
         <span class="field-label">Subject</span>
-        <input formControlName="subject" type="text" placeholder="e.g. Need GSTR-1 for March 2026" class="field-input" />
+        <input formControlName="subject" type="text" placeholder="e.g. Need GSTR-1 for March 2026" class="field-input"
+          [class.border-error]="form.controls.subject.touched && form.controls.subject.invalid" />
+        @if (form.controls.subject.touched && form.controls.subject.invalid) {
+          <span class="text-[13px] text-error">Enter a subject.</span>
+        }
       </label>
 
       <label class="flex flex-col gap-1.5">
@@ -46,7 +44,11 @@
 
       <label class="flex flex-col gap-1.5">
         <span class="field-label">Message</span>
-        <textarea formControlName="message" rows="5" placeholder="Describe what you need in detail..." class="field-input h-auto resize-none py-3"></textarea>
+        <textarea formControlName="message" rows="5" placeholder="Describe what you need in detail..." class="field-input h-auto resize-none py-3"
+          [class.border-error]="form.controls.message.touched && form.controls.message.invalid"></textarea>
+        @if (form.controls.message.touched && form.controls.message.invalid) {
+          <span class="text-[13px] text-error">Tell us what you need.</span>
+        }
       </label>
 
       <div class="flex flex-col gap-2">
@@ -84,9 +86,16 @@
         }
       </div>
 
+      @if (error()) {
+        <div class="flex items-start gap-2 rounded-xl bg-error-container px-3 py-2.5 text-sm text-on-error-container" role="alert">
+          <span class="material-symbols-outlined text-[18px] shrink-0">error</span>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
       <button
         type="submit"
-        [disabled]="form.invalid || saving()"
+        [disabled]="saving()"
         class="btn-primary mt-2 flex h-12 items-center justify-center gap-2 text-[15px]"
       >
         @if (saving()) {

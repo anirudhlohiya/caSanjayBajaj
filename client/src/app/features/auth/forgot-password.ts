@@ -35,7 +35,11 @@ export class ForgotPassword {
   });
 
   async requestOtp(): Promise<void> {
-    if (this.emailForm.invalid || this.loading()) return;
+    if (this.loading()) return;
+    if (this.emailForm.invalid) {
+      this.emailForm.markAllAsTouched();
+      return;
+    }
     this.error.set('');
     this.loading.set(true);
     try {
@@ -54,7 +58,12 @@ export class ForgotPassword {
   }
 
   async verifyAndReset(): Promise<void> {
-    if (this.resetForm.invalid || this.loading()) return;
+    if (this.loading()) return;
+    if (this.resetForm.invalid) {
+      this.resetForm.markAllAsTouched();
+      this.error.set('Please fix the highlighted fields.');
+      return;
+    }
 
     const { otp_code, password, confirm_password } = this.resetForm.getRawValue();
 

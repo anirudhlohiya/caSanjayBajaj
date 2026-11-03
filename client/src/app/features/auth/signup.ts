@@ -79,7 +79,11 @@ export class Signup implements OnDestroy {
     });
   }
   async requestOtp(): Promise<void> {
-    if (this.emailForm.invalid || this.loading()) return;
+    if (this.loading()) return;
+    if (this.emailForm.invalid) {
+      this.emailForm.markAllAsTouched();
+      return;
+    }
     this.error.set('');
     this.loading.set(true);
     try {
@@ -156,7 +160,12 @@ export class Signup implements OnDestroy {
   }
 
   async verifyAndSignup(): Promise<void> {
-    if (this.signupForm.invalid || this.loading()) return;
+    if (this.loading()) return;
+    if (this.signupForm.invalid) {
+      this.signupForm.markAllAsTouched();
+      this.error.set('Please fix the highlighted fields.');
+      return;
+    }
     if (!this.otpVerified()) {
       this.error.set('Please verify OTP first.');
       return;

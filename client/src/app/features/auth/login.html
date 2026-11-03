@@ -49,12 +49,15 @@
           <span class="material-symbols-outlined text-[20px]">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
         </button>
       </div>
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <p class="text-xs text-error">Password must be at least 8 characters.</p>
+      }
       <a routerLink="/forgot-password" class="self-end py-1 text-sm font-semibold text-link hover:underline">Forgot password?</a>
     </div>
 
     <button
       type="submit"
-      [disabled]="form.invalid || loading()"
+      [disabled]="loading()"
       class="btn-primary flex h-12 w-full items-center justify-center gap-2 text-[15px] active:scale-[0.98]"
     >
       @if (loading()) {

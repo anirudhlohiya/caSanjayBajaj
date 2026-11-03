@@ -6,7 +6,7 @@ import { ToastService } from '../../core/services/toast.service';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="fixed inset-x-0 top-4 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none">
+    <div class="fixed inset-x-0 top-4 z-[200] flex flex-col items-center gap-2 px-4 pointer-events-none">
       @for (toast of toastService.toasts(); track toast.id) {
         <div
           [class]="

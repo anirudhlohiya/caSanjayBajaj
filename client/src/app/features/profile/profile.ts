@@ -78,12 +78,18 @@ export class Profile {
   );
   readonly showServiceModal = signal<'gst' | 'itr' | null>(null);
   readonly serviceBusy = signal(false);
+  /** Shown inside the application sheet, above its buttons (toasts sit behind the sheet's backdrop). */
+  readonly serviceError = signal('');
   readonly industries = INDUSTRIES;
 
   readonly pushEnabled = signal(false);
   readonly pushSupported = signal(this.push.supported());
   readonly pushBusy = signal(false);
   readonly passwordBusy = signal(false);
+  readonly passwordError = signal('');
+  /** Set when Save is tapped with something missing, so the message shows next to the field. */
+  readonly memberTried = signal(false);
+  readonly bizTried = signal(false);
   readonly showDeleteModal = signal(false);
   readonly deleteBusy = signal(false);
   readonly showPaymentModal = signal(false);
@@ -193,6 +199,7 @@ export class Profile {
   async saveMember(): Promise<void> {
     const f = this.memberForm();
     const editing = this.memberEditing();
+    this.memberTried.set(true);
     if (!editing || !f.name.trim() || this.memberPanInvalid() || this.memberSaving()) return;
     this.memberSaving.set(true);
     try {
@@ -246,11 +253,34 @@ export class Profile {
         pan: '',
       });
     }
+    this.serviceError.set('');
     this.showServiceModal.set(type);
   }
 
   closeServiceModal(): void {
     this.showServiceModal.set(null);
+  }
+
+  /** Problem with one field of the GST/ITR application, shown under it once touched. */
+  applicationError(field: 'business_name' | 'gstin' | 'industry' | 'pan'): string {
+    const c = field === 'pan' ? this.itrServiceForm.get('pan') : this.gstServiceForm.get(field);
+    if (!c?.touched) return '';
+    const v = String(c.value ?? '').trim();
+    switch (field) {
+      case 'business_name':
+        if (!v) return 'Enter your business or trade name.';
+        return v.length < 2 ? 'This name is too short.' : '';
+      case 'industry':
+        return v ? '' : 'Select your industry.';
+      case 'gstin':
+        if (!v) return 'Enter your 15-character GSTIN.';
+        if (v.length !== 15) return `GSTIN must be 15 characters (you entered ${v.length}).`;
+        return isValidGstin(v) ? '' : "This GSTIN isn't valid. Please check it for typos.";
+      case 'pan':
+        if (!v) return 'Enter your 10-character PAN.';
+        if (v.length !== 10) return `PAN must be 10 characters (you entered ${v.length}).`;
+        return isValidPan(v) ? '' : 'PAN should look like ABCDE1234F.';
+    }
   }
 
   isGstinChecksumValid(gstin?: string | null): boolean {
@@ -264,15 +294,13 @@ export class Profile {
   }
 
   async submitGstRequest(): Promise<void> {
-    if (this.gstServiceForm.invalid) {
-      this.gstServiceForm.markAllAsTouched();
-      return;
-    }
+    this.gstServiceForm.markAllAsTouched();
     const val = this.gstServiceForm.getRawValue();
-    if (!isValidGstin(val.gstin)) {
-      this.toast.error('Invalid GSTIN checksum or format (15 characters expected).');
+    if (this.gstServiceForm.invalid || !isValidGstin(val.gstin)) {
+      this.serviceError.set('Please fix the highlighted fields.');
       return;
     }
+    this.serviceError.set('');
     this.serviceBusy.set(true);
     try {
       await this.serviceRequestsService.create({
@@ -286,22 +314,20 @@ export class Profile {
       this.closeServiceModal();
       await this.loadServiceRequests();
     } catch (err: any) {
-      this.toast.error(err?.error?.message || 'Failed to submit service request.');
+      this.serviceError.set(err?.error?.message || 'Failed to submit service request.');
     } finally {
       this.serviceBusy.set(false);
     }
   }
 
   async submitItrRequest(): Promise<void> {
-    if (this.itrServiceForm.invalid) {
-      this.itrServiceForm.markAllAsTouched();
-      return;
-    }
+    this.itrServiceForm.markAllAsTouched();
     const val = this.itrServiceForm.getRawValue();
-    if (!isValidPan(val.pan)) {
-      this.toast.error('Invalid PAN format (e.g. ABCDE1234F).');
+    if (this.itrServiceForm.invalid || !isValidPan(val.pan)) {
+      this.serviceError.set('Please fix the highlighted fields.');
       return;
     }
+    this.serviceError.set('');
     this.serviceBusy.set(true);
     try {
       await this.serviceRequestsService.create({
@@ -312,7 +338,7 @@ export class Profile {
       this.closeServiceModal();
       await this.loadServiceRequests();
     } catch (err: any) {
-      this.toast.error(err?.error?.message || 'Failed to submit service request.');
+      this.serviceError.set(err?.error?.message || 'Failed to submit service request.');
     } finally {
       this.serviceBusy.set(false);
     }
@@ -354,11 +380,13 @@ export class Profile {
   startBusinessEdit(): void {
     const p = this.auth.userProfile();
     this.bizDraft.set({ business_name: p?.business_name ?? '', industry: p?.industry ?? '' });
+    this.bizTried.set(false);
     this.editing.set('business');
   }
 
   async saveBusiness(): Promise<void> {
     const { business_name, industry } = this.bizDraft();
+    this.bizTried.set(true);
     if (business_name.trim().length < 2) return;
     await this.saveProfileFields({ business_name: business_name.trim(), industry }, 'Business details updated.');
   }
@@ -480,22 +508,28 @@ export class Profile {
 
   async changePassword(): Promise<void> {
     const form = this.passwordForm;
+    const { current_password, new_password, confirm } = form.getRawValue();
+    if (!current_password || !new_password || !confirm) {
+      this.passwordError.set('Fill in all three password fields.');
+      return;
+    }
     if (form.invalid) {
-      this.toast.error('Passwords must be at least 8 characters.');
+      this.passwordError.set('Passwords must be at least 8 characters.');
       return;
     }
-    if (form.getRawValue().new_password !== form.getRawValue().confirm) {
-      this.toast.error('New passwords do not match.');
+    if (new_password !== confirm) {
+      this.passwordError.set('New passwords do not match.');
       return;
     }
+    this.passwordError.set('');
     this.passwordBusy.set(true);
     try {
       const { current_password, new_password } = form.getRawValue();
       await this.profileService.changePassword(current_password, new_password);
       this.toast.success('Password changed successfully.');
       form.reset();
-    } catch {
-      /* interceptor toasts */
+    } catch (err: any) {
+      this.passwordError.set(err?.error?.message || 'Could not change the password. Please try again.');
     } finally {
       this.passwordBusy.set(false);
     }

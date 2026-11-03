@@ -100,4 +100,61 @@ describe('Profile screen', () => {
     expect(buttons[0].getAttribute('aria-label')).toBe('Download gst-certificate.pdf');
     expect(el.textContent).toContain('Not uploaded yet'); // Udyam
   });
+
+  describe('Become a GST / ITR client', () => {
+    async function openSheet(type: 'gst' | 'itr') {
+      const fixture = await render();
+      fixture.componentInstance.openServiceModal(type);
+      fixture.detectChanges();
+      return fixture;
+    }
+    const submitButton = (el: HTMLElement) =>
+      Array.from(el.querySelectorAll('[role=dialog] button[type=submit]')).find((b) => b.textContent?.includes('Submit Application')) as HTMLButtonElement;
+
+    it('Submit stays visible and tappable; a wrong form explains every problem', async () => {
+      const create = jasmine.createSpy('create');
+      (TestBed.inject(ServiceRequestsService) as unknown as { create: jasmine.Spy }).create = create;
+      const fixture = await openSheet('gst');
+      const el: HTMLElement = fixture.nativeElement;
+      const submit = submitButton(el);
+      expect(submit.disabled).toBeFalse();
+
+      fixture.componentInstance.gstServiceForm.patchValue({ gstin: '24ABCDE' });
+      await fixture.componentInstance.submitGstRequest();
+      fixture.detectChanges();
+      const dialog = el.querySelector('[role=dialog]')!.textContent!;
+      expect(create).not.toHaveBeenCalled();
+      expect(dialog).toContain('Enter your business or trade name.');
+      expect(dialog).toContain('GSTIN must be 15 characters (you entered 7).');
+      expect(dialog).toContain('Select your industry.');
+      // the summary sits right above the buttons, inside the sheet
+      expect(submit.closest('div.shrink-0')?.querySelector('[role=alert]')?.textContent).toContain('Please fix the highlighted fields.');
+    });
+
+    it('an invalid GSTIN checksum and a server refusal are shown inside the sheet', async () => {
+      const create = jasmine.createSpy('create').and.rejectWith({ error: { message: 'A request is already pending' } });
+      (TestBed.inject(ServiceRequestsService) as unknown as { create: jasmine.Spy }).create = create;
+      const fixture = await openSheet('gst');
+      const c = fixture.componentInstance;
+      c.gstServiceForm.patchValue({ business_name: 'Lohiya Traders', gstin: '24ABCDE1234F1Z9', industry: c.industries[0] });
+      await c.submitGstRequest();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain("This GSTIN isn't valid.");
+      expect(create).not.toHaveBeenCalled();
+
+      c.gstServiceForm.patchValue({ gstin: '27AAPFU0939F1ZV' });
+      await c.submitGstRequest();
+      fixture.detectChanges();
+      expect(create).toHaveBeenCalled();
+      expect(fixture.nativeElement.querySelector('[role=dialog] [role=alert]')?.textContent).toContain('A request is already pending');
+    });
+
+    it('ITR: a short PAN says how many characters were entered', async () => {
+      const fixture = await openSheet('itr');
+      fixture.componentInstance.itrServiceForm.patchValue({ pan: 'ABC12' });
+      await fixture.componentInstance.submitItrRequest();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('PAN must be 10 characters (you entered 5).');
+    });
+  });
 });

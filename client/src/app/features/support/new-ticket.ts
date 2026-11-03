@@ -84,7 +84,12 @@ export class NewTicket {
   }
 
   async submit(): Promise<void> {
-    if (this.form.invalid || this.saving()) return;
+    if (this.saving()) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.error.set('Please fill in the subject and message.');
+      return;
+    }
     this.error.set('');
     this.saving.set(true);
     try {

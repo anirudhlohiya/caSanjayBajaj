@@ -325,9 +325,12 @@
                 <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant" aria-hidden="true">expand_more</span>
               </span>
             </label>
+            @if (bizTried() && bizDraft().business_name.trim().length < 2) {
+              <p class="text-[13px] text-error" role="alert">Enter your business name (at least 2 characters).</p>
+            }
             <div class="grid grid-cols-2 gap-2">
               <button type="button" (click)="editing.set(null)" class="h-11 rounded-xl border border-card-border text-sm font-semibold text-on-surface">Cancel</button>
-              <button type="button" (click)="saveBusiness()" [disabled]="profileBusy() || bizDraft().business_name.trim().length < 2" class="btn-primary h-11 text-sm">Save</button>
+              <button type="button" (click)="saveBusiness()" [disabled]="profileBusy()" class="btn-primary h-11 text-sm">Save</button>
             </div>
           </div>
         }
@@ -421,12 +424,15 @@
               [ngModel]="memberForm().pan" (ngModelChange)="setMemberField('pan', $event)" />
           </div>
           @if (memberPanInvalid()) {
-            <p class="text-xs text-error">PAN must look like ABCDE1234F</p>
+            <p class="text-[13px] text-error">PAN must look like ABCDE1234F</p>
+          }
+          @if (memberTried() && !memberForm().name.trim()) {
+            <p class="text-[13px] text-error" role="alert">Enter the family member's name.</p>
           }
           <div class="grid grid-cols-2 gap-2">
             <button type="button" (click)="memberEditing.set(null)" class="h-10 rounded-full border border-card-border text-sm font-medium text-on-surface">Cancel</button>
-            <button type="button" (click)="saveMember()" [disabled]="!memberForm().name.trim() || memberPanInvalid() || memberSaving()"
-              class="h-10 rounded-full bg-brand text-on-brand hover:opacity-90 text-sm font-medium disabled:opacity-40">
+            <button type="button" (click)="saveMember()" [disabled]="memberSaving()"
+              class="btn-primary h-11 text-sm">
               {{ memberSaving() ? 'Saving…' : (memberEditing() === 'new' ? 'Add' : 'Save') }}
             </button>
           </div>
@@ -649,10 +655,16 @@
           class="h-11 rounded-xl border border-card-border bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
         />
       </label>
+      @if (passwordError()) {
+        <div class="flex items-start gap-2 rounded-xl bg-error-container px-3 py-2.5 text-sm text-on-error-container" role="alert">
+          <span class="material-symbols-outlined text-[18px] shrink-0">error</span>
+          <span>{{ passwordError() }}</span>
+        </div>
+      }
       <button
         type="submit"
         [disabled]="passwordBusy()"
-        class="flex h-11 items-center justify-center gap-2 rounded-xl bg-brand text-on-brand hover:opacity-90 text-sm font-semibold disabled:opacity-50 cursor-pointer"
+        class="btn-primary flex h-12 items-center justify-center gap-2 text-[15px]"
       >
         @if (passwordBusy()) {
           <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
@@ -717,216 +729,165 @@
   </div>
 }
 
-<!-- GST Request Modal -->
+<!-- GST Request Modal: bottom sheet; fields scroll, buttons stay pinned at the bottom -->
 @if (showServiceModal() === 'gst') {
-  <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md px-4">
-    <div class="w-full max-w-lg rounded-2xl bg-surface-container-lowest border border-card-border shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col max-h-[90vh] overflow-y-auto">
-      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors cursor-pointer">
-        <span class="material-symbols-outlined text-[18px]">close</span>
-      </button>
-
-      <div class="flex items-center gap-3 mb-5">
-        <div class="size-10 rounded-xl bg-brand-tint text-link border border-transparent flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-[20px]">receipt_long</span>
-        </div>
-        <div>
-          <span class="text-xs font-semibold uppercase tracking-[0.07em] text-link font-medium">Practice Application</span>
-          <h2 class="text-base font-semibold text-on-surface tracking-tight">Become a GST Client</h2>
+  <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 sm:px-4" (click)="closeServiceModal()">
+    <div class="flex max-h-[92dvh] w-full flex-col rounded-t-3xl bg-surface-container-lowest shadow-xl sm:max-w-lg sm:rounded-2xl" role="dialog" aria-modal="true" aria-labelledby="gst-app-title" (click)="$event.stopPropagation()">
+      <div class="shrink-0 px-5 pt-3">
+        <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-outline-variant sm:hidden"></div>
+        <div class="flex items-center gap-3">
+          <div class="size-10 rounded-xl bg-brand-tint text-brand-ink flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <span class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">Practice Application</span>
+            <h2 id="gst-app-title" class="text-base font-semibold text-on-surface">Become a GST Client</h2>
+          </div>
+          <button type="button" (click)="closeServiceModal()" aria-label="Close" class="size-10 shrink-0 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
         </div>
       </div>
 
-      <form [formGroup]="gstServiceForm" (ngSubmit)="submitGstRequest()" class="flex flex-col gap-4">
-        <!-- Business Name -->
-        <label class="flex flex-col gap-1.5">
-          <span class="text-xs font-medium text-on-surface">
-            Business / Trade Name <span class="text-red-500">*</span>
-          </span>
-          <input
-            formControlName="business_name"
-            type="text"
-            placeholder="e.g. SN Enterprises Pvt Ltd"
-            class="h-10 rounded-xl border border-card-border bg-surface-container-lowest px-3 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
-          />
-        </label>
-
-        <!-- GSTIN -->
-        <label class="flex flex-col gap-1.5">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-on-surface">
-              GSTIN (15 characters) <span class="text-red-500">*</span>
-            </span>
-            @if (gstServiceForm.get('gstin')?.value?.length === 15) {
-              @if (isGstinChecksumValid(gstServiceForm.get('gstin')?.value)) {
-                <span class="text-xs tabular-nums font-medium text-link bg-brand-tint px-2 py-0.5 rounded flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[13px]">check_circle</span> Valid checksum
-                </span>
-              } @else {
-                <span class="text-xs tabular-nums font-medium text-error bg-error-container px-2 py-0.5 rounded flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[13px]">error</span> Invalid checksum
-                </span>
-              }
+      <form [formGroup]="gstServiceForm" (ngSubmit)="submitGstRequest()" class="flex min-h-0 flex-1 flex-col" novalidate>
+        <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pt-4 pb-4">
+          <label class="flex flex-col gap-1.5">
+            <span class="field-label">Business / Trade Name <span class="text-error">*</span></span>
+            <input formControlName="business_name" type="text" placeholder="e.g. SN Enterprises Pvt Ltd"
+              class="field-input" [class.border-error]="applicationError('business_name')" />
+            @if (applicationError('business_name'); as e) {
+              <span class="text-[13px] text-error">{{ e }}</span>
             }
-          </div>
-          <input
-            formControlName="gstin"
-            type="text"
-            maxlength="15"
-            placeholder="e.g. 27AAPFU0939F1ZV"
-            class="h-10 rounded-xl border uppercase tabular-nums tracking-wider bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
-            [class.border-card-border]="gstServiceForm.get('gstin')?.value?.length !== 15"
-            [class.border-success]="gstServiceForm.get('gstin')?.value?.length === 15 && isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
-            [class.border-error]="gstServiceForm.get('gstin')?.value?.length === 15 && !isGstinChecksumValid(gstServiceForm.get('gstin')?.value)"
-          />
-          <p class="text-xs tabular-nums text-on-surface-variant">
-            2 state digits + 10 PAN characters + 1 entity code + Z + 1 check digit.
-          </p>
-        </label>
+          </label>
 
-        <!-- Filing Frequency -->
-        <div class="flex flex-col gap-1.5">
-          <span class="text-xs font-medium text-on-surface">
-            Filing Frequency <span class="text-red-500">*</span>
-          </span>
-          <div class="grid grid-cols-2 gap-3">
-            <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all"
-              [class.border-brand]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
-              [class.dark:border-white]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
-              [class.bg-brand-tint]="gstServiceForm.get('filing_frequency')?.value === 'monthly'"
-              [class.border-card-border]="gstServiceForm.get('filing_frequency')?.value !== 'monthly'"
-            >
-              <input type="radio" value="monthly" formControlName="filing_frequency" class="accent-brand" />
-              <div>
-                <p class="text-xs font-semibold text-on-surface">Monthly</p>
-                <p class="text-[11px] text-on-surface-variant tabular-nums">Regular filers</p>
-              </div>
-            </label>
-            <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all"
-              [class.border-brand]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
-              [class.dark:border-white]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
-              [class.bg-brand-tint]="gstServiceForm.get('filing_frequency')?.value === 'quarterly'"
-              [class.border-card-border]="gstServiceForm.get('filing_frequency')?.value !== 'quarterly'"
-            >
-              <input type="radio" value="quarterly" formControlName="filing_frequency" class="accent-brand" />
-              <div>
-                <p class="text-xs font-semibold text-on-surface">Quarterly</p>
-                <p class="text-[11px] text-on-surface-variant tabular-nums">QRMP scheme</p>
-              </div>
-            </label>
+          <label class="flex flex-col gap-1.5">
+            <span class="field-label">GSTIN (15 characters) <span class="text-error">*</span></span>
+            <input formControlName="gstin" type="text" maxlength="15" placeholder="e.g. 27AAPFU0939F1ZV" autocapitalize="characters"
+              class="field-input font-mono uppercase tracking-wider"
+              [class.border-error]="applicationError('gstin')"
+              [class.border-success]="gstServiceForm.get('gstin')?.value?.length === 15 && isGstinChecksumValid(gstServiceForm.get('gstin')?.value)" />
+            @if (applicationError('gstin'); as e) {
+              <span class="text-[13px] text-error">{{ e }}</span>
+            } @else if (gstServiceForm.get('gstin')?.value?.length === 15 && isGstinChecksumValid(gstServiceForm.get('gstin')?.value)) {
+              <span class="flex items-center gap-1 text-[13px] text-success"><span class="material-symbols-outlined text-[16px]">check_circle</span> Valid GSTIN</span>
+            } @else {
+              <span class="text-xs text-on-surface-variant">2 state digits + 10 PAN characters + 1 entity code + Z + 1 check digit.</span>
+            }
+          </label>
+
+          <div class="flex flex-col gap-1.5">
+            <span class="field-label">Filing Frequency <span class="text-error">*</span></span>
+            <div class="grid grid-cols-2 gap-3">
+              @for (opt of [{ v: 'monthly', t: 'Monthly', s: 'Regular filers' }, { v: 'quarterly', t: 'Quarterly', s: 'QRMP scheme' }]; track opt.v) {
+                <label
+                  [class]="
+                    'flex items-center gap-2.5 rounded-xl border p-3 cursor-pointer transition-colors ' +
+                    (gstServiceForm.get('filing_frequency')?.value === opt.v ? 'border-brand bg-brand-tint' : 'border-card-border')
+                  "
+                >
+                  <input type="radio" [value]="opt.v" formControlName="filing_frequency" class="accent-brand" />
+                  <span>
+                    <span class="block text-sm font-semibold text-on-surface">{{ opt.t }}</span>
+                    <span class="block text-xs text-on-surface-variant">{{ opt.s }}</span>
+                  </span>
+                </label>
+              }
+            </div>
           </div>
+
+          <label class="flex flex-col gap-1.5">
+            <span class="field-label">Industry / Sector <span class="text-error">*</span></span>
+            <span class="relative">
+              <select formControlName="industry" class="field-input appearance-none cursor-pointer pr-10" [class.border-error]="applicationError('industry')">
+                <option value="" disabled>Select your industry</option>
+                @for (ind of industries; track ind) {
+                  <option [value]="ind">{{ ind }}</option>
+                }
+              </select>
+              <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant" aria-hidden="true">expand_more</span>
+            </span>
+            @if (applicationError('industry'); as e) {
+              <span class="text-[13px] text-error">{{ e }}</span>
+            }
+          </label>
         </div>
 
-        <!-- Industry -->
-        <label class="flex flex-col gap-1.5">
-          <span class="text-xs font-medium text-on-surface">
-            Industry / Sector <span class="text-red-500">*</span>
-          </span>
-          <select
-            formControlName="industry"
-            class="h-10 rounded-xl border border-card-border bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer"
-          >
-            <option value="" disabled selected class="bg-surface-container-lowest text-on-surface-variant">Select your industry</option>
-            @for (ind of industries; track ind) {
-              <option [value]="ind" class="bg-surface-container-lowest text-on-surface">{{ ind }}</option>
-            }
-          </select>
-        </label>
-
-        <!-- Action buttons -->
-        <div class="flex items-center justify-end gap-2.5 mt-2 pt-3 border-t border-card-border">
-          <button
-            type="button"
-            (click)="closeServiceModal()"
-            class="h-9 px-4 rounded-full border border-card-border text-xs font-medium text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            [disabled]="gstServiceForm.invalid || !isGstinChecksumValid(gstServiceForm.get('gstin')?.value) || serviceBusy()"
-            class="h-9 px-5 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5"
-          >
-            @if (serviceBusy()) {
-              <span class="size-3 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
-            }
-            Submit Application
-          </button>
+        <div class="shrink-0 border-t border-hairline px-5 pt-3" style="padding-bottom: max(16px, env(safe-area-inset-bottom))">
+          @if (serviceError()) {
+            <div class="mb-3 flex items-start gap-2 rounded-xl bg-error-container px-3 py-2.5 text-sm text-on-error-container" role="alert">
+              <span class="material-symbols-outlined text-[18px] shrink-0">error</span>
+              <span>{{ serviceError() }}</span>
+            </div>
+          }
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" (click)="closeServiceModal()" class="h-12 rounded-xl border border-card-border text-[15px] font-semibold text-on-surface hover:bg-surface-container-low">Cancel</button>
+            <button type="submit" [disabled]="serviceBusy()" class="btn-primary flex h-12 items-center justify-center gap-2 text-[15px]">
+              @if (serviceBusy()) {
+                <span class="size-4 animate-spin rounded-full border-2 border-on-brand/40 border-t-on-brand"></span>
+              }
+              Submit Application
+            </button>
+          </div>
         </div>
       </form>
     </div>
   </div>
 }
 
-<!-- ITR Request Modal -->
+<!-- ITR Request Modal: same sheet pattern -->
 @if (showServiceModal() === 'itr') {
-  <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md px-4">
-    <div class="w-full max-w-md rounded-2xl bg-surface-container-lowest border border-card-border shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] p-6 relative flex flex-col">
-      <button (click)="closeServiceModal()" class="absolute top-4 right-4 size-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors cursor-pointer">
-        <span class="material-symbols-outlined text-[18px]">close</span>
-      </button>
-
-      <div class="flex items-center gap-3 mb-5">
-        <div class="size-10 rounded-xl bg-gold-tint text-gold-ink border flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-[20px]">account_balance</span>
-        </div>
-        <div>
-          <span class="text-xs font-semibold uppercase tracking-[0.07em] text-gold-ink font-medium">Practice Application</span>
-          <h2 class="text-base font-semibold text-on-surface tracking-tight">Become an ITR Client</h2>
+  <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 sm:px-4" (click)="closeServiceModal()">
+    <div class="flex max-h-[92dvh] w-full flex-col rounded-t-3xl bg-surface-container-lowest shadow-xl sm:max-w-md sm:rounded-2xl" role="dialog" aria-modal="true" aria-labelledby="itr-app-title" (click)="$event.stopPropagation()">
+      <div class="shrink-0 px-5 pt-3">
+        <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-outline-variant sm:hidden"></div>
+        <div class="flex items-center gap-3">
+          <div class="size-10 rounded-xl bg-gold-tint text-gold-ink flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[20px]">account_balance</span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <span class="text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">Practice Application</span>
+            <h2 id="itr-app-title" class="text-base font-semibold text-on-surface">Become an ITR Client</h2>
+          </div>
+          <button type="button" (click)="closeServiceModal()" aria-label="Close" class="size-10 shrink-0 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
         </div>
       </div>
 
-      <form [formGroup]="itrServiceForm" (ngSubmit)="submitItrRequest()" class="flex flex-col gap-4">
-        <!-- PAN -->
-        <label class="flex flex-col gap-1.5">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-on-surface">
-              PAN (10 characters) <span class="text-red-500">*</span>
-            </span>
-            @if (itrServiceForm.get('pan')?.value?.length === 10) {
-              @if (isPanValid(itrServiceForm.get('pan')?.value)) {
-                <span class="text-xs tabular-nums font-medium text-link bg-brand-tint px-2 py-0.5 rounded flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[13px]">check_circle</span> Valid PAN
-                </span>
-              } @else {
-                <span class="text-xs tabular-nums font-medium text-error bg-error-container px-2 py-0.5 rounded flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[13px]">error</span> Invalid PAN
-                </span>
-              }
+      <form [formGroup]="itrServiceForm" (ngSubmit)="submitItrRequest()" class="flex min-h-0 flex-1 flex-col" novalidate>
+        <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pt-4 pb-4">
+          <label class="flex flex-col gap-1.5">
+            <span class="field-label">PAN (10 characters) <span class="text-error">*</span></span>
+            <input formControlName="pan" type="text" maxlength="10" placeholder="e.g. ABCDE1234F" autocapitalize="characters"
+              class="field-input font-mono uppercase tracking-wider"
+              [class.border-error]="applicationError('pan')"
+              [class.border-success]="itrServiceForm.get('pan')?.value?.length === 10 && isPanValid(itrServiceForm.get('pan')?.value)" />
+            @if (applicationError('pan'); as e) {
+              <span class="text-[13px] text-error">{{ e }}</span>
+            } @else if (itrServiceForm.get('pan')?.value?.length === 10 && isPanValid(itrServiceForm.get('pan')?.value)) {
+              <span class="flex items-center gap-1 text-[13px] text-success"><span class="material-symbols-outlined text-[16px]">check_circle</span> Valid PAN</span>
+            } @else {
+              <span class="text-xs text-on-surface-variant">5 letters + 4 digits + 1 letter (e.g. ABCDE1234F).</span>
             }
-          </div>
-          <input
-            formControlName="pan"
-            type="text"
-            maxlength="10"
-            placeholder="e.g. ABCDE1234F"
-            class="h-10 rounded-xl border uppercase tabular-nums tracking-wider bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
-            [class.border-card-border]="itrServiceForm.get('pan')?.value?.length !== 10"
-            [class.border-success]="itrServiceForm.get('pan')?.value?.length === 10 && isPanValid(itrServiceForm.get('pan')?.value)"
-            [class.border-error]="itrServiceForm.get('pan')?.value?.length === 10 && !isPanValid(itrServiceForm.get('pan')?.value)"
-          />
-          <p class="text-xs tabular-nums text-on-surface-variant">
-            5 letters + 4 digits + 1 letter (e.g. ABCDE1234F).
-          </p>
-        </label>
+          </label>
+        </div>
 
-        <!-- Action buttons -->
-        <div class="flex items-center justify-end gap-2.5 mt-2 pt-3 border-t border-card-border">
-          <button
-            type="button"
-            (click)="closeServiceModal()"
-            class="h-9 px-4 rounded-full border border-card-border text-xs font-medium text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            [disabled]="itrServiceForm.invalid || !isPanValid(itrServiceForm.get('pan')?.value) || serviceBusy()"
-            class="h-9 px-5 rounded-full bg-brand text-on-brand hover:opacity-90 text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5"
-          >
-            @if (serviceBusy()) {
-              <span class="size-3 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
-            }
-            Submit Application
-          </button>
+        <div class="shrink-0 border-t border-hairline px-5 pt-3" style="padding-bottom: max(16px, env(safe-area-inset-bottom))">
+          @if (serviceError()) {
+            <div class="mb-3 flex items-start gap-2 rounded-xl bg-error-container px-3 py-2.5 text-sm text-on-error-container" role="alert">
+              <span class="material-symbols-outlined text-[18px] shrink-0">error</span>
+              <span>{{ serviceError() }}</span>
+            </div>
+          }
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" (click)="closeServiceModal()" class="h-12 rounded-xl border border-card-border text-[15px] font-semibold text-on-surface hover:bg-surface-container-low">Cancel</button>
+            <button type="submit" [disabled]="serviceBusy()" class="btn-primary flex h-12 items-center justify-center gap-2 text-[15px]">
+              @if (serviceBusy()) {
+                <span class="size-4 animate-spin rounded-full border-2 border-on-brand/40 border-t-on-brand"></span>
+              }
+              Submit Application
+            </button>
+          </div>
         </div>
       </form>
     </div>

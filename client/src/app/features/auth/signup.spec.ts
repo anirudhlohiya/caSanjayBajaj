@@ -62,7 +62,16 @@ describe('Auth screens (create account, reset password)', () => {
     const register = Array.from(el.querySelectorAll('button[type=submit]')).find((b) =>
       b.textContent?.includes('Register'),
     ) as HTMLButtonElement;
-    expect(register.disabled).toBeTrue();
+    // Register stays tappable; an incomplete form says what to fix next to the button
+    expect(register.disabled).toBeFalse();
+    await fixture.componentInstance.verifyAndSignup();
+    fixture.detectChanges();
+    expect(auth.signup).not.toHaveBeenCalled();
+    const alert = register.previousElementSibling;
+    expect(alert?.getAttribute('role')).toBe('alert');
+    expect(alert?.textContent).toContain('Please fix the highlighted fields.');
+    expect(el.textContent).toContain('Enter the 6-digit code from your email.');
+    expect(el.textContent).toContain('Enter your full name.');
     fixture.destroy();
   });
 

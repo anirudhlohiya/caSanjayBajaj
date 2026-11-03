@@ -36,13 +36,15 @@ describe('Login screen', () => {
     expect(q('h1').textContent).toContain('Sign in to your account.');
   });
 
-  it('keeps Sign In disabled until a valid email and password are entered', () => {
-    const { q, type } = render();
+  it('Sign In stays tappable; an empty form explains what is missing instead of doing nothing', async () => {
+    const { fixture, el, q } = render();
     const button = q<HTMLButtonElement>('button[type=submit]');
-    expect(button.disabled).toBeTrue();
-    type('email', 'client@example.com');
-    type('password', 'longenough');
     expect(button.disabled).toBeFalse();
+    await fixture.componentInstance.submit();
+    fixture.detectChanges();
+    expect(auth.login).not.toHaveBeenCalled();
+    expect(el.textContent).toContain('Enter a valid email address.');
+    expect(el.textContent).toContain('Password must be at least 8 characters.');
   });
 
   it('shows an email error under the field after an invalid entry', () => {
