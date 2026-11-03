@@ -1,9 +1,9 @@
-<div class="mx-auto w-full max-w-2xl flex flex-col gap-6 px-4 pt-4">
+<div class="mx-auto w-full max-w-2xl flex flex-col gap-5 px-4 pt-4 pb-8">
   <app-page-header title="Notifications" [back]="true">
     @if (hasUnread()) {
       <button
         (click)="markAllRead()"
-        class="rounded-full bg-surface-variant px-3 py-1.5 text-body-md font-semibold text-on-surface-variant"
+        class="h-10 rounded-full px-3 text-sm font-semibold text-link hover:bg-surface-container"
       >
         Mark all read
       </button>
@@ -13,7 +13,7 @@
   @if (loading()) {
     <app-spinner />
   } @else if (items().length === 0) {
-    <div class="rounded-2xl border border-card-border bg-surface-container-lowest">
+    <div class="card">
       <app-empty-state
         icon="notifications_none"
         title="No notifications"
@@ -21,46 +21,56 @@
       />
     </div>
   } @else {
-    <div class="flex flex-col gap-3">
-      @for (item of items(); track item.id) {
-        <button
-          (click)="open(item)"
-          class="flex items-start gap-3 rounded-xl border border-card-border bg-surface-container-lowest p-3 text-left shadow-card h-full"
-        >
-          <span class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full"
-            [class]="item.is_read ? 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400' : 'bg-secondary-container text-on-secondary-container'">
-            <span class="material-symbols-outlined text-[20px]">notifications</span>
-          </span>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center justify-between gap-2">
-              <p class="truncate text-body-md font-semibold text-on-surface">{{ item.title }}</p>
+    @for (group of groups(); track group.label) {
+      <section class="flex flex-col gap-2.5">
+        <h2 class="px-1 text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">{{ group.label }}</h2>
+        <div class="card overflow-hidden divide-y divide-card-border">
+          @for (item of group.items; track item.id) {
+            <button
+              (click)="open(item)"
+              class="flex w-full items-start gap-3 px-4 py-3.5 text-left hover:bg-surface-container-low transition-colors"
+            >
+              <span
+                [class]="
+                  'mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl ' +
+                  (kind(item.deep_link).tone === 'ok'
+                    ? 'bg-success-tint text-success'
+                    : kind(item.deep_link).tone === 'gold'
+                      ? 'bg-gold-tint text-gold-ink'
+                      : 'bg-brand-tint text-brand-ink')
+                "
+              >
+                <span class="material-symbols-outlined text-[20px]">{{ kind(item.deep_link).icon }}</span>
+              </span>
+              <div class="min-w-0 flex-1">
+                <p [class]="'text-[15px] text-on-surface ' + (item.is_read ? 'font-medium' : 'font-semibold')">{{ item.title }}</p>
+                <p class="mt-0.5 text-sm text-on-surface-variant">{{ item.body }}</p>
+                <p class="mt-1.5 text-xs text-on-surface-variant">{{ timeAgo(item.created_at) }}</p>
+              </div>
               @if (!item.is_read) {
-                <span class="size-2.5 shrink-0 rounded-full bg-error"></span>
+                <span class="mt-2 size-2 shrink-0 rounded-full bg-gold" aria-label="Unread"></span>
+              } @else if (item.deep_link) {
+                <span class="mt-2 material-symbols-outlined text-[18px] text-on-surface-variant">chevron_right</span>
               }
-            </div>
-            <p class="mt-0.5 text-body-md text-on-surface-variant">{{ item.body }}</p>
-            <p class="mt-1 text-label-md text-on-surface-variant">{{ timeAgo(item.created_at) }}</p>
-          </div>
-          @if (item.deep_link) {
-            <span class="mt-1 material-symbols-outlined text-[18px] text-on-surface-variant">chevron_right</span>
+            </button>
           }
-        </button>
-      }
-    </div>
+        </div>
+      </section>
+    }
 
     @if (totalPages() > 1) {
       <div class="flex items-center justify-between gap-2 pt-1">
         <button
           (click)="prev()"
           [disabled]="page() <= 1"
-          class="px-3 py-1.5 text-sm rounded-lg border border-outline-variant disabled:opacity-40">
+          class="h-10 px-4 text-sm font-medium rounded-xl border border-card-border bg-surface-container-lowest disabled:opacity-40">
           Previous
         </button>
         <span class="text-xs text-on-surface-variant">Page {{ page() }} of {{ totalPages() }}</span>
         <button
           (click)="next()"
           [disabled]="page() >= totalPages()"
-          class="px-3 py-1.5 text-sm rounded-lg border border-outline-variant disabled:opacity-40">
+          class="h-10 px-4 text-sm font-medium rounded-xl border border-card-border bg-surface-container-lowest disabled:opacity-40">
           Next
         </button>
       </div>

@@ -15,6 +15,26 @@ import { PageHeader } from '../../shared/components/page-header';
 
 const PAGE_SIZE = 20;
 
+/** Icon and tint for a notification, from the screen it opens (the API has no type field). */
+export function notificationKind(link: string | null): { icon: string; tone: 'ok' | 'brand' | 'gold' } {
+  const path = link ?? '';
+  if (path.startsWith('/support')) return { icon: 'support_agent', tone: 'ok' };
+  if (path.startsWith('/reports')) return { icon: 'summarize', tone: 'gold' };
+  if (/^\/(documents|upload)/.test(path)) return { icon: 'description', tone: 'brand' };
+  if (/^\/(due-dates|reminders)/.test(path)) return { icon: 'event_upcoming', tone: 'brand' };
+  return { icon: 'notifications', tone: 'brand' };
+}
+
+/** Splits a newest-first list into Today and Earlier (local time). */
+export function groupByDay<T extends { created_at: string }>(items: T[], now = new Date()): { label: string; items: T[] }[] {
+  const today = now.toDateString();
+  const groups = [
+    { label: 'Today', items: items.filter((i) => new Date(i.created_at).toDateString() === today) },
+    { label: 'Earlier', items: items.filter((i) => new Date(i.created_at).toDateString() !== today) },
+  ];
+  return groups.filter((g) => g.items.length > 0);
+}
+
 @Component({
   selector: 'app-notifications',
   standalone: true,
@@ -32,6 +52,8 @@ export class Notifications {
   readonly page = signal(1);
   readonly totalPages = signal(1);
   readonly total = signal(0);
+  readonly groups = computed(() => groupByDay(this.items()));
+  readonly kind = notificationKind;
   readonly hasUnread = computed(
     () => this.notificationsService.unreadCount() > 0,
   );
@@ -107,6 +129,6 @@ export class Notifications {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     if (days < 7) return `${days}d ago`;
-    return new Date(iso).toLocaleDateString();
+    return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 }

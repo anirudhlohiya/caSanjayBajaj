@@ -52,6 +52,11 @@
   --color-on-error-container: #b42318;
 
   --color-link: #1d3f8f;
+  /* Status: done / pending (pair each with its tint) */
+  --color-success: #1b7a4b;
+  --color-success-tint: #e3f3ea;
+  --color-warning: #a35a00;
+  --color-warning-tint: #fcefd9;
   --color-canvas-soft: #f5f6f9;
   --color-canvas-inset: #eef1f6;
   --color-hairline: #e2e6ee;
@@ -202,6 +207,10 @@
     --color-secondary-container: #16224a;
     --color-on-secondary-container: #9db5ee;
     --color-link: #9db5ee;
+    --color-success: #4cc38a;
+    --color-success-tint: #0f2a1f;
+    --color-warning: #f0b35a;
+    --color-warning-tint: #2e2210;
 
     --color-error: #f2877c;
     --color-on-error: #0a1530;
