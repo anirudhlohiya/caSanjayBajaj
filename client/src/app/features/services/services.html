@@ -1,43 +1,44 @@
 <div class="max-w-container-max mx-auto px-4 pt-4">
   <!-- Search Bar -->
-  <div class="relative mb-6">
-    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+  <div class="relative mb-5">
+    <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]" aria-hidden="true">search</span>
     <input
       type="text"
       placeholder="Find a service (e.g., GST, ITR, Audit)"
       [ngModel]="searchQuery()"
       (ngModelChange)="searchQuery.set($event)"
-      class="w-full bg-surface-container border border-outline-variant rounded-xl py-3 pl-10 pr-4 text-sm text-primary placeholder:text-on-surface-variant focus:outline-none focus:border-outline focus:ring-1 focus:ring-outline"
+      class="field-input pl-11"
+      aria-label="Find a service"
     />
   </div>
 
   @if (loading()) {
     <app-spinner />
   } @else if (failed()) {
-    <div class="rounded-2xl border border-card-border bg-surface-container-lowest">
+    <div class="card">
       <app-empty-state icon="cloud_off" title="Couldn't load services" message="Check your connection and try again." />
       <div class="flex justify-center pb-6">
-        <button (click)="load()" class="rounded-full bg-surface-variant px-4 py-2 text-body-md font-semibold text-on-surface-variant">Retry</button>
+        <button (click)="load()" class="btn-primary h-10 px-5 text-sm">Retry</button>
       </div>
     </div>
   } @else {
     <!-- Services List -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-6">
       @for (service of filteredServices(); track service.id) {
-        <a [routerLink]="['/services', service.slug]" class="block bg-surface rounded-2xl p-4 shadow-card hover:bg-surface-container active:scale-[0.99] transition-all border border-card-border">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" [class]="tileClass(service.icon_color)">
-              <span class="material-symbols-outlined text-[20px]">{{ service.icon || 'home_repair_service' }}</span>
+        <a [routerLink]="['/services', service.slug]" class="card block p-4 hover:bg-surface-container-low active:scale-[0.99] transition">
+          <div class="flex items-center gap-3">
+            <div class="size-12 rounded-2xl flex items-center justify-center shrink-0 bg-brand-tint text-brand-ink">
+              <span class="material-symbols-outlined text-[24px]">{{ service.icon || 'home_repair_service' }}</span>
             </div>
-            <h3 class="font-bold text-primary text-base flex-1 min-w-0">{{ service.title }}</h3>
+            <h3 class="font-semibold text-on-surface text-base flex-1 min-w-0">{{ service.title }}</h3>
             <span class="material-symbols-outlined text-[20px] text-on-surface-variant">chevron_right</span>
           </div>
-          <p class="text-[11px] text-on-surface-variant leading-relaxed mb-4">
+          <p class="mt-3 text-[13px] text-on-surface-variant leading-relaxed">
             {{ service.description }}
           </p>
-          <div class="flex flex-wrap gap-2">
+          <div class="mt-3 flex flex-wrap gap-1.5">
             @for (tag of service.tags; track tag) {
-              <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">{{ tag }}</span>
+              <span class="rounded-md bg-surface-container px-2 py-1 text-xs font-medium text-on-surface-variant">{{ tag }}</span>
             }
           </div>
         </a>

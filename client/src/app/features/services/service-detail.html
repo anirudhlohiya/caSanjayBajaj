@@ -1,105 +1,129 @@
-<div class="mx-auto w-full max-w-2xl px-4 pt-4 pb-6">
+<div class="mx-auto w-full max-w-2xl px-4 pt-4 pb-28 flex flex-col gap-5">
   @if (loading()) {
     <app-spinner />
   } @else if (notFound()) {
-    <div class="rounded-2xl border border-card-border bg-surface-container-lowest">
+    <div class="card">
       <app-empty-state icon="search_off" title="Service not found" message="This service may have been removed." />
       <div class="flex justify-center pb-6">
-        <a routerLink="/services" class="rounded-full bg-surface-variant px-4 py-2 text-body-md font-semibold text-on-surface-variant">All services</a>
+        <a routerLink="/services" class="btn-primary inline-flex h-10 items-center px-5 text-sm">All services</a>
       </div>
     </div>
   } @else if (service(); as s) {
-    <!-- Header -->
-    <section class="rounded-2xl border border-card-border bg-surface-container-lowest p-5 shadow-card">
-      <div class="flex items-center gap-3">
-        <div class="size-14 rounded-2xl flex items-center justify-center shrink-0" [class]="tileClass(s.icon_color)">
-          <span class="material-symbols-outlined text-[28px]">{{ s.icon || 'home_repair_service' }}</span>
-        </div>
-        <div class="min-w-0">
-          <h1 class="text-xl font-bold text-primary leading-tight">{{ s.title }}</h1>
-          @if (s.price) {
-            <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 mt-1">{{ s.price }}</p>
-          }
-        </div>
-      </div>
-      <p class="mt-3 text-sm leading-relaxed text-on-surface-variant">{{ s.description }}</p>
-      @if (s.tags.length) {
-        <div class="mt-3 flex flex-wrap gap-2">
-          @for (tag of s.tags; track tag) {
-            <span class="bg-surface-container text-primary text-[10px] px-2 py-1 rounded-md font-mono">{{ tag }}</span>
-          }
-        </div>
+    <!-- Navy header card -->
+    <section class="rounded-2xl bg-gradient-to-br from-hero-from to-hero-to p-5 text-white dark:border dark:border-card-border">
+      <span class="flex size-14 items-center justify-center rounded-2xl bg-white/10 text-gold">
+        <span class="material-symbols-outlined text-[28px]">{{ s.icon || 'home_repair_service' }}</span>
+      </span>
+      <h1 class="mt-3 text-[22px] font-semibold leading-tight">{{ s.title }}</h1>
+      @if (s.price) {
+        <p class="mt-1 text-sm font-semibold text-gold">{{ s.price }}</p>
       }
+      <p class="mt-2 text-sm leading-relaxed text-white/75">{{ s.description }}</p>
+    </section>
 
-      <!-- Actions -->
-      <div class="mt-5 flex flex-col gap-2">
-        <button (click)="openRequest()" class="w-full rounded-xl bg-brand py-3 text-sm font-semibold text-on-brand active:scale-[0.99] transition-transform flex items-center justify-center gap-2">
-          <span class="material-symbols-outlined text-[18px]">send</span>
-          Request this service
-        </button>
-        @if (whatsappHref() || callHref()) {
-          <div class="grid gap-2" [class]="whatsappHref() && callHref() ? 'grid-cols-2' : 'grid-cols-1'">
-            @if (whatsappHref(); as wa) {
-              <a [href]="wa" target="_blank" rel="noopener" class="rounded-xl border border-card-border py-2.5 text-sm font-medium text-primary flex items-center justify-center gap-2 active:bg-surface-container">
-                <span class="material-symbols-outlined text-[18px] text-[#128C4A] dark:text-[#25D366]">chat</span>
-                WhatsApp
-              </a>
+    @if (s.tags.length) {
+      <section>
+        <h2 class="mb-2.5 px-1 text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">What's included</h2>
+        <ul class="card flex flex-col gap-3 p-4">
+          @for (tag of s.tags; track tag) {
+            <li class="flex items-center gap-2.5 text-[15px] text-on-surface">
+              <span class="material-symbols-outlined text-[20px] text-gold-ink" aria-hidden="true">check_circle</span>
+              {{ tag }}
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <section>
+      <h2 class="mb-2.5 px-1 text-xs font-semibold uppercase tracking-[0.07em] text-on-surface-variant">What happens next</h2>
+      <ol class="card flex flex-col p-4">
+        @for (step of [
+          { title: 'You send a request', text: '' },
+          { title: 'We get in touch', text: 'Usually within 1 working day, by phone.' },
+          { title: 'Share documents & get started', text: "We'll tell you exactly what's needed." }
+        ]; track step.title; let i = $index, last = $last) {
+          <li class="relative grid grid-cols-[28px_minmax(0,1fr)] gap-3" [class.pb-4]="!last">
+            @if (!last) {
+              <span class="absolute left-[13px] top-7 bottom-0 w-0.5 bg-card-border" aria-hidden="true"></span>
             }
-            @if (callHref(); as tel) {
-              <a [href]="tel" class="rounded-xl border border-card-border py-2.5 text-sm font-medium text-primary flex items-center justify-center gap-2 active:bg-surface-container">
-                <span class="material-symbols-outlined text-[18px]">call</span>
-                Call us
-              </a>
-            }
-          </div>
+            <span class="flex size-7 items-center justify-center rounded-full bg-surface-container text-[13px] font-semibold text-on-surface-variant">{{ i + 1 }}</span>
+            <div class="pt-0.5">
+              <p class="font-semibold text-on-surface">{{ step.title }}</p>
+              @if (step.text) {
+                <p class="text-[13px] text-on-surface-variant">{{ step.text }}</p>
+              }
+            </div>
+          </li>
         }
-      </div>
+      </ol>
     </section>
 
     <!-- Page content from the admin panel -->
     @if (s.body_md.trim()) {
-      <article class="mt-4 rounded-2xl border border-card-border bg-surface-container-lowest p-5 shadow-card">
+      <article class="card p-5">
         <div class="md-content" [innerHTML]="html()"></div>
       </article>
     }
+
+    <!-- Actions, pinned above the tab bar -->
+    <div class="fixed inset-x-0 bottom-[68px] z-40 mx-auto flex w-full gap-2 border-t border-hairline bg-surface-container-lowest px-4 py-3 sm:max-w-[420px]" style="margin-bottom: env(safe-area-inset-bottom)">
+      @if (whatsappHref(); as wa) {
+        <a [href]="wa" target="_blank" rel="noopener" aria-label="WhatsApp us"
+          class="flex size-12 shrink-0 items-center justify-center rounded-xl border border-card-border text-[#128C4A] dark:text-[#25D366] active:bg-surface-container">
+          <span class="material-symbols-outlined text-[22px]">chat</span>
+        </a>
+      }
+      @if (callHref(); as tel) {
+        <a [href]="tel" aria-label="Call us"
+          class="flex size-12 shrink-0 items-center justify-center rounded-xl border border-card-border text-primary active:bg-surface-container">
+          <span class="material-symbols-outlined text-[22px]">call</span>
+        </a>
+      }
+      <button (click)="openRequest()" class="btn-primary flex h-12 flex-1 items-center justify-center gap-2 text-[15px] active:scale-[0.99]">
+        <span class="material-symbols-outlined text-[20px]">send</span>
+        Request this service
+      </button>
+    </div>
   }
 </div>
 
 <!-- Request sheet -->
 @if (showRequest() && service(); as s) {
-  <div class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40" (click)="closeSheet()">
+  <div class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/45" (click)="closeSheet()">
     <div class="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl bg-surface-container-lowest p-5 pb-8 sm:pb-5 shadow-xl" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="req-title">
       <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-outline-variant sm:hidden"></div>
       @if (sentTicketId()) {
         <!-- Confirmation -->
         <div class="flex flex-col items-center text-center">
-          <div class="size-14 rounded-full bg-emerald-100 dark:bg-emerald-500/15 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[30px] text-emerald-600 dark:text-emerald-400">check_circle</span>
+          <div class="size-14 rounded-full bg-success-tint flex items-center justify-center">
+            <span class="material-symbols-outlined text-[30px] text-success">check_circle</span>
           </div>
-          <h2 id="req-title" class="mt-3 text-lg font-bold text-primary">Request sent</h2>
+          <h2 id="req-title" class="mt-3 text-lg font-semibold text-primary">Request sent</h2>
           <p class="mt-1 text-sm text-on-surface-variant">
-            We've received your request for <b class="text-primary">{{ s.title }}</b>. Our team will get in touch with you soon.
+            We've received your request for <b class="text-on-surface">{{ s.title }}</b>. Our team will get in touch with you soon.
           </p>
         </div>
-        <div class="mt-4 rounded-xl bg-surface-container p-3 text-xs text-on-surface-variant flex gap-2">
+        <div class="mt-4 rounded-xl bg-surface-container p-3 text-[13px] text-on-surface-variant flex gap-2">
           <span class="material-symbols-outlined text-[18px] shrink-0">notifications_active</span>
           You'll get a notification when we reply. You can also follow the conversation in Profile → Support.
         </div>
         <div class="mt-4 grid grid-cols-2 gap-2">
-          <button (click)="closeSheet()" class="rounded-xl border border-card-border py-3 text-sm font-medium text-primary">Done</button>
-          <button (click)="viewRequest()" class="rounded-xl bg-brand py-3 text-sm font-semibold text-on-brand">View request</button>
+          <button (click)="closeSheet()" class="h-12 rounded-xl border border-card-border text-[15px] font-semibold text-on-surface">Done</button>
+          <button (click)="viewRequest()" class="btn-primary h-12 text-[15px]">View request</button>
         </div>
       } @else {
-        <h2 id="req-title" class="text-lg font-bold text-primary">Request {{ s.title }}</h2>
+        <h2 id="req-title" class="text-lg font-semibold text-primary">Request {{ s.title }}</h2>
         <p class="mt-1 text-sm text-on-surface-variant">Our team will reach out to you. You can follow the conversation in Support.</p>
-        <label for="req-msg" class="mt-4 block text-xs font-semibold text-on-surface-variant">Anything we should know? (optional)</label>
+        <label for="req-msg" class="field-label mt-4 block">Anything we should know? (optional)</label>
         <textarea id="req-msg" rows="4" maxlength="2000"
-          class="mt-1 w-full rounded-xl border border-outline-variant bg-surface-container p-3 text-sm text-primary placeholder:text-on-surface-variant focus:outline-none focus:border-outline"
+          class="field-input mt-1.5 h-auto py-3"
           placeholder="e.g. I need GST registration for a new shop"
           [ngModel]="requestMessage()" (ngModelChange)="requestMessage.set($event)"></textarea>
         <div class="mt-4 grid grid-cols-2 gap-2">
-          <button (click)="closeSheet()" class="rounded-xl border border-card-border py-3 text-sm font-medium text-primary">Cancel</button>
-          <button (click)="submitRequest()" [disabled]="sending()" class="rounded-xl bg-brand py-3 text-sm font-semibold text-on-brand disabled:opacity-60">
+          <button (click)="closeSheet()" class="h-12 rounded-xl border border-card-border text-[15px] font-semibold text-on-surface">Cancel</button>
+          <button (click)="submitRequest()" [disabled]="sending()" class="btn-primary flex h-12 items-center justify-center gap-2 text-[15px]">
+            <span class="material-symbols-outlined text-[18px]">send</span>
             {{ sending() ? 'Sending…' : 'Send request' }}
           </button>
         </div>

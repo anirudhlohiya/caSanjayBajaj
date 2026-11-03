@@ -10,7 +10,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { marked } from 'marked';
 import { ServicesOfferedService } from '../../core/services/feature.services';
 import { ServiceDetail } from '../../core/models';
-import { serviceTileClass } from '../../core/service-palette';
 import { phoneDigits } from '../../core/firm-contact';
 import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
@@ -56,7 +55,6 @@ export class ServiceDetailPage {
     return `https://wa.me/${phoneDigits(phone)}?text=${text}`;
   });
 
-  readonly tileClass = serviceTileClass;
 
   constructor() {
     this.route.paramMap.subscribe((params) => {

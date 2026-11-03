@@ -9,7 +9,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ServicesOfferedService } from '../../core/services/feature.services';
 import { Service } from '../../core/models';
-import { serviceTileClass } from '../../core/service-palette';
 import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
 
@@ -39,7 +38,6 @@ export class Services {
     );
   });
 
-  readonly tileClass = serviceTileClass;
 
   constructor() {
     void this.load();
