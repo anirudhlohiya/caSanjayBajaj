@@ -25,6 +25,7 @@ import {
   nextDue,
   relevantAudiences,
 } from '../../core/due-date-meta';
+import { GovSources } from '../../shared/components/gov-sources';
 
 /** Local date as YYYY-MM-DD. */
 function todayIso(): string {
@@ -35,7 +36,7 @@ function todayIso(): string {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, Spinner, CurrencyPipe],
+  imports: [RouterLink, Spinner, CurrencyPipe, GovSources],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
 })

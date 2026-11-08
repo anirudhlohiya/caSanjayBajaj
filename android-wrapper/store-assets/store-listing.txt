@@ -1,0 +1,48 @@
+APP NAME (max 30)
+SN Bajaj And Co
+
+SHORT DESCRIPTION (max 80)
+Upload GST & ITR documents, track filings and get reminders from your CA.
+
+FULL DESCRIPTION (max 4000)
+The official app of S N Bajaj And Co, Chartered Accountants, Surat, for our clients.
+
+NOT A GOVERNMENT APP: S N Bajaj And Co is a private firm of Chartered Accountants. This app is not a government app and does not represent, and is not affiliated with, any government entity.
+
+Send your documents, follow your filings and stay on top of due dates, all in one place, without chasing emails or WhatsApp threads.
+
+WHAT YOU CAN DO
+• Upload GST and ITR documents month by month: bills, bank statements, registers and more, straight from your phone
+• See what is needed for each period and how much you have already sent
+• Track the status of your GST returns and income tax filings
+• Download your filed returns, reports and certificates whenever you need them
+• Get reminders before due dates so nothing is missed
+• Receive notifications when your CA files a return, needs a document or replies to you
+• Raise a support ticket or talk to an expert at our office
+• Use the app in English, Hindi or Gujarati
+
+SECURE BY DESIGN
+• Your documents are stored privately and opened only through short-lived secure links
+• All data is encrypted in transit
+• Your data is never sold or used for advertising
+• You can delete your account at any time from your Profile
+
+WHO IT IS FOR
+Clients of S N Bajaj And Co who want their GST and income tax work handled from their phone.
+
+OFFICIAL SOURCES
+The due dates and tax rules shown in the app come from these official government sources. Always check them for the latest notifications:
+• GST Portal: https://www.gst.gov.in
+• CBIC (GST notifications): https://cbic-gst.gov.in
+• Income Tax e-Filing: https://www.incometax.gov.in
+• Income Tax Department (TDS / TCS): https://incometaxindia.gov.in
+
+Questions? Email snbajajsanjay@gmail.com or visit https://snbajaj.com
+
+CATEGORY
+Business
+
+CONTACT DETAILS
+Email: snbajajsanjay@gmail.com
+Website: https://snbajaj.com
+Phone: leave empty (optional)

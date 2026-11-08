@@ -10,13 +10,14 @@ import { AuthService } from '../../core/services/auth.service';
 import { ComplianceTasksService, ComplianceTask } from '../../core/services/feature.services';
 import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
+import { GovSources } from '../../shared/components/gov-sources';
 
 const DAY = 24 * 60 * 60 * 1000;
 
 @Component({
   selector: 'app-reminders',
   standalone: true,
-  imports: [CommonModule, Spinner, EmptyState],
+  imports: [CommonModule, Spinner, EmptyState, GovSources],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './reminders.html',
 })

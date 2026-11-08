@@ -11,6 +11,7 @@ import { marked } from 'marked';
 import { ApiClient } from '../../core/services/api-client.service';
 import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
+import { GovSources } from '../../shared/components/gov-sources';
 
 interface Faq {
   id: string;
@@ -31,7 +32,7 @@ const CATEGORIES: Array<{ key: string; label: string }> = [
 @Component({
   selector: 'app-faq',
   standalone: true,
-  imports: [RouterLink, Spinner, EmptyState],
+  imports: [RouterLink, Spinner, EmptyState, GovSources],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './faq.html',
 })

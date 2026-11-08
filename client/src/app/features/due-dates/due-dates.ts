@@ -16,6 +16,7 @@ import {
 } from '../../core/due-date-meta';
 import { Spinner } from '../../shared/components/spinner';
 import { EmptyState } from '../../shared/components/empty-state';
+import { GovSources } from '../../shared/components/gov-sources';
 
 interface CalendarDay {
   iso: string;
@@ -39,7 +40,7 @@ function parse(isoDate: string): Date {
 @Component({
   selector: 'app-due-dates',
   standalone: true,
-  imports: [Spinner, EmptyState],
+  imports: [Spinner, EmptyState, GovSources],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './due-dates.html',
 })
