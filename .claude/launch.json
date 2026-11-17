@@ -16,6 +16,19 @@
       "port": 4202
     },
     {
+      "name": "admin",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--prefix", "admin", "ng", "serve", "--project", "admin", "--port", "4200"],
+      "cwd": "admin",
+      "port": 4200
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "backend", "run", "start"],
+      "port": 3000
+    },
+    {
       "name": "website",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["--prefix", "website", "astro", "preview", "--root", "website", "--port", "4321"],
