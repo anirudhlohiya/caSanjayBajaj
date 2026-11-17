@@ -1,3 +1,5 @@
+/* Icon font in the base layer so size classes like text-[18px] beat its fixed 24px. */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block') layer(base);
 @import 'tailwindcss';
 @source './app';
 @source './index.html';
@@ -5,50 +7,79 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-surface: #fafafa;
-  --color-surface-dim: #f5f5f5;
+  /* S N Bajaj brand, shared with the client app: logo navy + gold. Dark values under .dark below. */
+  --color-surface: #f5f6f9;
+  --color-surface-dim: #eef1f6;
   --color-surface-bright: #ffffff;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #fafafa;
-  --color-surface-container: #f5f5f5;
-  --color-surface-container-high: #ebebeb;
-  --color-surface-container-highest: #e5e5e5;
-  --color-on-surface: #171717;
-  --color-on-surface-variant: #666666;
-  --color-outline: #888888;
-  --color-outline-variant: #ebebeb;
-  --color-primary: #171717;
+  --color-surface-container-low: #f5f6f9;
+  --color-surface-container: #eef1f6;
+  --color-surface-container-high: #e8ebf2;
+  --color-surface-container-highest: #e2e6ee;
+  --color-on-surface: #0d1730;
+  --color-on-surface-variant: #5a6479;
+  --color-outline: #97a2ba;
+  --color-outline-variant: #e2e6ee;
+  /* primary = strong text (navy / near-white); brand = buttons and highlights (navy / gold) */
+  --color-primary: #001a4c;
   --color-on-primary: #ffffff;
-  --color-primary-container: #f5f5f5;
-  --color-on-primary-container: #171717;
-  --color-secondary: #0070f3;
+  --color-primary-container: #e8edf7;
+  --color-on-primary-container: #001a4c;
+  --color-brand: #001a4c;
+  --color-on-brand: #ffffff;
+  --color-brand-tint: #e8edf7;
+  --color-brand-ink: #001a4c;
+  --color-gold: #c9a03a;
+  --color-gold-ink: #8a6514;
+  --color-gold-tint: #f8f0dc;
+  --color-side-from: #0e2e73;
+  --color-side-to: #001a4c;
+  --color-secondary: #1d3f8f;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #d3e5ff;
-  --color-on-secondary-container: #0070f3;
-  --color-tertiary: #171717;
-  --color-error: #ee0000;
+  --color-secondary-container: #e8edf7;
+  --color-on-secondary-container: #1d3f8f;
+  --color-tertiary: #001a4c;
+  --color-error: #b42318;
   --color-on-error: #ffffff;
-  --color-error-container: #f7d4d6;
-  --color-on-error-container: #ee0000;
-  --color-background: #fafafa;
-  --color-on-background: #171717;
-  --color-primary-fixed: #e5e5e5;
-  --color-primary-fixed-dim: #cbd5e1;
-  --color-secondary-fixed: #d3e5ff;
-  --color-secondary-fixed-dim: #93c5fd;
-  --color-inverse-surface: #171717;
-  --color-inverse-on-surface: #fafafa;
-  --color-row-hover: #fafafa;
+  --color-error-container: #fde8e6;
+  --color-on-error-container: #b42318;
+  --color-success: #1b7a4b;
+  --color-success-tint: #e3f3ea;
+  --color-warning: #a35a00;
+  --color-warning-tint: #fcefd9;
+  --color-link: #1d3f8f;
+  --color-background: #f5f6f9;
+  --color-on-background: #0d1730;
+  --color-primary-fixed: #e8edf7;
+  --color-primary-fixed-dim: #c9d0dd;
+  --color-secondary-fixed: #e8edf7;
+  --color-secondary-fixed-dim: #9db5ee;
+  --color-inverse-surface: #0d1730;
+  --color-inverse-on-surface: #f5f6f9;
+  --color-row-hover: #f5f6f9;
 
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-headline-lg: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-headline-md: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-headline-sm: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-body-lg: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-body-md: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-body-sm: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-label-md: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-numeric-data: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  /* Greys tinted toward the brand navy; the same scale serves both themes. */
+  --color-neutral-50: #f5f6f9;
+  --color-neutral-100: #eef1f6;
+  --color-neutral-200: #e2e6ee;
+  --color-neutral-300: #c9d0dd;
+  --color-neutral-400: #97a2ba;
+  --color-neutral-500: #6b7590;
+  --color-neutral-600: #4a556d;
+  --color-neutral-700: #333e57;
+  --color-neutral-800: #182440;
+  --color-neutral-900: #0e1629;
+  --color-neutral-950: #060b17;
+
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-headline-lg: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-headline-md: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-headline-sm: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-body-lg: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-body-md: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-body-sm: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-label-md: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-numeric-data: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
 
   --text-headline-lg: 24px;
   --text-headline-lg--line-height: 32px;
@@ -89,6 +120,59 @@
   --spacing-gutter: 16px;
 }
 
+
+/* Dark mode: staff switch Light / Dark / System in the sidebar (ThemeService). */
+.dark {
+  --color-surface: #060b17;
+  --color-surface-dim: #0a1120;
+  --color-surface-bright: #152039;
+  --color-surface-container-lowest: #0e1629;
+  --color-surface-container-low: #0a1120;
+  --color-surface-container: #152039;
+  --color-surface-container-high: #1a2546;
+  --color-surface-container-highest: #1f2b47;
+  --color-on-surface: #eaeef7;
+  --color-on-surface-variant: #97a2ba;
+  --color-outline: #4a556d;
+  --color-outline-variant: #1f2b47;
+  --color-primary: #eaeef7;
+  --color-on-primary: #0a1530;
+  --color-primary-container: #1a2546;
+  --color-on-primary-container: #eaeef7;
+  --color-brand: #d4af55;
+  --color-on-brand: #0a1530;
+  --color-brand-tint: #1a2546;
+  --color-brand-ink: #e0be6a;
+  --color-gold-ink: #e0be6a;
+  --color-gold-tint: #2a2414;
+  --color-side-from: #0a1838;
+  --color-side-to: #040915;
+  --color-secondary: #9db5ee;
+  --color-on-secondary: #0a1530;
+  --color-secondary-container: #16224a;
+  --color-on-secondary-container: #9db5ee;
+  --color-tertiary: #eaeef7;
+  --color-error: #f2877c;
+  --color-on-error: #0a1530;
+  --color-error-container: #331614;
+  --color-on-error-container: #f2877c;
+  --color-success: #4cc38a;
+  --color-success-tint: #0f2a1f;
+  --color-warning: #f0b35a;
+  --color-warning-tint: #2e2210;
+  --color-link: #9db5ee;
+  --color-background: #060b17;
+  --color-on-background: #eaeef7;
+  --color-primary-fixed: #1a2546;
+  --color-primary-fixed-dim: #2c3a5c;
+  --color-secondary-fixed: #16224a;
+  --color-secondary-fixed-dim: #2c3a5c;
+  --color-inverse-surface: #eaeef7;
+  --color-inverse-on-surface: #0d1730;
+  --color-row-hover: #152039;
+  color-scheme: dark;
+}
+
 html,
 body {
   height: 100%;
@@ -110,31 +194,31 @@ body {
 
 @layer components {
   .btn-primary {
-    @apply inline-flex cursor-pointer select-none items-center justify-center gap-1.5 rounded-md px-4 py-2 font-medium text-sm bg-primary text-on-primary transition-all hover:bg-neutral-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex cursor-pointer select-none items-center justify-center gap-1.5 rounded-lg px-4 py-2 font-semibold text-sm bg-brand text-on-brand transition-all hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-outline {
-    @apply inline-flex cursor-pointer select-none items-center justify-center gap-1.5 rounded-md px-4 py-2 font-medium text-sm border border-outline-variant bg-surface-container-lowest text-on-surface-variant transition-all hover:bg-surface-container-low hover:text-on-surface active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex cursor-pointer select-none items-center justify-center gap-1.5 rounded-lg px-4 py-2 font-medium text-sm border border-outline-variant bg-surface-container-lowest text-on-surface-variant transition-all hover:bg-surface-container-low hover:text-on-surface active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-icon {
-    @apply inline-flex h-8 w-8 cursor-pointer select-none items-center justify-center rounded-md text-on-surface-variant transition-all hover:bg-neutral-100 hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex h-8 w-8 cursor-pointer select-none items-center justify-center rounded-lg text-on-surface-variant transition-all hover:bg-surface-container hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .input {
-    @apply w-full rounded-md border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface transition-all placeholder:text-outline focus:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-200/50;
+    @apply w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface transition-all placeholder:text-outline focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15;
   }
 
   .card {
-    @apply rounded-xl border border-outline-variant bg-surface-container-lowest shadow-[0_1px_2px_rgba(0,0,0,0.02),0_4px_16px_rgba(0,0,0,0.01)] transition-all duration-300 hover:shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.02)];
+    @apply rounded-2xl border border-outline-variant bg-surface-container-lowest shadow-[0_1px_2px_rgba(13,23,48,0.04),0_6px_20px_rgba(13,23,48,0.05)] dark:shadow-none;
   }
 
   .label {
-    @apply mb-1.5 block font-medium text-xs text-on-surface-variant uppercase tracking-wider;
+    @apply mb-1.5 block font-medium text-[13px] text-on-surface;
   }
 
   .th {
-    @apply whitespace-nowrap p-4 font-mono text-xs text-on-surface-variant uppercase tracking-wider;
+    @apply whitespace-nowrap px-4 py-3 bg-surface-container text-xs font-semibold text-on-surface-variant uppercase tracking-[0.05em] text-left;
   }
 }
 
@@ -213,16 +297,6 @@ body {
 }
 .md-content th { background: var(--color-surface-container-low); font-weight: 600; }
 .md-content hr { border: 0; border-top: 1px solid var(--color-outline-variant); margin: 1.2em 0; }
-.dark .md-content { color: #f5f5f5; }
-.dark .md-content code,
-.dark .md-content th,
-.dark .md-content blockquote { background: #262626; }
-.dark .md-content blockquote { color: #a3a3a3; }
-.dark .md-content th,
-.dark .md-content td,
-.dark .md-content blockquote,
-.dark .md-content hr { border-color: #404040; }
-
 /* Split view needs room for two panes — only offer it on wide screens */
 .split-toggle { display: none; }
 @media (min-width: 1024px) { .split-toggle { display: inline-block; } }

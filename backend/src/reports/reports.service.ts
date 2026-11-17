@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuthUser } from '../common/decorators/current-user.decorator';
+import { assertAdminCan } from '../common/guards/roles.guard';
 import { paginate, PaginatedResult } from '../common/dto/pagination';
 import { assertGstClient } from '../common/utils/client-type.util';
 import { GstFilingPeriod } from '../entities/gst-filing-period.entity';
@@ -209,6 +210,7 @@ export class ReportsService {
     if (auth.type === 'user' && auth.sub !== report.user_id) {
       throw new ForbiddenException('Cannot access another user report');
     }
+    assertAdminCan(auth, 'view_reports');
     const url = await this.storage.createDownloadUrl(report.s3_key);
     return { download_url: url };
   }

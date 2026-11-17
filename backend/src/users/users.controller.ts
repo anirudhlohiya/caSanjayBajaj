@@ -34,7 +34,7 @@ export class UsersController {
   }
 
   @Post()
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @ApiOperation({ summary: 'Create a client user' })
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
@@ -48,7 +48,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @ApiOperation({ summary: 'Update a client user' })
   update(
     @CurrentUser() auth: AuthUser,
@@ -59,7 +59,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @ApiOperation({ summary: 'Deactivate a client user' })
   async remove(@Param() { id }: UserIdParamDto) {
     await this.usersService.remove(id);

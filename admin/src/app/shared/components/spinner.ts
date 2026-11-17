@@ -5,7 +5,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex items-center justify-center py-lg">
+    <div class="flex items-center justify-center py-6">
       <div
         class="border-2 border-secondary border-t-transparent rounded-full animate-spin"
         [class]="size()"

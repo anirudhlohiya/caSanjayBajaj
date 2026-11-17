@@ -1,6 +1,6 @@
 <app-page-header title="Staff & Permissions" subtitle="Manage administrator accounts and their access">
   <button
-    class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md flex items-center hover:bg-secondary transition-colors"
+    class="px-4 py-2 bg-brand text-on-brand rounded font-label-md text-label-md flex items-center hover:opacity-90 transition-colors"
     (click)="openAdd()"
   >
     <span class="material-symbols-outlined mr-1" style="font-size: 18px">person_add</span>
@@ -8,7 +8,7 @@
   </button>
 </app-page-header>
 
-<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+<div class="card overflow-hidden">
   @if (loading()) {
     <app-spinner />
   } @else {
@@ -33,10 +33,14 @@
             </div>
           </dl>
           @if (a.role !== 'super_admin') {
-            <div class="mt-3 flex gap-2">
+            <div class="mt-3 flex flex-wrap gap-2">
               <button class="btn-outline flex-1" (click)="openPermissions(a)">
                 <span class="material-symbols-outlined" style="font-size: 18px">shield</span>
-                Permissions
+                Access
+              </button>
+              <button class="btn-outline flex-1" (click)="openReset(a)">
+                <span class="material-symbols-outlined" style="font-size: 18px">key</span>
+                Password
               </button>
               @if (a.status === 'active') {
                 <button class="btn-outline flex-1 text-error hover:bg-error-container/50" (click)="deactivate(a)">
@@ -85,6 +89,10 @@
                     (click)="openPermissions(a)">
                     <span class="material-symbols-outlined" style="font-size: 20px">shield</span>
                   </button>
+                  <button class="text-secondary hover:bg-primary-fixed-dim p-1 rounded transition-colors mr-1" title="Set a new password"
+                    (click)="openReset(a)">
+                    <span class="material-symbols-outlined" style="font-size: 20px">key</span>
+                  </button>
                   @if (a.status === 'active') {
                     <button class="text-error hover:bg-error-container/50 p-1 rounded transition-colors" title="Deactivate"
                       (click)="deactivate(a)">
@@ -110,7 +118,7 @@
   }
 </div>
 
-<app-modal [open]="showAdd()" (close)="showAdd.set(false)">
+<app-modal variant="panel" [open]="showAdd()" (close)="showAdd.set(false)">
   <div class="p-6">
     <div class="flex items-center justify-between mb-4">
       <h2 class="font-headline-md text-headline-md text-on-surface">Add Staff Account</h2>
@@ -122,30 +130,38 @@
       <div class="flex flex-col gap-1">
         <label class="font-label-md text-label-md text-on-surface" for="st-name">Full Name</label>
         <input id="st-name" formControlName="name"
-          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15" />
       </div>
       <div class="flex flex-col gap-1">
         <label class="font-label-md text-label-md text-on-surface" for="st-email">Email</label>
         <input id="st-email" formControlName="email" type="email"
-          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15" />
       </div>
       <div class="flex flex-col gap-1">
         <label class="font-label-md text-label-md text-on-surface" for="st-password">Temporary Password</label>
-        <input id="st-password" formControlName="password" type="password"
-          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+        <div class="flex gap-2">
+          <input id="st-password" formControlName="password" type="text" autocomplete="off" spellcheck="false"
+            class="min-w-0 flex-1 font-mono px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15" />
+          <button type="button" class="btn-outline shrink-0" (click)="addForm.controls.password.setValue(generatePassword())">Generate</button>
+        </div>
+        @if (addForm.controls.password.touched && addForm.controls.password.invalid) {
+          <span class="text-error text-body-sm">Use at least 8 characters</span>
+        } @else {
+          <span class="text-body-sm text-on-surface-variant">Type one or press Generate, then share it with the staff member. It is not shown again.</span>
+        }
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div class="flex flex-col gap-1">
           <label class="font-label-md text-label-md text-on-surface" for="st-role">Role</label>
           <select id="st-role" formControlName="role"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
             <option value="staff">Staff</option>
           </select>
         </div>
         <div class="flex flex-col gap-1">
           <label class="font-label-md text-label-md text-on-surface" for="st-status">Status</label>
           <select id="st-status" formControlName="status"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
@@ -154,7 +170,7 @@
       <div class="flex justify-end gap-2 mt-2">
         <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showAdd.set(false)">Cancel</button>
         <button type="submit" [disabled]="adding()"
-          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+          class="px-4 py-2 bg-brand text-on-brand rounded font-label-md text-label-md hover:opacity-90 disabled:opacity-60">
           {{ adding() ? 'Creating…' : 'Create Staff' }}
         </button>
       </div>
@@ -162,11 +178,11 @@
   </div>
 </app-modal>
 
-<app-modal [open]="!!permAdmin()" (close)="permAdmin.set(null)">
+<app-modal variant="panel" [open]="!!permAdmin()" (close)="permAdmin.set(null)">
   <div class="p-6">
     <div class="flex items-center justify-between mb-4">
       <h2 class="font-headline-md text-headline-md text-on-surface">
-        Permissions — {{ permAdmin()?.name ?? '' }}
+        Access — {{ permAdmin()?.name ?? '' }}
       </h2>
       <button class="text-on-surface-variant hover:text-on-surface" (click)="permAdmin.set(null)">
         <span class="material-symbols-outlined">close</span>
@@ -175,26 +191,76 @@
     @if (permLoading()) {
       <app-spinner />
     } @else {
+      <p class="text-body-sm text-on-surface-variant mb-3">
+        Changes apply as soon as you save, even if this person is signed in. Reports, Reminders and WhatsApp chats also turn on Clients (view), because those pages need the client list.
+      </p>
       <div class="space-y-2">
-        @for (entry of permissionEntries(); track entry[0]) {
-          <label class="flex items-center justify-between gap-2 p-3 border border-outline-variant rounded cursor-pointer hover:bg-surface-container-low transition-colors">
-            <span class="text-body-md text-body-md text-on-surface">{{ entry[1] }}</span>
-            <input
-              type="checkbox"
-              class="accent-secondary w-4 h-4"
-              [checked]="granted().has(entry[0])"
-              (change)="togglePermission(entry[0], $any($event.target).checked)"
-            />
-          </label>
+        @for (area of areas; track area.manage) {
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-3 border border-outline-variant rounded-xl">
+            <span class="min-w-0">
+              <span class="block text-body-md font-medium text-on-surface">{{ area.label }}</span>
+              <span class="block text-body-sm text-on-surface-variant">{{ area.hint }}</span>
+            </span>
+            <div class="shrink-0 inline-flex rounded-lg bg-surface-container p-0.5" role="radiogroup" [attr.aria-label]="area.label + ' access'">
+              @for (opt of levelsFor(area); track opt.value) {
+                <button
+                  type="button"
+                  role="radio"
+                  [attr.aria-checked]="levelOf(area) === opt.value"
+                  (click)="setLevel(area, opt.value)"
+                  class="h-8 px-3 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer"
+                  [class]="levelOf(area) === opt.value
+                    ? (opt.value === 'none' ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'bg-brand text-on-brand shadow-sm')
+                    : 'text-on-surface-variant hover:text-on-surface'"
+                >{{ opt.label }}</button>
+              }
+            </div>
+          </div>
         }
       </div>
       <div class="flex justify-end gap-2 mt-4">
         <button class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="permAdmin.set(null)">Cancel</button>
         <button (click)="savePermissions()" [disabled]="permSaving()"
-          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
-          {{ permSaving() ? 'Saving…' : 'Save Permissions' }}
+          class="px-4 py-2 bg-brand text-on-brand rounded font-label-md text-label-md hover:opacity-90 disabled:opacity-60">
+          {{ permSaving() ? 'Saving…' : 'Save Access' }}
         </button>
       </div>
     }
+  </div>
+</app-modal>
+
+<app-modal [open]="!!resetAdmin()" (close)="resetAdmin.set(null)">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-headline-md text-headline-md text-on-surface">
+        New password — {{ resetAdmin()?.name ?? '' }}
+      </h2>
+      <button class="text-on-surface-variant hover:text-on-surface" (click)="resetAdmin.set(null)">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form class="flex flex-col gap-4" [formGroup]="resetForm" (ngSubmit)="submitReset()">
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface" for="rs-password">Temporary Password</label>
+        <div class="flex gap-2">
+          <input id="rs-password" formControlName="password" type="text" autocomplete="off" spellcheck="false"
+            class="min-w-0 flex-1 font-mono px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15" />
+          <button type="button" class="btn-outline shrink-0" (click)="resetForm.controls.password.setValue(generatePassword())">Generate</button>
+        </div>
+        @if (resetForm.controls.password.touched && resetForm.controls.password.invalid) {
+          <span class="text-error text-body-sm">Use at least 8 characters</span>
+        } @else {
+          <span class="text-body-sm text-on-surface-variant">Type one or press Generate, then share it with the staff member. It is not shown again.</span>
+        }
+      </div>
+      <p class="text-body-sm text-on-surface-variant">Saving signs this person out everywhere. They sign in again with the new password.</p>
+      <div class="flex justify-end gap-2">
+        <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="resetAdmin.set(null)">Cancel</button>
+        <button type="submit" [disabled]="resetting()"
+          class="px-4 py-2 bg-brand text-on-brand rounded font-label-md text-label-md hover:opacity-90 disabled:opacity-60">
+          {{ resetting() ? 'Saving…' : 'Set Password' }}
+        </button>
+      </div>
+    </form>
   </div>
 </app-modal>

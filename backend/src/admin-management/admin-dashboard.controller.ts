@@ -24,7 +24,7 @@ export class AdminDashboardController {
 
   @Get('dashboard/stats')
   @ApiOperation({ summary: 'Dashboard KPI statistics' })
-  stats() {
-    return this.dashboard.getStats();
+  stats(@CurrentUser() auth: AuthUser) {
+    return this.dashboard.getStats(auth);
   }
 }

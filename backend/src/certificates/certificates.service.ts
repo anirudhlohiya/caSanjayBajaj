@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Not, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
+import { assertAdminCan } from '../common/guards/roles.guard';
 import { assertGstClient } from '../common/utils/client-type.util';
 import { ClientCertificate, User } from '../entities';
 import { StorageService } from '../storage/storage.service';
@@ -118,6 +119,7 @@ export class CertificatesService {
     if (auth.type === 'user' && auth.sub !== cert.user_id) {
       throw new ForbiddenException('Cannot access another user certificate');
     }
+    assertAdminCan(auth, 'view_clients');
     if (cert.uploaded_at === null) {
       throw new NotFoundException('Certificate not yet confirmed');
     }

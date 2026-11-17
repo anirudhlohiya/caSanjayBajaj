@@ -10,7 +10,7 @@
 
 <div class="flex items-center gap-2 mb-4">
   <div class="relative flex-1 max-w-md">
-    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-[18px]">search</span>
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
     <input
       class="input pl-10"
       placeholder="Search clients, emails, GST numbers..."
@@ -24,24 +24,24 @@
   @if (loading()) {
     <app-spinner />
   } @else {
-    <div class="md:hidden divide-y divide-neutral-100">
+    <div class="md:hidden divide-y divide-outline-variant">
       @for (c of filtered(); track c.id) {
-        <div class="p-4 cursor-pointer transition-colors hover:bg-neutral-50/50" (click)="viewClient(c.id)">
+        <div class="p-4 cursor-pointer transition-colors hover:bg-row-hover" (click)="viewClient(c.id)">
           <div class="flex items-start justify-between gap-2">
             <div class="min-w-0">
-              <p class="text-sm font-semibold text-neutral-900 truncate">{{ c.name }}</p>
-              <p class="text-xs text-neutral-500 truncate">{{ c.email }}</p>
+              <p class="text-sm font-semibold text-on-surface truncate">{{ c.name }}</p>
+              <p class="text-xs text-on-surface-variant truncate">{{ c.email }}</p>
             </div>
             <app-status-chip [status]="clientStatus(c)" />
           </div>
           <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
             <div class="min-w-0">
-              <dt class="text-neutral-400">GST Number</dt>
-              <dd class="font-mono text-neutral-800 tabular-nums truncate">{{ c.gstin ?? '—' }}</dd>
+              <dt class="text-on-surface-variant">GST Number</dt>
+              <dd class="font-mono text-on-surface tabular-nums truncate">{{ c.gstin ?? '—' }}</dd>
             </div>
             <div>
-              <dt class="text-neutral-400">Type</dt>
-              <dd class="text-neutral-800 uppercase flex items-center gap-2">
+              <dt class="text-on-surface-variant">Type</dt>
+              <dd class="text-on-surface uppercase flex items-center gap-2">
                 {{ c.user_type }}
                 @if (c.user_type === 'gst' && c.gst_filing_frequency) {
                   <span class="px-1.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-medium tracking-wide">
@@ -51,8 +51,8 @@
               </dd>
             </div>
             <div>
-              <dt class="text-neutral-400">Joined</dt>
-              <dd class="text-neutral-800 tabular-nums">{{ fmtDate(c.created_at) }}</dd>
+              <dt class="text-on-surface-variant">Joined</dt>
+              <dd class="text-on-surface tabular-nums">{{ fmtDate(c.created_at) }}</dd>
             </div>
           </dl>
           <div class="mt-3 flex gap-2">
@@ -80,23 +80,23 @@
     <div class="hidden md:block overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="bg-neutral-50 border-b border-neutral-100">
-            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">Client Name</th>
-            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">Email</th>
-            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">GST Number</th>
-            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">Type</th>
-            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">Status</th>
-            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">Joined</th>
-            <th class="p-4 font-mono text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap text-right">Actions</th>
+          <tr class="bg-surface-container-low border-b border-outline-variant">
+            <th class="p-4 font-mono text-xs text-on-surface-variant uppercase tracking-wider whitespace-nowrap">Client Name</th>
+            <th class="p-4 font-mono text-xs text-on-surface-variant uppercase tracking-wider whitespace-nowrap">Email</th>
+            <th class="p-4 font-mono text-xs text-on-surface-variant uppercase tracking-wider whitespace-nowrap">GST Number</th>
+            <th class="p-4 font-mono text-xs text-on-surface-variant uppercase tracking-wider whitespace-nowrap">Type</th>
+            <th class="p-4 font-mono text-xs text-on-surface-variant uppercase tracking-wider whitespace-nowrap">Status</th>
+            <th class="p-4 font-mono text-xs text-on-surface-variant uppercase tracking-wider whitespace-nowrap">Joined</th>
+            <th class="p-4 font-mono text-xs text-on-surface-variant uppercase tracking-wider whitespace-nowrap text-right">Actions</th>
           </tr>
         </thead>
-        <tbody class="text-sm text-neutral-700">
+        <tbody class="text-sm text-on-surface">
           @for (c of filtered(); track c.id) {
-            <tr class="border-b border-neutral-100 hover:bg-neutral-50/50 transition-colors cursor-pointer" (click)="viewClient(c.id)">
-              <td class="p-4 font-medium text-neutral-900">{{ c.name }}</td>
-              <td class="p-4 text-neutral-500">{{ c.email }}</td>
-              <td class="p-4 font-mono text-xs text-neutral-500 tabular-nums">{{ c.gstin ?? '—' }}</td>
-              <td class="p-4 text-neutral-500 flex items-center gap-2">
+            <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors cursor-pointer" (click)="viewClient(c.id)">
+              <td class="p-4 font-medium text-on-surface">{{ c.name }}</td>
+              <td class="p-4 text-on-surface-variant">{{ c.email }}</td>
+              <td class="p-4 font-mono text-xs text-on-surface-variant tabular-nums">{{ c.gstin ?? '—' }}</td>
+              <td class="p-4 text-on-surface-variant flex items-center gap-2">
                 {{ c.user_type.toUpperCase() }}
                 @if (c.user_type === 'gst' && c.gst_filing_frequency) {
                   <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-medium">
@@ -105,24 +105,24 @@
                 }
               </td>
               <td class="p-4"><app-status-chip [status]="clientStatus(c)" /></td>
-              <td class="p-4 text-neutral-500 tabular-nums">{{ fmtDate(c.created_at) }}</td>
+              <td class="p-4 text-on-surface-variant tabular-nums">{{ fmtDate(c.created_at) }}</td>
               <td class="p-4 text-right whitespace-nowrap" (click)="$event.stopPropagation()">
                 <button
-                  class="p-1.5 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors mr-1"
+                  class="p-1.5 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors mr-1"
                   title="Edit Client"
                   (click)="openEdit(c)"
                 >
                   <span class="material-symbols-outlined" style="font-size: 20px">edit</span>
                 </button>
                 <button
-                  class="p-1.5 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors mr-1"
+                  class="p-1.5 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors mr-1"
                   title="View Details"
                   (click)="viewClient(c.id)"
                 >
                   <span class="material-symbols-outlined" style="font-size: 20px">visibility</span>
                 </button>
                 <button
-                  class="p-1.5 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
+                  class="p-1.5 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
                   title="Send Reminder"
                   (click)="sendReminder(c.id)"
                 >
@@ -152,7 +152,7 @@
   }
 </div>
 
-<app-modal [open]="showAdd()" (close)="showAdd.set(false)">
+<app-modal variant="panel" [open]="showAdd()" (close)="showAdd.set(false)">
   <div class="p-6">
     <div class="flex items-center justify-between mb-4">
       <h2 class="font-headline-md text-headline-md text-on-surface">Add New Client</h2>
@@ -165,7 +165,7 @@
         <div class="flex flex-col gap-1 sm:col-span-2">
           <label class="font-label-md text-label-md text-on-surface" for="c-name">Full Name</label>
           <input id="c-name" formControlName="name"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
             placeholder="Acme Corporation" />
           @if (addForm.controls.name.touched && addForm.controls.name.invalid) {
             <span class="text-error text-body-sm">Name is required</span>
@@ -193,7 +193,7 @@
         <div class="flex flex-col gap-1">
           <label class="font-label-md text-label-md text-on-surface" for="c-password">Temporary Password</label>
           <input id="c-password" formControlName="password" type="password"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15" />
           @if (addForm.controls.password.touched && addForm.controls.password.invalid) {
             <span class="text-error text-body-sm">Minimum 8 characters</span>
           }
@@ -204,7 +204,7 @@
             <span class="text-on-surface-variant text-xs font-normal" [class.hidden]="addForm.get('user_type')?.value !== 'itr'">(optional)</span>
           </label>
           <input id="c-phone" formControlName="phone"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
             [class.border-error]="addForm.get('phone')?.touched && addForm.get('phone')?.invalid"
             placeholder="9876543210" />
           @if (addForm.get('phone')?.touched && addForm.get('phone')?.invalid) {
@@ -223,7 +223,7 @@
             <span class="text-on-surface-variant text-xs font-normal" [class.hidden]="addForm.get('user_type')?.value !== 'itr'">(optional)</span>
           </label>
           <input id="c-gstin" formControlName="gstin"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
             [class.border-error]="addForm.get('gstin')?.touched && addForm.get('gstin')?.invalid"
             placeholder="29ABCDE1234F1Z5" />
           @if (addForm.get('gstin')?.touched && addForm.get('gstin')?.invalid) {
@@ -239,7 +239,7 @@
         <div class="flex flex-col gap-1">
           <label class="font-label-md text-label-md text-on-surface" for="c-type">Account Type</label>
           <select id="c-type" formControlName="user_type"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
             <option value="gst">GST</option>
             <option value="itr">ITR</option>
           </select>
@@ -248,7 +248,7 @@
           <div class="flex flex-col gap-1">
             <label class="font-label-md text-label-md text-on-surface" for="c-freq">Filing Frequency</label>
             <select id="c-freq" formControlName="gst_filing_frequency"
-              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
               <option value="monthly">Monthly</option>
               <option value="quarterly">Quarterly</option>
             </select>
@@ -257,7 +257,7 @@
         <div class="flex flex-col gap-1">
           <label class="font-label-md text-label-md text-on-surface" for="c-status">Status</label>
           <select id="c-status" formControlName="status"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
@@ -266,7 +266,7 @@
       <div class="flex justify-end gap-2 mt-2">
         <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showAdd.set(false)">Cancel</button>
         <button type="submit" [disabled]="adding()"
-          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+          class="px-4 py-2 bg-brand text-on-brand rounded font-label-md text-label-md hover:opacity-90 disabled:opacity-60">
           {{ adding() ? 'Creating…' : 'Create Client' }}
         </button>
       </div>
@@ -275,7 +275,7 @@
 </app-modal>
 
 @if (editTarget(); as target) {
-  <app-modal [open]="showEdit()" (close)="showEdit.set(false)">
+  <app-modal variant="panel" [open]="showEdit()" (close)="showEdit.set(false)">
     <div class="p-6">
       <div class="flex items-center justify-between mb-4">
         <h2 class="font-headline-md text-headline-md text-on-surface">Edit Client</h2>
@@ -288,7 +288,7 @@
           <div class="flex flex-col gap-1 sm:col-span-2">
             <label class="font-label-md text-label-md text-on-surface" for="e-name">Full Name</label>
             <input id="e-name" formControlName="name"
-              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
               placeholder="Acme Corporation" />
             @if (editForm.controls.name.touched && editForm.controls.name.invalid) {
               <span class="text-error text-body-sm">Name is required</span>
@@ -297,7 +297,7 @@
           <div class="flex flex-col gap-1">
             <label class="font-label-md text-label-md text-on-surface" for="e-phone">Phone</label>
             <input id="e-phone" formControlName="phone"
-              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
               [class.border-error]="editForm.get('phone')?.touched && editForm.get('phone')?.invalid"
               placeholder="9876543210" />
             @if (editForm.get('phone')?.touched && editForm.get('phone')?.invalid) {
@@ -307,7 +307,7 @@
           <div class="flex flex-col gap-1">
             <label class="font-label-md text-label-md text-on-surface" for="e-gstin">GSTIN</label>
             <input id="e-gstin" formControlName="gstin"
-              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
               [class.border-error]="editForm.get('gstin')?.touched && editForm.get('gstin')?.invalid"
               placeholder="29ABCDE1234F1Z5" />
             @if (editForm.get('gstin')?.touched && editForm.get('gstin')?.invalid) {
@@ -318,7 +318,7 @@
             <div class="flex flex-col gap-1">
               <label class="font-label-md text-label-md text-on-surface" for="e-freq">Filing Frequency</label>
               <select id="e-freq" formControlName="gst_filing_frequency"
-                class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+                class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
                 <option value="monthly">Monthly</option>
                 <option value="quarterly">Quarterly</option>
               </select>
@@ -327,7 +327,7 @@
           <div class="flex flex-col gap-1">
             <label class="font-label-md text-label-md text-on-surface" for="e-status">Status</label>
             <select id="e-status" formControlName="status"
-              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+              class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
@@ -336,7 +336,7 @@
         <div class="flex justify-end gap-2 mt-2">
           <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded" (click)="showEdit.set(false)">Cancel</button>
           <button type="submit" [disabled]="editing()"
-            class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60">
+            class="px-4 py-2 bg-brand text-on-brand rounded font-label-md text-label-md hover:opacity-90 disabled:opacity-60">
             {{ editing() ? 'Saving…' : 'Save Changes' }}
           </button>
         </div>

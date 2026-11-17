@@ -4,14 +4,14 @@
   <app-page-header [title]="c.name" [subtitle]="c.email">
     @if (hasGst()) {
     <button
-      class="h-8 px-3.5 rounded-full border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-medium hover:bg-[#fafafa] transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+      class="h-8 px-3.5 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface text-xs font-medium hover:bg-row-hover transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
       (click)="sendReminder()"
     >
       <span class="material-symbols-outlined text-[16px]">mail</span>
       Send Reminder
     </button>
     <button
-      class="h-8 px-3.5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+      class="h-8 px-3.5 rounded-full bg-brand text-on-brand text-xs font-medium hover:opacity-90 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
       (click)="showReport.set(true)"
     >
       <span class="material-symbols-outlined text-[16px]">upload_file</span>
@@ -20,78 +20,35 @@
     }
   </app-page-header>
 
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 mb-6">
-    <!-- Left Column: Profile & Services -->
-    <div class="lg:col-span-1 space-y-4">
-      <!-- Client Profile Card -->
-      <div class="card p-5">
-        <h3 class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium mb-3">Client Profile</h3>
-        <dl class="space-y-3 text-xs">
-          <div class="flex justify-between gap-2">
-            <dt class="text-neutral-500 dark:text-neutral-400">Phone</dt>
-            <dd class="text-neutral-900 dark:text-white font-medium">{{ c.phone ?? '—' }}</dd>
-          </div>
-          <div class="flex justify-between gap-2">
-            <dt class="text-neutral-500 dark:text-neutral-400">Status</dt>
-            <dd><app-status-chip [status]="clientStatus(c)" /></dd>
-          </div>
-          @if (clientDeleteOn(c); as deleteOn) {
-            <div class="flex justify-between gap-2">
-              <dt class="text-neutral-500 dark:text-neutral-400">Deletes on</dt>
-              <dd class="text-[#E65100] font-medium text-right">{{ fmtDate(deleteOn.toISOString()) }}<span class="block text-xs font-normal text-neutral-500 dark:text-neutral-400">Cancelled if they sign in</span></dd>
-            </div>
-          }
-          <div class="flex justify-between gap-2">
-            <dt class="text-neutral-500 dark:text-neutral-400">Joined</dt>
-            <dd class="text-neutral-900 dark:text-white font-mono tabular-nums">{{ fmtDate(c.created_at) }}</dd>
-          </div>
-        </dl>
-      </div>
-
-      <!-- Services Section Card -->
-      <div class="card p-5">
-        <div class="flex items-center justify-between mb-3.5">
-          <h3 class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">Client Services</h3>
-          <!-- Current Type Chip -->
-          <span class="px-2.5 py-0.5 rounded-full font-mono text-[11px] font-medium tracking-tight uppercase"
-            [class]="c.user_type === 'both' ? 'bg-[#171717] text-white border border-[#171717] dark:bg-white dark:text-[#171717]' :
-                     c.user_type === 'gst' ? 'bg-[#d3e5ff]/70 text-[#0761d1] border border-[#0070f3]/25 dark:bg-blue-950/50 dark:text-blue-300' :
-                     c.user_type === 'itr' ? 'bg-[#d8ccf1]/70 text-[#4c2889] border border-[#7928ca]/25 dark:bg-purple-950/50 dark:text-purple-300' :
-                     'bg-[#fafafa] text-neutral-700 border border-[#ebebeb] dark:bg-neutral-800 dark:text-neutral-300'">
-            {{ c.user_type === 'both' ? 'GST + ITR' : c.user_type }}
-          </span>
-        </div>
-
-        <!-- Pending Request Banner (if any) -->
         @if (pendingRequest(); as req) {
-          <div class="mb-4 p-3.5 rounded-xl border border-amber-300/80 bg-[#fffdfa] dark:bg-amber-950/20 text-xs shadow-xs">
-            <div class="flex items-center gap-1.5 font-semibold mb-1 text-amber-800 dark:text-amber-400">
+          <div class="mb-5 p-4 rounded-2xl border border-warning/25 bg-warning-tint text-xs shadow-xs">
+            <div class="flex items-center gap-1.5 font-semibold mb-1 text-warning">
               <span class="material-symbols-outlined text-[16px]">pending_actions</span>
               <span class="tracking-tight">Pending Upgrade Request</span>
             </div>
-            <div class="space-y-1 my-2 text-[11px] bg-white/70 dark:bg-black/20 p-2.5 rounded-lg border border-amber-200/50 dark:border-amber-900/30">
-              <div><strong class="font-mono text-neutral-400">Requested:</strong> <span class="font-semibold text-neutral-900 dark:text-white uppercase">{{ req.requested_type }}</span></div>
+            <div class="space-y-1 my-2 text-[11px] bg-white/70 dark:bg-black/20 p-2.5 rounded-lg border border-warning/25">
+              <div><strong class="font-mono text-on-surface-variant">Requested:</strong> <span class="font-semibold text-on-surface uppercase">{{ req.requested_type }}</span></div>
               @if (req.payload.business_name) {
-                <div><strong class="font-mono text-neutral-400">Business:</strong> <span class="text-neutral-800 dark:text-neutral-200">{{ req.payload.business_name }}</span></div>
+                <div><strong class="font-mono text-on-surface-variant">Business:</strong> <span class="text-on-surface">{{ req.payload.business_name }}</span></div>
               }
               @if (req.payload.gstin) {
-                <div><strong class="font-mono text-neutral-400">GSTIN:</strong> <span class="font-mono font-medium text-neutral-900 dark:text-white">{{ req.payload.gstin }}</span></div>
+                <div><strong class="font-mono text-on-surface-variant">GSTIN:</strong> <span class="font-mono font-medium text-on-surface">{{ req.payload.gstin }}</span></div>
               }
               @if (req.payload.industry) {
-                <div><strong class="font-mono text-neutral-400">Industry:</strong> <span class="text-neutral-800 dark:text-neutral-200">{{ req.payload.industry }}</span></div>
+                <div><strong class="font-mono text-on-surface-variant">Industry:</strong> <span class="text-on-surface">{{ req.payload.industry }}</span></div>
               }
               @if (req.payload.filing_frequency) {
-                <div><strong class="font-mono text-neutral-400">Cadence:</strong> <span class="font-medium text-neutral-800 dark:text-neutral-200 uppercase">{{ req.payload.filing_frequency }}</span></div>
+                <div><strong class="font-mono text-on-surface-variant">Cadence:</strong> <span class="font-medium text-on-surface uppercase">{{ req.payload.filing_frequency }}</span></div>
               }
               @if (req.payload.pan) {
-                <div><strong class="font-mono text-neutral-400">PAN:</strong> <span class="font-mono font-medium text-neutral-900 dark:text-white">{{ req.payload.pan }}</span></div>
+                <div><strong class="font-mono text-on-surface-variant">PAN:</strong> <span class="font-mono font-medium text-on-surface">{{ req.payload.pan }}</span></div>
               }
             </div>
             <div class="flex gap-2 mt-2.5">
               <button
                 type="button"
                 (click)="approveServiceRequest()"
-                class="flex-1 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full font-medium text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                class="flex-1 h-7 bg-success hover:opacity-90 text-white rounded-full font-medium text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
               >
                 <span class="material-symbols-outlined text-[14px]">check</span>
                 Approve
@@ -99,7 +56,7 @@
               <button
                 type="button"
                 (click)="rejectServiceRequest()"
-                class="h-7 px-3 border border-neutral-300 dark:border-neutral-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 text-neutral-700 dark:text-neutral-300 rounded-full font-medium text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                class="h-7 px-3 border border-outline hover:bg-error-container hover:text-error hover:border-error/25 text-on-surface rounded-full font-medium text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
               >
                 <span class="material-symbols-outlined text-[14px]">close</span>
                 Reject
@@ -108,43 +65,63 @@
           </div>
         }
 
-        <!-- Direct Type Change Dropdown -->
-        <div class="pt-3 border-t border-[#ebebeb] dark:border-neutral-800">
-          <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 block mb-1.5 font-medium">Direct Type Override</label>
-          <div class="flex items-center gap-2">
-            <select
-              [value]="selectedTypeToChange()"
-              (change)="onTypeSelectChange($event)"
-              class="w-full h-8 px-2.5 text-xs border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-[#fafafa] dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white transition-all cursor-pointer"
-            >
-              <option value="general" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">General (Advisory)</option>
-              <option value="gst" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">GST Client</option>
-              <option value="itr" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">ITR Client</option>
-              <option value="both" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">GST + ITR Client</option>
-            </select>
+  <div class="mb-5 border-b border-outline-variant overflow-x-auto" role="tablist" aria-label="Client sections">
+    <div class="flex gap-1 min-w-max">
+      @for (t of tabs(); track t.id) {
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab() === t.id"
+          (click)="tab.set(t.id)"
+          class="relative h-11 px-4 text-sm font-medium transition-colors cursor-pointer"
+          [class]="activeTab() === t.id ? 'text-on-surface after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand' : 'text-on-surface-variant hover:text-on-surface'"
+        >{{ t.label }}</button>
+      }
+    </div>
+  </div>
+
+  @switch (activeTab()) {
+    @case ('profile') {
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6 items-start">
+    <div class="space-y-5">
+      <!-- Client Profile Card -->
+      <div class="card p-5">
+        <h3 class="text-[11px] font-mono uppercase tracking-wider text-on-surface-variant font-medium mb-3">Client Profile</h3>
+        <dl class="space-y-3 text-xs">
+          <div class="flex justify-between gap-2">
+            <dt class="text-on-surface-variant">Phone</dt>
+            <dd class="text-on-surface font-medium">{{ c.phone ?? '—' }}</dd>
           </div>
-          <p class="text-[10px] text-neutral-400 dark:text-neutral-500 mt-1.5 leading-relaxed">
-            Changing client type requires confirmation. Downgrading hides tabs but preserves all records.
-          </p>
-        </div>
+          <div class="flex justify-between gap-2">
+            <dt class="text-on-surface-variant">Status</dt>
+            <dd><app-status-chip [status]="clientStatus(c)" /></dd>
+          </div>
+          @if (clientDeleteOn(c); as deleteOn) {
+            <div class="flex justify-between gap-2">
+              <dt class="text-on-surface-variant">Deletes on</dt>
+              <dd class="text-warning font-medium text-right">{{ fmtDate(deleteOn.toISOString()) }}<span class="block text-xs font-normal text-on-surface-variant">Cancelled if they sign in</span></dd>
+            </div>
+          }
+          <div class="flex justify-between gap-2">
+            <dt class="text-on-surface-variant">Joined</dt>
+            <dd class="text-on-surface font-mono tabular-nums">{{ fmtDate(c.created_at) }}</dd>
+          </div>
+        </dl>
       </div>
     </div>
-
-    <!-- Right Column: Profiles, Compliance, Documents -->
-    <div class="lg:col-span-3 space-y-6">
-
+    <div class="lg:col-span-2 space-y-5">
       <!-- GST Profile Card -->
       <div class="card overflow-hidden">
-        <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
+        <div class="px-5 py-3 border-b border-outline-variant bg-surface-container-low flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-[20px] text-[#0761d1] dark:text-blue-400">receipt_long</span>
-            <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">GST Profile</h3>
+            <h3 class="text-xs font-semibold text-on-surface tracking-tight uppercase">GST Profile</h3>
           </div>
           <button
             type="button"
             (click)="saveGstProfile()"
             [disabled]="gstProfileSaving()"
-            class="h-7 px-3.5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-40 transition-colors flex items-center gap-1 cursor-pointer"
+            class="h-7 px-3.5 rounded-full bg-brand text-on-brand text-xs font-medium hover:opacity-90 disabled:opacity-40 transition-colors flex items-center gap-1 cursor-pointer"
           >
             @if (gstProfileSaving()) {
               <span class="material-symbols-outlined text-[13px] animate-spin">refresh</span>
@@ -154,47 +131,47 @@
         </div>
         <form [formGroup]="gstProfileForm" class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-400" for="gst-bname">Business / Trade Name</label>
+            <label class="text-xs font-medium text-on-surface-variant" for="gst-bname">Business / Trade Name</label>
             <input
               id="gst-bname"
               type="text"
               formControlName="business_name"
               placeholder="e.g. Acme Enterprises"
-              class="h-9 px-3 text-xs border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all"
+              class="h-9 px-3 text-xs border border-outline-variant rounded-md bg-surface-container-lowest text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
             />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-400" for="gst-gstin">GSTIN (15 characters)</label>
+            <label class="text-xs font-medium text-on-surface-variant" for="gst-gstin">GSTIN (15 characters)</label>
             <input
               id="gst-gstin"
               type="text"
               formControlName="gstin"
               maxlength="15"
               placeholder="27ABCDE1234F1Z5"
-              class="h-9 px-3 text-xs uppercase font-mono tracking-wider border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all"
+              class="h-9 px-3 text-xs uppercase font-mono tracking-wider border border-outline-variant rounded-md bg-surface-container-lowest text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
             />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-400" for="gst-cadence">Filing Cadence</label>
+            <label class="text-xs font-medium text-on-surface-variant" for="gst-cadence">Filing Cadence</label>
             <select
               id="gst-cadence"
               formControlName="gst_filing_frequency"
-              class="h-9 px-3 text-xs border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white transition-all cursor-pointer"
+              class="h-9 px-3 text-xs border border-outline-variant rounded-md bg-surface-container-lowest text-on-surface outline-none focus:border-brand transition-all cursor-pointer"
             >
-              <option value="monthly" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">Monthly</option>
-              <option value="quarterly" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">Quarterly</option>
+              <option value="monthly" class="bg-surface-container-lowest text-on-surface">Monthly</option>
+              <option value="quarterly" class="bg-surface-container-lowest text-on-surface">Quarterly</option>
             </select>
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-400" for="gst-industry">Industry</label>
+            <label class="text-xs font-medium text-on-surface-variant" for="gst-industry">Industry</label>
             <select
               id="gst-industry"
               formControlName="industry"
-              class="h-9 px-3 text-xs border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white transition-all cursor-pointer"
+              class="h-9 px-3 text-xs border border-outline-variant rounded-md bg-surface-container-lowest text-on-surface outline-none focus:border-brand transition-all cursor-pointer"
             >
-              <option value="" class="bg-white dark:bg-neutral-800 text-neutral-400">Select industry...</option>
+              <option value="" class="bg-surface-container-lowest text-on-surface-variant">Select industry...</option>
               @for (ind of industries; track ind) {
-                <option [value]="ind" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">{{ ind }}</option>
+                <option [value]="ind" class="bg-surface-container-lowest text-on-surface">{{ ind }}</option>
               }
             </select>
           </div>
@@ -203,16 +180,16 @@
 
       <!-- ITR Profile Card -->
       <div class="card overflow-hidden">
-        <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
+        <div class="px-5 py-3 border-b border-outline-variant bg-surface-container-low flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-[20px] text-[#7928ca] dark:text-purple-400">account_balance</span>
-            <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">ITR Profile</h3>
+            <h3 class="text-xs font-semibold text-on-surface tracking-tight uppercase">ITR Profile</h3>
           </div>
           <button
             type="button"
             (click)="saveItrProfile()"
             [disabled]="itrProfileSaving()"
-            class="h-7 px-3.5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-40 transition-colors flex items-center gap-1 cursor-pointer"
+            class="h-7 px-3.5 rounded-full bg-brand text-on-brand text-xs font-medium hover:opacity-90 disabled:opacity-40 transition-colors flex items-center gap-1 cursor-pointer"
           >
             @if (itrProfileSaving()) {
               <span class="material-symbols-outlined text-[13px] animate-spin">refresh</span>
@@ -222,151 +199,77 @@
         </div>
         <form [formGroup]="itrProfileForm" class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-neutral-600 dark:text-neutral-400" for="itr-pan">Permanent Account Number (PAN)</label>
+            <label class="text-xs font-medium text-on-surface-variant" for="itr-pan">Permanent Account Number (PAN)</label>
             <input
               id="itr-pan"
               type="text"
               formControlName="pan"
               maxlength="10"
               placeholder="ABCDE1234F"
-              class="h-9 px-3 text-xs uppercase font-mono tracking-wider border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all"
+              class="h-9 px-3 text-xs uppercase font-mono tracking-wider border border-outline-variant rounded-md bg-surface-container-lowest text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
             />
           </div>
         </form>
       </div>
-
-      <!-- ITR service only (itr / both) -->
-      @if (hasItr()) {
-        <!-- Family Members Card -->
-        <div class="card overflow-hidden">
-          <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-[20px] text-sky-600 dark:text-sky-400">family_restroom</span>
-              <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">Family Members</h3>
-              <span class="text-[11px] font-mono text-neutral-400 tabular-nums">{{ familyMembers().length }}/{{ maxFamilyMembers }}</span>
-            </div>
-            @if (familyMembers().length < maxFamilyMembers) {
-              <button
-                type="button"
-                (click)="openMemberModal()"
-                class="h-7 px-3.5 rounded-full border border-[#ebebeb] dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-medium hover:bg-[#fafafa] dark:hover:bg-neutral-700 transition-colors flex items-center gap-1 cursor-pointer"
-              >
-                <span class="material-symbols-outlined text-[15px]">person_add</span>
-                Add Member
-              </button>
-            }
-          </div>
-          @if (familyMembers().length) {
-            <ul class="divide-y divide-[#ebebeb] dark:divide-neutral-800">
-              @for (m of familyMembers(); track m.id) {
-                <li class="flex items-center gap-3 px-5 py-3">
-                  <div class="size-8 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 flex items-center justify-center text-xs font-semibold shrink-0">
-                    {{ m.name.charAt(0).toUpperCase() }}
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">{{ m.name }}</p>
-                    <p class="text-[11px] text-neutral-500 dark:text-neutral-400">
-                      {{ relationLabel(m.relation) }} · <span class="font-mono">{{ m.pan || 'No PAN' }}</span>
-                    </p>
-                  </div>
-                  <button type="button" class="size-7 rounded-md flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Edit" (click)="openMemberModal(m)">
-                    <span class="material-symbols-outlined text-[16px]">edit</span>
-                  </button>
-                  <button type="button" class="size-7 rounded-md flex items-center justify-center text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40" title="Remove" (click)="removeMember(m)">
-                    <span class="material-symbols-outlined text-[16px]">delete</span>
-                  </button>
-                </li>
-              }
-            </ul>
-          } @else {
-            <p class="px-5 py-5 text-xs font-mono text-neutral-400">No family members. The client can add up to {{ maxFamilyMembers }} from their app.</p>
-          }
+    </div>
+    </div>
+    }
+    @case ('services') {
+    <div class="space-y-5 mb-6">
+      <!-- Services Section Card -->
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3.5">
+          <h3 class="text-[11px] font-mono uppercase tracking-wider text-on-surface-variant font-medium">Client Services</h3>
+          <!-- Current Type Chip -->
+          <span class="px-2.5 py-0.5 rounded-full font-mono text-[11px] font-medium tracking-tight uppercase"
+            [class]="c.user_type === 'both' ? 'bg-brand text-on-brand border border-brand' :
+                     c.user_type === 'gst' ? 'bg-[#d3e5ff]/70 text-[#0761d1] border border-[#0070f3]/25' :
+                     c.user_type === 'itr' ? 'bg-[#d8ccf1]/70 text-[#4c2889] border border-[#7928ca]/25' :
+                     'bg-surface-container-low text-on-surface border border-outline-variant'">
+            {{ c.user_type === 'both' ? 'GST + ITR' : c.user_type }}
+          </span>
         </div>
 
-        <!-- ITR Returns Section Card -->
-        <div class="card overflow-hidden">
-          <div class="px-5 py-3 border-b border-[#ebebeb] dark:border-neutral-800 bg-[#fafafa] dark:bg-neutral-800 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-[20px] text-rose-600 dark:text-rose-400">description</span>
-              <h3 class="text-xs font-semibold text-neutral-900 dark:text-white tracking-tight uppercase">ITR Returns</h3>
-            </div>
-            <button
-              type="button"
-              (click)="openItrUpload()"
-              class="h-7 px-3.5 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors flex items-center gap-1 cursor-pointer"
+
+        <!-- Direct Type Change Dropdown -->
+        <div class="pt-3 border-t border-outline-variant">
+          <label class="text-[11px] font-mono uppercase tracking-wider text-on-surface-variant block mb-1.5 font-medium">Direct Type Override</label>
+          <div class="flex items-center gap-2">
+            <select
+              [value]="selectedTypeToChange()"
+              (change)="onTypeSelectChange($event)"
+              class="w-full h-8 px-2.5 text-xs border border-outline-variant rounded-md bg-surface-container-low text-on-surface outline-none focus:border-brand transition-all cursor-pointer"
             >
-              <span class="material-symbols-outlined text-[15px]">upload_file</span>
-              Upload Return PDF
-            </button>
+              <option value="general" class="bg-surface-container-lowest text-on-surface">General (Advisory)</option>
+              <option value="gst" class="bg-surface-container-lowest text-on-surface">GST Client</option>
+              <option value="itr" class="bg-surface-container-lowest text-on-surface">ITR Client</option>
+              <option value="both" class="bg-surface-container-lowest text-on-surface">GST + ITR Client</option>
+            </select>
           </div>
-          <div class="p-0">
-            @if (itrReturns().length > 0) {
-              <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                  <thead>
-                    <tr class="border-b border-[#ebebeb] dark:border-neutral-800 text-neutral-400 bg-[#fafafa] dark:bg-neutral-800/50 uppercase text-[11px] font-mono tracking-wider">
-                      <th class="py-2.5 px-4">Person</th>
-                      <th class="py-2.5 px-4">Year</th>
-                      <th class="py-2.5 px-4">Filename</th>
-                      <th class="py-2.5 px-4">Size</th>
-                      <th class="py-2.5 px-4">Uploaded Date</th>
-                      <th class="py-2.5 px-4 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-[#ebebeb] dark:divide-neutral-800">
-                    @for (ret of sortedItrReturns(); track ret.id) {
-                      <tr class="hover:bg-[#fafafa] dark:hover:bg-neutral-800/40 transition-colors">
-                        <td class="py-3 px-4 font-medium text-neutral-900 dark:text-white">{{ personName(ret.family_member_id) }}</td>
-                        <td class="py-3 px-4 font-mono font-semibold text-neutral-900 dark:text-white whitespace-nowrap">
-                          {{ itrYearLabel(ret.assessment_year) }}
-                          <span class="block text-[10px] font-normal text-neutral-400">AY {{ ret.assessment_year }}</span>
-                        </td>
-                        <td class="py-3 px-4 font-medium text-neutral-900 dark:text-neutral-100">{{ ret.filename }}</td>
-                        <td class="py-3 px-4 font-mono tabular-nums text-neutral-500 dark:text-neutral-400">{{ fmtBytes(ret.file_size_bytes) }}</td>
-                        <td class="py-3 px-4 font-mono tabular-nums text-neutral-500 dark:text-neutral-400">{{ fmtDate(ret.uploaded_at) }}</td>
-                        <td class="py-3 px-4 text-right">
-                          <button
-                            type="button"
-                            (click)="downloadItrReturn(ret)"
-                            class="h-7 px-3 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-[11px] font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors cursor-pointer inline-flex items-center gap-1"
-                          >
-                            <span class="material-symbols-outlined text-[13px]">download</span>
-                            Download
-                          </button>
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            } @else {
-              <div class="text-center py-8 text-neutral-400">
-                <span class="material-symbols-outlined text-[32px] text-neutral-300 dark:text-neutral-600 mb-1">picture_as_pdf</span>
-                <p class="text-xs font-mono">No ITR returns uploaded yet for this client.</p>
-              </div>
-            }
-          </div>
+          <p class="text-[10px] text-on-surface-variant mt-1.5 leading-relaxed">
+            Changing client type requires confirmation. Downgrading hides tabs but preserves all records.
+          </p>
         </div>
-      }
+      </div>
 
       <!-- GST service only (gst / both) -->
       @if (hasGst()) {
         <!-- Compliance Checklist -->
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+        <div class="card overflow-hidden">
           <div class="px-4 py-3 border-b border-outline-variant bg-surface flex items-center justify-between">
             <h3 class="font-headline-sm text-headline-sm text-on-surface">Compliance Checklist</h3>
             <div class="flex items-center gap-2">
               <select
                 [value]="selectedPeriod()"
                 (change)="onPeriodChange($event)"
-                class="px-2 py-1 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary"
+                class="px-2 py-1 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand"
               >
                 @for (p of periods(); track p.id) {
                   <option [value]="p.id">{{ p.period_label }}</option>
                 }
               </select>
               @if (tasks().length === 0 && selectedPeriod()) {
-                <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="generateTasks()">
+                <button class="px-3 py-1 bg-brand text-on-brand rounded text-label-sm hover:opacity-90 cursor-pointer" (click)="generateTasks()">
                   Generate
                 </button>
               }
@@ -390,7 +293,7 @@
                           }
                         </div>
                         @if (t.filed_at) {
-                          <div class="text-body-sm text-emerald-700 dark:text-emerald-400">
+                          <div class="text-body-sm text-success">
                             Filed on {{ fmtDate(t.filed_at) }}@if (t.arn) { · ARN {{ t.arn }} }@if (t.filed_report_id) { · PDF attached }
                           </div>
                         }
@@ -406,7 +309,7 @@
                         </button>
                       }
                       @if (canMarkFiled(t)) {
-                        <button class="px-2 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="openMarkFiled(t)">
+                        <button class="px-2 py-1 bg-brand text-on-brand rounded text-label-sm hover:opacity-90 cursor-pointer" (click)="openMarkFiled(t)">
                           Mark filed
                         </button>
                       }
@@ -414,7 +317,7 @@
                         <input
                           type="number" min="0" step="0.01" placeholder="Amount ₹"
                           [value]="amountDraft(t)" (input)="setAmountDraft(t, $any($event.target).value)"
-                          class="w-28 px-2 py-1 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary"
+                          class="w-28 px-2 py-1 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand"
                           aria-label="GST payable amount"
                         />
                         @if (amountDraft(t) !== (t.amount ?? '')) {
@@ -443,7 +346,7 @@
 
         <!-- Pending Report Requests -->
         @if (reportRequests().length > 0) {
-          <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+          <div class="card p-5">
             <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Pending Report Requests</h3>
             <div class="space-y-2">
               @for (req of reportRequests(); track req.id) {
@@ -452,7 +355,7 @@
                     <div class="font-medium text-on-surface">Period: {{ req.filing_period?.period_label }}</div>
                     <div class="text-body-sm text-on-surface-variant">Requested on: {{ fmtDate(req.created_at) }}</div>
                   </div>
-                  <button class="px-3 py-1 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary cursor-pointer" (click)="fulfillRequest(req)">
+                  <button class="px-3 py-1 bg-brand text-on-brand rounded text-label-sm hover:opacity-90 cursor-pointer" (click)="fulfillRequest(req)">
                     Fulfill
                   </button>
                 </div>
@@ -462,7 +365,7 @@
         }
 
         <!-- Certificates Section -->
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+        <div class="card p-5">
           <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Certificates</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- GST Certificate Card -->
@@ -474,7 +377,7 @@
                     GST Certificate
                   </span>
                   @if (hasCert('gst_cert')) {
-                    <span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800 font-medium">Available</span>
+                    <span class="px-2 py-0.5 rounded text-xs bg-success-tint text-success font-medium">Available</span>
                   } @else {
                     <span class="px-2 py-0.5 rounded text-xs bg-surface-container-high text-on-surface-variant">Not uploaded</span>
                   }
@@ -520,7 +423,7 @@
                 }
                 <button
                   type="button"
-                  class="flex-1 px-3 py-1.5 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 shadow-2xs"
+                  class="flex-1 px-3 py-1.5 bg-brand text-on-brand rounded text-label-sm hover:opacity-90 transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 shadow-2xs"
                   [disabled]="uploadingCertType() === 'gst_cert'"
                   (click)="triggerCertFileInput(gstCertInput)"
                 >
@@ -544,7 +447,7 @@
                     Udyam Certificate
                   </span>
                   @if (hasCert('udyam_cert')) {
-                    <span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800 font-medium">Available</span>
+                    <span class="px-2 py-0.5 rounded text-xs bg-success-tint text-success font-medium">Available</span>
                   } @else {
                     <span class="px-2 py-0.5 rounded text-xs bg-surface-container-high text-on-surface-variant">Not uploaded</span>
                   }
@@ -590,7 +493,7 @@
                 }
                 <button
                   type="button"
-                  class="flex-1 px-3 py-1.5 bg-primary text-on-primary rounded text-label-sm hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 shadow-2xs"
+                  class="flex-1 px-3 py-1.5 bg-brand text-on-brand rounded text-label-sm hover:opacity-90 transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 shadow-2xs"
                   [disabled]="uploadingCertType() === 'udyam_cert'"
                   (click)="triggerCertFileInput(udyamCertInput)"
                 >
@@ -608,70 +511,9 @@
         </div>
       }
 
-      <!-- Uploaded Documents -->
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
-        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Client Documents ({{ docTotal() }})</h3>
-        @if (docs().length === 0) {
-          <app-empty-state message="No documents uploaded yet" />
-        } @else {
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-body-md">
-              <thead>
-                <tr class="border-b border-outline-variant text-on-surface-variant">
-                  <th class="py-2 px-3">Filename</th>
-                  <th class="py-2 px-3">Category</th>
-                  <th class="py-2 px-3">Period / AY</th>
-                  <th class="py-2 px-3">Status</th>
-                  <th class="py-2 px-3">Uploaded</th>
-                  <th class="py-2 px-3">Size</th>
-                  <th class="py-2 px-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-outline-variant">
-                @for (d of docs(); track d.id) {
-                  <tr>
-                    <td class="py-3 px-3 font-medium text-on-surface">{{ d.original_filename }}</td>
-                    <td class="py-3 px-3">
-                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-neutral-100 text-neutral-800">
-                        {{ d.category ?? 'GST' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-3 text-body-sm text-on-surface-variant">
-                      {{ d.filing_period?.period_label ?? (d.assessment_year ? 'AY ' + d.assessment_year : '—') }}
-                    </td>
-                    <td class="py-3 px-3"><app-status-chip [status]="d.status" /></td>
-                    <td class="py-3 px-3 tabular-nums text-body-sm text-on-surface-variant">{{ fmtDate(d.uploaded_at) }}</td>
-                    <td class="py-3 px-3 tabular-nums text-body-sm text-on-surface-variant">{{ fmtBytes(d.file_size_bytes) }}</td>
-                    <td class="py-3 px-3 text-right space-x-2">
-                      <button
-                        class="text-primary hover:underline font-label-md text-label-md cursor-pointer"
-                        [disabled]="isDownloading(d.id)"
-                        (click)="downloadDocument(d)"
-                      >
-                        {{ isDownloading(d.id) ? 'Opening…' : 'Download' }}
-                      </button>
-                      @if (d.status !== 'processed') {
-                        <button
-                          class="text-secondary hover:underline font-label-md text-label-md cursor-pointer"
-                          [disabled]="isProcessing(d.id)"
-                          (click)="markProcessed(d)"
-                        >
-                          {{ isProcessing(d.id) ? 'Saving…' : 'Mark processed' }}
-                        </button>
-                      }
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-          <app-pagination [page]="docPage()" [totalPages]="docPages()" (pageChange)="docPageChanged($event)" />
-        }
-      </div>
-
       <!-- Sent Reports (GST service only) -->
       @if (hasGst()) {
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+      <div class="card p-5">
         <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Sent Reports ({{ reportTotal() }})</h3>
         @if (reports().length === 0) {
           <app-empty-state message="No reports sent yet" />
@@ -715,11 +557,193 @@
       </div>
       }
     </div>
-  </div>
+    }
+    @case ('documents') {
+    <div class="mb-6">
+      <!-- Uploaded Documents -->
+      <div class="card p-5">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Client Documents ({{ docTotal() }})</h3>
+        @if (docs().length === 0) {
+          <app-empty-state message="No documents uploaded yet" />
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-body-md">
+              <thead>
+                <tr class="border-b border-outline-variant text-on-surface-variant">
+                  <th class="py-2 px-3">Filename</th>
+                  <th class="py-2 px-3">Category</th>
+                  <th class="py-2 px-3">Period / AY</th>
+                  <th class="py-2 px-3">Status</th>
+                  <th class="py-2 px-3">Uploaded</th>
+                  <th class="py-2 px-3">Size</th>
+                  <th class="py-2 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant">
+                @for (d of docs(); track d.id) {
+                  <tr>
+                    <td class="py-3 px-3 font-medium text-on-surface">{{ d.original_filename }}</td>
+                    <td class="py-3 px-3">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-surface-container text-on-surface">
+                        {{ d.category ?? 'GST' }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-3 text-body-sm text-on-surface-variant">
+                      {{ d.filing_period?.period_label ?? (d.assessment_year ? 'AY ' + d.assessment_year : '—') }}
+                    </td>
+                    <td class="py-3 px-3"><app-status-chip [status]="d.status" /></td>
+                    <td class="py-3 px-3 tabular-nums text-body-sm text-on-surface-variant">{{ fmtDate(d.uploaded_at) }}</td>
+                    <td class="py-3 px-3 tabular-nums text-body-sm text-on-surface-variant">{{ fmtBytes(d.file_size_bytes) }}</td>
+                    <td class="py-3 px-3 text-right space-x-2">
+                      <button
+                        class="text-primary hover:underline font-label-md text-label-md cursor-pointer"
+                        [disabled]="isDownloading(d.id)"
+                        (click)="downloadDocument(d)"
+                      >
+                        {{ isDownloading(d.id) ? 'Opening…' : 'Download' }}
+                      </button>
+                      @if (d.status !== 'processed') {
+                        <button
+                          class="text-secondary hover:underline font-label-md text-label-md cursor-pointer"
+                          [disabled]="isProcessing(d.id)"
+                          (click)="markProcessed(d)"
+                        >
+                          {{ isProcessing(d.id) ? 'Saving…' : 'Mark processed' }}
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <app-pagination [page]="docPage()" [totalPages]="docPages()" (pageChange)="docPageChanged($event)" />
+        }
+      </div>
+    </div>
+    }
+    @case ('itr') {
+    <div class="mb-6">
+        <!-- ITR Returns Section Card -->
+        <div class="card overflow-hidden">
+          <div class="px-5 py-3 border-b border-outline-variant bg-surface-container-low flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px] text-error">description</span>
+              <h3 class="text-xs font-semibold text-on-surface tracking-tight uppercase">ITR Returns</h3>
+            </div>
+            <button
+              type="button"
+              (click)="openItrUpload()"
+              class="h-7 px-3.5 rounded-full bg-brand text-on-brand text-xs font-medium hover:opacity-90 transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <span class="material-symbols-outlined text-[15px]">upload_file</span>
+              Upload Return PDF
+            </button>
+          </div>
+          <div class="p-0">
+            @if (itrReturns().length > 0) {
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead>
+                    <tr class="border-b border-outline-variant text-on-surface-variant bg-surface-container-low uppercase text-[11px] font-mono tracking-wider">
+                      <th class="py-2.5 px-4">Person</th>
+                      <th class="py-2.5 px-4">Year</th>
+                      <th class="py-2.5 px-4">Filename</th>
+                      <th class="py-2.5 px-4">Size</th>
+                      <th class="py-2.5 px-4">Uploaded Date</th>
+                      <th class="py-2.5 px-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-outline-variant">
+                    @for (ret of sortedItrReturns(); track ret.id) {
+                      <tr class="hover:bg-row-hover transition-colors">
+                        <td class="py-3 px-4 font-medium text-on-surface">{{ personName(ret.family_member_id) }}</td>
+                        <td class="py-3 px-4 font-mono font-semibold text-on-surface whitespace-nowrap">
+                          {{ itrYearLabel(ret.assessment_year) }}
+                          <span class="block text-[10px] font-normal text-on-surface-variant">AY {{ ret.assessment_year }}</span>
+                        </td>
+                        <td class="py-3 px-4 font-medium text-on-surface">{{ ret.filename }}</td>
+                        <td class="py-3 px-4 font-mono tabular-nums text-on-surface-variant">{{ fmtBytes(ret.file_size_bytes) }}</td>
+                        <td class="py-3 px-4 font-mono tabular-nums text-on-surface-variant">{{ fmtDate(ret.uploaded_at) }}</td>
+                        <td class="py-3 px-4 text-right">
+                          <button
+                            type="button"
+                            (click)="downloadItrReturn(ret)"
+                            class="h-7 px-3 rounded-full bg-brand text-on-brand text-[11px] font-medium hover:opacity-90 transition-colors cursor-pointer inline-flex items-center gap-1"
+                          >
+                            <span class="material-symbols-outlined text-[13px]">download</span>
+                            Download
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <div class="text-center py-8 text-on-surface-variant">
+                <span class="material-symbols-outlined text-[32px] text-outline mb-1">picture_as_pdf</span>
+                <p class="text-xs font-mono">No ITR returns uploaded yet for this client.</p>
+              </div>
+            }
+          </div>
+        </div>
+    </div>
+    }
+    @case ('family') {
+    <div class="mb-6">
+        <!-- Family Members Card -->
+        <div class="card overflow-hidden">
+          <div class="px-5 py-3 border-b border-outline-variant bg-surface-container-low flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px] text-sky-600 dark:text-sky-400">family_restroom</span>
+              <h3 class="text-xs font-semibold text-on-surface tracking-tight uppercase">Family Members</h3>
+              <span class="text-[11px] font-mono text-on-surface-variant tabular-nums">{{ familyMembers().length }}/{{ maxFamilyMembers }}</span>
+            </div>
+            @if (familyMembers().length < maxFamilyMembers) {
+              <button
+                type="button"
+                (click)="openMemberModal()"
+                class="h-7 px-3.5 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface text-xs font-medium hover:bg-row-hover transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-[15px]">person_add</span>
+                Add Member
+              </button>
+            }
+          </div>
+          @if (familyMembers().length) {
+            <ul class="divide-y divide-outline-variant">
+              @for (m of familyMembers(); track m.id) {
+                <li class="flex items-center gap-3 px-5 py-3">
+                  <div class="size-8 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 flex items-center justify-center text-xs font-semibold shrink-0">
+                    {{ m.name.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-on-surface truncate">{{ m.name }}</p>
+                    <p class="text-[11px] text-on-surface-variant">
+                      {{ relationLabel(m.relation) }} · <span class="font-mono">{{ m.pan || 'No PAN' }}</span>
+                    </p>
+                  </div>
+                  <button type="button" class="size-7 rounded-md flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container" title="Edit" (click)="openMemberModal(m)">
+                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                  </button>
+                  <button type="button" class="size-7 rounded-md flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error-container" title="Remove" (click)="removeMember(m)">
+                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="px-5 py-5 text-xs font-mono text-on-surface-variant">No family members. The client can add up to {{ maxFamilyMembers }} from their app.</p>
+          }
+        </div>
+    </div>
+    }
+  }
 }
 
 <!-- Send Report Modal -->
-<app-modal [open]="showReport()" (close)="showReport.set(false)">
+<app-modal variant="panel" [open]="showReport()" (close)="showReport.set(false)">
   <div class="p-6">
     <div class="flex items-center justify-between mb-4">
       <h2 class="font-headline-md text-headline-md text-on-surface">Send Report</h2>
@@ -731,7 +755,7 @@
       <div class="flex flex-col gap-1">
         <label class="font-label-md text-label-md text-on-surface" for="r-period">Filing Period</label>
         <select id="r-period" formControlName="filing_period_id"
-          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
           @for (p of periods(); track p.id) {
             <option [value]="p.id">{{ p.period_label }} (due {{ fmtDate(p.due_date) }})</option>
           }
@@ -740,7 +764,7 @@
       <div class="flex flex-col gap-1">
         <label class="font-label-md text-label-md text-on-surface" for="r-type">Report Type</label>
         <select id="r-type" formControlName="report_type"
-          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
           <option value="gstr_1">GSTR 1</option>
           <option value="gstr_3b">GSTR 3B</option>
           <option value="reconciliation">Reconciliation</option>
@@ -758,7 +782,7 @@
       <div class="flex justify-end gap-2 mt-2">
         <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded cursor-pointer" (click)="showReport.set(false)">Cancel</button>
         <button type="submit" [disabled]="sending()"
-          class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60 cursor-pointer">
+          class="px-4 py-2 bg-brand text-on-brand rounded font-label-md text-label-md hover:opacity-90 disabled:opacity-60 cursor-pointer">
           {{ sending() ? 'Uploading…' : 'Send Report' }}
         </button>
       </div>
@@ -785,7 +809,7 @@
           <label class="font-label-md text-label-md text-on-surface" for="f-arn">ARN (optional)</label>
           <input id="f-arn" type="text" maxlength="30" [value]="filingArn()" (input)="filingArn.set($any($event.target).value)"
             placeholder="e.g. AA0810260123456"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary" />
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand" />
         </div>
         <div class="flex flex-col gap-1">
           <label class="font-label-md text-label-md text-on-surface" for="f-file">Filed return / acknowledgement PDF (optional)</label>
@@ -796,7 +820,7 @@
         <div class="flex justify-end gap-2 mt-2">
           <button type="button" class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded cursor-pointer" (click)="filingTask.set(null)">Cancel</button>
           <button type="button" [disabled]="filingSaving()" (click)="submitMarkFiled()"
-            class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60 cursor-pointer">
+            class="px-4 py-2 bg-brand text-on-brand rounded font-label-md text-label-md hover:opacity-90 disabled:opacity-60 cursor-pointer">
             {{ filingSaving() ? 'Saving…' : 'Mark filed & notify client' }}
           </button>
         </div>
@@ -808,16 +832,16 @@
 <!-- Confirm Direct Client Type Change Modal -->
 <app-modal [open]="showTypeChangeConfirm()" (close)="cancelTypeChange()">
   <div class="p-6 max-w-md">
-    <div class="flex items-center gap-2.5 mb-3 text-amber-700 dark:text-amber-400">
+    <div class="flex items-center gap-2.5 mb-3 text-warning">
       <span class="material-symbols-outlined text-[24px]">warning</span>
-      <h2 class="text-sm font-semibold tracking-tight text-neutral-900 dark:text-white">Confirm Client Type Change</h2>
+      <h2 class="text-sm font-semibold tracking-tight text-on-surface">Confirm Client Type Change</h2>
     </div>
-    <p class="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed mb-4">
+    <p class="text-xs text-on-surface leading-relaxed mb-4">
       Are you sure you want to change this client's type from
       <strong class="font-mono uppercase">{{ client()?.user_type }}</strong> to
       <strong class="font-mono uppercase">{{ selectedTypeToChange() }}</strong>?
     </p>
-    <div class="p-3.5 rounded-xl bg-[#fafafa] dark:bg-neutral-800/60 border border-[#ebebeb] dark:border-neutral-700 text-[11px] text-neutral-600 dark:text-neutral-400 space-y-1.5 mb-5">
+    <div class="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant text-[11px] text-on-surface-variant space-y-1.5 mb-5">
       <p>• <strong>Upgrades</strong> immediately unlock document and filing tabs for the client.</p>
       <p>• <strong>Downgrades</strong> only hide the locked tabs from client view — <strong>no documents, tasks, or historical records will ever be deleted</strong>.</p>
       <p>• Any open pending requests for this client will be marked as handled.</p>
@@ -825,7 +849,7 @@
     <div class="flex justify-end gap-2.5">
       <button
         type="button"
-        class="h-8 px-4 rounded-full border border-[#ebebeb] dark:border-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-[#fafafa] dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+        class="h-8 px-4 rounded-full border border-outline-variant text-xs font-medium text-on-surface hover:bg-row-hover transition-colors cursor-pointer"
         (click)="cancelTypeChange()"
         [disabled]="typeChangeSaving()"
       >
@@ -835,7 +859,7 @@
         type="button"
         (click)="confirmDirectTypeChange()"
         [disabled]="typeChangeSaving()"
-        class="h-8 px-4 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-40 transition-colors flex items-center gap-1.5 cursor-pointer"
+        class="h-8 px-4 rounded-full bg-brand text-on-brand text-xs font-medium hover:opacity-90 disabled:opacity-40 transition-colors flex items-center gap-1.5 cursor-pointer"
       >
         @if (typeChangeSaving()) {
           <span class="material-symbols-outlined text-[13px] animate-spin">refresh</span>
@@ -847,65 +871,65 @@
 </app-modal>
 
 <!-- Upload ITR Return Modal -->
-<app-modal [open]="showItrUploadModal()" (close)="showItrUploadModal.set(false)">
+<app-modal variant="panel" [open]="showItrUploadModal()" (close)="showItrUploadModal.set(false)">
   <div class="p-6 max-w-md">
     <div class="flex items-center justify-between mb-3">
       <div class="flex items-center gap-2.5">
-        <div class="size-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/50 flex items-center justify-center font-mono text-[10px] font-bold">
+        <div class="size-8 rounded-lg bg-error-container text-error border border-error/25 flex items-center justify-center font-mono text-[10px] font-bold">
           PDF
         </div>
-        <h2 class="text-sm font-semibold tracking-tight text-neutral-900 dark:text-white">Upload ITR Return PDF</h2>
+        <h2 class="text-sm font-semibold tracking-tight text-on-surface">Upload ITR Return PDF</h2>
       </div>
-      <button class="size-7 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer" (click)="showItrUploadModal.set(false)">
+      <button class="size-7 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer" (click)="showItrUploadModal.set(false)">
         <span class="material-symbols-outlined text-[16px]">close</span>
       </button>
     </div>
-    <p class="text-xs text-neutral-500 dark:text-neutral-400 mb-4 leading-relaxed">
+    <p class="text-xs text-on-surface-variant mb-4 leading-relaxed">
       Upload the official ITR acknowledgement PDF (e.g. ITR-V). If a return already exists for the same person and year, it will be replaced.
     </p>
     <form class="flex flex-col gap-4" [formGroup]="itrReturnForm" (ngSubmit)="submitItrReturn()">
       <div class="flex flex-col gap-1.5">
-        <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="itr-person">For</label>
+        <label class="text-[11px] font-mono uppercase tracking-wider text-on-surface-variant font-medium" for="itr-person">For</label>
         <select
           id="itr-person"
           formControlName="family_member_id"
-          class="h-9 px-3 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-[#fafafa] dark:bg-neutral-800 text-xs font-medium text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all cursor-pointer"
+          class="h-9 px-3 border border-outline-variant rounded-md bg-surface-container-low text-xs font-medium text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer"
         >
-          <option value="" class="bg-white dark:bg-neutral-800">{{ client()?.name ?? 'Account holder' }} (account holder)</option>
+          <option value="" class="bg-surface-container-lowest">{{ client()?.name ?? 'Account holder' }} (account holder)</option>
           @for (m of familyMembers(); track m.id) {
-            <option [value]="m.id" class="bg-white dark:bg-neutral-800">{{ m.name }} ({{ relationLabel(m.relation) }})</option>
+            <option [value]="m.id" class="bg-surface-container-lowest">{{ m.name }} ({{ relationLabel(m.relation) }})</option>
           }
         </select>
       </div>
       <div class="flex flex-col gap-1.5">
-        <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="itr-ay">Year</label>
+        <label class="text-[11px] font-mono uppercase tracking-wider text-on-surface-variant font-medium" for="itr-ay">Year</label>
         <select
           id="itr-ay"
           formControlName="assessment_year"
-          class="h-9 px-3 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-[#fafafa] dark:bg-neutral-800 text-xs font-mono font-medium text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white focus:ring-1 focus:ring-[#171717] dark:focus:ring-white transition-all cursor-pointer"
+          class="h-9 px-3 border border-outline-variant rounded-md bg-surface-container-low text-xs font-mono font-medium text-on-surface outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer"
         >
           @for (ay of assessmentYears; track ay) {
-            <option [value]="ay" class="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">{{ itrYearLabel(ay) }} (AY {{ ay }})</option>
+            <option [value]="ay" class="bg-surface-container-lowest text-on-surface">{{ itrYearLabel(ay) }} (AY {{ ay }})</option>
           }
         </select>
       </div>
       <div class="flex flex-col gap-1.5">
-        <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="itr-file">Return PDF (max 10 MB)</label>
+        <label class="text-[11px] font-mono uppercase tracking-wider text-on-surface-variant font-medium" for="itr-file">Return PDF (max 10 MB)</label>
         <input
           id="itr-file"
           type="file"
           accept="application/pdf,.pdf"
           (change)="onItrReturnFileSelected($event)"
-          class="h-9 px-3 py-1.5 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-xs text-neutral-800 dark:text-neutral-200 file:mr-2 file:py-0.5 file:px-2 file:rounded-full file:border-0 file:text-[10px] file:font-mono file:bg-neutral-100 file:text-neutral-700 dark:file:bg-neutral-700 dark:file:text-neutral-200"
+          class="h-9 px-3 py-1.5 border border-outline-variant rounded-md bg-surface-container-lowest text-xs text-on-surface file:mr-2 file:py-0.5 file:px-2 file:rounded-full file:border-0 file:text-[10px] file:font-mono file:bg-neutral-100 file:text-neutral-700 dark:file:bg-neutral-700 dark:file:text-neutral-200"
         />
         @if (itrReturnForm.controls.file.touched && !itrReturnForm.controls.file.value) {
-          <span class="text-rose-600 dark:text-rose-400 text-[11px] font-mono">Please select a PDF file</span>
+          <span class="text-error text-[11px] font-mono">Please select a PDF file</span>
         }
       </div>
-      <div class="flex justify-end gap-2.5 mt-3 pt-2 border-t border-[#ebebeb] dark:border-neutral-800">
+      <div class="flex justify-end gap-2.5 mt-3 pt-2 border-t border-outline-variant">
         <button
           type="button"
-          class="h-8 px-4 rounded-full border border-[#ebebeb] dark:border-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-[#fafafa] dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+          class="h-8 px-4 rounded-full border border-outline-variant text-xs font-medium text-on-surface hover:bg-row-hover transition-colors cursor-pointer"
           (click)="showItrUploadModal.set(false)"
           [disabled]="itrUploadLoading()"
         >
@@ -914,7 +938,7 @@
         <button
           type="submit"
           [disabled]="itrUploadLoading() || !itrReturnForm.controls.file.value"
-          class="h-8 px-4 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-40 transition-colors flex items-center gap-1.5 cursor-pointer"
+          class="h-8 px-4 rounded-full bg-brand text-on-brand text-xs font-medium hover:opacity-90 disabled:opacity-40 transition-colors flex items-center gap-1.5 cursor-pointer"
         >
           @if (itrUploadLoading()) {
             <span class="material-symbols-outlined text-[13px] animate-spin">refresh</span>
@@ -927,24 +951,24 @@
 </app-modal>
 
 <!-- Add / Edit Family Member Modal -->
-<app-modal [open]="showMemberModal()" (close)="showMemberModal.set(false)">
+<app-modal variant="panel" [open]="showMemberModal()" (close)="showMemberModal.set(false)">
   <div class="p-6 max-w-md">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-sm font-semibold tracking-tight text-neutral-900 dark:text-white">{{ editingMemberId() ? 'Edit family member' : 'Add family member' }}</h2>
-      <button class="size-7 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer" (click)="showMemberModal.set(false)">
+      <h2 class="text-sm font-semibold tracking-tight text-on-surface">{{ editingMemberId() ? 'Edit family member' : 'Add family member' }}</h2>
+      <button class="size-7 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer" (click)="showMemberModal.set(false)">
         <span class="material-symbols-outlined text-[16px]">close</span>
       </button>
     </div>
     <div class="flex flex-col gap-4">
       <div class="flex flex-col gap-1.5">
-        <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="fm-name">Name</label>
-        <input id="fm-name" maxlength="120" class="h-9 px-3 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white"
+        <label class="text-[11px] font-mono uppercase tracking-wider text-on-surface-variant font-medium" for="fm-name">Name</label>
+        <input id="fm-name" maxlength="120" class="h-9 px-3 border border-outline-variant rounded-md bg-surface-container-lowest text-sm text-on-surface outline-none focus:border-brand"
           [ngModel]="memberForm().name" (ngModelChange)="setMemberField('name', $event)" placeholder="Full name as per PAN" />
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div class="flex flex-col gap-1.5">
-          <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="fm-rel">Relation</label>
-          <select id="fm-rel" class="h-9 px-3 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-[#fafafa] dark:bg-neutral-800 text-sm text-neutral-900 dark:text-neutral-100 outline-none"
+          <label class="text-[11px] font-mono uppercase tracking-wider text-on-surface-variant font-medium" for="fm-rel">Relation</label>
+          <select id="fm-rel" class="h-9 px-3 border border-outline-variant rounded-md bg-surface-container-low text-sm text-on-surface outline-none"
             [ngModel]="memberForm().relation" (ngModelChange)="setMemberField('relation', $event)">
             @for (r of relations; track r.key) {
               <option [value]="r.key">{{ r.label }}</option>
@@ -952,18 +976,18 @@
           </select>
         </div>
         <div class="flex flex-col gap-1.5">
-          <label class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium" for="fm-pan">PAN</label>
-          <input id="fm-pan" maxlength="10" class="h-9 px-3 border border-[#ebebeb] dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-sm font-mono uppercase text-neutral-900 dark:text-neutral-100 outline-none focus:border-[#171717] dark:focus:border-white"
+          <label class="text-[11px] font-mono uppercase tracking-wider text-on-surface-variant font-medium" for="fm-pan">PAN</label>
+          <input id="fm-pan" maxlength="10" class="h-9 px-3 border border-outline-variant rounded-md bg-surface-container-lowest text-sm font-mono uppercase text-on-surface outline-none focus:border-brand"
             [ngModel]="memberForm().pan" (ngModelChange)="setMemberField('pan', $event)" placeholder="ABCDE1234F" />
         </div>
       </div>
       @if (memberPanInvalid()) {
-        <span class="text-rose-600 dark:text-rose-400 text-[11px] font-mono">PAN must look like ABCDE1234F</span>
+        <span class="text-error text-[11px] font-mono">PAN must look like ABCDE1234F</span>
       }
     </div>
-    <div class="flex justify-end gap-2.5 mt-5 pt-3 border-t border-[#ebebeb] dark:border-neutral-800">
-      <button type="button" class="h-8 px-4 rounded-full border border-[#ebebeb] dark:border-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-[#fafafa] dark:hover:bg-neutral-800 cursor-pointer" (click)="showMemberModal.set(false)">Cancel</button>
-      <button type="button" class="h-8 px-4 rounded-full bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-40 cursor-pointer"
+    <div class="flex justify-end gap-2.5 mt-5 pt-3 border-t border-outline-variant">
+      <button type="button" class="h-8 px-4 rounded-full border border-outline-variant text-xs font-medium text-on-surface hover:bg-row-hover cursor-pointer" (click)="showMemberModal.set(false)">Cancel</button>
+      <button type="button" class="h-8 px-4 rounded-full bg-brand text-on-brand text-xs font-medium hover:opacity-90 disabled:opacity-40 cursor-pointer"
         [disabled]="!memberForm().name.trim() || memberPanInvalid() || memberSaving()" (click)="saveMember()">
         {{ memberSaving() ? 'Saving…' : (editingMemberId() ? 'Save' : 'Add member') }}
       </button>

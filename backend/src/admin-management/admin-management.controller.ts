@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -21,6 +22,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { AdminManagementService } from './admin-management.service';
 import {
   CreateAdminDto,
+  ResetPasswordDto,
   SetPermissionsDto,
   UpdateAdminDto,
 } from './dto/admin.dto';
@@ -66,6 +68,18 @@ export class AdminManagementController {
   @ApiOperation({ summary: 'Deactivate a staff account' })
   async deactivate(@CurrentUser() auth: AuthUser, @Param('id') id: string) {
     await this.adminManagement.deactivate(auth.sub, id);
+    return { success: true };
+  }
+
+  @Post(':id/password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Set a new password for a staff account' })
+  async resetPassword(
+    @CurrentUser() auth: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ResetPasswordDto,
+  ) {
+    await this.adminManagement.resetPassword(auth.sub, id, dto);
     return { success: true };
   }
 

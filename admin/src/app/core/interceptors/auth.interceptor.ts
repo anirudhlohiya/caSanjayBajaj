@@ -49,6 +49,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         req.url.includes('X-Amz-Algorithm') ||
         req.url.includes('X-Amz-Signature');
 
+      // 403 = this account's access was changed on the server. Fetch a fresh
+      // token (deduped) so the menu and route guards catch up.
+      if (
+        error instanceof HttpErrorResponse &&
+        error.status === 403 &&
+        !req.url.includes('/auth/') &&
+        !isPresignedS3Url &&
+        auth.refreshToken
+      ) {
+        void refreshAccess(auth);
+      }
+
       const canRefresh =
         is401 &&
         !authReq.headers.has('X-FP-Retried') &&

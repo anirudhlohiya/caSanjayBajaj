@@ -12,6 +12,7 @@ import { ToastService } from '../../core/services/toast.service';
 import {
   FamilyMembersService,
   PeriodsService,
+  workingPeriod,
 } from '../../core/services/feature.services';
 import { UploadService } from '../../core/services/upload.service';
 import { UploadQueueService, QueuedUpload } from '../../core/services/upload-queue.service';
@@ -148,12 +149,7 @@ export class Upload {
         if (qPeriod) {
           this.selectedPeriodId.set(qPeriod);
         } else if (periods.length > 0) {
-          // Default to last month's return (in November you file October); periods come newest first.
-          const d = new Date();
-          d.setDate(1);
-          d.setMonth(d.getMonth() - 1);
-          const lastMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-          this.selectedPeriodId.set((periods.find((p) => p.period_code <= lastMonth) ?? periods[0]).id);
+          this.selectedPeriodId.set(workingPeriod(periods)!.id);
         }
       }
       this.queuedCount.set((await this.queue.list()).length);
@@ -268,7 +264,11 @@ export class Upload {
   }
 
   goToDocuments(): void {
-    void this.router.navigate(['/documents']);
+    // Land on the tab and month the files went to, or the upload looks lost.
+    const gst = this.category() === 'gst';
+    void this.router.navigate(['/documents'], {
+      queryParams: { tab: this.category(), period: gst ? this.selectedPeriodId() : undefined },
+    });
   }
 
   setStatus(id: string, status: UploadItem['status'], progress: number): void {

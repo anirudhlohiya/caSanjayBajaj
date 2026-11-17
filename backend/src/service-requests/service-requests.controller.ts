@@ -55,7 +55,7 @@ export class ServiceRequestsController {
   }
 
   @Patch('admin/service-requests/:id')
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Approve or reject a service request (admin)' })
   review(
@@ -67,7 +67,7 @@ export class ServiceRequestsController {
   }
 
   @Patch(['admin/clients/:id/type', 'admin/users/:id/type'])
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Directly change client type (admin)' })
   changeType(

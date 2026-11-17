@@ -112,8 +112,9 @@ export class TicketsService {
     const saved = await this.messages.save(msg);
 
     if (ticket.status !== TicketStatus.OPEN) {
-      ticket.status = TicketStatus.OPEN;
-      await this.tickets.save(ticket);
+      // update(), not save(): saving the ticket loaded with its old message
+      // list makes TypeORM delete the message just added.
+      await this.tickets.update(ticketId, { status: TicketStatus.OPEN });
     }
 
     return saved;
@@ -174,8 +175,8 @@ export class TicketsService {
     const saved = await this.messages.save(msg);
 
     if (ticket.status !== TicketStatus.REPLIED) {
-      ticket.status = TicketStatus.REPLIED;
-      await this.tickets.save(ticket);
+      // update(), not save() — see addMessageForUser.
+      await this.tickets.update(ticketId, { status: TicketStatus.REPLIED });
     }
 
     void this.notifyClient(

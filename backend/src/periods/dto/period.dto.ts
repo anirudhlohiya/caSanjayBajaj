@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
   Length,
+  Matches,
 } from 'class-validator';
 import type { PeriodSchedule } from '../../common/types/gst-schedule';
 
@@ -17,7 +18,9 @@ export class CreatePeriodDto {
 
   @ApiProperty({ example: '2026-07' })
   @IsString()
-  @Length(1, 7)
+  @Matches(/^\d{4}-(0[1-9]|1[0-2])$/, {
+    message: 'Period code must look like 2026-07',
+  })
   period_code: string;
 
   @ApiProperty({ example: '2026-08-11' })

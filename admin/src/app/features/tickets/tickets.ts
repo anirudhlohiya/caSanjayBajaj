@@ -26,9 +26,28 @@ export class TicketsPage implements OnInit {
   readonly total = signal(0);
   readonly totalPages = signal(0);
   readonly statusFilter = signal<string>('');
+  readonly filters = [
+    { value: '', label: 'All' },
+    { value: 'open', label: 'Open' },
+    { value: 'closed', label: 'Closed' },
+  ];
+  /** Ticket count per filter chip; missing until loaded (or if a count request fails). */
+  readonly counts = signal<Record<string, number>>({});
 
   ngOnInit(): void {
     void this.load();
+    void this.loadCounts();
+  }
+
+  async loadCounts(): Promise<void> {
+    const results = await Promise.allSettled(
+      this.filters.map((f) => this.ticketsService.list({ page: 1, pageSize: 1, status: f.value || undefined })),
+    );
+    const counts: Record<string, number> = {};
+    results.forEach((r, i) => {
+      if (r.status === 'fulfilled') counts[this.filters[i].value] = r.value.total;
+    });
+    this.counts.set(counts);
   }
 
   async load(): Promise<void> {

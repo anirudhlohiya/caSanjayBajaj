@@ -660,9 +660,9 @@ export class WhatsappChatsPage implements OnInit {
   getAvatarColor(key?: string | null): { bg: string; text: string; border: string } {
     if (!key) {
       return {
-        bg: 'bg-neutral-100 dark:bg-neutral-800',
-        text: 'text-neutral-700 dark:text-neutral-300',
-        border: 'border-neutral-200 dark:border-neutral-700',
+        bg: 'bg-surface-container',
+        text: 'text-on-surface',
+        border: 'border-outline-variant',
       };
     }
 
@@ -674,9 +674,9 @@ export class WhatsappChatsPage implements OnInit {
 
     const palettes = [
       {
-        bg: 'bg-emerald-100 dark:bg-emerald-950/60',
-        text: 'text-emerald-800 dark:text-emerald-300',
-        border: 'border-emerald-300/70 dark:border-emerald-800',
+        bg: 'bg-success-tint',
+        text: 'text-success',
+        border: 'border-success/25',
       },
       {
         bg: 'bg-sky-100 dark:bg-sky-950/60',
@@ -694,14 +694,14 @@ export class WhatsappChatsPage implements OnInit {
         border: 'border-purple-300/70 dark:border-purple-800',
       },
       {
-        bg: 'bg-amber-100 dark:bg-amber-950/60',
-        text: 'text-amber-800 dark:text-amber-300',
-        border: 'border-amber-300/70 dark:border-amber-800',
+        bg: 'bg-warning-tint',
+        text: 'text-warning',
+        border: 'border-warning/25',
       },
       {
-        bg: 'bg-rose-100 dark:bg-rose-950/60',
-        text: 'text-rose-800 dark:text-rose-300',
-        border: 'border-rose-300/70 dark:border-rose-800',
+        bg: 'bg-error-container',
+        text: 'text-error',
+        border: 'border-error/25',
       },
       {
         bg: 'bg-teal-100 dark:bg-teal-950/60',
@@ -717,13 +717,13 @@ export class WhatsappChatsPage implements OnInit {
   getStatusClass(status: WhatsappConversationStatus): string {
     switch (status) {
       case 'ai_handling':
-        return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/30';
+        return 'bg-success-tint text-success border-success/25';
       case 'staff_takeover':
-        return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 dark:border-amber-500/30';
+        return 'bg-warning-tint text-warning border-warning/25';
       case 'escalated':
-        return 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20 dark:border-rose-500/30';
+        return 'bg-error-container text-error border-error/25';
       case 'closed':
-        return 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700';
+        return 'bg-surface-container text-on-surface-variant border-outline-variant';
     }
   }
 

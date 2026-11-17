@@ -6,13 +6,21 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
-import { Repository } from 'typeorm';
-import { AdminRole, AdminStatus, PERMISSIONS } from '../common/enums';
+import { IsNull, Repository } from 'typeorm';
+import {
+  AdminRole,
+  AdminStatus,
+  expandPermissions,
+  PERMISSIONS,
+  SubjectType,
+} from '../common/enums';
 import { Admin } from '../entities/admin.entity';
 import { Permission } from '../entities/permission.entity';
+import { RefreshToken } from '../entities/refresh-token.entity';
 import { AuditService } from '../audit/audit.service';
 import {
   CreateAdminDto,
+  ResetPasswordDto,
   SetPermissionsDto,
   UpdateAdminDto,
 } from './dto/admin.dto';
@@ -52,7 +60,10 @@ export class AdminManagementService {
     await this.audit.log(actorId, 'staff.create', {
       target_admin_id: admin.id,
     });
-    return admin;
+    // The saved entity still carries the hash; never send it back.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password_hash, ...safe } = admin;
+    return safe as Admin;
   }
 
   async findOne(id: string): Promise<Admin> {
@@ -72,6 +83,7 @@ export class AdminManagementService {
     }
     Object.assign(admin, dto);
     const saved = await this.admins.save(admin);
+    if (dto.status === AdminStatus.INACTIVE) await this.endSessions(id);
     await this.audit.log(actorId, 'staff.update', {
       target_admin_id: id,
       changes: dto,
@@ -86,7 +98,46 @@ export class AdminManagementService {
     }
     admin.status = AdminStatus.INACTIVE;
     await this.admins.save(admin);
+    await this.endSessions(id);
     await this.audit.log(actorId, 'staff.deactivate', { target_admin_id: id });
+  }
+
+  /** Super admin sets a new password for a staff member; signs them out everywhere. */
+  async resetPassword(
+    actorId: string,
+    id: string,
+    dto: ResetPasswordDto,
+  ): Promise<void> {
+    const admin = await this.findOne(id);
+    if (admin.role === AdminRole.SUPER_ADMIN) {
+      throw new ForbiddenException(
+        'Cannot reset the Super Admin password here',
+      );
+    }
+    await this.admins.update(id, {
+      password_hash: await argon2.hash(dto.password),
+    });
+    await this.endSessions(id);
+    await this.audit.log(actorId, 'staff.password_reset', {
+      target_admin_id: id,
+    });
+  }
+
+  /**
+   * Kills every session of this admin: refresh tokens are revoked and access
+   * tokens issued up to now are refused by JwtAuthGuard.
+   */
+  private async endSessions(adminId: string): Promise<void> {
+    await this.admins.update(adminId, { sessions_valid_from: new Date() });
+    await this.admins.manager.update(
+      RefreshToken,
+      {
+        subject_type: SubjectType.ADMIN,
+        subject_id: adminId,
+        revoked_at: IsNull(),
+      },
+      { revoked_at: new Date() },
+    );
   }
 
   async getPermissions(adminId: string): Promise<Permission[]> {
@@ -112,9 +163,13 @@ export class AdminManagementService {
         throw new BadRequestException(`Unknown permission: ${key}`);
     }
 
+    // "Can change" includes "can view" etc. — store the full set so what the
+    // Staff page shows is exactly what the server enforces.
+    const keys = expandPermissions(dto.permission_keys);
+
     // Remove existing rows then rewrite
     await this.permissions.delete({ admin_id: adminId });
-    const rows = dto.permission_keys.map((key) =>
+    const rows = keys.map((key) =>
       this.permissions.create({
         admin_id: adminId,
         permission_key: key,
@@ -124,7 +179,7 @@ export class AdminManagementService {
     const saved = await this.permissions.save(rows);
     await this.audit.log(actorId, 'staff.permissions', {
       target_admin_id: adminId,
-      permissions: dto.permission_keys,
+      permissions: keys,
     });
     return saved;
   }

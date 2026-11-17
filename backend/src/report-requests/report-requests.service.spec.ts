@@ -32,7 +32,7 @@ const adminAuth: AuthUser = {
   sub: 'a1',
   email: 'admin@snbajaj.com',
   role: 'super_admin',
-  permissions: ['upload_reports'],
+  permissions: ['manage_reports'],
 };
 
 const makeRequest = (overrides: Partial<ReportRequest> = {}): ReportRequest =>

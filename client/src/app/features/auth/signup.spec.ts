@@ -9,7 +9,8 @@ function yearsAgo(years: number, extraDays = 0): string {
   const d = new Date();
   d.setFullYear(d.getFullYear() - years);
   d.setDate(d.getDate() + extraDays);
-  return d.toISOString().split('T')[0];
+  // Local date, like the date picker gives; toISOString() is UTC and broke this after midnight IST.
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 describe('ageValidator', () => {

@@ -65,6 +65,19 @@ export class PeriodsService {
   }
 }
 
+/**
+ * The period a client is working on now: last month's (in November you file
+ * October). Periods come newest first; falls back to the newest.
+ */
+export function workingPeriod(
+  periods: GstFilingPeriod[],
+  today = new Date(),
+): GstFilingPeriod | undefined {
+  const d = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const lastMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  return periods.find((p) => p.period_code <= lastMonth) ?? periods[0];
+}
+
 @Injectable({ providedIn: 'root' })
 export class DocumentsService {
   constructor(private readonly api: ApiClient) {}

@@ -24,7 +24,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../common/guards/roles.guard';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
-@Permissions('view_clients')
+@Permissions('manage_rent_agreements')
 @Controller('admin/rent-agreements')
 export class RentAgreementsController {
   constructor(private readonly rentAgreementsService: RentAgreementsService) {}

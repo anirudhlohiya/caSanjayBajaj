@@ -2,18 +2,18 @@
 </app-page-header>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
-  <div class="xl:col-span-1 bg-surface-container-lowest border border-outline-variant rounded-lg p-5 h-fit">
+  <div class="xl:col-span-1 card p-5 h-fit">
     <h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Send Reminder</h3>
     <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="send()">
       <div class="flex flex-col gap-1">
         <label class="font-label-md text-label-md text-on-surface">Target</label>
-        <div class="flex gap-4">
-          <label class="flex items-center gap-2 text-body-md text-body-md">
-            <input type="radio" formControlName="target" value="single" class="accent-secondary" />
+        <div class="flex flex-wrap gap-2">
+          <label class="flex items-center gap-2 h-9 px-3 rounded-full border border-outline-variant text-body-sm font-medium text-on-surface-variant cursor-pointer transition-colors has-[:checked]:bg-brand-tint has-[:checked]:border-brand has-[:checked]:text-brand-ink">
+            <input type="radio" formControlName="target" value="single" class="accent-brand" />
             Specific client
           </label>
-          <label class="flex items-center gap-2 text-body-md text-body-md">
-            <input type="radio" formControlName="target" value="all" class="accent-secondary" />
+          <label class="flex items-center gap-2 h-9 px-3 rounded-full border border-outline-variant text-body-sm font-medium text-on-surface-variant cursor-pointer transition-colors has-[:checked]:bg-brand-tint has-[:checked]:border-brand has-[:checked]:text-brand-ink">
+            <input type="radio" formControlName="target" value="all" class="accent-brand" />
             All unfiled
           </label>
         </div>
@@ -23,7 +23,7 @@
         <div class="flex flex-col gap-1">
           <label class="font-label-md text-label-md text-on-surface" for="rm-client">Client</label>
           <select id="rm-client" formControlName="user_id"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
             @for (c of clients(); track c.id) {
               <option [value]="c.id">{{ c.name }}</option>
             }
@@ -38,7 +38,7 @@
       <div class="flex flex-col gap-1">
         <label class="font-label-md text-label-md text-on-surface" for="rm-period">Filing Period</label>
         <select id="rm-period" formControlName="filing_period_id"
-          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+          class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
           @for (p of periods(); track p.id) {
             <option [value]="p.id">{{ p.period_label }}</option>
           }
@@ -47,17 +47,17 @@
 
       <div class="flex flex-col gap-1">
         <label class="font-label-md text-label-md text-on-surface">Channels</label>
-        <div class="flex gap-4">
-          <label class="flex items-center gap-2 text-body-md text-body-md">
-            <input type="checkbox" [checked]="isChannelChecked('push')" (change)="toggleChannel('push', $any($event.target).checked)" class="accent-secondary" />
+        <div class="flex flex-wrap gap-2">
+          <label class="flex items-center gap-2 h-9 px-3 rounded-full border border-outline-variant text-body-sm font-medium text-on-surface-variant cursor-pointer transition-colors has-[:checked]:bg-brand-tint has-[:checked]:border-brand has-[:checked]:text-brand-ink">
+            <input type="checkbox" [checked]="isChannelChecked('push')" (change)="toggleChannel('push', $any($event.target).checked)" class="accent-brand" />
             Push
           </label>
-          <label class="flex items-center gap-2 text-body-md text-body-md">
-            <input type="checkbox" [checked]="isChannelChecked('email')" (change)="toggleChannel('email', $any($event.target).checked)" class="accent-secondary" />
+          <label class="flex items-center gap-2 h-9 px-3 rounded-full border border-outline-variant text-body-sm font-medium text-on-surface-variant cursor-pointer transition-colors has-[:checked]:bg-brand-tint has-[:checked]:border-brand has-[:checked]:text-brand-ink">
+            <input type="checkbox" [checked]="isChannelChecked('email')" (change)="toggleChannel('email', $any($event.target).checked)" class="accent-brand" />
             Email
           </label>
-          <label class="flex items-center gap-2 text-body-md text-body-md">
-            <input type="checkbox" [checked]="isChannelChecked('whatsapp')" (change)="toggleChannel('whatsapp', $any($event.target).checked)" class="accent-secondary" />
+          <label class="flex items-center gap-2 h-9 px-3 rounded-full border border-outline-variant text-body-sm font-medium text-on-surface-variant cursor-pointer transition-colors has-[:checked]:bg-brand-tint has-[:checked]:border-brand has-[:checked]:text-brand-ink">
+            <input type="checkbox" [checked]="isChannelChecked('whatsapp')" (change)="toggleChannel('whatsapp', $any($event.target).checked)" class="accent-brand" />
             WhatsApp
           </label>
         </div>
@@ -65,7 +65,7 @@
       </div>
 
       <button type="submit" [disabled]="sending()"
-        class="mt-2 px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md flex items-center justify-center gap-1 hover:bg-secondary disabled:opacity-60">
+        class="mt-2 px-4 py-2 bg-brand text-on-brand rounded font-label-md text-label-md flex items-center justify-center gap-1 hover:opacity-90 disabled:opacity-60">
         @if (sending()) {
           <span class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
         } @else {
@@ -83,12 +83,12 @@
     </form>
   </div>
 
-  <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <div class="xl:col-span-2 card overflow-hidden">
     <div class="px-4 py-3 border-b border-outline-variant bg-surface flex flex-wrap items-center justify-between gap-2">
       <h3 class="font-headline-sm text-headline-sm text-on-surface">Send Log</h3>
       <div class="flex gap-2">
         <select
-          class="px-2 py-1 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm focus:outline-none focus:border-secondary"
+          class="px-2 py-1 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm focus:outline-none focus:border-brand"
           [value]="periodFilter()"
           (change)="periodFilter.set($any($event.target).value); applyFilters()"
         >
@@ -98,7 +98,7 @@
           }
         </select>
         <select
-          class="px-2 py-1 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm focus:outline-none focus:border-secondary"
+          class="px-2 py-1 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm focus:outline-none focus:border-brand"
           [value]="statusFilter()"
           (change)="statusFilter.set($any($event.target).value); applyFilters()"
         >

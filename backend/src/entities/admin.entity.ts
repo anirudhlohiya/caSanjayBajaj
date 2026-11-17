@@ -28,6 +28,10 @@ export class Admin {
   @Column({ type: 'enum', enum: AdminStatus, default: AdminStatus.ACTIVE })
   status: AdminStatus;
 
+  /** Access tokens issued before this moment are refused (JwtAuthGuard). */
+  @Column({ type: 'timestamptz', nullable: true })
+  sessions_valid_from: Date | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 }

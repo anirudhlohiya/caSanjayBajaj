@@ -417,6 +417,12 @@ export class StaffService {
     return firstValueFrom(this.api.delete<{ success: boolean }>(`/admin/staff/${id}`));
   }
 
+  resetPassword(id: string, password: string) {
+    return firstValueFrom(
+      this.api.post<{ success: boolean }>(`/admin/staff/${id}/password`, { password }),
+    );
+  }
+
   getPermissions(id: string) {
     return firstValueFrom(this.api.get<Permission[]>(`/admin/staff/${id}/permissions`));
   }
@@ -667,8 +673,8 @@ export class RentAgreementsService {
 
   summary() {
     return firstValueFrom(
-      this.api.get<{ total: number; draft: number; generated: number }>('/admin/rent-agreements/summary'),
-    );
+      this.api.get<{ data: { total: number; draft: number; generated: number } }>('/admin/rent-agreements/summary'),
+    ).then((r) => r.data);
   }
 
   remove(id: string) {

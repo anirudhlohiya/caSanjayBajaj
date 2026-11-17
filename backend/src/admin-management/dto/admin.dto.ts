@@ -50,6 +50,13 @@ export class UpdateAdminDto {
   status?: AdminStatus;
 }
 
+export class ResetPasswordDto {
+  @ApiProperty()
+  @IsString()
+  @Length(8, 128)
+  password: string;
+}
+
 export class SetPermissionsDto {
   @ApiProperty({
     description: 'Permission keys to grant',
@@ -57,5 +64,6 @@ export class SetPermissionsDto {
   })
   @IsArray()
   @ArrayUnique()
+  @IsString({ each: true })
   permission_keys: string[];
 }

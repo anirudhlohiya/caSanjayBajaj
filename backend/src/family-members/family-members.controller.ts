@@ -78,7 +78,7 @@ export class AdminFamilyMembersController {
   }
 
   @Post()
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @ApiOperation({ summary: 'Add a family member to a client (max 5)' })
   create(
     @Param('id', ParseUUIDPipe) clientId: string,
@@ -88,7 +88,7 @@ export class AdminFamilyMembersController {
   }
 
   @Patch(':memberId')
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @ApiOperation({ summary: "Edit a client's family member" })
   update(
     @Param('id', ParseUUIDPipe) clientId: string,
@@ -99,7 +99,7 @@ export class AdminFamilyMembersController {
   }
 
   @Delete(':memberId')
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @ApiOperation({ summary: "Remove a client's family member" })
   async remove(
     @Param('id', ParseUUIDPipe) clientId: string,

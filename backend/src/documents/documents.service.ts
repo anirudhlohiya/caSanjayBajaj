@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ComplianceTasksService } from '../compliance-tasks/compliance-tasks.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
+import { assertAdminCan } from '../common/guards/roles.guard';
 import { paginate, PaginatedResult } from '../common/dto/pagination';
 import { DocumentCategory, DocumentStatus, UserType } from '../common/enums';
 import {
@@ -62,6 +63,7 @@ export class DocumentsService {
     // Admin may specify a target user; a client only ever targets themselves
     let targetUserId: string;
     if (auth.type === 'admin') {
+      assertAdminCan(auth, 'manage_documents');
       if (!dto.user_id) {
         throw new BadRequestException(
           'user_id is required when an admin requests an upload URL',
@@ -176,7 +178,7 @@ export class DocumentsService {
   ) {
     const doc = await this.documents.findOneBy({ id: documentId });
     if (!doc) throw new NotFoundException('Document not found');
-    this.assertCanTouch(auth, doc);
+    this.assertCanTouch(auth, doc, 'manage_documents');
 
     doc.status = DocumentStatus.RECEIVED;
     doc.file_size_bytes = String(dto.file_size_bytes);
@@ -313,7 +315,7 @@ export class DocumentsService {
   ): Promise<{ download_url: string }> {
     const doc = await this.documents.findOneBy({ id: documentId });
     if (!doc) throw new NotFoundException('Document not found');
-    this.assertCanTouch(auth, doc);
+    this.assertCanTouch(auth, doc, 'view_documents');
 
     const url = await this.storage.createDownloadUrl(doc.s3_key);
     return { download_url: url };
@@ -364,8 +366,10 @@ export class DocumentsService {
     return saved;
   }
 
-  private assertCanTouch(auth: AuthUser, doc: Document) {
-    if (auth.type === 'admin') return; // admin guard enforces permission separately
+  // These routes are shared with clients, so there is no @Permissions on them:
+  // the admin's permission is checked here instead.
+  private assertCanTouch(auth: AuthUser, doc: Document, adminNeeds: string) {
+    if (auth.type === 'admin') return assertAdminCan(auth, adminNeeds);
     if (auth.sub !== doc.user_id) {
       throw new ForbiddenException('Cannot access another user document');
     }

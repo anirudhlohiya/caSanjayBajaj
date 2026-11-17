@@ -16,7 +16,7 @@ export class CertificatesController {
   constructor(private readonly certificatesService: CertificatesService) {}
 
   @Post('admin/clients/:userId/certificates/upload-url')
-  @Permissions('upload_reports')
+  @Permissions('manage_reports')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Get pre-signed S3 PUT URL for a new certificate' })
   uploadUrl(
@@ -27,7 +27,7 @@ export class CertificatesController {
   }
 
   @Post('admin/clients/:userId/certificates/:certId/confirm')
-  @Permissions('upload_reports')
+  @Permissions('manage_reports')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Confirm direct S3 upload; certificate goes live' })
   confirm(@CurrentUser() auth: AuthUser, @Param('certId') certId: string) {

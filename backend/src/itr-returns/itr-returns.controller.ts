@@ -19,7 +19,7 @@ export class ItrReturnsController {
   constructor(private readonly itrReturnsService: ItrReturnsService) {}
 
   @Post('admin/clients/:id/itr-returns/upload-url')
-  @Permissions('upload_reports')
+  @Permissions('manage_reports')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @ApiOperation({
     summary: 'Get pre-signed S3 PUT URL for uploading an ITR return PDF',
@@ -32,7 +32,7 @@ export class ItrReturnsController {
   }
 
   @Post('admin/clients/:id/itr-returns/confirm')
-  @Permissions('upload_reports')
+  @Permissions('manage_reports')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Confirm upload of an ITR return PDF' })
   confirm(
@@ -44,7 +44,7 @@ export class ItrReturnsController {
   }
 
   @Get('admin/clients/:id/itr-returns')
-  @Permissions('view_documents')
+  @Permissions('view_reports')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @ApiOperation({ summary: 'List ITR returns for a client (admin)' })
   listForClient(@Param('id') clientId: string) {

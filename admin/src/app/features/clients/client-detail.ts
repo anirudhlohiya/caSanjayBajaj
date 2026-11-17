@@ -14,6 +14,7 @@ import {
   ItrReturnsAdminService,
   FamilyMembersAdminService,
 } from '../../core/services/feature.services';
+import { AuthService } from '../../core/services/auth.service';
 import { UploadService } from '../../core/services/upload.service';
 import { ToastService } from '../../core/services/toast.service';
 import {
@@ -68,6 +69,7 @@ export class ClientDetail implements OnInit {
   readonly clientDeleteOn = clientDeleteOn;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
   private readonly clientsService = inject(ClientsService);
   private readonly certificatesService = inject(CertificatesService);
   private readonly documentsService = inject(DocumentsService);
@@ -102,6 +104,22 @@ export class ClientDetail implements OnInit {
   readonly hasGst = computed(() => ['gst', 'both'].includes(this.client()?.user_type ?? ''));
   /** ITR sections (returns, family members) for itr / both clients. */
   readonly hasItr = computed(() => ['itr', 'both'].includes(this.client()?.user_type ?? ''));
+
+  /** Profile page tabs; ITR and Family only for ITR clients. */
+  readonly tab = signal<'profile' | 'services' | 'documents' | 'itr' | 'family'>('profile');
+  readonly tabs = computed(() => [
+    { id: 'profile' as const, label: 'Profile' },
+    { id: 'services' as const, label: 'Services' },
+    { id: 'documents' as const, label: 'Documents' },
+    ...(this.hasItr()
+      ? [
+          { id: 'itr' as const, label: 'ITR' },
+          { id: 'family' as const, label: 'Family' },
+        ]
+      : []),
+  ]);
+  /** Falls back to Profile when the open tab disappears (client type changed). */
+  readonly activeTab = computed(() => (this.tabs().some((t) => t.id === this.tab()) ? this.tab() : 'profile'));
 
   readonly pendingRequest = signal<ServiceRequest | null>(null);
   readonly itrReturns = signal<ItrReturn[]>([]);
@@ -184,6 +202,9 @@ export class ClientDetail implements OnInit {
 
   async load(): Promise<void> {
     this.loading.set(true);
+    const canDocs = this.auth.hasPermission('view_documents');
+    const canReports = this.auth.hasPermission('view_reports');
+    const none = { items: [], total: 0, totalPages: 1 };
     try {
       const [
         client,
@@ -196,19 +217,25 @@ export class ClientDetail implements OnInit {
         itrReturns,
       ] = await Promise.all([
         this.clientsService.get(this.id()),
-        this.documentsService.listForUser(this.id(), {
-          page: this.docPage(),
-          pageSize: 10,
-        }),
-        this.reportsService.listForUser(this.id(), {
-          page: this.reportPage(),
-          pageSize: 10,
-        }),
+        // Staff without access to documents / reports get empty sections
+        // instead of a "no access" error for every card on the page.
+        canDocs
+          ? this.documentsService.listForUser(this.id(), {
+              page: this.docPage(),
+              pageSize: 10,
+            })
+          : none,
+        canReports
+          ? this.reportsService.listForUser(this.id(), {
+              page: this.reportPage(),
+              pageSize: 10,
+            })
+          : none,
         this.periodsService.open(),
         this.certificatesService.listForClient(this.id()),
-        this.reportReqsService.adminList({ status: 'pending' }),
+        canReports ? this.reportReqsService.adminList({ status: 'pending' }) : none,
         this.serviceRequestsAdmin.listPending().catch(() => []),
-        this.itrReturnsAdmin.listForClient(this.id()).catch(() => []),
+        canReports ? this.itrReturnsAdmin.listForClient(this.id()).catch(() => []) : [],
       ]);
       this.familyMembers.set(await this.familyAdmin.list(this.id()).catch(() => []));
 

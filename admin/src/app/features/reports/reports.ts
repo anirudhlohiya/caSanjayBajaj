@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   ClientsService,
   PeriodsService,
@@ -59,8 +60,17 @@ export class Reports implements OnInit {
     report_request_id: [''],
   });
 
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+
   ngOnInit(): void {
-    void this.loadMeta();
+    // Dashboard's "Send Report" link opens the form straight away.
+    const openSendNow = this.route.snapshot.queryParamMap.get('action') === 'send';
+    void this.loadMeta().then(() => {
+      if (!openSendNow) return;
+      this.openSend();
+      void this.router.navigate([], { queryParams: { action: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    });
     void this.load();
   }
 

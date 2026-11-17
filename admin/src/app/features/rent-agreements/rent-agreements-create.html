@@ -28,7 +28,7 @@
       <form [formGroup]="form" class="mb-8 border-b border-outline-variant pb-6">
         <label class="font-label-md text-label-md text-on-surface block mb-2" for="template_id">Select Agreement Template</label>
         <select id="template_id" formControlName="template_id"
-          class="w-full md:w-1/2 px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary">
+          class="w-full md:w-1/2 px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand">
           @for (t of templates(); track t.id) {
             <option [value]="t.id">{{ t.name }} ({{ t.language }})</option>
           }
@@ -56,21 +56,21 @@
                     
                     @if (field.type === 'text' || field.type === 'number' || field.type === 'date' || field.type === 'currency') {
                       <input [id]="field.key" [formControlName]="field.key" [type]="field.type === 'number' || field.type === 'currency' ? 'number' : field.type === 'date' ? 'date' : 'text'"
-                        class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+                        class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
                         [class.border-error]="dynamicForm.get(field.key)?.touched && dynamicForm.get(field.key)?.invalid"
                       />
                     }
                     
                     @if (field.type === 'multiline') {
                       <textarea [id]="field.key" [formControlName]="field.key" rows="3"
-                        class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim"
+                        class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
                         [class.border-error]="dynamicForm.get(field.key)?.touched && dynamicForm.get(field.key)?.invalid"
                       ></textarea>
                     }
 
                     @if (field.type === 'select' && field.options) {
                       <select [id]="field.key" [formControlName]="field.key"
-                        class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim">
+                        class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">
                         @for (opt of field.options; track opt.value) {
                           <option [value]="opt.value">{{ opt.label }}</option>
                         }
@@ -104,11 +104,11 @@
                               
                               @if (subField.type === 'text' || subField.type === 'date') {
                                 <input [id]="field.key + '_' + $index + '_' + subField.key" [formControlName]="subField.key" [type]="subField.type === 'date' ? 'date' : 'text'"
-                                  class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim" />
+                                  class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15" />
                               }
                               @if (subField.type === 'select' && subField.options) {
                                 <select [id]="field.key + '_' + $index + '_' + subField.key" [formControlName]="subField.key"
-                                  class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim">
+                                  class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">
                                   @for (opt of subField.options; track opt.value) {
                                     <option [value]="opt.value">{{ opt.label }}</option>
                                   }
@@ -194,7 +194,7 @@
               <span class="material-symbols-outlined" style="font-size: 16px">{{ pdfLoading() ? 'progress_activity' : 'refresh' }}</span>
             </button>
           </div>
-          <div class="relative flex-1 overflow-y-auto bg-neutral-100">
+          <div class="relative flex-1 overflow-y-auto bg-surface-container">
             @if (pdfLoading()) {
               <div class="absolute inset-0 z-10 bg-white/70 flex flex-col items-center justify-center gap-2">
                 <span class="material-symbols-outlined animate-spin text-secondary" style="font-size: 32px">progress_activity</span>

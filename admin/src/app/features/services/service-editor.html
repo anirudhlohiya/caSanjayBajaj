@@ -23,8 +23,8 @@
     </div>
     <div class="flex items-center gap-2">
       @if (dirty()) {
-        <span class="hidden sm:inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400">
-          <span class="size-1.5 rounded-full bg-amber-500"></span> Unsaved changes
+        <span class="hidden sm:inline-flex items-center gap-1 text-xs text-warning">
+          <span class="size-1.5 rounded-full bg-warning"></span> Unsaved changes
         </span>
         <button class="btn-outline" (click)="discard()">{{ isNew() ? 'Cancel' : 'Discard' }}</button>
       }
@@ -88,7 +88,7 @@
             <span class="block text-xs text-on-surface-variant dark:text-neutral-400">Hidden services don't appear in the app</span>
           </span>
           <input type="checkbox" class="sr-only peer" [ngModel]="draft().is_active" (ngModelChange)="set('is_active', $event)" />
-          <span class="relative h-5 w-9 shrink-0 rounded-full bg-neutral-300 dark:bg-neutral-600 transition-colors peer-checked:bg-emerald-500
+          <span class="relative h-5 w-9 shrink-0 rounded-full bg-neutral-300 dark:bg-neutral-600 transition-colors peer-checked:bg-success
             after:absolute after:left-0.5 after:top-0.5 after:size-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-4"></span>
         </label>
       </div>
@@ -117,8 +117,8 @@
                 <button type="button" [title]="icon" (click)="pickIcon(icon)"
                   class="aspect-square rounded-md flex items-center justify-center transition-colors"
                   [class]="icon === draft().icon
-                    ? 'bg-primary text-on-primary dark:bg-white dark:text-neutral-900'
-                    : 'text-on-surface-variant dark:text-neutral-300 hover:bg-surface-container dark:hover:bg-neutral-800'">
+                    ? 'bg-brand text-on-brand'
+                    : 'text-on-surface-variant hover:bg-surface-container dark:hover:bg-neutral-800'">
                   <span class="material-symbols-outlined text-[20px]">{{ icon }}</span>
                 </button>
               } @empty {
@@ -232,7 +232,7 @@
                 <div class="min-w-0">
                   <h3 class="font-bold text-lg text-on-surface dark:text-white leading-tight">{{ draft().title || 'Service title' }}</h3>
                   @if (draft().price) {
-                    <p class="text-xs font-medium text-emerald-700 dark:text-emerald-400 mt-0.5">{{ draft().price }}</p>
+                    <p class="text-xs font-medium text-success mt-0.5">{{ draft().price }}</p>
                   }
                 </div>
               </div>
@@ -251,7 +251,7 @@
                 <p class="text-sm text-on-surface-variant italic">Nothing written yet.</p>
               }
               <div class="mt-5 flex flex-col gap-2 pointer-events-none select-none">
-                <span class="rounded-xl bg-primary text-on-primary dark:bg-white dark:text-neutral-900 py-2.5 text-center text-sm font-semibold">Request this service</span>
+                <span class="rounded-xl bg-brand text-on-brand py-2.5 text-center text-sm font-semibold">Request this service</span>
                 <div class="grid grid-cols-2 gap-2">
                   <span class="rounded-xl border border-outline-variant dark:border-neutral-700 py-2 text-center text-sm text-on-surface dark:text-neutral-200">WhatsApp</span>
                   <span class="rounded-xl border border-outline-variant dark:border-neutral-700 py-2 text-center text-sm text-on-surface dark:text-neutral-200">Call</span>

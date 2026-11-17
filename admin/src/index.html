@@ -5,12 +5,22 @@
   <title>S N BAJAJ AND CO - Admin</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#001a4c">
+  <!-- Apply the saved theme before first paint so a refresh never flashes light mode (mirrors ThemeService, key adm_theme). -->
+  <script>
+    (function () {
+      try {
+        var mode = localStorage.getItem('adm_theme') || 'system';
+        var dark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+      } catch (e) { /* storage blocked: stay light */ }
+    })();
+  </script>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Microsoft Clarity Tracking Code -->
   <script type="text/javascript">

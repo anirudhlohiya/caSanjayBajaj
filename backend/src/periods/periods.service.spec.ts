@@ -65,7 +65,7 @@ describe('PeriodsService', () => {
       expect(createMock).toHaveBeenCalledTimes(1);
       const created = (createMock.mock.calls as Array<[GstFilingPeriod]>)[0][0];
       expect(created.schedule).toBeDefined();
-      expect(created.schedule!.gstr1.due).toBe('2026-10-11');
+      expect(created.schedule!.gstr1.due).toBe('2026-11-11');
     });
 
     it('rejects an invalid supplied schedule', async () => {
@@ -137,10 +137,10 @@ describe('PeriodsService', () => {
   });
 
   const makeSchedule = (due: string, settling: string) => ({
-    gstr1: { due, reminders: ['2026-10-08'] },
-    gstr3b: { due, reminders: ['2026-10-18'] },
-    iff: { due, reminders: ['2026-10-18'] },
-    payment: { due, reminders: ['2026-10-20'] },
+    gstr1: { due, reminders: ['2026-11-08'] },
+    gstr3b: { due, reminders: ['2026-11-18'] },
+    iff: { due, reminders: ['2026-11-18'] },
+    payment: { due, reminders: ['2026-11-20'] },
     quarterly: {
       gstr3b: {
         due: settling,
@@ -154,7 +154,7 @@ describe('PeriodsService', () => {
     id: 'p1',
     period_code: '2026-10',
     period_label: 'October 2026',
-    due_date: '2026-10-11',
+    due_date: '2026-11-11',
     is_open: true,
     schedule,
   });
@@ -162,13 +162,13 @@ describe('PeriodsService', () => {
   describe('update', () => {
     it('rejects an invalid supplied schedule', async () => {
       (periodsRepo.findOneBy as jest.Mock).mockResolvedValue(
-        schedulePeriod(makeSchedule('2026-10-11', '2027-01-22')),
+        schedulePeriod(makeSchedule('2026-11-11', '2027-01-22')),
       );
 
       await expect(
         service.update(
           'p1',
-          { schedule: { gstr1: { due: '2026-10-11' } } } as never,
+          { schedule: { gstr1: { due: '2026-11-11' } } } as never,
           'admin1',
         ),
       ).rejects.toThrow(BadRequestException);
@@ -176,14 +176,14 @@ describe('PeriodsService', () => {
 
     it('audits when the schedule changes', async () => {
       (periodsRepo.findOneBy as jest.Mock).mockResolvedValue(
-        schedulePeriod(makeSchedule('2026-10-11', '2027-01-22')),
+        schedulePeriod(makeSchedule('2026-11-11', '2027-01-22')),
       );
 
       await service.update(
         'p1',
         {
-          due_date: '2026-10-21',
-          schedule: makeSchedule('2026-10-21', '2027-01-28'),
+          due_date: '2026-11-21',
+          schedule: makeSchedule('2026-11-21', '2027-01-28'),
         },
         'admin1',
       );

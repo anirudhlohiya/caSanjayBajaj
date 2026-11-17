@@ -4,8 +4,23 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   Length,
 } from 'class-validator';
+import { PaginationQueryDto } from '../../common/dto/pagination';
+
+/** A real class (not `PaginationQueryDto & {...}`) so the page defaults apply. */
+export class TicketListQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ enum: ['open', 'replied', 'closed'] })
+  @IsOptional()
+  @IsEnum(['open', 'replied', 'closed'])
+  status?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  user_id?: string;
+}
 
 export class CreateTicketDto {
   @ApiProperty()

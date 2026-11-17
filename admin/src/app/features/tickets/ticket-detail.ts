@@ -24,6 +24,25 @@ export class TicketDetailPage implements OnInit {
   readonly loading = signal(true);
   readonly ticket = signal<Ticket | null>(null);
   readonly downloading = signal(false);
+  readonly replyText = signal('');
+  readonly sending = signal(false);
+
+  async sendReply(): Promise<void> {
+    const t = this.ticket();
+    const text = this.replyText().trim();
+    if (!t || !text || this.sending()) return;
+    this.sending.set(true);
+    try {
+      await this.ticketsService.reply(t.id, text);
+      this.replyText.set('');
+      this.toast.success('Reply sent');
+      await this.load(t.id);
+    } catch {
+      this.toast.error('Could not send the reply. Please try again.');
+    } finally {
+      this.sending.set(false);
+    }
+  }
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
@@ -65,12 +84,6 @@ export class TicketDetailPage implements OnInit {
     } finally {
       this.downloading.set(false);
     }
-  }
-
-  hasAttachments(t: Ticket): boolean {
-    return (t.messages ?? []).some(
-      (m) => m.attachments && m.attachments.length > 0,
-    );
   }
 
   goBack(): void {

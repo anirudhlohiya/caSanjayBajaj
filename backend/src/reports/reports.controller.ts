@@ -43,7 +43,7 @@ export class ReportsController {
   // Admin: upload a report (creates record + returns upload URL)
   @Post('admin/reports')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Permissions('upload_reports')
+  @Permissions('manage_reports')
   @ApiOperation({
     summary: 'Initiate report upload (admin); get pre-signed PUT URL',
   })
@@ -54,7 +54,7 @@ export class ReportsController {
   // Admin: confirm report upload and fire notifications
   @Post('admin/reports/:id/confirm')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Permissions('upload_reports')
+  @Permissions('manage_reports')
   @ApiOperation({
     summary: 'Confirm report upload; deliver push + email to client',
   })
@@ -66,7 +66,7 @@ export class ReportsController {
 
   @Get('admin/users/:userId/reports')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Permissions('upload_reports')
+  @Permissions('view_reports')
   @ApiOperation({ summary: 'List a client reports (admin)' })
   userReports(
     @CurrentUser() auth: AuthUser,
@@ -78,7 +78,7 @@ export class ReportsController {
 
   @Get('admin/reports')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Permissions('upload_reports')
+  @Permissions('view_reports')
   @ApiOperation({ summary: 'List reports across clients (admin)' })
   adminList(@Query() query: ReportFilterQueryDto) {
     return this.reportsService.adminList(query);
@@ -86,7 +86,7 @@ export class ReportsController {
 
   @Get('admin/reports/:id/download-url')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Permissions('upload_reports')
+  @Permissions('view_reports')
   @ApiOperation({ summary: 'Signed download URL for a report (admin)' })
   adminReportDownload(@CurrentUser() auth: AuthUser, @Param('id') id: string) {
     return this.reportsService.downloadUrl(auth, id);

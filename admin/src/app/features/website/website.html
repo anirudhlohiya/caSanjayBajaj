@@ -1,30 +1,32 @@
 <app-page-header title="Website" subtitle="Manage blog posts for snbajaj.com and review website enquiries">
 </app-page-header>
 
-<div class="flex gap-2 mb-4">
-  <button
-    (click)="switchTab('blogs')"
-    class="px-4 py-2 rounded font-label-md text-label-md transition-colors {{ tab() === 'blogs' ? 'bg-secondary text-on-secondary' : 'bg-surface-container-lowest border border-outline-variant text-on-surface-variant hover:bg-surface-container-high' }}"
-  >
-    Blog Posts
-  </button>
-  <button
-    (click)="switchTab('leads')"
-    class="px-4 py-2 rounded font-label-md text-label-md transition-colors {{ tab() === 'leads' ? 'bg-secondary text-on-secondary' : 'bg-surface-container-lowest border border-outline-variant text-on-surface-variant hover:bg-surface-container-high' }}"
-  >
-    Enquiries
-    <span class="ml-1 inline-flex items-center justify-center px-1.5 rounded-full text-[12px] bg-primary-container text-on-primary-container">{{ leadTotal() }}</span>
-  </button>
+<div class="flex gap-1 mb-5 border-b border-outline-variant" role="tablist" aria-label="Website sections">
+  @for (t of [{ id: 'blogs', label: 'Blog Posts' }, { id: 'leads', label: 'Website Enquiries' }]; track t.id) {
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="tab() === t.id"
+      (click)="switchTab($any(t.id))"
+      class="relative h-11 px-4 text-sm font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+      [class]="tab() === t.id ? 'text-on-surface after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand' : 'text-on-surface-variant hover:text-on-surface'"
+    >
+      {{ t.label }}
+      @if (t.id === 'leads') {
+        <span class="inline-flex items-center justify-center min-w-5 px-1.5 rounded-full text-[11px] font-semibold bg-gold-tint text-gold-ink tabular-nums">{{ leadTotal() }}</span>
+      }
+    </button>
+  }
 </div>
 
 <!-- ================= BLOGS TAB ================= -->
 @if (tab() === 'blogs') {
-  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <div class="card overflow-hidden">
     <div class="px-4 py-3 border-b border-outline-variant bg-surface flex flex-wrap items-center justify-between gap-2">
       <h3 class="font-headline-sm text-headline-sm text-on-surface">Blog Posts</h3>
       <div class="flex gap-2 items-center">
         <select
-          class="px-2 py-1 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm focus:outline-none focus:border-secondary"
+          class="px-2 py-1 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm focus:outline-none focus:border-brand"
           [value]="postStatusFilter()"
           (change)="postStatusFilter.set($any($event.target).value); filterPosts()"
         >
@@ -118,11 +120,11 @@
 
 <!-- ================= LEADS TAB ================= -->
 @if (tab() === 'leads') {
-  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <div class="card overflow-hidden">
     <div class="px-4 py-3 border-b border-outline-variant bg-surface flex flex-wrap items-center justify-between gap-2">
       <h3 class="font-headline-sm text-headline-sm text-on-surface">Website Enquiries</h3>
       <select
-        class="px-2 py-1 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm focus:outline-none focus:border-secondary"
+        class="px-2 py-1 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-sm focus:outline-none focus:border-brand"
         [value]="leadStatusFilter()"
         (change)="leadStatusFilter.set($any($event.target).value); filterLeads()"
       >
@@ -244,9 +246,9 @@
 
 <!-- ================= POST EDITOR MODAL ================= -->
 @if (editorOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-md">
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40" (click)="closeEditor()"></div>
-    <div class="relative bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+    <div class="relative card shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
       <div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between sticky top-0 bg-surface-container-lowest z-10">
         <h3 class="font-headline-md text-headline-md text-on-surface">
           {{ editingId() ? 'Edit Post' : 'New Blog Post' }}
@@ -261,7 +263,7 @@
           <label class="font-label-md text-label-md text-on-surface" for="bp-title">Title *</label>
           <input id="bp-title" type="text" formControlName="title" (input)="onTitleInput()"
             placeholder="e.g. GST filing deadlines you should know in 2026"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary" />
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand" />
         </div>
 
         <div class="flex flex-col gap-1">
@@ -269,7 +271,7 @@
           <input id="bp-slug" type="text" formControlName="slug"
             (input)="slugTouched.set(true)"
             placeholder="auto-generated from title"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface font-mono text-body-sm focus:outline-none focus:border-secondary" />
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface font-mono text-body-sm focus:outline-none focus:border-brand" />
           <p class="text-body-sm text-on-surface-variant">Public URL will be snbajaj.com/blog/&lt;slug&gt;</p>
         </div>
 
@@ -277,21 +279,21 @@
           <label class="font-label-md text-label-md text-on-surface" for="bp-excerpt">Excerpt (shown on the blog list)</label>
           <textarea id="bp-excerpt" formControlName="excerpt" rows="2" maxlength="500"
             placeholder="One or two lines summarising the post"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary"></textarea>
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand"></textarea>
         </div>
 
         <div class="flex flex-col gap-1">
           <label class="font-label-md text-label-md text-on-surface" for="bp-content">Content (Markdown) *</label>
           <textarea id="bp-content" formControlName="content_md" rows="14" required
             placeholder="Write the article in Markdown:&#10;## A heading&#10;&#10;Some paragraph text with **bold** and *italic*.&#10;&#10;- a bullet point&#10;- another point"
-            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface font-mono text-body-sm leading-relaxed focus:outline-none focus:border-secondary"></textarea>
+            class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface font-mono text-body-sm leading-relaxed focus:outline-none focus:border-brand"></textarea>
           <p class="text-body-sm text-on-surface-variant">Markdown supported: # headings, **bold**, *italic*, - lists, [links](url)</p>
         </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant">
           <button type="button" class="btn-outline px-4 py-2" (click)="closeEditor()">Cancel</button>
           <button type="submit" [disabled]="savingPost()"
-            class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-secondary disabled:opacity-60 flex items-center gap-2">
+            class="px-4 py-2 bg-brand text-on-brand rounded font-label-md text-label-md hover:opacity-90 disabled:opacity-60 flex items-center gap-2">
             @if (savingPost()) {
               <span class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
             }

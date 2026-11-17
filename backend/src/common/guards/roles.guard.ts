@@ -8,6 +8,26 @@ import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { AuthUser } from '../decorators/current-user.decorator';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
+import { expandPermissions } from '../enums';
+
+/** True when this signed-in admin holds every one of the given permissions. */
+export function adminCan(user: AuthUser, ...required: string[]): boolean {
+  if (user.type !== 'admin') return false;
+  if (user.role === 'super_admin') return true;
+  const granted = new Set(expandPermissions(user.permissions ?? []));
+  return required.every((p) => granted.has(p));
+}
+
+/**
+ * For endpoints shared by clients and admins (no @Permissions on the route):
+ * clients pass through to the service's own ownership check, admins must hold
+ * the permission.
+ */
+export function assertAdminCan(user: AuthUser, ...required: string[]): void {
+  if (user.type === 'admin' && !adminCan(user, ...required)) {
+    throw new ForbiddenException('You do not have access to do this');
+  }
+}
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -51,15 +71,9 @@ export class PermissionsGuard implements CanActivate {
     if (!user || user.type !== 'admin') {
       throw new ForbiddenException('Admin access required');
     }
-    // Super admin implicitly has all permissions
-    if (user.role === 'super_admin') return true;
-
-    const granted = new Set(user.permissions ?? []);
-    const ok = required.every((p) => granted.has(p));
-    if (!ok)
-      throw new ForbiddenException(
-        `Missing permission: ${required.join(', ')}`,
-      );
+    if (!adminCan(user, ...required)) {
+      throw new ForbiddenException('You do not have access to do this');
+    }
     return true;
   }
 }

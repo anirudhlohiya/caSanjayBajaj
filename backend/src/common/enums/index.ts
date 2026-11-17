@@ -129,13 +129,44 @@ export enum ReportRequestStatus {
 
 export const PERMISSIONS = [
   'view_clients',
+  'manage_clients',
   'view_documents',
-  'upload_reports',
+  'manage_documents',
+  'view_reports',
+  'manage_reports',
   'send_reminders',
-  'manage_staff',
-  'view_audit_logs',
-  'manage_settings',
+  'manage_tickets',
+  'manage_whatsapp',
+  'manage_rent_agreements',
   'manage_website',
+  'manage_settings',
+  'view_audit_logs',
 ] as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[number];
+
+/**
+ * Granting the key on the left always grants the keys on the right: "can
+ * change" includes "can view", and pages that pick a client need the client
+ * list. Applied when permissions are saved and again when they are checked.
+ */
+export const PERMISSION_IMPLIES: Partial<
+  Record<PermissionKey, PermissionKey[]>
+> = {
+  manage_clients: ['view_clients'],
+  manage_documents: ['view_documents'],
+  view_reports: ['view_clients'],
+  manage_reports: ['view_reports', 'view_clients'],
+  send_reminders: ['view_clients'],
+  manage_whatsapp: ['view_clients'],
+};
+
+export function expandPermissions(keys: readonly string[]): string[] {
+  const out = new Set(keys);
+  for (const key of keys) {
+    for (const implied of PERMISSION_IMPLIES[key as PermissionKey] ?? []) {
+      out.add(implied);
+    }
+  }
+  return [...out];
+}

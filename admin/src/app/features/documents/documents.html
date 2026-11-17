@@ -2,18 +2,19 @@
 </app-page-header>
 
 <div class="flex flex-wrap items-center gap-2 mb-4">
+  <div class="flex flex-wrap gap-2" role="group" aria-label="Filter by status">
+    @for (f of [{ v: '', l: 'All' }, { v: 'pending', l: 'Pending upload' }, { v: 'received', l: 'Pending review' }, { v: 'processed', l: 'Processed' }]; track f.v) {
+      <button
+        type="button"
+        class="h-9 px-3.5 rounded-full text-sm font-medium transition-colors cursor-pointer"
+        [class]="statusFilter() === f.v ? 'bg-brand text-on-brand' : 'bg-surface-container text-on-surface-variant hover:text-on-surface'"
+        [attr.aria-pressed]="statusFilter() === f.v"
+        (click)="statusFilter.set(f.v); applyFilters()"
+      >{{ f.l }}</button>
+    }
+  </div>
   <select
-    class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary text-body-sm"
-    [value]="statusFilter()"
-    (change)="statusFilter.set($any($event.target).value); applyFilters()"
-  >
-    <option value="">All statuses</option>
-    <option value="pending">Pending upload</option>
-    <option value="received">Pending review</option>
-    <option value="processed">Processed</option>
-  </select>
-  <select
-    class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary text-body-sm"
+    class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand text-body-sm"
     [value]="periodFilter()"
     (change)="periodFilter.set($any($event.target).value); applyFilters()"
   >
@@ -35,7 +36,7 @@
   </button>
 </div>
 
-<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+<div class="card overflow-hidden">
   @if (loading()) {
     <app-spinner />
   } @else {

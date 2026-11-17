@@ -5,15 +5,15 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col items-center justify-center py-xl text-center">
+    <div class="flex flex-col items-center justify-center py-8 text-center">
       <span class="material-symbols-outlined text-outline-variant" style="font-size: 40px">
         {{ icon() }}
       </span>
-      <p class="mt-md font-body-md text-body-md text-on-surface-variant">
+      <p class="mt-4 font-body-md text-body-md text-on-surface-variant">
         {{ message() }}
       </p>
       @if (hint()) {
-        <p class="mt-xs font-body-sm text-body-sm text-outline">{{ hint() }}</p>
+        <p class="mt-1 font-body-sm text-body-sm text-outline">{{ hint() }}</p>
       }
     </div>
   `,

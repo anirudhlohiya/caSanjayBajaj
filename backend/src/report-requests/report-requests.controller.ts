@@ -49,7 +49,7 @@ export class ReportRequestsController {
   // Admin: queue of all requests
   @Get('admin/report-requests')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Permissions('upload_reports')
+  @Permissions('view_reports')
   @ApiOperation({
     summary: 'List report requests across clients (admin queue)',
   })
@@ -60,7 +60,7 @@ export class ReportRequestsController {
   // Admin: fulfill a pending request (returns presigned upload URL)
   @Post('admin/report-requests/:id/fulfill')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Permissions('upload_reports')
+  @Permissions('manage_reports')
   @ApiOperation({
     summary: 'Fulfill a pending request; returns presigned upload URL',
   })

@@ -309,6 +309,12 @@ html, body {
   max-width: 100%;
 }
 
+/* While any sheet / dialog is open the page behind must not scroll (it used to
+   move under the GST application sheet and land somewhere else on close). */
+html:has([aria-modal="true"]) {
+  overflow: hidden;
+}
+
 /* App shell scales fluidly on larger screens — up to 5xl (1024px) */
 @media (min-width: 640px) {
   .app-shell-container {

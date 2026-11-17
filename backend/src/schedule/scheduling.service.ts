@@ -111,35 +111,46 @@ export class SchedulingService {
   }
 
   /**
+   * The month a period's returns are filed in: a period is the month of the
+   * sales / purchases, so "October 2026" is filed in November 2026.
+   */
+  static filingMonthCode(periodCode: string): string {
+    const { year, month } = SchedulingService.parsePeriodCode(periodCode);
+    return month === 12
+      ? `${year + 1}-01`
+      : `${year}-${String(month + 1).padStart(2, '0')}`;
+  }
+
+  /**
    * The default annual schedule for a filing period, per docs/13 §3.2.
-   * All dates live inside the period's own calendar month, except the
-   * quarterly GSTR-3B which settles in the month after the quarter ends.
+   * Monthly dates fall in the filing month (the month after the period);
+   * the quarterly GSTR-3B settles in the month after the quarter ends.
    */
   defaultScheduleForPeriodCode(periodCode: string): PeriodSchedule {
-    const { year, month } = SchedulingService.parsePeriodCode(periodCode);
+    const filing = SchedulingService.filingMonthCode(periodCode);
     const q = this.quarterForPeriodCode(periodCode);
     const pad = (d: number) => String(d).padStart(2, '0');
-    const inPeriod = (day: number) => `${year}-${pad(month)}-${pad(day)}`;
+    const inFiling = (day: number) => `${filing}-${pad(day)}`;
     const inSettling = (day: number) =>
       `${q.settling.year}-${pad(q.settling.month)}-${pad(day)}`;
 
     return {
       gstr1: {
-        due: inPeriod(11),
-        reminders: [inPeriod(5), inPeriod(7), inPeriod(11)],
+        due: inFiling(11),
+        reminders: [inFiling(5), inFiling(7), inFiling(11)],
         day_keys: ['day1', 'day2', 'day3'],
       },
       gstr3b: {
-        due: inPeriod(20),
-        reminders: [inPeriod(18)],
+        due: inFiling(20),
+        reminders: [inFiling(18)],
       },
       iff: {
-        due: inPeriod(13),
-        reminders: [inPeriod(5), inPeriod(7), inPeriod(11)],
+        due: inFiling(13),
+        reminders: [inFiling(5), inFiling(7), inFiling(11)],
         day_keys: ['day1', 'day2', 'day3'],
       },
       payment: {
-        due: inPeriod(20),
+        due: inFiling(20),
         reminders: [],
       },
       quarterly: {
@@ -169,19 +180,20 @@ export class SchedulingService {
 
   /**
    * Validate an admin-provided schedule for `periodCode`. Dates must parse and
-   * fall in the correct calendar month (category dates in the period month,
+   * fall in the correct calendar month (category dates in the filing month,
    * quarterly GSTR-3B dates in the settling month). Returns a list of problems
    * (empty = valid). Pure helper for the admin schedule editor (M6).
    */
   validateSchedule(periodCode: string, schedule: PeriodSchedule): string[] {
     const problems: string[] = [];
     const q = this.quarterForPeriodCode(periodCode);
+    const filing = SchedulingService.filingMonthCode(periodCode);
 
     const checks: Array<[string, TaskSchedule | undefined, string]> = [
-      ['gstr1', schedule.gstr1, `${periodCode}`],
-      ['gstr3b', schedule.gstr3b, `${periodCode}`],
-      ['iff', schedule.iff, `${periodCode}`],
-      ['payment', schedule.payment, `${periodCode}`],
+      ['gstr1', schedule.gstr1, filing],
+      ['gstr3b', schedule.gstr3b, filing],
+      ['iff', schedule.iff, filing],
+      ['payment', schedule.payment, filing],
       [
         'quarterly.gstr3b',
         schedule.quarterly?.gstr3b,

@@ -54,7 +54,7 @@
         </div>
       </dl>
       @if (!c.phone && !c.whatsapp) {
-        <p class="mt-3 text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1">
+        <p class="mt-3 text-xs text-warning flex items-center gap-1">
           <span class="material-symbols-outlined text-[16px]">info</span>
           No number set — clients can't call or WhatsApp the firm from the app.
         </p>
@@ -112,8 +112,8 @@
               </div>
               <div class="flex items-center gap-1.5 mt-0.5 text-xs">
                 @if (s.is_active) {
-                  <span class="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
-                    <span class="size-1.5 rounded-full bg-emerald-500"></span> Visible
+                  <span class="inline-flex items-center gap-1 text-success">
+                    <span class="size-1.5 rounded-full bg-success"></span> Visible
                   </span>
                 } @else {
                   <span class="inline-flex items-center gap-1 text-on-surface-variant dark:text-neutral-400">
@@ -137,7 +137,7 @@
 
           <div class="mt-auto pt-4 flex items-center gap-1 text-xs text-on-surface-variant dark:text-neutral-400">
             @if (!s.body_md.trim()) {
-              <span class="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+              <span class="inline-flex items-center gap-1 text-warning">
                 <span class="material-symbols-outlined text-[15px]">warning</span> No page content
               </span>
             } @else {
@@ -170,7 +170,7 @@
 }
 
 <!-- Edit firm contact details -->
-<app-modal [open]="contactModal()" (close)="contactModal.set(false)">
+<app-modal variant="panel" [open]="contactModal()" (close)="contactModal.set(false)">
   <div class="p-6">
     <div class="flex items-center justify-between mb-5">
       <h2 class="font-headline-md text-headline-md text-on-surface">Firm contact details</h2>
@@ -213,7 +213,7 @@
             <button type="button" (click)="toggleDay(i)"
               class="h-8 min-w-11 px-2 rounded-md border text-xs font-medium transition-colors"
               [class]="contactForm().open_days.includes(i)
-                ? 'bg-primary text-on-primary border-transparent dark:bg-white dark:text-neutral-900'
+                ? 'bg-brand text-on-brand border-transparent'
                 : 'border-outline-variant text-on-surface-variant'">
               {{ d }}
             </button>

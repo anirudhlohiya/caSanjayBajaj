@@ -11,9 +11,13 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { Observable, map } from 'rxjs';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../common/guards/roles.guard';
+import { Observable, concatMap, map, takeWhile } from 'rxjs';
+import { DataSource } from 'typeorm';
+import {
+  JwtAuthGuard,
+  refreshAdminAccess,
+} from '../common/guards/jwt-auth.guard';
+import { adminCan, PermissionsGuard } from '../common/guards/roles.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
@@ -100,10 +104,11 @@ export class WhatsappChatsController {
     private readonly chatsService: WhatsappChatsService,
     private readonly eventsService: WhatsappEventsService,
     private readonly audit: AuditService,
+    private readonly dataSource: DataSource,
   ) {}
 
   @Get('conversations')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({ summary: 'List WhatsApp conversations' })
   async listConversations(
     @Query('status') status?: string,
@@ -120,14 +125,14 @@ export class WhatsappChatsController {
   }
 
   @Get('templates')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({ summary: 'Approved WhatsApp templates for staff messages' })
   async listTemplates() {
     return this.chatsService.listTemplates();
   }
 
   @Post('conversations/start')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({
     summary: 'Start a conversation with an approved template (client or phone)',
   })
@@ -150,7 +155,7 @@ export class WhatsappChatsController {
   }
 
   @Post('conversations/:id/template')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({
     summary: 'Send an approved template in an existing conversation',
   })
@@ -174,14 +179,14 @@ export class WhatsappChatsController {
   }
 
   @Get('usage')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({ summary: 'Get monthly WhatsApp usage vs 1,000 free tier' })
   async getUsage() {
     return this.chatsService.getMonthlyUsageStats();
   }
 
   @Get('conversations/:id/messages')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({ summary: 'Get messages for a conversation' })
   async getMessages(
     @Param('id', ParseUUIDPipe) id: string,
@@ -196,7 +201,7 @@ export class WhatsappChatsController {
   }
 
   @Post('conversations/:id/messages')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({ summary: 'Staff sends a message via WhatsApp Cloud API' })
   async sendStaffMessage(
     @Param('id', ParseUUIDPipe) id: string,
@@ -207,7 +212,7 @@ export class WhatsappChatsController {
   }
 
   @Patch('conversations/:id/takeover')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({ summary: 'Staff takes over the conversation' })
   async takeover(
     @Param('id', ParseUUIDPipe) id: string,
@@ -217,35 +222,35 @@ export class WhatsappChatsController {
   }
 
   @Patch('conversations/:id/release')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({ summary: 'Hand back conversation to AI' })
   async release(@Param('id', ParseUUIDPipe) id: string) {
     return this.chatsService.release(id);
   }
 
   @Patch('conversations/:id/escalate')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({ summary: 'Escalate conversation' })
   async escalate(@Param('id', ParseUUIDPipe) id: string) {
     return this.chatsService.setStatus(id, 'escalated');
   }
 
   @Patch('conversations/:id/close')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({ summary: 'Close conversation' })
   async close(@Param('id', ParseUUIDPipe) id: string) {
     return this.chatsService.setStatus(id, 'closed');
   }
 
   @Patch('conversations/:id/read')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({ summary: 'Mark conversation as read' })
   async markAsRead(@Param('id', ParseUUIDPipe) id: string) {
     return this.chatsService.markAsRead(id);
   }
 
   @Patch('conversations/:id')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({ summary: 'Update conversation metadata and internal notes' })
   async updateMetadata(
     @Param('id', ParseUUIDPipe) id: string,
@@ -255,12 +260,22 @@ export class WhatsappChatsController {
   }
 
   @Sse('stream')
-  @Permissions('view_clients')
+  @Permissions('manage_whatsapp')
   @ApiOperation({
     summary: 'Server-Sent Events for real-time WhatsApp chat updates',
   })
-  stream(): Observable<{ data: string }> {
+  stream(@CurrentUser() auth: AuthUser): Observable<{ data: string }> {
+    // The connection stays open for hours, so the guard's check at connect
+    // time is not enough: re-check before each event and hang up as soon as
+    // this admin is deactivated or loses WhatsApp access.
+    const stillAllowed = () =>
+      refreshAdminAccess(this.dataSource, auth).then(
+        () => adminCan(auth, 'manage_whatsapp'),
+        () => false,
+      );
     return this.eventsService.getStream().pipe(
+      concatMap(async (event) => ((await stillAllowed()) ? event : null)),
+      takeWhile((event) => event !== null),
       map((event) => ({
         data: JSON.stringify(event),
       })),

@@ -31,7 +31,7 @@ export const routes: Routes = [
       },
       {
         path: 'reports',
-        canActivate: [permissionGuard('upload_reports')],
+        canActivate: [permissionGuard('view_reports')],
         loadComponent: () => import('./features/reports/reports').then((m) => m.Reports),
       },
       {
@@ -77,17 +77,17 @@ export const routes: Routes = [
       },
       {
         path: 'tickets',
-        canActivate: [permissionGuard('view_clients')],
+        canActivate: [permissionGuard('manage_tickets')],
         loadComponent: () => import('./features/tickets/tickets').then((m) => m.TicketsPage),
       },
       {
         path: 'tickets/:id',
-        canActivate: [permissionGuard('view_clients')],
+        canActivate: [permissionGuard('manage_tickets')],
         loadComponent: () => import('./features/tickets/ticket-detail').then((m) => m.TicketDetailPage),
       },
       {
         path: 'whatsapp-chats',
-        canActivate: [permissionGuard('view_clients')],
+        canActivate: [permissionGuard('manage_whatsapp')],
         loadComponent: () => import('./features/whatsapp-chats/whatsapp-chats').then((m) => m.WhatsappChatsPage),
       },
       {
@@ -97,12 +97,12 @@ export const routes: Routes = [
       },
       {
         path: 'rent-agreements',
-        canActivate: [permissionGuard('view_clients')],
+        canActivate: [permissionGuard('manage_rent_agreements')],
         loadComponent: () => import('./features/rent-agreements/rent-agreements-list').then((m) => m.RentAgreementsList),
       },
       {
         path: 'rent-agreements/create',
-        canActivate: [permissionGuard('view_clients')],
+        canActivate: [permissionGuard('manage_rent_agreements')],
         loadComponent: () => import('./features/rent-agreements/rent-agreements-create').then((m) => m.RentAgreementsCreate),
       },
       {

@@ -94,7 +94,7 @@
                     </span>
                   }
                   @if (!r.is_active) {
-                    <span class="text-[11px] px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500">Hidden</span>
+                    <span class="text-[11px] px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant">Hidden</span>
                   }
                 </div>
                 <p class="text-xs text-on-surface-variant dark:text-neutral-400 mt-0.5 truncate">
@@ -104,7 +104,7 @@
               </div>
               @let left = daysLeft(r.due_date);
               <span class="hidden sm:inline text-xs tabular-nums shrink-0"
-                [class]="left < 0 ? 'text-on-surface-variant' : left <= 7 ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-on-surface-variant'">
+                [class]="left < 0 ? 'text-on-surface-variant' : left <= 7 ? 'text-error font-semibold' : 'text-on-surface-variant'">
                 {{ left < 0 ? 'Passed' : left === 0 ? 'Today' : left + ' days' }}
               </span>
               <div class="flex items-center gap-0.5 shrink-0" (click)="$event.stopPropagation()">
@@ -124,7 +124,7 @@
 }
 
 <!-- Add / edit -->
-<app-modal [open]="modalOpen()" (close)="modalOpen.set(false)">
+<app-modal variant="panel" [open]="modalOpen()" (close)="modalOpen.set(false)">
   <div class="p-6">
     <div class="flex items-center justify-between mb-5">
       <h2 class="font-headline-md text-headline-md text-on-surface">{{ editingId() ? 'Edit due date' : 'Add due date' }}</h2>
@@ -218,7 +218,7 @@
 
     <div class="flex items-center gap-2 mt-6">
       @if (editingId()) {
-        <button class="px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-md" (click)="remove()">Delete</button>
+        <button class="px-3 py-2 text-sm text-error hover:bg-error-container rounded-md" (click)="remove()">Delete</button>
       }
       <button class="btn-outline ml-auto" (click)="modalOpen.set(false)">Cancel</button>
       <button class="btn-primary" [disabled]="!formValid() || saving()" (click)="save()">

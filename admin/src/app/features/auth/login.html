@@ -1,69 +1,82 @@
-<div class="w-full min-h-full flex items-center justify-center bg-background p-6">
-  <div
-    class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-outline-variant p-8 flex flex-col gap-6"
-  >
-    <div class="flex flex-col items-center justify-center gap-2">
-      <div class="w-24 h-24 rounded-full flex items-center justify-center mb-2 overflow-hidden relative">
-        <img src="/logo-login.png" alt="S N Bajaj And Co Logo" class="w-full h-full object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'" />
-        <span class="material-symbols-outlined text-primary text-3xl absolute inset-0 flex items-center justify-center" style="display:none; font-variation-settings: 'FILL' 1;">account_balance</span>
+<div class="w-full min-h-full grid lg:grid-cols-2 bg-surface">
+  <!-- Navy brand panel (wide screens only); the form alone on phones. -->
+  <section class="hidden lg:flex flex-col justify-between p-14 text-white bg-gradient-to-b from-side-from to-side-to">
+    <div class="flex items-center gap-3.5">
+      <!-- relative path: the panel is served under /admin/ -->
+      <img src="logo-round.webp" alt="" width="56" height="56" class="size-14 rounded-full ring-2 ring-gold" />
+      <div>
+        <p class="text-xl font-semibold">S N Bajaj &amp; Co</p>
+        <p class="text-xs tracking-[0.08em] text-white/65">CHARTERED ACCOUNTANTS · SURAT</p>
       </div>
-      <h1 class="font-headline-lg text-headline-lg text-secondary">S N BAJAJ AND CO</h1>
-      <p class="font-body-sm text-body-sm text-on-surface-variant">Admin Portal</p>
     </div>
-
-    <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
-      <div class="flex flex-col gap-1">
-        <label class="font-label-md text-label-md text-on-surface" for="email">Email Address</label>
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none" style="font-size: 18px">mail</span>
-          <input
-            id="email"
-            formControlName="email"
-            class="w-full pl-10 pr-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim transition-all"
-            placeholder="admin@firm.com"
-            type="email"
-          />
-        </div>
-        @if (form.controls.email.touched && form.controls.email.invalid) {
-          <span class="text-error text-body-sm">Enter a valid email address</span>
-        }
-      </div>
-
-      <div class="flex flex-col gap-1">
-        <label class="font-label-md text-label-md text-on-surface" for="password">Password</label>
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none" style="font-size: 18px">lock</span>
-          <input
-            id="password"
-            formControlName="password"
-            class="w-full pl-10 pr-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary-fixed-dim transition-all"
-            placeholder="••••••••"
-            type="password"
-          />
-        </div>
-        @if (form.controls.password.touched && form.controls.password.invalid) {
-          <span class="text-error text-body-sm">Password must be at least 8 characters</span>
-        }
-      </div>
-
-      <button
-        type="submit"
-        [disabled]="loading()"
-        class="mt-2 w-full bg-primary hover:bg-secondary text-on-primary font-headline-sm text-headline-sm py-2 px-4 rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-      >
-        @if (loading()) {
-          <span class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
-        } @else {
-          <span>Login</span>
-          <span class="material-symbols-outlined" style="font-size: 18px">arrow_forward</span>
-        }
-      </button>
-    </form>
-
-    <div class="text-center border-t border-outline-variant pt-4">
-      <p class="font-body-sm text-body-sm text-outline">
-        Secure institutional access only.
-      </p>
+    <div>
+      <div class="w-10 h-[3px] rounded-sm bg-gold"></div>
+      <p class="mt-4 max-w-[420px] text-3xl font-semibold leading-tight">Admin portal for the S N Bajaj team</p>
+      <p class="mt-2.5 text-white/70">Clients, documents, reports and reminders in one place.</p>
     </div>
-  </div>
+    <p class="text-xs text-white/50">Staff access only</p>
+  </section>
+
+  <section class="flex items-center justify-center p-6">
+    <div class="w-full max-w-[380px] flex flex-col gap-6">
+      <div class="flex flex-col items-center gap-2 lg:hidden">
+        <img src="logo-round.webp" alt="S N Bajaj And Co" width="72" height="72" class="size-18 rounded-full ring-2 ring-gold" />
+        <p class="text-lg font-semibold text-primary">S N Bajaj &amp; Co</p>
+      </div>
+      <div>
+        <h1 class="text-2xl font-semibold text-on-surface">Admin Portal</h1>
+        <p class="mt-1 text-sm text-on-surface-variant">Sign in with your staff account.</p>
+      </div>
+
+      <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
+        <div>
+          <label class="label" for="email">Email Address</label>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[18px]" aria-hidden="true">mail</span>
+            <input id="email" formControlName="email" class="input !pl-10" placeholder="admin@firm.com" type="email" autocomplete="username" />
+          </div>
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <p class="mt-1 text-error text-body-sm">Enter a valid email address</p>
+          }
+        </div>
+
+        <div>
+          <label class="label" for="password">Password</label>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[18px]" aria-hidden="true">lock</span>
+            <input
+              id="password"
+              formControlName="password"
+              class="input !pl-10 !pr-11"
+              placeholder="••••••••"
+              [type]="showPassword() ? 'text' : 'password'"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              (click)="showPassword.set(!showPassword())"
+              class="absolute right-1 top-1/2 -translate-y-1/2 size-9 flex items-center justify-center rounded-md text-on-surface-variant hover:bg-surface-container cursor-pointer"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            >
+              <span class="material-symbols-outlined text-[18px]">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <p class="mt-1 text-error text-body-sm">Password must be at least 8 characters</p>
+          }
+        </div>
+
+        <button type="submit" [disabled]="loading()" class="btn-primary mt-2 w-full h-11 justify-center disabled:opacity-60 disabled:cursor-not-allowed">
+          @if (loading()) {
+            <span class="w-4 h-4 border-2 border-on-brand border-t-transparent rounded-full animate-spin"></span>
+          } @else {
+            <span>Login</span>
+            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          }
+        </button>
+      </form>
+
+      <p class="text-center text-body-sm text-on-surface-variant lg:hidden">Staff access only</p>
+    </div>
+  </section>
 </div>

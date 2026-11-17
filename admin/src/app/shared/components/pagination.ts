@@ -11,11 +11,11 @@ import {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-wrap items-center justify-between gap-sm">
-      <span class="text-body-sm text-on-surface-variant px-sm">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <span class="text-body-sm text-on-surface-variant px-2">
         Showing {{ start() }} to {{ end() }} of {{ total() }} entries
       </span>
-      <div class="flex gap-xs">
+      <div class="flex gap-1">
         <button
           class="p-1 rounded text-on-surface-variant hover:bg-surface-container-high disabled:opacity-40 disabled:cursor-not-allowed"
           (click)="go(page() - 1)"

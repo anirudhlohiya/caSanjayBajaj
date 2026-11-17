@@ -15,9 +15,9 @@ import { PermissionsGuard, RolesGuard } from '../common/guards/roles.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
-import { PaginationQueryDto } from '../common/dto/pagination';
 import { TicketsService } from './tickets.service';
 import {
+  TicketListQueryDto,
   CreateTicketDto,
   CreateTicketMessageDto,
   UpdateTicketStatusDto,
@@ -33,10 +33,7 @@ export class ClientTicketsController {
 
   @Get()
   @ApiOperation({ summary: 'List my tickets' })
-  list(
-    @CurrentUser() user: AuthUser,
-    @Query() query: PaginationQueryDto & { status?: string },
-  ) {
+  list(@CurrentUser() user: AuthUser, @Query() query: TicketListQueryDto) {
     return this.ticketsService.listForUser(user.sub, query);
   }
 
@@ -102,23 +99,21 @@ export class AdminTicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
 
   @Get()
-  @Permissions('view_clients')
+  @Permissions('manage_tickets')
   @ApiOperation({ summary: 'List all tickets' })
-  list(
-    @Query() query: PaginationQueryDto & { status?: string; user_id?: string },
-  ) {
+  list(@Query() query: TicketListQueryDto) {
     return this.ticketsService.listAll(query);
   }
 
   @Get(':id')
-  @Permissions('view_clients')
+  @Permissions('manage_tickets')
   @ApiOperation({ summary: 'Get ticket detail with messages' })
   get(@Param('id', ParseUUIDPipe) id: string) {
     return this.ticketsService.findOneAdmin(id);
   }
 
   @Post(':id/messages')
-  @Permissions('view_clients')
+  @Permissions('manage_tickets')
   @ApiOperation({ summary: 'Reply to a ticket as admin' })
   reply(
     @CurrentUser() admin: AuthUser,
@@ -129,7 +124,7 @@ export class AdminTicketsController {
   }
 
   @Patch(':id/status')
-  @Permissions('view_clients')
+  @Permissions('manage_tickets')
   @ApiOperation({ summary: 'Update ticket status' })
   updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -139,7 +134,7 @@ export class AdminTicketsController {
   }
 
   @Post('attachments/:attachmentId/download-url')
-  @Permissions('view_clients')
+  @Permissions('manage_tickets')
   @ApiOperation({ summary: 'Get presigned download URL for an attachment' })
   attachmentDownloadUrl(
     @Param('attachmentId', ParseUUIDPipe) attachmentId: string,

@@ -101,7 +101,10 @@ export class Settings implements OnInit {
     const year = Number(yearStr);
     const month = Number(monthStr);
     const pad = (d: number) => String(d).padStart(2, '0');
-    const inPeriod = (day: number) => `${year}-${pad(month)}-${pad(day)}`;
+    // Returns are filed the month after the period ("October 2026" → November).
+    const filingYear = month === 12 ? year + 1 : year;
+    const filingMonth = month === 12 ? 1 : month + 1;
+    const inPeriod = (day: number) => `${filingYear}-${pad(filingMonth)}-${pad(day)}`;
     const qIndex = Math.floor((month - 1) / 3);
     const endMonth = qIndex * 3 + 3;
     const settlingMonth = endMonth === 12 ? 1 : endMonth + 1;

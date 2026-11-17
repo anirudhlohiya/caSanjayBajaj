@@ -76,13 +76,18 @@ export interface ClientCertificate {
 
 export const PERMISSIONS = [
   'view_clients',
+  'manage_clients',
   'view_documents',
-  'upload_reports',
+  'manage_documents',
+  'view_reports',
+  'manage_reports',
   'send_reminders',
-  'manage_staff',
-  'view_audit_logs',
-  'manage_settings',
+  'manage_tickets',
+  'manage_whatsapp',
+  'manage_rent_agreements',
   'manage_website',
+  'manage_settings',
+  'view_audit_logs',
 ] as const;
 export type PermissionKey = (typeof PERMISSIONS)[number];
 
@@ -256,16 +261,19 @@ export interface RecentActivityItem {
 }
 
 export interface DashboardStats {
-  total_clients: number;
-  active_clients: number;
-  documents_received: number;
-  documents_processed: number;
-  reports_total: number;
-  reports_this_month: number;
-  reminders_sent_total: number;
+  // null = this admin has no access to that area
+  total_clients: number | null;
+  active_clients: number | null;
+  documents_received: number | null;
+  documents_processed: number | null;
+  reports_total: number | null;
+  reports_this_month: number | null;
+  reminders_sent_total: number | null;
   open_periods: number;
   upcoming_due_dates: FilingPeriod[];
   recent_activity: RecentActivityItem[];
+  /** Last six months, oldest first; null without documents access (absent on an older backend). */
+  documents_by_month?: { month: string; count: number }[] | null;
 }
 
 export interface UploadUrl {

@@ -68,7 +68,7 @@ export class ComplianceTasksController {
 
   /** Admin confirms a nil filing → task completed (docs/13 §3.5). */
   @Roles('super_admin', 'staff')
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @Patch('admin/:id/nil-confirm')
   async confirmNil(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.tasksService.confirmNil(id, user.sub);
@@ -85,7 +85,7 @@ export class ComplianceTasksController {
   }
 
   @Roles('super_admin', 'staff')
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @Post('admin/client/:clientId/auto-generate')
   async adminAutoGenerateTasks(
     @Param('clientId') clientId: string,
@@ -95,7 +95,7 @@ export class ComplianceTasksController {
   }
 
   @Roles('super_admin', 'staff')
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @Patch('admin/:id/payment')
   async updatePayment(
     @Param('id') id: string,
@@ -111,7 +111,7 @@ export class ComplianceTasksController {
 
   /** CA marks a return as filed → client alerted on all channels. */
   @Roles('super_admin', 'staff')
-  @Permissions('view_clients')
+  @Permissions('manage_reports')
   @Patch('admin/:id/filed')
   async markFiled(
     @CurrentUser() user: AuthUser,
@@ -123,7 +123,7 @@ export class ComplianceTasksController {
 
   /** Manual GST payment reminder (never automatic). */
   @Roles('super_admin', 'staff')
-  @Permissions('view_clients')
+  @Permissions('send_reminders')
   @Post('admin/:id/payment-reminder')
   async sendPaymentReminder(
     @CurrentUser() user: AuthUser,
@@ -133,7 +133,7 @@ export class ComplianceTasksController {
   }
 
   @Roles('super_admin', 'staff')
-  @Permissions('view_clients')
+  @Permissions('manage_clients')
   @Patch('admin/:id/status')
   async updateStatus(
     @Param('id') id: string,

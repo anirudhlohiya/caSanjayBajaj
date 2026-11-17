@@ -25,14 +25,14 @@ describe('PermissionsGuard', () => {
   });
 
   it('allows staff with the required permission', () => {
-    reflector.getAllAndOverride = jest.fn().mockReturnValue(['upload_reports']);
+    reflector.getAllAndOverride = jest.fn().mockReturnValue(['manage_reports']);
     const guard = new PermissionsGuard(reflector);
     const result = guard.canActivate(
       makeCtx({
         type: 'admin',
         sub: 'a2',
         role: 'staff',
-        permissions: ['view_clients', 'upload_reports'],
+        permissions: ['view_clients', 'manage_reports'],
       }),
     );
     expect(result).toBe(true);
@@ -46,6 +46,36 @@ describe('PermissionsGuard', () => {
         makeCtx({
           type: 'admin',
           sub: 'a3',
+          role: 'staff',
+          permissions: ['view_clients'],
+        }),
+      ),
+    ).toThrow(ForbiddenException);
+  });
+
+  it('"can change" includes "can view"', () => {
+    reflector.getAllAndOverride = jest.fn().mockReturnValue(['view_clients']);
+    const guard = new PermissionsGuard(reflector);
+    expect(
+      guard.canActivate(
+        makeCtx({
+          type: 'admin',
+          sub: 'a4',
+          role: 'staff',
+          permissions: ['manage_clients'],
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('"can view" does not include "can change"', () => {
+    reflector.getAllAndOverride = jest.fn().mockReturnValue(['manage_clients']);
+    const guard = new PermissionsGuard(reflector);
+    expect(() =>
+      guard.canActivate(
+        makeCtx({
+          type: 'admin',
+          sub: 'a5',
           role: 'staff',
           permissions: ['view_clients'],
         }),

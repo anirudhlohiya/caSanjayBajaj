@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { StaffService } from '../../core/services/feature.services';
 import { ToastService } from '../../core/services/toast.service';
@@ -31,19 +31,35 @@ export class Staff implements OnInit {
   readonly permSaving = signal(false);
   readonly granted = signal<Set<string>>(new Set());
 
-  readonly permissionLabels: Record<string, string> = {
-    view_clients: 'View clients',
-    view_documents: 'View documents',
-    upload_reports: 'Upload reports',
-    send_reminders: 'Send reminders',
-    manage_staff: 'Manage staff',
-    view_audit_logs: 'View audit logs',
-    manage_settings: 'Manage settings',
+  /** One row per area of the panel. `view` is absent where there is only on/off. */
+  readonly areas: { label: string; hint: string; view?: string; manage: string }[] = [
+    { label: 'Clients', hint: 'Client list, profiles, family members, filing checklist', view: 'view_clients', manage: 'manage_clients' },
+    { label: 'Documents', hint: 'Files uploaded by clients', view: 'view_documents', manage: 'manage_documents' },
+    { label: 'Reports and filed returns', hint: 'GST reports, ITR returns, certificates, mark as filed', view: 'view_reports', manage: 'manage_reports' },
+    { label: 'Reminders', hint: 'Send document and payment reminders', manage: 'send_reminders' },
+    { label: 'Support tickets', hint: 'Read and reply to client tickets', manage: 'manage_tickets' },
+    { label: 'WhatsApp chats', hint: 'Read and reply on the firm WhatsApp number', manage: 'manage_whatsapp' },
+    { label: 'Rent agreements', hint: 'Create, edit and download agreements', manage: 'manage_rent_agreements' },
+    { label: 'Website content', hint: 'Blog, enquiries, services, due dates, FAQs', manage: 'manage_website' },
+    { label: 'Settings', hint: 'Filing periods and schedules', manage: 'manage_settings' },
+    { label: 'Audit logs', hint: 'See who did what', manage: 'view_audit_logs' },
+  ];
+
+  // Mirrors PERMISSION_IMPLIES in backend/src/common/enums (the server applies it again on save).
+  private readonly implies: Record<string, string[]> = {
+    manage_clients: ['view_clients'],
+    manage_documents: ['view_documents'],
+    view_reports: ['view_clients'],
+    manage_reports: ['view_reports', 'view_clients'],
+    send_reminders: ['view_clients'],
+    manage_whatsapp: ['view_clients'],
   };
 
-  readonly permissionEntries = computed(() =>
-    Object.entries(this.permissionLabels),
-  );
+  readonly resetAdmin = signal<Admin | null>(null);
+  readonly resetting = signal(false);
+  readonly resetForm = this.fb.nonNullable.group({
+    password: ['', [Validators.required, Validators.minLength(8)]],
+  });
 
   readonly addForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(120)]],
@@ -120,11 +136,66 @@ export class Staff implements OnInit {
     }
   }
 
-  togglePermission(key: string, checked: boolean): void {
+  levelOf(area: { view?: string; manage: string }): 'none' | 'view' | 'manage' {
+    const g = this.granted();
+    if (g.has(area.manage)) return 'manage';
+    return area.view && g.has(area.view) ? 'view' : 'none';
+  }
+
+  /** Choices for one area's segmented switch. */
+  levelsFor(area: { view?: string }): { value: 'none' | 'view' | 'manage'; label: string }[] {
+    return area.view
+      ? [
+          { value: 'none', label: 'No access' },
+          { value: 'view', label: 'Can view' },
+          { value: 'manage', label: 'Can view and change' },
+        ]
+      : [
+          { value: 'none', label: 'No access' },
+          { value: 'manage', label: 'Allowed' },
+        ];
+  }
+
+  setLevel(area: { view?: string; manage: string }, level: string): void {
     const next = new Set(this.granted());
-    if (checked) next.add(key);
-    else next.delete(key);
+    next.delete(area.manage);
+    if (area.view) next.delete(area.view);
+    if (level === 'manage') next.add(area.manage);
+    if (level === 'view' && area.view) next.add(area.view);
+    // Re-add anything another area still needs (e.g. Reports needs Clients: view).
+    for (const key of [...next]) {
+      for (const implied of this.implies[key] ?? []) next.add(implied);
+    }
     this.granted.set(next);
+  }
+
+  /** 14 characters, no look-alikes (0/O, 1/l/I), from the browser's secure generator. */
+  generatePassword(): string {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    const bytes = crypto.getRandomValues(new Uint32Array(14));
+    return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('');
+  }
+
+  openReset(admin: Admin): void {
+    this.resetForm.reset({ password: '' });
+    this.resetAdmin.set(admin);
+  }
+
+  async submitReset(): Promise<void> {
+    const admin = this.resetAdmin();
+    if (!admin) return;
+    if (this.resetForm.invalid) {
+      this.resetForm.markAllAsTouched();
+      return;
+    }
+    this.resetting.set(true);
+    try {
+      await this.staffService.resetPassword(admin.id, this.resetForm.controls.password.value);
+      this.toast.success(`New password set for ${admin.name}`);
+      this.resetAdmin.set(null);
+    } finally {
+      this.resetting.set(false);
+    }
   }
 
   async savePermissions(): Promise<void> {

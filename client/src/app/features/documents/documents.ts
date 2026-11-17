@@ -19,6 +19,7 @@ import {
   ReportsService,
   ItrReturnsService,
   FamilyMembersService,
+  workingPeriod,
 } from '../../core/services/feature.services';
 import {
   Document,
@@ -143,14 +144,10 @@ export class Documents {
     () => this.authService.userProfile()?.gst_filing_frequency ?? 'monthly',
   );
 
-  readonly currentPeriod = computed(() => {
-    const pid = this.periodId();
-    if (pid) {
-      const match = this.periods().find((p) => p.id === pid);
-      if (match) return match;
-    }
-    return this.periods()[0];
-  });
+  /** The chosen month; none when "All filing periods" is picked. */
+  readonly currentPeriod = computed(() =>
+    this.periods().find((p) => p.id === this.periodId()),
+  );
 
   /** Tasks that need a document upload (every category except GST payment). */
   readonly uploadTasks = computed(() =>
@@ -184,6 +181,11 @@ export class Documents {
   }
 
   async init(): Promise<void> {
+    // On a reload or deep link the profile is still loading; without it a GST
+    // client only gets the General tab.
+    if (!this.authService.userProfile()) {
+      await this.authService.loadProfile().catch(() => null);
+    }
     const unlocked = this.availableTabs().map((t) => t.id);
     const qTab = this.route.snapshot.queryParamMap.get('tab') as
       | 'gst'
@@ -205,9 +207,10 @@ export class Documents {
       if (unlocked.includes('gst')) {
         const periods = await this.periodsService.list();
         this.periods.set(periods);
-        if (periods.length > 0) {
-          if (!this.periodId()) this.periodId.set(periods[0].id);
-          this.reportPeriodId = periods[0].id;
+        const working = workingPeriod(periods);
+        if (working) {
+          if (!this.periodId()) this.periodId.set(working.id);
+          this.reportPeriodId = working.id;
         }
       }
     } catch {

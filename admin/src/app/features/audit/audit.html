@@ -3,7 +3,7 @@
 
 <div class="flex flex-wrap items-center gap-2 mb-4">
   <select
-    class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary text-body-sm"
+    class="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:outline-none focus:border-brand text-body-sm"
     [value]="actionFilter()"
     (change)="actionFilter.set($any($event.target).value); applyFilter()"
   >
@@ -15,7 +15,7 @@
   </select>
 </div>
 
-<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+<div class="card overflow-hidden">
   @if (loading()) {
     <app-spinner />
   } @else {
@@ -65,9 +65,9 @@
             <tr class="border-b border-outline-variant hover:bg-row-hover transition-colors">
               <td class="p-4 text-on-surface-variant tabular-nums whitespace-nowrap">{{ fmtDate(l.created_at) }}</td>
               <td class="p-4 font-medium text-on-surface">{{ l.admin?.name ?? 'System' }}</td>
-              <td class="p-4 text-on-surface">{{ actionLabel(l.action) }}</td>
+              <td class="p-4"><span class="inline-flex rounded-full bg-brand-tint text-brand-ink px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap">{{ actionLabel(l.action) }}</span><span class="block mt-1 font-mono text-[11px] text-on-surface-variant">{{ l.action }}</span></td>
               <td class="p-4 text-on-surface-variant">{{ l.target_user?.name ?? (l.target_period?.period_label ?? '—') }}</td>
-              <td class="p-4 text-on-surface-variant max-w-xs truncate">{{ l.detail | json }}</td>
+              <td class="p-4 text-on-surface-variant max-w-md break-words whitespace-pre-wrap font-mono text-[11px]">{{ l.detail | json }}</td>
             </tr>
           } @empty {
             <tr>

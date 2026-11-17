@@ -6,6 +6,8 @@ export interface AuthUser {
   email: string;
   role?: string;
   permissions?: string[];
+  /** Token issue time (seconds), set by the JWT library. */
+  iat?: number;
 }
 
 export const CurrentUser = createParamDecorator(

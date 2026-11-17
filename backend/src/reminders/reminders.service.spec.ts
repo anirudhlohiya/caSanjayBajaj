@@ -78,7 +78,7 @@ describe('RemindersService', () => {
       id,
       period_label: 'October 2026',
       period_code: '2026-10',
-      due_date: '2026-10-11',
+      due_date: '2026-11-11',
       is_open: true,
       schedule,
     }) as GstFilingPeriod;
@@ -174,7 +174,7 @@ describe('RemindersService', () => {
       periodsRepo.find.mockResolvedValue([makePeriod('p1', null)]);
       tasks = [makeTask(monthlyUser, ComplianceCategory.GSTR_1)];
 
-      await service.handleAutoReminders('2026-10-05');
+      await service.handleAutoReminders('2026-11-05');
 
       expect(tasksRepo.find).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -215,7 +215,7 @@ describe('RemindersService', () => {
         makeTask(monthlyUser, ComplianceCategory.GSTR_1, { message_day: 0 }),
       ];
 
-      await service.handleAutoReminders('2026-10-07');
+      await service.handleAutoReminders('2026-11-07');
 
       expect(notifications.sendEmail).toHaveBeenCalledTimes(1);
       expect(tasksRepo.save).toHaveBeenCalledWith(
@@ -229,7 +229,7 @@ describe('RemindersService', () => {
         makeTask(monthlyUser, ComplianceCategory.GSTR_1, { message_day: 0 }),
       ];
 
-      await service.handleAutoReminders('2026-10-05');
+      await service.handleAutoReminders('2026-11-05');
 
       expect(notifications.sendEmail).not.toHaveBeenCalled();
       expect(notifications.pushToUser).not.toHaveBeenCalled();
@@ -249,7 +249,7 @@ describe('RemindersService', () => {
         }),
       ];
 
-      await service.handleAutoReminders('2026-10-05');
+      await service.handleAutoReminders('2026-11-05');
 
       expect(notifications.sendEmail).not.toHaveBeenCalled();
       expect(notifications.pushToUser).not.toHaveBeenCalled();
@@ -264,7 +264,7 @@ describe('RemindersService', () => {
 
       // The 5th fires both GSTR-1 and IFF matches (same day in the default
       // schedule); each chains to its own cadence's task.
-      await service.handleAutoReminders('2026-10-05');
+      await service.handleAutoReminders('2026-11-05');
 
       expect(notifications.sendEmail).toHaveBeenCalledTimes(2);
       const emails = notifications.sendEmail.mock
@@ -285,7 +285,7 @@ describe('RemindersService', () => {
       periodsRepo.find.mockResolvedValue([makePeriod('p1', null)]);
       tasks = [makeTask(monthlyUser, ComplianceCategory.GSTR_3B)];
 
-      await service.handleAutoReminders('2026-10-18');
+      await service.handleAutoReminders('2026-11-18');
 
       expect(notifications.sendEmail).toHaveBeenCalledTimes(1);
       const email = (
@@ -324,7 +324,7 @@ describe('RemindersService', () => {
       periodsRepo.find.mockResolvedValue([makePeriod('p1', null)]);
       tasks = [makeTask(monthlyUser, ComplianceCategory.GST_PAYMENT)];
 
-      await service.handleAutoReminders('2026-10-20');
+      await service.handleAutoReminders('2026-11-20');
 
       expect(notifications.sendEmail).not.toHaveBeenCalled();
       expect(notifications.pushToUser).not.toHaveBeenCalled();
@@ -339,7 +339,7 @@ describe('RemindersService', () => {
         .mockResolvedValueOnce(false)
         .mockResolvedValueOnce(true);
 
-      await service.handleAutoReminders('2026-10-05');
+      await service.handleAutoReminders('2026-11-05');
 
       expect(notifications.pushToUser).not.toHaveBeenCalled();
       expect(notifications.sendEmail).toHaveBeenCalledTimes(1);

@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-const GREEN = 'inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-[#E8F5E9] text-[#1B5E20]';
-const AMBER = 'inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-[#FFF3E0] text-[#E65100]';
-const BLUE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-secondary-fixed-dim/40 text-on-secondary-container';
+const GREEN = 'inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-success-tint text-success';
+const AMBER = 'inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-warning-tint text-warning';
+const BLUE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-brand-tint text-brand-ink';
 const RED = 'inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-error-container text-on-error-container';
 const GREY = 'inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-surface-container text-on-surface-variant';
 

@@ -89,7 +89,7 @@ export class DocumentsController {
   }
 
   @Patch('admin/documents/:id/processed')
-  @Permissions('view_documents')
+  @Permissions('manage_documents')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Mark a document as processed (admin)' })
   markProcessed(@CurrentUser() auth: AuthUser, @Param('id') id: string) {
@@ -97,7 +97,7 @@ export class DocumentsController {
   }
 
   @Patch('admin/documents/:id/assign')
-  @Permissions('view_documents')
+  @Permissions('manage_documents')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @ApiOperation({
     summary: 'File a document under a GST month or ITR year (admin)',
