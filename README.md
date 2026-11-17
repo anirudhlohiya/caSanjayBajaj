@@ -48,10 +48,41 @@ A modern, full-stack practice management and client communication platform built
 | <img src="screenshots/app.snbajaj.com_login.png" alt="Client Login" width="400" /> | <img src="screenshots/app.snbajaj.com_forgot-password.png" alt="Password Reset" width="400" /> |
 | *Secure credential sign-in for registered clients* | *Email OTP verification for seamless password recovery* |
 
-| Registration (Step 1: Email) | Registration (Step 2: Profile & OTP) |
+| Registration | |
 |:---:|:---:|
-| <img src="screenshots/app.snbajaj.com_signup.png" alt="Client Signup Step 1" width="400" /> | <img src="screenshots/app.snbajaj.com_signup_detial.png" alt="Client Signup Step 2" width="400" /> |
-| *Initial signup with email OTP verification dispatch* | *OTP validation, personal details, and account setup* |
+| <img src="screenshots/app.snbajaj.com_signup.png" alt="Client Signup" width="400" /> | |
+| *Signup with email OTP verification* | |
+
+### Admin Panel
+
+*Navy and gold brand shared with the client app, a grouped sidebar with live counts, and a Light / Dark / System theme switch.*
+
+| Dashboard | Dashboard (Dark Mode) |
+|:---:|:---:|
+| <img src="screenshots/admin_dashboard.png" alt="Admin Dashboard" width="480" /> | <img src="screenshots/admin_dashboard_dark.png" alt="Admin Dashboard in dark mode" width="480" /> |
+| *Stat cards, recent activity, due-date countdown and a 6-month documents chart* | *Every screen works in light and dark mode* |
+
+| Clients | Client Profile |
+|:---:|:---:|
+| <img src="screenshots/admin_clients.png" alt="Client Directory" width="480" /> | <img src="screenshots/admin_client_profile.png" alt="Client Profile Tabs" width="480" /> |
+| *Searchable client directory with type and status chips* | *Profile, Services, Documents, ITR and Family tabs* |
+
+| Staff & Permissions | Staff Access Editor |
+|:---:|:---:|
+| <img src="screenshots/admin_staff.png" alt="Staff list" width="480" /> | <img src="screenshots/admin_staff_access.png" alt="Staff access side panel" width="480" /> |
+| *Staff accounts with role and status* | *Per-area access: No access / Can view / Can view and change* |
+
+| Reports | Rent Agreements |
+|:---:|:---:|
+| <img src="screenshots/admin_reports.png" alt="Reports" width="480" /> | <img src="screenshots/admin_rent_agreements.png" alt="Rent Agreements" width="480" /> |
+| *Pending report requests on top, then the sent-report history* | *Agreement totals, drafts and generated documents* |
+
+| Admin Sign-In | |
+|:---:|:---:|
+| <img src="screenshots/admin_login.png" alt="Admin Login" width="480" /> | |
+| *Staff sign-in* | |
+
+> Screenshots use demo data; names and contact details are not real clients.
 
 ---
 
@@ -68,10 +99,11 @@ A modern, full-stack practice management and client communication platform built
 - **Notification Hub**: Real-time alerts and status updates on submitted documents and published CA reports.
 
 ### 2. Admin Management Panel
-- **Client & Staff Oversight**: Full client directory with bulk Excel import (`import-clients.ts`), pre-registration auto-linking, and granular role-based permissions (`view_clients`, `upload_reports`, `send_reminders`, `manage_services`, `manage_tickets`, etc.).
+- **Client & Staff Oversight**: Full client directory with bulk Excel import (`import-clients.ts`), pre-registration auto-linking, and per-area staff access (13 permission keys such as `view_clients` / `manage_clients`, `view_reports` / `manage_reports`, `manage_whatsapp`) checked on every request, so removing access takes effect immediately.
 - **Compliance Task Checklist**: Automated monthly & quarterly task generation for GSTR-1, GSTR-3B, IFF, Sales/Purchase bills, and GST payment tracking.
 - **Visual Filing Schedule Editor**: Intuitive calendar and deadline configuration without editing raw JSON schedules.
 - **Automated Rent Agreements**: Dynamic DOCX generation engine using `docxtemplater` & `pizzip`, WYSIWYG preview, and optional OnlyOffice integration.
+- **Redesigned UI**: Navy and gold brand matching the client app, light / dark / system themes, forms in a side panel, and phone-friendly layouts.
 - **Audit Logs**: Immutable logging of administrative actions, data edits, and reminder dispatches.
 
 ### 3. WhatsApp AI Support Desk
