@@ -10,7 +10,8 @@
 > `docs/09-run-and-test-guide.md` (run/test locally), `docs/10-phase5-deploy-runbook.md`
 > (deploy + security checklist), `docs/11-lightsail-migration-runbook.md` (migration to
 > Lightsail + CI/CD), `docs/12-interview-explanation.md` (interview-style walkthrough of the
-> architecture and migration).
+> architecture and migration), `docs/16-e2e-bug-report.md` (Nov 2026 end-to-end test
+> findings and what is still open).
 
 ## 1. What this project is
 
@@ -354,6 +355,16 @@ fileReplacements) — CORS irrelevant in production. Dev uses absolute
   - Migration `1800000000009-StaffAccessControl`: adds `sessions_valid_from`; existing staff keep what they had (`view_clients` → + manage_clients, tickets, WhatsApp, rent agreements; `view_documents` → + manage_documents; `upload_reports` → view + manage reports). One narrowing: "Mark filed" now needs `manage_reports`, payment reminder needs `send_reminders`.
   - Tests: `admin-endpoints.spec.ts` fails if any admin route lacks a guard + permission/role (111 routes); `jwt-auth.guard.spec.ts`; `test/staff-access.e2e-spec.ts` (real Postgres: no-access staff, view vs change, live-token changes, deactivate, password reset, migration carry-over). Totals: backend 302 unit + 15 integration.
   - Known limit: view-only staff still see the edit buttons; the server refuses with "You do not have access to do this". The admin UI refreshes its token on a 403 so menus catch up.
+
+- **Phase 24 (Nov 10–18 2026) — End-to-end test run + high-severity fixes — committed on branch `redesign/admin-navy-gold` (`5ff4e36`, report `2ba72c2`), NOT YET PUSHED / DEPLOYED**:
+  - Full local test of client (375 / 768 / 1366 px), admin and API with real S3, email + WhatsApp muted. Every finding with severity is in **`docs/16-e2e-bug-report.md`** (20 client, 14 admin, 8 API items); the high ones are fixed, medium / low are still open.
+  - **Filing period meaning (user's decision)**: a period is the month of the sales / purchases and is filed the NEXT month — "October 2026" → GSTR-1 due 11 Nov, GSTR-3B + payment 20 Nov, IFF 13 Nov; quarterly GSTR-3B unchanged (22nd after the quarter). `SchedulingService.filingMonthCode` + `defaultScheduleForPeriodCode`, `validateSchedule` checks the filing month; admin Settings prefill mirrors it. Previously tasks were dated inside the period month and disagreed with the due-date calendar.
+  - Migration `1800000000010-FilingMonthDueDates`: moves forward one month only the schedule dates, `gst_filing_periods.due_date` and monthly task `due_date`s that sit inside their own period month (staff-set later dates untouched). **Not reversible** (`down` is a no-op) — back up prod before deploying. Test: `backend/src/schedule/filing-month-migration.spec.ts` (kept out of `migrations/`, which the TypeORM CLI loads wholesale).
+  - **Ticket replies were being deleted**: `addMessageForAdmin` / `addMessageForUser` re-saved the ticket loaded with its old `messages` list after a status change, and TypeORM dropped the new message. Now `tickets.update(id, { status })`. So the first staff reply on every ticket (and a client follow-up after a reply) is probably missing on prod; clients still got the "new response" notification.
+  - Admin ticket page shows the whole thread + a reply box (it showed only the first message, no reply). Admin dashboard "Waiting for you" card lists pending GST/ITR applications and report-copy requests (user's choice: dashboard card). `GET /admin/tickets` / `me/tickets` 500 fixed (query typed as `PaginationQueryDto & {...}` skipped the defaults → `TicketListQueryDto`); sidebar ticket count works again. `POST /admin/staff` no longer returns `password_hash`. `period_code` must match `YYYY-MM` (was a 500).
+  - Client: page behind sheets no longer scrolls (`html:has([aria-modal="true"]) { overflow: hidden }` in `styles.css`; every sheet must keep `aria-modal="true"`). Documents waits for the profile before choosing tabs (reload used to show only "General"), opens on last month via shared `workingPeriod()` (also used by upload), "All filing periods" shows no period card, "View my documents" returns to the uploaded tab + month.
+  - Tests: backend 306 unit, client 89, admin 10 green; `staff-access` e2e green; `compliance-flow` e2e green on its own but fails when run right after `staff-access` (suites interfere via the shared test DB — not investigated); a full `E2E_ENABLED` run hung and was stopped.
+  - Known leftovers: older periods are due on the 10th, new ones on the 11th; the medium / low items in `docs/16`.
 
 - **Release checklist for Phases 16–18 (Oct 24 2026 push)**:
   - Deploy runs migrations `1800000000004-ServiceCatalogue`, `-0005-DueDates`, `-0006-FamilyMembers` automatically (`release-on-server.sh` → `npm run migration:run`, ts-node from `src/`, so the seed files `services-offered/default-services.ts` and `due-dates/default-due-dates.ts` must stay in `src/`).
